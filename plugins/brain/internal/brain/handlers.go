@@ -693,7 +693,11 @@ func (s *Service) Session(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	// The URL an MCP client should call: the explicit public URL, else the app's own URL.
 	pub := os.Getenv("CABRAIN_PUBLIC_URL")
+	if pub == "" {
+		pub = os.Getenv("APP_URL")
+	}
 	if pub == "" {
 		pub = "http://localhost:8080"
 	}

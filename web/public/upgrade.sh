@@ -1,7 +1,7 @@
 #!/bin/sh
 # cabrain-cli upgrade — update to the latest version, however you installed it.
 #
-#   curl -fsSL https://cabrain.fadymondy.com/upgrade.sh | sh
+#   curl -fsSL https://cabrain-app.fadymondy.com/upgrade.sh | sh
 #
 # Detects an npm global install vs. a standalone binary and updates in place.
 set -eu
@@ -16,7 +16,7 @@ say "current: $before"
 # Not installed at all → hand off to the installer.
 if [ -z "$BIN" ]; then
   warn "cabrain not found on PATH — running the installer"
-  exec sh -c "$(curl -fsSL https://cabrain.fadymondy.com/install.sh)"
+  exec sh -c "$(curl -fsSL https://cabrain-app.fadymondy.com/install.sh)"
 fi
 
 updated=0
@@ -51,7 +51,7 @@ fi
 # 3) standalone binary from install.sh → re-download latest into the same dir
 if [ "$updated" = 0 ]; then
   say "standalone binary at $BIN → downloading the latest release into $(dirname "$BIN")"
-  CABRAIN_BIN_DIR="$(dirname "$BIN")" sh -c "$(curl -fsSL https://cabrain.fadymondy.com/install.sh)"
+  CABRAIN_BIN_DIR="$(dirname "$BIN")" sh -c "$(curl -fsSL https://cabrain-app.fadymondy.com/install.sh)"
   updated=1
 fi
 

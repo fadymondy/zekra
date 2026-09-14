@@ -1,44 +1,18 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Boxes, Waypoints, Share2, Search as SearchIcon, HelpCircle, Lock, Network, ArrowRight,
-  MessagesSquare, Sparkles,
-} from "lucide-react";
+import { Network, ArrowRight, MessagesSquare } from "lucide-react";
+import { Button } from "@togo-framework/ui";
 import { brainApi, type ActivityItem } from "../lib/brain";
 import { BrainGraphView } from "../components/brain-graph-view";
-import { SynapseField, NeuralCellMark } from "../components/neural";
-import { hueForBrain } from "../lib/brain-colors";
+import { MemorySquare } from "../components/brand";
+import { Hatch, Panel, StatCells } from "../components/page";
 
-/** Compact stat tile for a single brain. */
-function Tile({ label, value, loading, icon: Icon, tone, to, namespace }: {
-  label: string; value: number; loading: boolean; icon: any;
-  tone?: "warn"; to?: string; namespace: string;
-}) {
-  const zero = !loading && value === 0;
-  const warn = tone === "warn" && !zero;
-  const body = (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-4 transition hover:border-primary/40">
-      <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500/15 via-violet-500/10 to-teal-400/10 blur-xl" />
-      <div className="relative mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <Icon className={`h-4 w-4 ${warn ? "text-amber-500" : zero ? "text-muted-foreground/40" : "text-primary"}`} />
-      </div>
-      <div className={`relative text-2xl font-semibold tabular-nums ${warn ? "text-amber-500" : zero ? "text-muted-foreground/50" : "text-foreground"}`}>
-        {loading ? "—" : value.toLocaleString()}
-      </div>
-    </div>
-  );
-  if (to) return <Link to={to} params={{ namespace }}>{body}</Link>;
-  return body;
-}
-
-/** Brain Overview — the flagship. "Everything wired over the brain": the rich
- * graph explorer for THIS brain is the centerpiece, framed by the brain's live
- * stat tiles and a compact recent-activity strip. */
+/** Brain Overview — the flagship. "Everything wired over the brain": the graph explorer for
+ * THIS brain is the centrepiece, framed by the brain's live stat cells, the invitation to ask
+ * it, and a compact recent-activity list. */
 export function BrainOverview({ namespace }: { namespace: string }) {
   const nav = useNavigate();
-  const accent = hueForBrain(namespace || "brain");
   const detail = useQuery({
     queryKey: ["brain", "detail", namespace],
     queryFn: () => brainApi.brainDetail(namespace),
@@ -66,73 +40,73 @@ export function BrainOverview({ namespace }: { namespace: string }) {
     () => (activity.data?.items ?? []).filter((i) => i.namespace === namespace).slice(0, 8),
     [activity.data, namespace],
   );
-  // Suggested questions from the brain's top named entities (Shape-of-AI:
-  // Suggestions / Initial CTA) — so the workspace opens with somewhere to go.
+  // Suggested questions from the brain's top named entities, so the workspace opens with
+  // somewhere to go.
   const suggestions = useMemo(() => {
     const named = nodes.filter((n) => !["root", "type"].includes(n.group ?? "")).map((n) => n.name).filter(Boolean);
     return Array.from(new Set(named)).slice(0, 4);
   }, [nodes]);
-  const loading = detail.isLoading;
+
+  const num = (n: number, isLoading: boolean) => (isLoading ? "—" : n.toLocaleString());
+  const gaps = d?.openGaps ?? 0;
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      {/* Live stat tiles for this brain */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <Tile label="Memories" value={d?.memories ?? 0} loading={loading} icon={Boxes} namespace={namespace} />
-        <Tile label="Graph nodes" value={nodes.length} loading={graph.isLoading} icon={Waypoints} namespace={namespace} />
-        <Tile label="Graph edges" value={edges.length} loading={graph.isLoading} icon={Share2} namespace={namespace} />
-        <Tile label="Recalls" value={d?.recalls ?? 0} loading={loading} icon={SearchIcon} namespace={namespace} />
-        <Tile label="Open gaps" value={d?.openGaps ?? 0} loading={loading} icon={HelpCircle} tone="warn" to="/b/$namespace/gaps" namespace={namespace} />
-        <Tile label="Secrets" value={secretCount} loading={secrets.isLoading} icon={Lock} to="/b/$namespace/secrets" namespace={namespace} />
-      </div>
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <StatCells
+        className="grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
+        stats={[
+          { label: "Memories", value: num(d?.memories ?? 0, detail.isLoading) },
+          { label: "Graph nodes", value: num(nodes.length, graph.isLoading) },
+          { label: "Graph edges", value: num(edges.length, graph.isLoading) },
+          { label: "Recalls", value: num(d?.recalls ?? 0, detail.isLoading) },
+          { label: "Open gaps", value: num(gaps, detail.isLoading), tone: gaps ? "warn" : "muted", to: "/b/$namespace/gaps", params: { namespace } },
+          { label: "Secrets", value: num(secretCount, secrets.isLoading), to: "/b/$namespace/secrets", params: { namespace } },
+        ]}
+      />
 
-      {/* Initial CTA — invite the operator to talk to the brain, seeded with its
-          own top entities as suggested questions (Shape-of-AI: Suggestions). */}
-      <div
-        className="relative overflow-hidden rounded-2xl border p-5"
-        style={{ borderColor: `${accent}33`, background: `radial-gradient(120% 100% at 0% 0%, ${accent}18, transparent 55%), color-mix(in srgb, var(--card) 85%, transparent)` }}
-      >
-        <SynapseField className="opacity-30" />
-        <div className="relative flex flex-wrap items-center gap-4">
-          <NeuralCellMark color={accent} size={44} />
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-foreground">Ask the <span style={{ color: accent }}>{namespace}</span> brain</div>
-            <div className="text-xs text-muted-foreground">A live agent grounded only in this brain's memories — every answer cites its sources.</div>
-            {suggestions.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => nav({ to: "/b/$namespace/chat", params: { namespace } })}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card/70 px-2.5 py-1 text-xs text-foreground transition hover:border-primary/50 hover:text-primary"
-                  >
-                    <Sparkles className="h-3 w-3" style={{ color: accent }} /> Tell me about {s}
-                  </button>
-                ))}
-              </div>
-            )}
+      {/* Ask the brain — the brand's recall panel as an invitation, seeded with the brain's own
+          top entities as suggested questions. */}
+      <section className="flex flex-col gap-4 border border-border bg-card p-5 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <MemorySquare />
+            <span className="text-[15px] font-medium text-foreground">
+              Ask the <span dir="ltr" className="text-active">{namespace}</span> brain
+            </span>
           </div>
-          <Link
-            to="/b/$namespace/chat" params={{ namespace }}
-            className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium text-white transition hover:brightness-110"
-            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)`, boxShadow: `0 6px 20px -8px ${accent}` }}
-          >
+          <p className="text-sm font-light text-card-foreground">
+            A live agent grounded only in this brain's memories — every answer cites its sources.
+          </p>
+          {suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1.5">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => nav({ to: "/b/$namespace/chat", params: { namespace } })}
+                  className="grid-chip transition-colors hover:border-active hover:text-foreground"
+                >
+                  Tell me about {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <Button asChild>
+          <Link to="/b/$namespace/chat" params={{ namespace }}>
             <MessagesSquare className="h-4 w-4" /> Chat
           </Link>
-        </div>
-      </div>
+        </Button>
+      </section>
 
-      {/* The graph — centerpiece */}
-      <div className="flex h-[600px] flex-col overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Network className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Memory graph</span>
-          </div>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {nodes.length} nodes · {edges.length} edges{graph.data?.derived ? " · derived" : ""}
-          </span>
-        </div>
+      <Hatch />
+
+      {/* The graph — centrepiece */}
+      <Panel
+        label="Memory graph"
+        meta={`${nodes.length} nodes · ${edges.length} edges${graph.data?.derived ? " · derived" : ""}`}
+        className="h-[600px]"
+        bodyClassName="flex flex-col"
+      >
         {nodes.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
             <Network className="h-8 w-8 opacity-40" />
@@ -141,33 +115,37 @@ export function BrainOverview({ namespace }: { namespace: string }) {
         ) : (
           <BrainGraphView key={namespace} data={{ ready: true, nodes, edges }} namespace={namespace} />
         )}
-      </div>
+      </Panel>
 
-      {/* Recent activity strip */}
-      <div className="rounded-xl border border-border bg-card">
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <span className="text-sm font-medium">Recent activity</span>
-          <Link to="/b/$namespace/activity" params={{ namespace }} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-            View all <ArrowRight className="h-3 w-3" />
+      {/* Recent activity */}
+      <Panel
+        label="Recent activity"
+        actions={
+          <Link
+            to="/b/$namespace/activity" params={{ namespace }}
+            className="inline-flex items-center gap-1 text-xs text-foreground underline decoration-violet underline-offset-4"
+          >
+            View all <ArrowRight className="h-3 w-3 rtl:-scale-x-100" />
           </Link>
-        </div>
+        }
+      >
         {recent.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             {activity.isLoading ? "Loading…" : "No activity for this brain yet."}
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <ul className="divide-y divide-border">
             {recent.map((a: ActivityItem) => (
-              <div key={a.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                <span className="font-medium text-foreground">{a.op}</span>
-                <span className="text-xs text-muted-foreground">{a.agentId || "—"}</span>
-                <span className="ms-auto text-xs text-muted-foreground tabular-nums">{a.latencyMs ? `${a.latencyMs}ms` : ""}</span>
-                <span className="text-xs text-muted-foreground tabular-nums">{a.ts ? new Date(a.ts).toLocaleTimeString() : ""}</span>
-              </div>
+              <li key={a.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                <span className="num font-medium text-foreground">{a.op}</span>
+                <span className="truncate text-xs text-muted-foreground">{a.agentId || "—"}</span>
+                <span className="num ms-auto text-[11px] text-muted-foreground">{a.latencyMs ? `${a.latencyMs}ms` : ""}</span>
+                <span className="num text-[11px] text-muted-foreground">{a.ts ? new Date(a.ts).toLocaleTimeString() : ""}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }

@@ -1,63 +1,56 @@
-// Shared node/group coloring for the brain graph surfaces (dashboard Mindmap
-// card + the full Graph Explorer), so both read as one system.
+// Memory-graph colours, shared by the Schema and Spider views so a group reads the same in both.
 //
-// Structural groups get fixed, recognizable hues; every other group (entity
-// type names like "post", "doc", "commit", …) gets a stable hashed hue drawn
-// from a palette chosen to stay distinct from the structural colors.
+// Categorical identity on an ALL-PAIRS form: in a node graph any two groups can sit side by
+// side, and under that test a palette only holds three hues (dataviz method). So:
+//   - the three most populous entity types (by the API's whole-graph typeCounts, so filtering
+//     or sampling never repaints the survivors) take the three validated series slots;
+//   - every other entity type folds into one neutral "other";
+//   - the structural spine (root / portfolio / venture / type) is drawn in neutral inks and
+//     told apart by its column label and position, not by a hue.
+// Gold stays out: beside the orange it fails the normal-vision floor.
+//
+// Values live in styles/kit-bridge.css (--cb-series-*, --cb-node-*) so they follow light/dark.
+// Validated with the dataviz skill's validate_palette.js, --pairs all, on the grid's card
+// surfaces: light #6d4de6 · #e2661c · #0891a0 on #f7f4ec, dark #8f71f0 · #e06a2b · #1aa2b0 on
+// #0e1a3c — every check PASS in both modes.
 
-// Fixed hues for the structural spine of every brain.
-export const STRUCT_COLORS: Record<string, string> = {
-  root: "#ec4899", // pink — the brain core
-  portfolio: "#8b5cf6", // violet
-  venture: "#14b8a6", // teal
-  type: "#94a3b8", // slate — the type spine (overview / typed brains)
+const SERIES = ["var(--cb-series-1)", "var(--cb-series-2)", "var(--cb-series-3)"] as const;
+export const OTHER_COLOR = "var(--cb-series-other)";
+
+const STRUCT: Record<string, string> = {
+  root: "var(--cb-node-root)", // the brain core — ink
+  portfolio: "var(--cb-node-structure)",
+  venture: "var(--cb-node-structure)",
+  type: "var(--cb-node-type)", // the type spine — muted
 };
 
-// Palette for entity `group` (typename) coloring. Deliberately avoids the
-// pink/violet/teal/slate used above so structural nodes stay distinct.
-const ENTITY_PALETTE = [
-  "#3b82f6", // blue
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#10b981", // emerald
-  "#f97316", // orange
-  "#06b6d4", // cyan
-  "#a855f7", // purple
-  "#84cc16", // lime
-  "#0ea5e9", // sky
-  "#d946ef", // fuchsia
-  "#eab308", // yellow
-  "#22c55e", // green
-  "#6366f1", // indigo
-  "#f43f5e", // rose
-];
-
-function hashHue(key: string): string {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
-  return ENTITY_PALETTE[h % ENTITY_PALETTE.length];
+/** Resolves a node group to its colour; `isNamed` says whether it has its own legend entry. */
+export interface GroupPalette {
+  (group?: string | null): string;
+  isNamed(group?: string | null): boolean;
 }
 
-// Identity palette for a *brain* (namespace) and its memory-type labels. Shared
-// by every surface (hub cells, workspace header, search chips) so a given brain
-// reads the same accent colour everywhere — the Shape-of-AI "Color" identifier.
-const BRAIN_PALETTE = [
-  "#6366f1", "#ec4899", "#14b8a6", "#f59e0b", "#8b5cf6",
-  "#ef4444", "#10b981", "#3b82f6", "#f97316", "#06b6d4",
-  "#a855f7", "#84cc16", "#e11d48", "#0ea5e9", "#d946ef",
-];
-
-/** Stable accent colour for a brain namespace (or any label, e.g. a memory type). */
-export function hueForBrain(key: string): string {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
-  return BRAIN_PALETTE[h % BRAIN_PALETTE.length];
+/** Builds the palette for one graph from its group counts (use the whole-graph typeCounts). */
+export function makeGroupPalette(counts: Iterable<readonly [string, number]>): GroupPalette {
+  const top = [...counts]
+    .filter(([g]) => !(g in STRUCT))
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, SERIES.length);
+  const slot = new Map(top.map(([g], i) => [g, SERIES[i]]));
+  const palette = ((group?: string | null) => {
+    const g = group ?? "entity";
+    return STRUCT[g] ?? slot.get(g) ?? OTHER_COLOR;
+  }) as GroupPalette;
+  palette.isNamed = (group) => {
+    const g = group ?? "entity";
+    return g in STRUCT || slot.has(g);
+  };
+  return palette;
 }
 
-/** Stable color for a node `group`. */
-export function colorForGroup(group: string | undefined): string {
-  if (group && STRUCT_COLORS[group]) return STRUCT_COLORS[group];
-  return hashHue(group ?? "entity");
+/** Context-free fallback (structural groups + neutral), for surfaces without counts. */
+export function colorForGroup(group: string | undefined | null): string {
+  return STRUCT[group ?? ""] ?? OTHER_COLOR;
 }
 
 // Human ordering for group columns / legend: structural spine first, then

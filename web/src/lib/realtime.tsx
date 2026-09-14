@@ -52,27 +52,23 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   return <RealtimeContext.Provider value={status}>{children}</RealtimeContext.Provider>;
 }
 
-/** Small "live" pill — green pulse when the SSE stream is connected. */
+/** Realtime status as the grid draws state: a square in the status fill beside a micro-label
+ *  in its text-safe tone. No pulse — the grid's motion is colour-only. */
 export function LiveIndicator() {
   const status = useLiveStatus();
-  const map: Record<LiveStatus, { dot: string; label: string; text: string }> = {
-    live: { dot: "bg-emerald-500", label: "Live", text: "text-emerald-500" },
-    connecting: { dot: "bg-amber-500", label: "Connecting", text: "text-amber-500" },
-    down: { dot: "bg-muted-foreground", label: "Offline", text: "text-muted-foreground" },
+  const map: Record<LiveStatus, { square: string; label: string; text: string }> = {
+    live: { square: "bg-success", label: "Live", text: "text-tone-ok" },
+    connecting: { square: "bg-warning", label: "Connecting", text: "text-tone-warn" },
+    down: { square: "bg-muted-foreground", label: "Offline", text: "text-muted-foreground" },
   };
   const s = map[status];
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-xs font-medium"
+      className="inline-flex items-center gap-2 border border-border px-2 py-1"
       title={`Realtime: ${s.label}`}
     >
-      <span className="relative flex h-2 w-2">
-        {status === "live" && (
-          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${s.dot} opacity-60`} />
-        )}
-        <span className={`relative inline-flex h-2 w-2 rounded-full ${s.dot}`} />
-      </span>
-      <span className={s.text}>{s.label}</span>
+      <span aria-hidden className={`size-2 shrink-0 ${s.square}`} />
+      <span className={`font-mono text-[10.5px] font-medium uppercase tracking-[0.2em] ${s.text}`}>{s.label}</span>
     </span>
   );
 }

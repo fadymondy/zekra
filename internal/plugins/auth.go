@@ -15,5 +15,4 @@ package plugins
 // brain plugin's consoleAuth gate (CABRAIN_REQUIRE_AUTH).
 import (
 	_ "github.com/togo-framework/auth"
-	_ "github.com/togo-framework/auth-dev"
 )

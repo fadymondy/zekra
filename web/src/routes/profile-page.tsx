@@ -8,6 +8,7 @@ import {
 } from "@togo-framework/ui";
 import { useSession } from "./auth-gate";
 import { auth } from "../lib/auth";
+import { Notice, RecallSquares } from "../components/page";
 
 // Change-password dialog — the one profile action wired to a real endpoint
 // (POST /api/auth/change-password). The others (avatar, 2FA, session revoke) have
@@ -57,12 +58,8 @@ function ChangePasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
             <Label htmlFor="conf">Confirm new password</Label>
             <Input id="conf" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           </div>
-          {error && (
-            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
-          )}
-          {done && (
-            <p className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">Password updated.</p>
-          )}
+          {error && <Notice tone="danger">{error}</Notice>}
+          {done && <Notice tone="ok">Password updated.</Notice>}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={close}>Cancel</Button>
             <Button type="submit" disabled={busy || done}>
@@ -86,7 +83,7 @@ export function ProfilePage() {
       </Link>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading your profile…</p>
+        <p className="flex items-center gap-3 text-sm text-muted-foreground"><RecallSquares /> Loading your profile…</p>
       ) : !me ? (
         <p className="text-sm text-muted-foreground">You are not signed in.</p>
       ) : (

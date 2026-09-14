@@ -1,55 +1,49 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HelpCircle, Check, X, RotateCcw } from "lucide-react";
+import { Check, X, RotateCcw } from "lucide-react";
+import { Button, NativeSelect } from "@togo-framework/ui";
 import { brainApi, type Gap, type GapStatus } from "../lib/brain";
+import { PageHeading, Panel, Loading, Empty, Segmented, ToneSquare, type Tone } from "../components/page";
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-amber-500/15 text-amber-500" },
-  indexed: { label: "Indexed", cls: "bg-emerald-500/15 text-emerald-500" },
-  dismissed: { label: "Dismissed", cls: "bg-muted text-muted-foreground" },
+const STATUS_META: Record<string, { label: string; tone: Tone }> = {
+  open: { label: "Open", tone: "warn" },
+  indexed: { label: "Indexed", tone: "ok" },
+  dismissed: { label: "Dismissed", tone: "muted" },
 };
-const ORDER: Array<keyof typeof STATUS_META> = ["open", "indexed", "dismissed"];
+const ORDER = ["open", "indexed", "dismissed"] as const;
+const FILTERS = [
+  { value: "", label: "All" },
+  ...ORDER.map((s) => ({ value: s, label: STATUS_META[s].label })),
+] as const;
 
-function GapRow({ g, onResolve, busy }: { g: Gap; onResolve: (s: GapStatus) => void; busy: boolean }) {
+function GapRow({ g, scoped, onResolve, busy }: { g: Gap; scoped: boolean; onResolve: (s: GapStatus) => void; busy: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
       <div className="min-w-0 flex-1">
         <div className="truncate font-medium text-foreground" title={g.query}>{g.query}</div>
-        <div className="mt-0.5 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="rounded bg-muted px-1.5 py-0.5">{g.namespace}</span>
+        <div className="num mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          {!scoped && <span dir="ltr" className="grid-chip">{g.namespace}</span>}
           <span>{g.hits} {g.hits === 1 ? "miss" : "misses"}</span>
           <span>first {g.firstSeen ? new Date(g.firstSeen).toLocaleDateString() : "—"}</span>
           <span>last {g.lastSeen ? new Date(g.lastSeen).toLocaleString() : "—"}</span>
-          {g.resolution && <span className="italic">“{g.resolution}”</span>}
+          {g.resolution && <span className="font-sans font-light italic">“{g.resolution}”</span>}
         </div>
       </div>
-      <div className="flex shrink-0 gap-2">
+      <div className="flex shrink-0 flex-wrap gap-1.5">
         {g.status !== "indexed" && (
-          <button
-            onClick={() => onResolve("indexed")}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-500 transition hover:bg-emerald-500/20 disabled:opacity-50"
-          >
-            <Check className="h-3.5 w-3.5" /> Mark indexed
-          </button>
+          <Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => onResolve("indexed")} disabled={busy}>
+            <Check className="h-3.5 w-3.5 text-tone-ok" /> Mark indexed
+          </Button>
         )}
         {g.status !== "dismissed" && (
-          <button
-            onClick={() => onResolve("dismissed")}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-50"
-          >
+          <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs text-muted-foreground" onClick={() => onResolve("dismissed")} disabled={busy}>
             <X className="h-3.5 w-3.5" /> Dismiss
-          </button>
+          </Button>
         )}
         {g.status !== "open" && (
-          <button
-            onClick={() => onResolve("open")}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 px-2.5 py-1.5 text-xs font-medium text-amber-500 transition hover:bg-amber-500/10 disabled:opacity-50"
-          >
-            <RotateCcw className="h-3.5 w-3.5" /> Reopen
-          </button>
+          <Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => onResolve("open")} disabled={busy}>
+            <RotateCcw className="h-3.5 w-3.5 text-tone-warn" /> Reopen
+          </Button>
         )}
       </div>
     </div>
@@ -99,67 +93,60 @@ export function BrainGaps({ namespace }: { namespace?: string } = {}) {
   }, [gaps.data]);
 
   const brains = namespaces.data?.brains ?? [];
-  const visibleStatuses = statusFilter ? [statusFilter] : ORDER;
+  const visibleStatuses: readonly string[] = statusFilter ? [statusFilter] : ORDER;
   const total = (gaps.data?.gaps ?? []).length;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Knowledge gaps</h1>
-          <p className="text-sm text-muted-foreground">
-            Recall queries that came back thin or empty. Index the ones worth capturing; dismiss the noise.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <select
-            value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+      <PageHeading
+        eyebrow="Recall quality"
+        title="Knowledge gaps"
+        description="Recall queries that came back thin or empty. Index the ones worth capturing; dismiss the noise."
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Segmented label="Filter by status" options={FILTERS} value={statusFilter} onChange={setStatusFilter} />
+        {!scoped && (
+          <NativeSelect
+            aria-label="Brain"
+            value={nsFilter}
+            onChange={(e) => setNsState(e.target.value)}
+            className="h-8 w-auto min-w-[11rem] text-xs"
           >
-            <option value="">All statuses</option>
-            {ORDER.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-          </select>
-          {!scoped && (
-            <select
-              value={nsFilter} onChange={(e) => setNsState(e.target.value)}
-              className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs outline-none focus:border-primary"
-            >
-              <option value="">All brains</option>
-              {brains.map((b) => <option key={b.namespace} value={b.namespace}>{b.namespace}</option>)}
-            </select>
-          )}
-        </div>
+            <option value="">All brains</option>
+            {brains.map((b) => <option key={b.namespace} value={b.namespace}>{b.namespace}</option>)}
+          </NativeSelect>
+        )}
+        {total > 0 && <span className="num ms-auto text-[11px] text-muted-foreground">{total} gaps</span>}
       </div>
 
       {gaps.isLoading ? (
-        <div className="rounded-xl border border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">Loading gaps…</div>
+        <Panel><Loading label="Loading gaps…" /></Panel>
       ) : total === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-4 py-12 text-center text-sm text-muted-foreground">
-          <HelpCircle className="h-8 w-8 opacity-40" />
-          No gaps here — every recall is finding memories.
-        </div>
+        <Panel><Empty title="No gaps here">Every recall is finding memories.</Empty></Panel>
       ) : (
         visibleStatuses.map((s) => {
           const rows = grouped[s] ?? [];
           if (rows.length === 0) return null;
           const meta = STATUS_META[s];
           return (
-            <div key={s} className="rounded-xl border border-border bg-card">
-              <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${meta.cls}`}>{meta.label}</span>
-                <span className="text-xs text-muted-foreground">{rows.length}</span>
-              </div>
+            <Panel
+              key={s}
+              label={<span className="inline-flex items-center gap-2"><ToneSquare tone={meta.tone} />{meta.label}</span>}
+              meta={rows.length}
+            >
               <div className="divide-y divide-border">
                 {rows.map((g) => (
                   <GapRow
                     key={g.id}
                     g={g}
+                    scoped={scoped}
                     busy={resolve.isPending && resolve.variables?.id === g.id}
                     onResolve={(status) => resolve.mutate({ id: g.id, status })}
                   />
                 ))}
               </div>
-            </div>
+            </Panel>
           );
         })
       )}

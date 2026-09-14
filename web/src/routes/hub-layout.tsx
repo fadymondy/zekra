@@ -1,12 +1,12 @@
-import { Outlet, useNavigate, useRouterState, Link } from "@tanstack/react-router";
-import { Database, Users, KeyRound, Search, Settings } from "lucide-react";
+import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Database, Users, KeyRound, Search } from "lucide-react";
 import {
   SidebarProvider, Sidebar, SidebarHeader, SidebarContent,
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
   SidebarInset, SidebarTrigger, StatusBadge, ThemePicker,
 } from "@togo-framework/ui";
 import { LiveIndicator } from "../lib/realtime";
-import { NeuralGlyph, NeuralBackdrop } from "../components/neural";
+import { SidebarBrand } from "../components/brand";
 import { UserMenu } from "../components/chrome";
 import { useSidebarState } from "../lib/sidebar";
 
@@ -33,12 +33,7 @@ export function HubLayout() {
     <SidebarProvider open={sidebar.open} onOpenChange={sidebar.setOpen}>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link to="/" className="flex items-center gap-2 px-2 py-1.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-violet-500 to-teal-400 text-white shadow-[0_0_18px_-4px] shadow-violet-500/50">
-              <NeuralGlyph className="h-5 w-5" />
-            </span>
-            <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">CaBrain</span>
-          </Link>
+          <SidebarBrand />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -71,22 +66,21 @@ export function HubLayout() {
       </Sidebar>
 
       <SidebarInset>
-        <NeuralBackdrop className="opacity-60" />
-        <header className="relative z-10 flex h-14 items-center justify-between gap-2 border-b border-border px-4">
+        <header className="flex h-14 items-center justify-between gap-2 border-b border-border px-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger />
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-              <Settings className="h-3.5 w-3.5" /> Memory organ
+            <span className="hidden font-mono text-[10.5px] font-medium uppercase tracking-[0.2em] text-muted-foreground sm:inline">
+              Memory organ
             </span>
           </div>
           <div className="flex items-center gap-2">
             <LiveIndicator />
-            <StatusBadge tone="neutral">togo-postgres</StatusBadge>
+            <StatusBadge tone="neutral" className="hidden sm:inline-flex">togo-postgres</StatusBadge>
             <ThemePicker size="default" />
             <UserMenu />
           </div>
         </header>
-        <main className="relative z-10 min-w-0 flex-1 overflow-auto"><Outlet /></main>
+        <main className="min-w-0 flex-1 overflow-auto"><Outlet /></main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
-import { NeuralGlyph } from "../components/neural";
+import { CubeMark } from "../components/brand";
 import { brainApi } from "../lib/brain";
 import { sessionMe, type Me } from "../lib/auth";
 import { LoginPage } from "./login-page";
@@ -9,12 +9,12 @@ import { LoginPage } from "./login-page";
 // whether to render the console or the login page.
 type Phase = "loading" | "login" | "ready";
 
+// The mark alone on the ground while the session resolves — no pulse: the grid's motion is
+// colour-only.
 function Splash() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <span className="flex h-12 w-12 animate-pulse items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-teal-400 text-white">
-        <NeuralGlyph className="h-7 w-7" />
-      </span>
+      <CubeMark size={44} title="CaBrain" />
     </div>
   );
 }

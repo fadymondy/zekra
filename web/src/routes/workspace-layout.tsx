@@ -10,10 +10,9 @@ import {
   SidebarInset, SidebarTrigger, ThemePicker,
 } from "@togo-framework/ui";
 import { LiveIndicator } from "../lib/realtime";
-import { NeuralGlyph, SynapseField, NeuralBackdrop, NeuralCellMark } from "../components/neural";
+import { SidebarBrand, MemorySquare } from "../components/brand";
 import { UserMenu } from "../components/chrome";
 import { brainApi } from "../lib/brain";
-import { hueForBrain } from "../lib/brain-colors";
 import { useSidebarState } from "../lib/sidebar";
 
 // The brain workspace is a scoped surface: every section below is bound to the
@@ -39,8 +38,6 @@ export function BrainWorkspaceLayout() {
   const base = `/b/${namespace}`;
   const rest = pathname.startsWith(base) ? pathname.slice(base.length).replace(/^\//, "") : "";
   const current = SECTIONS.find((s) => s.seg === rest) ?? SECTIONS[0];
-  // The brain's identity colour, threaded through the whole workspace chrome.
-  const accent = hueForBrain(namespace || "brain");
 
   const namespaces = useQuery({ queryKey: ["brain", "namespaces"], queryFn: brainApi.namespaces });
   const brains = namespaces.data?.brains ?? [];
@@ -52,19 +49,14 @@ export function BrainWorkspaceLayout() {
     <SidebarProvider open={sidebar.open} onOpenChange={sidebar.setOpen}>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link to="/" className="flex items-center gap-2 px-2 py-1.5" title="Back to Brains">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-violet-500 to-teal-400 text-white shadow-[0_0_18px_-4px] shadow-violet-500/50">
-              <NeuralGlyph className="h-5 w-5" />
-            </span>
-            <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">CaBrain</span>
-          </Link>
+          <SidebarBrand title="Back to Brains" />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            {/* Brain identity — avatar + colour + name (Shape-of-AI: Identifiers) */}
+            {/* The brain in scope, marked with the brand's memory square. */}
             <SidebarGroupLabel className="gap-2 truncate">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: accent, boxShadow: `0 0 8px ${accent}` }} />
+              <span className="inline-flex min-w-0 items-center gap-2">
+                <MemorySquare />
                 <span className="truncate">Brain · {namespace}</span>
               </span>
             </SidebarGroupLabel>
@@ -86,27 +78,24 @@ export function BrainWorkspaceLayout() {
         </SidebarContent>
       </Sidebar>
 
-      <SidebarInset>
-        {/* Ambient neural mesh behind the whole workspace — one living organism. */}
-        <NeuralBackdrop className="opacity-60" />
-        <header className="relative z-10 flex h-14 items-center justify-between gap-2 overflow-hidden border-b border-border px-4">
-          <SynapseField className="opacity-[0.15]" />
-          {/* thin accent line in the brain's own hue */}
-          <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
-          <div className="relative flex min-w-0 items-center gap-2">
+      {/* min-w-0: the inset is a flex item, so without it any wide child (the header on a
+          phone, a long table) would stretch the whole shell past the viewport. */}
+      <SidebarInset className="min-w-0">
+        <header className="flex h-14 items-center justify-between gap-2 border-b border-border px-4">
+          <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger />
-            {/* Breadcrumb */}
+            {/* Breadcrumb — on a phone only the brain switcher stays; the page heading
+                names the section. */}
             <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-              <Link to="/" className="text-muted-foreground hover:text-foreground">Brains</Link>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              {/* Brain switcher — carries the brain's neural avatar + colour */}
-              <div className="relative inline-flex items-center">
-                <span className="pointer-events-none absolute left-1.5 flex items-center"><NeuralCellMark color={accent} size={20} firing={false} /></span>
+              <Link to="/" className="hidden text-muted-foreground hover:text-foreground sm:inline">Brains</Link>
+              <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground sm:block rtl:-scale-x-100" />
+              {/* Brain switcher */}
+              <div className="relative inline-flex min-w-0 items-center">
+                <MemorySquare className="pointer-events-none absolute start-2.5" />
                 <select
                   value={namespace}
                   onChange={(e) => nav({ to: current.to, params: { namespace: e.target.value } })}
-                  className="max-w-[180px] appearance-none truncate rounded-lg border bg-background py-1.5 pl-8 pr-7 text-sm font-medium text-foreground outline-none"
-                  style={{ borderColor: `${accent}55` }}
+                  className="w-full min-w-0 max-w-[140px] appearance-none truncate rounded-md border border-border bg-background py-1.5 ps-7 pe-7 text-sm font-medium text-foreground outline-none sm:max-w-[180px]"
                   title="Switch brain"
                 >
                   {brains.length === 0 && <option value={namespace}>{namespace}</option>}
@@ -114,19 +103,19 @@ export function BrainWorkspaceLayout() {
                     <option key={b.namespace} value={b.namespace}>{b.namespace}</option>
                   ))}
                 </select>
-                <ChevronsUpDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronsUpDown className="pointer-events-none absolute end-2 h-3.5 w-3.5 text-muted-foreground" />
               </div>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="truncate font-medium text-foreground">{current.label}</span>
+              <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground sm:block rtl:-scale-x-100" />
+              <span className="hidden truncate font-medium text-foreground sm:inline">{current.label}</span>
             </nav>
           </div>
-          <div className="relative flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <LiveIndicator />
             <ThemePicker size="default" />
             <UserMenu />
           </div>
         </header>
-        <main className="relative z-10 min-w-0 flex-1 overflow-auto"><Outlet /></main>
+        <main className="min-w-0 flex-1 overflow-auto"><Outlet /></main>
       </SidebarInset>
     </SidebarProvider>
   );
