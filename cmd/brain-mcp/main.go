@@ -8,7 +8,7 @@
 // agent identity travels as the X-Agent-Id header (F5), taken from CABRAIN_AGENT_ID
 // — never from tool arguments.
 //
-//	CABRAIN_API_URL   base URL of the running cabrain app (default http://localhost:8080)
+//	CABRAIN_API_URL   base URL of the running cabrain app (default https://cabrain-app.fadymondy.com)
 //	CABRAIN_AGENT_ID  this MCP session's agent identity (empty = trusted/no grant checks)
 //
 // Wire it into .mcp.json:
@@ -33,7 +33,7 @@ import (
 const protocolVersion = "2024-11-05"
 
 func main() {
-	base := env("CABRAIN_API_URL", "http://localhost:8080")
+	base := env("CABRAIN_API_URL", "https://cabrain-app.fadymondy.com")
 	srv := &server{
 		base:      strings.TrimRight(base, "/"),
 		agent:     os.Getenv("CABRAIN_AGENT_ID"),

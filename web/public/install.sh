@@ -1,10 +1,10 @@
 #!/bin/sh
 # cabrain-cli installer — connect any AI client to the CaBrain memory system.
 #
-#   curl -fsSL https://cabrain.fadymondy.com/install.sh | sh
+#   curl -fsSL https://cabrain-app.fadymondy.com/install.sh | sh
 #
 # Optional env (any may be set to automate first-run):
-#   CABRAIN_URL      endpoint to log in to     (default https://cabrain.fadymondy.com)
+#   CABRAIN_URL      endpoint to log in to     (default https://cabrain-app.fadymondy.com)
 #   CABRAIN_TOKEN    ACL token (cbt_…)         → runs `cabrain auth login` for you
 #   CABRAIN_CLIENT   claude-desktop|claude-code|codex|gemini|cursor → auto-installs the MCP
 #   CABRAIN_BIN_DIR  install dir               (default: /usr/local/bin, else ~/.local/bin)
@@ -12,7 +12,7 @@
 set -eu
 
 REPO="github.com/togo-framework/cabrain-cli"
-SITE="${CABRAIN_URL:-https://cabrain.fadymondy.com}"
+SITE="${CABRAIN_URL:-https://cabrain-app.fadymondy.com}"
 VERSION="${CABRAIN_VERSION:-latest}"
 
 say()  { printf '\033[1;36m›\033[0m %s\n' "$*"; }
@@ -95,7 +95,7 @@ Next steps
   2. cabrain mcp:install claude-desktop         # or claude-code | codex | gemini | cursor
   3. restart your client — the "cabrain" brain tools appear automatically
 
-Update later:  curl -fsSL https://cabrain.fadymondy.com/upgrade.sh | sh
+Update later:  curl -fsSL https://cabrain-app.fadymondy.com/upgrade.sh | sh
 
 Docs:  $SITE   ·   cabrain help
 EOF
