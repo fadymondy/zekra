@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Maximize2, Minus, Plus, X, Link2, FileText, Loader2, Columns3, Network } from "lucide-react";
 import { Badge, Button } from "@togo-framework/ui";
 import { brainApi, type GraphData, type GraphNode } from "../lib/brain";
-import { colorForGroup, compareGroups } from "../lib/brain-colors";
+import { colorForGroup, compareGroups, makeGroupPalette, OTHER_COLOR, type GroupPalette } from "../lib/brain-colors";
 import { SpiderGraphView } from "./brain-spider-view";
 
 type GraphMode = "schema" | "spider";
@@ -14,9 +14,10 @@ function readMode(): GraphMode {
   return window.localStorage.getItem(VIEW_KEY) === "spider" ? "spider" : "schema";
 }
 
-/** Graph explorer shell: a Schema ⇄ Spider view toggle + a shared color legend,
- * wrapping the columnar "memory schema" and the animated force-directed views.
- * Both surfaces share `brain-colors` so groups read identically across them. */
+/** Graph explorer shell: a Schema ⇄ Spider view toggle + a shared colour legend, wrapping the
+ * columnar "memory schema" and the force-directed views. Both surfaces share one palette built
+ * from the WHOLE graph's type counts (lib/brain-colors), so groups read identically in both and
+ * filtering or sampling never repaints them. */
 export function BrainGraphView({ data, namespace }: { data: GraphData; namespace: string }) {
   const [mode, setMode] = useState<GraphMode>(readMode);
 
@@ -25,12 +26,10 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
     if (typeof window !== "undefined") window.localStorage.setItem(VIEW_KEY, m);
   }, []);
 
-  // Shared legend (group → color, with counts) — identical across both views.
-  // Counts come from data.typeCounts, which the API computes over the WHOLE graph.
-  // Tallying data.nodes instead reports the SAMPLE: the server gives each type a
-  // quota of limit/#types, so eleven different types all read "17" (250/14) and the
-  // legend looked broken. Fall back to tallying only for an API too old to send it.
-  const legend = useMemo(() => {
+  // Counts come from data.typeCounts, which the API computes over the WHOLE graph. Tallying
+  // data.nodes instead reports the SAMPLE (the server gives each type a quota of
+  // limit/#types). Fall back to tallying only for an API too old to send it.
+  const { palette, items, other } = useMemo(() => {
     const counts = new Map<string, number>();
     if (data.typeCounts?.length) {
       for (const t of data.typeCounts) counts.set(t.type, t.count);
@@ -40,9 +39,17 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
         counts.set(g, (counts.get(g) ?? 0) + 1);
       }
     }
-    return [...counts.entries()]
-      .sort((a, b) => compareGroups(a[0], b[0]))
-      .map(([group, count]) => ({ group, count, color: colorForGroup(group) }));
+    const palette = makeGroupPalette(counts);
+    const entries = [...counts.entries()].sort((a, b) => compareGroups(a[0], b[0]));
+    const named = entries.filter(([g]) => palette.isNamed(g));
+    const folded = entries.filter(([g]) => !palette.isNamed(g));
+    return {
+      palette,
+      items: named.map(([group, count]) => ({ group, count, color: palette(group) })),
+      other: folded.length
+        ? { groups: folded.map(([g]) => g), count: folded.reduce((s, [, c]) => s + c, 0) }
+        : null,
+    };
   }, [data]);
 
   const nodeCount = data.totalNodes ?? data.nodes?.length ?? 0;
@@ -51,56 +58,54 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
   const shownEdges = data.edges?.length ?? 0;
   const sampled = data.sampled ?? shownNodes < nodeCount;
 
+  const toggle = (active: boolean) =>
+    `inline-flex items-center gap-1.5 px-2.5 py-1 font-medium transition-colors ${
+      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+    }`;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Toolbar: view toggle + shared legend + counts */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border px-3 py-2 text-xs">
-        <div className="inline-flex overflow-hidden rounded-lg border border-border bg-background">
-          <button
-            onClick={() => setModePersist("schema")}
-            aria-pressed={mode === "schema"}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-medium transition-colors ${
-              mode === "schema" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-            title="Columnar memory-schema view"
-          >
+      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-b border-border px-3 py-2 text-xs">
+        <div className="inline-flex overflow-hidden border border-border bg-background">
+          <button onClick={() => setModePersist("schema")} aria-pressed={mode === "schema"} className={toggle(mode === "schema")} title="Columnar memory-schema view">
             <Columns3 className="h-3.5 w-3.5" /> Schema
           </button>
-          <button
-            onClick={() => setModePersist("spider")}
-            aria-pressed={mode === "spider"}
-            className={`inline-flex items-center gap-1.5 border-l border-border px-2.5 py-1 font-medium transition-colors ${
-              mode === "spider" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-            title="Animated force-directed spider view"
-          >
+          <button onClick={() => setModePersist("spider")} aria-pressed={mode === "spider"} className={`border-s border-border ${toggle(mode === "spider")}`} title="Force-directed spider view">
             <Network className="h-3.5 w-3.5" /> Spider
           </button>
         </div>
 
         <span className="h-4 w-px bg-border" aria-hidden />
 
-        {legend.map((l) => (
-          <span key={l.group} className="inline-flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: l.color }} />
-            <span className="capitalize text-foreground/80">{l.group}</span>
-            <span className="tabular-nums opacity-60">{l.count}</span>
+        {items.map((l) => (
+          <span key={l.group} className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="size-2.5 shrink-0" style={{ background: l.color }} />
+            <span className="capitalize text-foreground">{l.group}</span>
+            <span className="num text-muted-foreground">{l.count.toLocaleString()}</span>
           </span>
         ))}
+        {other && (
+          <span className="inline-flex items-center gap-1.5" title={other.groups.join(", ")}>
+            <span aria-hidden className="size-2.5 shrink-0" style={{ background: OTHER_COLOR }} />
+            <span className="text-foreground">Other · {other.groups.length} types</span>
+            <span className="num text-muted-foreground">{other.count.toLocaleString()}</span>
+          </span>
+        )}
 
         <span
-          className="ml-auto whitespace-nowrap tabular-nums text-muted-foreground"
+          className="num ms-auto whitespace-nowrap text-[11px] text-muted-foreground"
           title={sampled ? `Drawing ${shownNodes} of ${nodeCount} nodes and ${shownEdges} of ${edgeCount} edges` : undefined}
         >
           {nodeCount} nodes · {edgeCount} edges
-          {sampled && <span className="opacity-60"> · showing {shownNodes}</span>}
+          {sampled && <span> · showing {shownNodes}</span>}
         </span>
       </div>
 
       {mode === "schema" ? (
-        <SchemaGraphView data={data} namespace={namespace} />
+        <SchemaGraphView data={data} namespace={namespace} palette={palette} />
       ) : (
-        <SpiderGraphView data={data} namespace={namespace} />
+        <SpiderGraphView data={data} namespace={namespace} palette={palette} />
       )}
     </div>
   );
@@ -132,7 +137,7 @@ function edgePath(a: Placed, b: Placed): string {
   return `M ${sx} ${sy} C ${sx + dx} ${sy}, ${tx - dx} ${ty}, ${tx} ${ty}`;
 }
 
-function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: string }) {
+function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namespace: string; palette: GroupPalette }) {
   const [focusId, setFocusId] = useState<string | null>(null);
   const [view, setView] = useState({ k: 1, tx: 0, ty: 0 });
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -285,7 +290,7 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
         {/* ── Canvas ── */}
         <div
           ref={viewportRef}
-          className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,theme(colors.border)_1px,transparent_0)] [background-size:22px_22px]"
+          className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--color-border)_1px,transparent_0)] [background-size:22px_22px]"
           style={{ cursor: drag.current ? "grabbing" : "grab", touchAction: "none" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -298,13 +303,13 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
           {/* Focus banner */}
           {focusNode && (
             <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-3">
-              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
-                <span className="h-2 w-2 rounded-full" style={{ background: colorForGroup(focusNode.group) }} />
+              <div className="pointer-events-auto flex items-center gap-2 border border-border bg-card px-3 py-1.5 text-xs">
+                <span aria-hidden className="size-2 shrink-0" style={{ background: palette(focusNode.group) }} />
                 <span className="text-muted-foreground">Focused on</span>
                 <span className="max-w-[220px] truncate font-medium text-foreground">{focusNode.name}</span>
                 <button
                   onClick={() => setFocusId(null)}
-                  className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className="ms-1 inline-flex items-center gap-1 px-2 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <X className="h-3 w-3" /> Clear focus
                 </button>
@@ -326,16 +331,16 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
               {edges.map((e, i) => {
                 const a = pos.get(e.source), b = pos.get(e.target);
                 if (!a || !b) return null;
-                const color = colorForGroup((a.node.group === "root" ? b.node.group : a.node.group) ?? undefined);
+                const color = palette((a.node.group === "root" ? b.node.group : a.node.group) ?? undefined);
                 const lit = focusId ? e.source === focusId || e.target === focusId : false;
-                const opacity = focusId ? (lit ? 0.95 : 0.05) : 0.28;
+                const opacity = focusId ? (lit ? 0.95 : 0.05) : 0.32;
                 return (
                   <path
                     key={i}
                     d={edgePath(a, b)}
                     fill="none"
-                    stroke={color}
-                    strokeWidth={lit ? 2.25 : 1.25}
+                    style={{ stroke: color }}
+                    strokeWidth={lit ? 2 : 1.25}
                     strokeOpacity={opacity}
                   />
                 );
@@ -346,12 +351,12 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
             {columns.map((c) => (
               <div
                 key={`h-${c.group}`}
-                className="absolute flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                className="absolute flex items-center gap-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.2em]"
                 style={{ left: c.x, top: PAD - 6, width: CARD_W }}
               >
-                <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: colorForGroup(c.group) }} />
-                <span className="truncate text-foreground/90">{c.group}</span>
-                <span className="tabular-nums text-muted-foreground">{c.count}</span>
+                <span aria-hidden className="size-2.5 shrink-0" style={{ background: palette(c.group) }} />
+                <span className="truncate text-foreground">{c.group}</span>
+                <span className="text-muted-foreground">{c.count}</span>
               </div>
             ))}
 
@@ -359,7 +364,7 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
             {columns.map((c) =>
               c.nodes.map((n) => {
                 const p = pos.get(n.id)!;
-                const color = colorForGroup(n.group);
+                const color = palette(n.group);
                 const isFocus = n.id === focusId;
                 const inFocus = !neighbors || neighbors.has(n.id);
                 return (
@@ -371,18 +376,18 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
                       setFocusId(n.id);
                     }}
                     title={n.name}
-                    className="absolute flex items-center gap-2 rounded-md border bg-card px-2.5 text-left shadow-sm transition-opacity"
+                    className="absolute flex items-center gap-2 border border-border bg-card px-2.5 text-start"
                     style={{
                       left: p.x,
                       top: p.y,
                       width: CARD_W,
                       height: CARD_H,
                       opacity: inFocus ? 1 : 0.12,
-                      borderColor: isFocus ? color : undefined,
-                      boxShadow: isFocus ? `0 0 0 2px ${color}` : undefined,
+                      outline: isFocus ? `2px solid ${color}` : undefined,
+                      outlineOffset: isFocus ? 1 : undefined,
                     }}
                   >
-                    <span className="h-6 w-1 shrink-0 rounded-full" style={{ background: color }} />
+                    <span aria-hidden className="h-6 w-1 shrink-0" style={{ background: color }} />
                     <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">{n.name}</span>
                   </button>
                 );
@@ -390,8 +395,8 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
             )}
           </div>
 
-          {/* Zoom / fit controls (bottom-left, Cognee-style) */}
-          <div className="absolute bottom-3 left-3 z-20 flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 shadow-sm backdrop-blur">
+          {/* Zoom / fit controls */}
+          <div className="absolute bottom-3 start-3 z-20 flex flex-col overflow-hidden border border-border bg-card">
             <button onClick={() => zoomBy(1.2)} className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground" title="Zoom in">
               <Plus className="h-4 w-4" />
             </button>
@@ -402,7 +407,7 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
               <Maximize2 className="h-4 w-4" />
             </button>
           </div>
-          <div className="absolute bottom-3 left-14 z-20 rounded-md border border-border bg-card/90 px-2 py-1 text-[11px] tabular-nums text-muted-foreground backdrop-blur">
+          <div className="num absolute bottom-3 start-14 z-20 border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
             {Math.round(view.k * 100)}%
           </div>
         </div>
@@ -414,6 +419,7 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
             node={focusNode}
             namespace={namespace}
             neighbors={neighborNodes}
+            palette={palette}
             onFocus={setFocusId}
             onClose={() => setFocusId(null)}
           />
@@ -422,17 +428,19 @@ function SchemaGraphView({ data, namespace }: { data: GraphData; namespace: stri
   );
 }
 
-// ── Right detail panel ──────────────────────────────────────────────────────
+// ── Detail panel ────────────────────────────────────────────────────────────
 export function NodeDetail({
   node,
   namespace,
   neighbors,
+  palette = colorForGroup,
   onFocus,
   onClose,
 }: {
   node: GraphNode;
   namespace: string;
   neighbors: GraphNode[];
+  palette?: (group?: string | null) => string;
   onFocus: (id: string) => void;
   onClose: () => void;
 }) {
@@ -443,18 +451,18 @@ export function NodeDetail({
     enabled: !!uuid && !!namespace,
   });
 
-  const color = colorForGroup(node.group);
+  const color = palette(node.group);
   const content = mem.data && !mem.data.error ? mem.data.content : null;
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-card">
+    <aside className="flex w-80 shrink-0 flex-col border-s border-border bg-card">
       <div className="flex items-start justify-between gap-2 border-b border-border p-4">
         <div className="min-w-0">
-          <div className="mb-1.5 flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />
+          <div className="mb-2 flex items-center gap-1.5">
+            <span aria-hidden className="size-2.5 shrink-0" style={{ background: color }} />
             <Badge variant="outline" className="capitalize">{node.group ?? "node"}</Badge>
           </div>
-          <h2 className="break-words text-sm font-semibold leading-snug text-foreground">{node.name}</h2>
+          <h2 className="break-words text-sm font-medium leading-snug text-foreground">{node.name}</h2>
         </div>
         <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -463,22 +471,22 @@ export function NodeDetail({
 
       <div className="min-h-0 flex-1 overflow-auto p-4">
         {/* Connections */}
-        <div className="mb-4">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="mb-5">
+          <div className="micro mb-2 flex items-center gap-1.5 text-muted-foreground">
             <Link2 className="h-3.5 w-3.5" /> Connections
-            <span className="tabular-nums opacity-70">{neighbors.length}</span>
+            <span>{neighbors.length}</span>
           </div>
           {neighbors.length === 0 ? (
             <p className="text-xs text-muted-foreground">No direct connections.</p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="divide-y divide-border border-y border-border">
               {neighbors.map((n) => (
                 <li key={n.id}>
                   <button
                     onClick={() => onFocus(n.id)}
-                    className="flex w-full items-center gap-2 rounded-md border border-transparent px-2 py-1.5 text-left hover:border-border hover:bg-muted"
+                    className="flex w-full items-center gap-2 px-2 py-1.5 text-start hover:bg-muted"
                   >
-                    <span className="h-4 w-1 shrink-0 rounded-full" style={{ background: colorForGroup(n.group) }} />
+                    <span aria-hidden className="h-4 w-1 shrink-0" style={{ background: palette(n.group) }} />
                     <span className="min-w-0 flex-1 truncate text-xs text-foreground">{n.name}</span>
                     <span className="shrink-0 text-[10px] capitalize text-muted-foreground">{n.group}</span>
                   </button>
@@ -491,7 +499,7 @@ export function NodeDetail({
         {/* Memory content (entity nodes only) */}
         {uuid && (
           <div>
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="micro mb-2 flex items-center gap-1.5 text-muted-foreground">
               <FileText className="h-3.5 w-3.5" /> Memory
             </div>
             {mem.isLoading ? (
@@ -507,7 +515,7 @@ export function NodeDetail({
                     {mem.data?.sourceKind && <Badge variant="secondary" className="font-normal">{mem.data.sourceKind}</Badge>}
                   </div>
                 )}
-                <pre className="max-h-[46vh] overflow-auto whitespace-pre-wrap break-words rounded-md border border-border bg-background p-3 text-xs leading-relaxed text-foreground/90">
+                <pre className="max-h-[46vh] overflow-auto whitespace-pre-wrap break-words border border-border bg-background p-3 font-mono text-xs leading-relaxed text-card-foreground">
                   {content}
                 </pre>
               </>

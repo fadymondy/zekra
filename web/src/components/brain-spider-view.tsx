@@ -50,7 +50,7 @@ type SimNode = {
   group?: string;
   color: string;
   deg: number;
-  r: number;
+  r: number; // half the square's side
   x: number;
   y: number;
   vx: number;
@@ -71,12 +71,22 @@ type SimEdge = {
 
 type View = { k: number; tx: number; ty: number };
 
-/** Spider view — an animated, force-directed "living brain": nodes settle from
- * deterministic seeds under repulsion + edge springs + centering gravity, run in
- * a single requestAnimationFrame loop that parks when cool and re-heats on
- * interaction. Nodes are draggable (pin), clickable (focus + neighbor highlight),
- * and the whole field pans / zooms. Colors come from the shared brain palette. */
-export function SpiderGraphView({ data, namespace }: { data: GraphData; namespace: string }) {
+/** Spider view — a force-directed layout of the brain: nodes settle from deterministic seeds
+ * under repulsion + edge springs + centering gravity, in a single requestAnimationFrame loop
+ * that parks when cool and re-heats on interaction. Nodes are draggable (pin), clickable
+ * (focus + neighbour highlight), and the field pans / zooms.
+ *
+ * On the grid, nodes are the brand's memory square (sized by degree, never under 8px) in the
+ * shared palette; no halos, glows, pulses or vignettes — the only motion is the layout itself. */
+export function SpiderGraphView({
+  data,
+  namespace,
+  palette = colorForGroup,
+}: {
+  data: GraphData;
+  namespace: string;
+  palette?: (group?: string | null) => string;
+}) {
   const [focusId, setFocusId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [zoomPct, setZoomPct] = useState(100);
@@ -107,9 +117,9 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
         id: n.id,
         name: n.name,
         group: n.group,
-        color: colorForGroup(n.group),
+        color: palette(n.group),
         deg: d,
-        r: 4 + Math.min(11, Math.sqrt(d) * 2.3),
+        r: 4 + Math.min(10, Math.sqrt(d) * 2.1),
         x: Math.cos(ang) * rad,
         y: Math.sin(ang) * rad,
         vx: 0,
@@ -137,8 +147,8 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
       const edge: SimEdge = {
         s,
         t,
-        // color by the non-root endpoint, mirroring the schema view's edges
-        color: colorForGroup((s.group === "root" ? t.group : s.group) ?? undefined),
+        // colour by the non-root endpoint, mirroring the schema view's edges
+        color: palette((s.group === "root" ? t.group : s.group) ?? undefined),
         lineEl: null,
         setLineEl: () => {},
       };
@@ -152,7 +162,7 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
 
     const nodeById = new Map(rawNodes.map((n) => [n.id, n]));
     return { nodes, edges, adj, byId, nodeById };
-  }, [data]);
+  }, [data, palette]);
 
   const { nodes, edges, adj, nodeById } = sim;
 
@@ -284,7 +294,7 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
   // Kick off (and restart on a new dataset). Re-heat from the seeded layout.
   useEffect(() => {
     // Center the seed cloud (origin) in the viewport before it settles, so the
-    // "flying in" happens on-screen rather than off the top-left corner.
+    // settling happens on-screen rather than off the top-left corner.
     const { w, h } = vpSizeRef.current;
     if (w && h) {
       viewRef.current = { k: 1, tx: w / 2, ty: h / 2 };
@@ -353,7 +363,7 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
     [nodes, applyView, heat],
   );
 
-  // Auto-fit once shortly after mount (nodes have flown out from their seeds).
+  // Auto-fit once shortly after mount (nodes have spread out from their seeds).
   const didFit = useRef("");
   useEffect(() => {
     didFit.current = "";
@@ -527,10 +537,9 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
               <line
                 key={i}
                 ref={e.setLineEl}
-                stroke={e.color}
-                strokeWidth={lit ? 1.9 : 1}
-                strokeOpacity={faded ? 0.04 : lit ? 0.85 : 0.2}
-                strokeLinecap="round"
+                style={{ stroke: e.color }}
+                strokeWidth={lit ? 1.75 : 1}
+                strokeOpacity={faded ? 0.04 : lit ? 0.85 : 0.24}
               />
             );
           })}
@@ -540,11 +549,12 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
             const isFocus = n.id === focusId;
             const faded = dim(n.id);
             const showLabel = isFocus || n.labeled || labelSet.has(n.id);
+            const side = n.r * 2;
             return (
               <g
                 key={n.id}
                 ref={n.setGEl}
-                className="brain-node cursor-pointer"
+                className="cb-node cursor-pointer"
                 style={{ opacity: faded ? 0.12 : 1 }}
                 onPointerDown={(e) => onNodePointerDown(e, n)}
                 onDoubleClick={(e) => onNodeDoubleClick(e, n)}
@@ -552,39 +562,41 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
                 onPointerLeave={() => setHoverId((h) => (h === n.id ? null : h))}
               >
                 {/* enlarged transparent hit target (easier to grab small nodes) */}
-                <circle r={Math.max(n.r + 8, 13)} fill="transparent" />
-                {/* soft synapse halo */}
-                <circle
-                  className={`brain-halo${n.labeled ? " pulse" : ""}`}
-                  r={n.r * 2.3}
-                  fill={n.color}
-                  opacity={isFocus ? 0.32 : 0.16}
-                  style={{ pointerEvents: "none" }}
-                />
-                {/* core */}
-                <circle
-                  r={n.r}
-                  fill={n.color}
-                  stroke={isFocus ? "#fff" : n.color}
-                  strokeOpacity={isFocus ? 0.9 : 0.35}
-                  strokeWidth={isFocus ? 2 : 1}
-                  filter={isFocus ? "url(#spider-glow)" : undefined}
+                <rect x={-n.r - 8} y={-n.r - 8} width={side + 16} height={side + 16} fill="transparent" />
+                {/* the brand's memory square */}
+                <rect
+                  className="cb-node-core"
+                  x={-n.r}
+                  y={-n.r}
+                  width={side}
+                  height={side}
+                  shapeRendering="crispEdges"
+                  style={{ fill: n.color, stroke: isFocus ? "var(--grid-fg)" : "none", strokeWidth: isFocus ? 2 : 0 }}
                 />
                 {n.fx !== null && (
-                  <circle r={n.r + 3.5} fill="none" stroke={n.color} strokeOpacity={0.7} strokeWidth={1} strokeDasharray="2 2" style={{ pointerEvents: "none" }} />
+                  <rect
+                    x={-n.r - 3.5}
+                    y={-n.r - 3.5}
+                    width={side + 7}
+                    height={side + 7}
+                    fill="none"
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
+                    style={{ stroke: n.color, pointerEvents: "none" }}
+                  />
                 )}
                 {showLabel && (
                   <text
                     x={0}
-                    y={-n.r - 5}
+                    y={-n.r - 6}
                     textAnchor="middle"
-                    className="fill-current text-foreground/90"
                     style={{
                       pointerEvents: "none",
+                      fill: "var(--grid-fg)",
                       fontSize: isFocus ? 12 : 10,
-                      fontWeight: isFocus ? 600 : 500,
+                      fontWeight: 500,
                       paintOrder: "stroke",
-                      stroke: "var(--color-background, #0b0b0f)",
+                      stroke: "var(--grid-card)",
                       strokeWidth: 3,
                       strokeLinejoin: "round",
                     }}
@@ -604,41 +616,31 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
 
   return (
     <div className="relative flex min-h-0 flex-1">
-      {/* keyframes for the living-brain halo pulse (inline → CSP-safe) */}
-      <style>{`
-        @keyframes brainPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
-        .brain-halo { transform-box: fill-box; transform-origin: center; }
-        .brain-halo.pulse { animation: brainPulse 3.6s ease-in-out infinite; }
-        .brain-node:hover .brain-halo { opacity: 0.42 !important; }
-      `}</style>
+      {/* Hover: a hairline ink frame around the square (colour-only, no motion). */}
+      <style>{`.cb-node:hover .cb-node-core { stroke: var(--grid-fg); stroke-width: 1.5px; }`}</style>
 
       <div
         ref={viewportRef}
-        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,theme(colors.border)_1px,transparent_0)] [background-size:22px_22px]"
+        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--color-border)_1px,transparent_0)] [background-size:22px_22px]"
         style={{ cursor: pan.current ? "grabbing" : "grab", touchAction: "none" }}
         onPointerDown={onPointerDownBg}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* Neural vignette — a soft central glow for the "living brain" feel */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{ background: "radial-gradient(ellipse at 50% 42%, rgb(99 102 241 / 0.07), transparent 62%)" }}
-        />
         {/* Background hit layer (click empty space to clear focus) */}
         <div data-bg="1" className="absolute inset-0" />
 
         {/* Focus banner */}
         {focusNode && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-3">
-            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
-              <span className="h-2 w-2 rounded-full" style={{ background: colorForGroup(focusNode.group) }} />
+            <div className="pointer-events-auto flex items-center gap-2 border border-border bg-card px-3 py-1.5 text-xs">
+              <span aria-hidden className="size-2 shrink-0" style={{ background: palette(focusNode.group) }} />
               <span className="text-muted-foreground">Focused on</span>
               <span className="max-w-[220px] truncate font-medium text-foreground">{focusNode.name}</span>
               <button
                 onClick={() => setFocusId(null)}
-                className="ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="ms-1 inline-flex items-center gap-1 px-2 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 Clear focus
               </button>
@@ -647,15 +649,6 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
         )}
 
         <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: "none" }}>
-          <defs>
-            <filter id="spider-glow" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="3.2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
           {/* world group — pan/zoom via imperative transform; children own their positions */}
           <g ref={worldRef} style={{ pointerEvents: "auto" }}>
             {graph}
@@ -663,7 +656,7 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
         </svg>
 
         {/* Zoom / fit controls */}
-        <div className="absolute bottom-3 left-3 z-20 flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 shadow-sm backdrop-blur">
+        <div className="absolute bottom-3 start-3 z-20 flex flex-col overflow-hidden border border-border bg-card">
           <button onClick={() => zoomBy(1.2)} className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground" title="Zoom in">
             <Plus className="h-4 w-4" />
           </button>
@@ -674,10 +667,10 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
             <Maximize2 className="h-4 w-4" />
           </button>
         </div>
-        <div className="absolute bottom-3 left-14 z-20 rounded-md border border-border bg-card/90 px-2 py-1 text-[11px] tabular-nums text-muted-foreground backdrop-blur">
+        <div className="num absolute bottom-3 start-14 z-20 border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
           {zoomPct}%
         </div>
-        <div className="pointer-events-none absolute bottom-3 right-3 z-20 rounded-md border border-border bg-card/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+        <div className="pointer-events-none absolute bottom-3 end-3 z-20 hidden border border-border bg-card px-2 py-1 font-mono text-[10px] text-muted-foreground sm:block">
           drag to move · double-click to release · scroll to zoom
         </div>
       </div>
@@ -689,6 +682,7 @@ export function SpiderGraphView({ data, namespace }: { data: GraphData; namespac
           node={focusNode}
           namespace={namespace}
           neighbors={neighborNodes}
+          palette={palette}
           onFocus={setFocusId}
           onClose={() => setFocusId(null)}
         />

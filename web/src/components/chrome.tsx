@@ -8,12 +8,12 @@ import {
 import { useSession } from "../routes/auth-gate";
 import { auth } from "../lib/auth";
 
-/** First-letter monogram for the signed-in user — matches the brain avatars'
- *  restrained, one-accent identity style. */
+/** First-letter monogram for the signed-in user — a square cell on the action colour, as the
+ *  grid draws avatars (no circles, no gradients). */
 function Avatar({ seed }: { seed: string }) {
   const ch = (seed.trim()[0] || "?").toUpperCase();
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-teal-400 text-xs font-semibold text-white">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-xs font-medium text-primary-foreground">
       {ch}
     </span>
   );

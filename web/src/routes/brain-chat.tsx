@@ -1,26 +1,18 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Sparkles, FileText, Clock, Cpu, Layers, AlertTriangle, Route } from "lucide-react";
+import { Send, FileText, Clock, Cpu, Layers, AlertTriangle, Route } from "lucide-react";
+import { Button, Textarea } from "@togo-framework/ui";
 import { brainApi, type ChatTurn, type ChatAnswer, type Recalled } from "../lib/brain";
-import { SynapseField, NeuralGlyph, NeuralCellMark } from "../components/neural";
-import { hueForBrain } from "../lib/brain-colors";
+import { MemorySquare } from "../components/brand";
+import { RecallSquares } from "../components/page";
 
-/** "The brain is thinking" — a firing soma + travelling synapse pulses shown
- * while an answer is being recalled + generated. Pure CSS (cb-* keyframes). */
-function ThinkingPulse({ color }: { color: string }) {
+/** "The brain is thinking" — the brand's recall squares lighting one after another while an
+ * answer is recalled and generated. Colour-only motion (cb-recall keyframes in app.css). */
+function ThinkingPulse() {
   return (
-    <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-      <NeuralCellMark color={color} size={26} />
-      <span className="flex items-center gap-1">
-        {[0, 1, 2, 3].map((i) => (
-          <span
-            key={i}
-            className="cb-spark h-1.5 w-1.5 rounded-full"
-            style={{ background: color, animationDelay: `${i * 0.18}s`, boxShadow: `0 0 6px ${color}` }}
-          />
-        ))}
-      </span>
+    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+      <RecallSquares />
       <span>recalling memories &amp; thinking…</span>
     </div>
   );
@@ -31,7 +23,7 @@ type Msg =
   | { role: "user"; content: string }
   | { role: "assistant"; content: string; answer?: ChatAnswer; loading?: boolean; error?: string };
 
-/** Inline [n] citation chips → scroll/expand the matching source below. */
+/** Inline [n] citations → mono footnote chips that scroll to the matching source below. */
 function renderWithCitations(text: string, onCite: (n: number) => void) {
   const parts = text.split(/(\[\d+\])/g);
   return parts.map((p, i) => {
@@ -42,7 +34,7 @@ function renderWithCitations(text: string, onCite: (n: number) => void) {
         <button
           key={i}
           onClick={() => onCite(n)}
-          className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded bg-primary/15 px-1 text-xs font-semibold text-primary align-baseline hover:bg-primary/25"
+          className="num mx-0.5 inline-flex h-5 min-w-5 items-center justify-center border border-border bg-muted px-1 align-baseline text-[11px] font-medium text-active hover:border-active"
           title={`Source ${n}`}
         >
           {n}
@@ -53,48 +45,49 @@ function renderWithCitations(text: string, onCite: (n: number) => void) {
   });
 }
 
-/** Provenance footer for an assistant answer: footprint + expandable citations.
- * Tolerant of a missing/partial footprint (the backend may add streamed tool
- * fields later) so extra/absent fields never hard-break the render. */
+/** Provenance footer for an assistant answer: footprint + expandable citations. Tolerant of a
+ * missing/partial footprint so extra/absent fields never hard-break the render. */
 function Provenance({ answer, focusCite }: { answer: ChatAnswer; focusCite: number | null }) {
   const fp = answer.footprint ?? ({} as ChatAnswer["footprint"]);
   const citations = answer.citations ?? [];
   return (
     <div className="mt-3 space-y-2">
-      {/* Footprint — the auditable trace (Shape-of-AI: Footprints) */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-2.5 py-1.5 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1 font-medium text-foreground/70"><Route className="h-3 w-3" /> traced from</span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary"><Layers className="h-3 w-3" /> {fp.recalled ?? citations.length} memories</span>
-        {fp.model && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5"><Cpu className="h-3 w-3" /> {fp.model}</span>}
-        {typeof fp.latencyMs === "number" && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5"><Clock className="h-3 w-3" /> {(fp.latencyMs / 1000).toFixed(1)}s</span>}
+      {/* Footprint — the auditable trace */}
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        <span className="micro inline-flex items-center gap-1.5 text-muted-foreground"><Route className="h-3 w-3" /> traced from</span>
+        <span className="grid-chip"><Layers className="h-3 w-3" /> {fp.recalled ?? citations.length} memories</span>
+        {fp.model && <span className="grid-chip num"><Cpu className="h-3 w-3" /> {fp.model}</span>}
+        {typeof fp.latencyMs === "number" && (
+          <span className="grid-chip num"><Clock className="h-3 w-3" /> {(fp.latencyMs / 1000).toFixed(1)}s</span>
+        )}
         {fp.grounded === false && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-500"><AlertTriangle className="h-3 w-3" /> no matching memory</span>
+          <span className="grid-chip text-tone-warn"><AlertTriangle className="h-3 w-3" /> no matching memory</span>
         )}
       </div>
-      {/* Citations (Shape-of-AI: Citations / References) */}
+      {/* Citations */}
       {citations.length > 0 && (
-        <details open className="rounded-lg border border-border bg-background/60">
-          <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-muted-foreground">
+        <details open className="border border-border">
+          <summary className="micro cursor-pointer px-3 py-2 text-muted-foreground">
             {citations.length} source{citations.length === 1 ? "" : "s"} cited
           </summary>
-          <div className="space-y-1.5 px-3 pb-3">
+          <ol className="divide-y divide-border border-t border-border">
             {citations.map((c: Recalled, i) => (
-              <div
+              <li
                 key={c.id}
                 id={`cite-${i + 1}`}
-                className={`rounded-lg border p-2.5 text-xs transition ${focusCite === i + 1 ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                className={`p-3 text-xs transition-colors ${focusCite === i + 1 ? "border-s-2 border-s-active bg-muted" : ""}`}
               >
-                <div className="mb-1 flex items-center gap-1.5 text-muted-foreground">
-                  <span className="flex h-4 min-w-4 items-center justify-center rounded bg-primary/15 px-1 font-semibold text-primary">{i + 1}</span>
-                  <FileText className="h-3 w-3" />
-                  <span>{c.network}·{c.memoryType}</span>
-                  {c.sourceKind && <span>· {c.sourceKind}{c.sourceRef ? `/${c.sourceRef}` : ""}</span>}
-                  <span className="ms-auto tabular-nums">score {c.score.toFixed(3)}</span>
+                <div className="mb-1.5 flex items-center gap-2 text-muted-foreground">
+                  <span className="num inline-flex h-4 min-w-4 items-center justify-center bg-muted px-1 text-[10.5px] text-active">{i + 1}</span>
+                  <FileText className="h-3 w-3 shrink-0" />
+                  <span className="num">{c.network}·{c.memoryType}</span>
+                  {c.sourceKind && <span className="num truncate">· {c.sourceKind}{c.sourceRef ? `/${c.sourceRef}` : ""}</span>}
+                  <span className="num ms-auto shrink-0">score {c.score.toFixed(3)}</span>
                 </div>
-                <div className="text-foreground/90">{c.content}</div>
-              </div>
+                <div className="text-card-foreground">{c.content}</div>
+              </li>
             ))}
-          </div>
+          </ol>
         </details>
       )}
     </div>
@@ -103,15 +96,13 @@ function Provenance({ answer, focusCite }: { answer: ChatAnswer; focusCite: numb
 
 export function BrainChat() {
   const { namespace } = useParams({ strict: false }) as { namespace: string };
-  const accent = hueForBrain(namespace || "brain");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [focusCite, setFocusCite] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Suggestions from the brain's graph (Shape-of-AI: Suggestions / Initial CTA) —
-  // pick a few named entities/ventures so the blank canvas is never empty.
+  // Suggestions from the brain's graph — a few named entities so the blank canvas is never empty.
   const graph = useQuery({ queryKey: ["brain", "graph", namespace], queryFn: () => brainApi.graph(namespace, 3000) });
   const suggestions = useMemo(() => {
     const nodes = (graph.data?.nodes ?? []).filter((n) => !["root", "type"].includes(n.group ?? ""));
@@ -131,9 +122,7 @@ export function BrainChat() {
     if (!q || busy) return;
     setInput("");
     setBusy(true);
-    const history: ChatTurn[] = msgs
-      .filter((m): m is Extract<Msg, { role: "user" }> | Extract<Msg, { role: "assistant" }> => true)
-      .map((m) => ({ role: m.role, content: m.content }));
+    const history: ChatTurn[] = msgs.map((m) => ({ role: m.role, content: m.content }));
     setMsgs((prev) => [...prev, { role: "user", content: q }, { role: "assistant", content: "", loading: true }]);
     try {
       const r = await brainApi.chat({ namespace, message: q, history });
@@ -161,45 +150,50 @@ export function BrainChat() {
     <div className="flex h-full flex-col">
       {/* Scrollable transcript */}
       <div ref={scrollRef} className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-3xl space-y-4 p-6">
+        <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
           {msgs.length === 0 ? (
-            // Initial CTA — inviting, brain-branded
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-teal-400/10 p-8 text-center">
-              <SynapseField className="opacity-30" />
-              <div className="relative mx-auto max-w-md">
-                <span className="mx-auto mb-3 flex items-center justify-center"><NeuralCellMark color={accent} size={56} /></span>
-                <h2 className="text-lg font-semibold text-foreground">Ask the <span style={{ color: accent }}>{namespace}</span> brain</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  A live agent grounded only in this brain's memories — every answer cites the memories it used.
-                </p>
-                {suggestions.length > 0 && (
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    {suggestions.map((s) => (
-                      <button key={s} onClick={() => send(s)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground transition hover:border-primary/50 hover:text-primary">
-                        <Sparkles className="h-3 w-3 text-primary" /> {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
+            // Initial invitation, seeded with the brain's own entities.
+            <section className="border border-border bg-card p-6 sm:p-8">
+              <div className="flex items-center gap-2.5">
+                <MemorySquare />
+                <span className="micro text-muted-foreground">Chat</span>
               </div>
-            </div>
+              <h2 className="mt-3 text-2xl font-medium tracking-tight text-foreground">
+                Ask the <span dir="ltr" className="text-active">{namespace}</span> brain
+              </h2>
+              <p className="mt-2 max-w-[60ch] text-sm font-light leading-relaxed text-card-foreground">
+                A live agent grounded only in this brain's memories — every answer cites the memories it used.
+              </p>
+              {suggestions.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-1.5">
+                  {suggestions.map((s) => (
+                    <button key={s} onClick={() => send(s)} className="grid-chip transition-colors hover:border-active hover:text-foreground">
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
           ) : (
             msgs.map((m, i) =>
               m.role === "user" ? (
                 <div key={i} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">{m.content}</div>
+                  <div className="max-w-[85%] whitespace-pre-wrap bg-primary px-4 py-2.5 text-sm text-primary-foreground">{m.content}</div>
                 </div>
               ) : (
                 <div key={i} className="flex justify-start">
-                  <div className="max-w-[90%] rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3">
+                  <div className="w-full max-w-[90%] border border-border bg-card px-4 py-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <MemorySquare />
+                      <span dir="ltr" className="micro text-muted-foreground">{namespace}</span>
+                    </div>
                     {m.loading ? (
-                      <ThinkingPulse color={accent} />
+                      <ThinkingPulse />
                     ) : m.error ? (
-                      <div className="text-sm text-rose-400">{m.error}</div>
+                      <div className="text-sm text-tone-danger">{m.error}</div>
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap text-sm text-foreground">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                           {renderWithCitations(m.content, (n) => {
                             setFocusCite(n);
                             document.getElementById(`cite-${n}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -217,25 +211,21 @@ export function BrainChat() {
       </div>
 
       {/* Composer */}
-      <div className="border-t border-border bg-background/80 p-4 backdrop-blur">
+      <div className="border-t border-border bg-background p-4">
         <div className="mx-auto flex max-w-3xl items-end gap-2">
-          <textarea
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
             rows={1}
             placeholder={`Ask the ${namespace} brain…`}
-            className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-border bg-card px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="max-h-40 min-h-[44px] flex-1 resize-none"
           />
-          <button
-            onClick={() => send(input)}
-            disabled={busy || !input.trim()}
-            className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-40"
-          >
+          <Button onClick={() => send(input)} disabled={busy || !input.trim()} className="h-11">
             <Send className="h-4 w-4" /> Ask
-          </button>
+          </Button>
         </div>
-        <p className="mx-auto mt-1.5 max-w-3xl text-center text-xs text-muted-foreground">
+        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
           Answers are grounded only in this brain's memories and cite their sources.
         </p>
       </div>

@@ -6,7 +6,7 @@ import {
   SidebarInset, SidebarTrigger, ThemePicker,
 } from "@togo-framework/ui";
 import { LiveIndicator } from "../lib/realtime";
-import { NeuralGlyph, NeuralBackdrop } from "../components/neural";
+import { SidebarBrand } from "../components/brand";
 import { UserMenu } from "../components/chrome";
 import { useSidebarState } from "../lib/sidebar";
 
@@ -35,12 +35,7 @@ export function AdminLayout() {
     <SidebarProvider open={sidebar.open} onOpenChange={sidebar.setOpen}>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link to="/" className="flex items-center gap-2 px-2 py-1.5" title="Back to Brains">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-violet-500 to-teal-400 text-white shadow-[0_0_18px_-4px] shadow-violet-500/50">
-              <NeuralGlyph className="h-5 w-5" />
-            </span>
-            <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">CaBrain</span>
-          </Link>
+          <SidebarBrand title="Back to Brains" />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -60,13 +55,12 @@ export function AdminLayout() {
       </Sidebar>
 
       <SidebarInset>
-        <NeuralBackdrop className="opacity-50" />
-        <header className="relative z-10 flex h-14 items-center justify-between gap-2 border-b border-border px-4">
+        <header className="flex h-14 items-center justify-between gap-2 border-b border-border px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
             <nav className="flex items-center gap-1.5 text-sm">
               <Link to="/" className="text-muted-foreground hover:text-foreground">Brains</Link>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground rtl:-scale-x-100" />
               <span className="font-medium text-foreground">{crumb}</span>
             </nav>
           </div>
@@ -76,7 +70,7 @@ export function AdminLayout() {
             <UserMenu />
           </div>
         </header>
-        <main className="relative z-10 min-w-0 flex-1 overflow-auto"><Outlet /></main>
+        <main className="min-w-0 flex-1 overflow-auto"><Outlet /></main>
       </SidebarInset>
     </SidebarProvider>
   );
