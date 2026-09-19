@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CaBrain DYNAMIC code indexer — repomix is THE standard path for putting a repo's
+Zekra DYNAMIC code indexer — repomix is THE standard path for putting a repo's
 codebase into the brain.
 
     scripts/code-index.py add onestudio-co/agents     # register a repo (one action)
@@ -29,10 +29,10 @@ WHY THIS SHAPE
   edges, memory_entities links so recall's 1-hop expansion can reach the code.
 
 CONFIG — everything from env, no credential ever lives in this file:
-    CABRAIN_API_URL   default https://cabrain.fadymondy.com
-    CABRAIN_TOKEN     brain token (X-Cabrain-Token)
-    CABRAIN_NAMESPACE default flowos
-    CABRAIN_DSN       optional postgres DSN -> enables graph + prune of stale chunks
+    ZEKRA_API_URL   default https://zekra.dev
+    ZEKRA_TOKEN     brain token (X-Zekra-Token)
+    ZEKRA_NAMESPACE default flowos
+    ZEKRA_DSN       optional postgres DSN -> enables graph + prune of stale chunks
     FLOWOS_DSN        optional READ-ONLY FlowOS prod DSN -> REPO_OF venture edges
     GITHUB_TOKEN      optional; falls back to `gh auth token`
     CODE_INDEX_CACHE  default ~/.cache/cabrain-repos
@@ -46,6 +46,9 @@ import argparse
 import base64
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
 import subprocess
 import sys
@@ -53,12 +56,12 @@ import time
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
-API = os.environ.get("CABRAIN_API_URL", "https://cabrain.fadymondy.com").rstrip("/")
-TOKEN = os.environ.get("CABRAIN_TOKEN", "")
-NS = os.environ.get("CABRAIN_NAMESPACE", "flowos")
+API = os.environ.get("ZEKRA_API_URL", "https://zekra.dev").rstrip("/")
+TOKEN = os.environ.get("ZEKRA_TOKEN", "")
+NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
 CACHE = os.environ.get("CODE_INDEX_CACHE", os.path.expanduser("~/.cache/cabrain-repos"))
 STATE_PATH = os.environ.get("CODE_INDEX_STATE", os.path.join(CACHE, "state.json"))
-DSN = os.environ.get("CABRAIN_DSN", "")
+DSN = os.environ.get("ZEKRA_DSN", "")
 FLOWOS_DSN = os.environ.get("FLOWOS_DSN", "")
 REPOMIX_CMD = os.environ.get("REPOMIX_CMD", "npx --yes repomix@latest").split()
 CODE_MAX_CHUNKS = int(os.environ.get("CODE_MAX_CHUNKS", "80"))
@@ -112,7 +115,7 @@ def api(method, path, body=None, timeout=180):
            "-A", "cabrain-code-index/1.0",
            "-H", "Content-Type: application/json"]
     if TOKEN:
-        cmd += ["-H", "X-Cabrain-Token: " + TOKEN]
+        cmd += ["-H", "X-Zekra-Token: " + TOKEN]
     if body is not None:
         cmd += ["--data-binary", "@-"]
         raw = json.dumps(body)
@@ -689,7 +692,7 @@ def build_overview(repo, clone, sections, docs, tree_out, sha, head_date,
     total_chars = sum(s for s, _ in sizes)
 
     out = []
-    out.append("REPO INDEX — %s (indexed by the CaBrain repomix pipeline)" % repo)
+    out.append("REPO INDEX — %s (indexed by the Zekra repomix pipeline)" % repo)
     out.append("")
     out.append("HEAD %s, last commit %s. The compressed repomix pack covers %d source "
                "files (~%d KB of structure-extracted code); %d of %d code chunks and "
@@ -789,12 +792,12 @@ def prune(c, repo, seen_refs):
 
 def cmd_graph(args):
     """Rebuild the graph purely FROM THE BRAIN DB — no clone needed. The indexing
-    run does this inline when CABRAIN_DSN is set; this is the catch-up path for
+    run does this inline when ZEKRA_DSN is set; this is the catch-up path for
     repos indexed from a host that can only reach the HTTPS API (e.g. the systemd
     timer), and it is idempotent."""
     c = db()
     if not c:
-        sys.exit("graph needs CABRAIN_DSN (and pg8000)")
+        sys.exit("graph needs ZEKRA_DSN (and pg8000)")
     rows = c.run("""SELECT id::text, source_kind, metadata->>'repo', metadata->>'path',
                            valid_at
                     FROM memories
@@ -893,7 +896,7 @@ def cmd_candidates(args):
     else:
         body = (
             "Code-index coverage gap as of %s: %d GitHub repositories received "
-            "commits in the last %d days and are NOT in the CaBrain code-index "
+            "commits in the last %d days and are NOT in the Zekra code-index "
             "registry, so their source code is absent from the brain. Most active "
             "unindexed: %s. Register one with `code-index.py add <owner>/<repo>`; "
             "they are deliberately NOT auto-indexed because bulk-indexing every "
@@ -914,7 +917,7 @@ def dt_now():
 
 
 def main():
-    ap = argparse.ArgumentParser(description="CaBrain repomix code indexer")
+    ap = argparse.ArgumentParser(description="Zekra repomix code indexer")
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("add", help="register a repo (datasources row) ")
     a.add_argument("repo")

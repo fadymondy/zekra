@@ -64,8 +64,8 @@ OPEN edge (valid_to IS NULL) first. Retirement is soft; nothing is deleted.
 
 Credentials come from the environment only (this file is committed):
   FLOWOS_DSN         postgresql://…/onestudio_hub   READ-ONLY, every read in a tx
-  CABRAIN_DSN        postgresql://…/cabrain
-  CABRAIN_NAMESPACE  default: flowos
+  ZEKRA_DSN        postgresql://…/cabrain
+  ZEKRA_NAMESPACE  default: flowos
 
 Usage:
   python3 scripts/flowos-graph-spine.py --dry-run     # plan + census, write nothing
@@ -75,6 +75,9 @@ Usage:
 import argparse
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
 import sys
 from collections import defaultdict
@@ -82,7 +85,7 @@ from urllib.parse import urlparse
 
 import pg8000.native as pg
 
-NS = os.environ.get("CABRAIN_NAMESPACE", os.environ.get("FLOWOS_NAMESPACE", "flowos"))
+NS = os.environ.get("ZEKRA_NAMESPACE", os.environ.get("FLOWOS_NAMESPACE", "flowos"))
 
 # New pieces of the ontology this script is responsible for. The reconcile step
 # below picks up anything else that exists in the data but was never declared.
@@ -741,7 +744,7 @@ def main():
     steps = set(args.only or ["activity", "feeds", "meetings", "ontology"])
     apply_ = not args.dry_run
 
-    s, b = _conn(os.environ["FLOWOS_DSN"]), _conn(os.environ["CABRAIN_DSN"])
+    s, b = _conn(os.environ["FLOWOS_DSN"]), _conn(os.environ["ZEKRA_DSN"])
     b.run("SET search_path = public")
     b.run("SET statement_timeout = 0")
     s.run("BEGIN READ ONLY")          # FlowOS prod is shared and read-only to us

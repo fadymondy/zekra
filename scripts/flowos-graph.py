@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Populate the CaBrain ENTITY GRAPH (entities + memory_entities) for the flowos brain
+Populate the Zekra ENTITY GRAPH (entities + memory_entities) for the flowos brain
 from the FlowOS production foreign keys.
 
 Why this matters: Store.expandEntities does 1-hop "spreading activation" — after
@@ -21,6 +21,9 @@ The TYPED graph — entities.entity_type plus directed entity_edges with provena
 scripts/flowos-graph-edges.py, which is the script to run for the graph proper.
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 import pg8000.native as pg
 from collections import defaultdict
@@ -28,13 +31,13 @@ from collections import defaultdict
 NS = os.environ.get("FLOWOS_NAMESPACE", "flowos")
 # Both DSNs come from env; the FlowOS one is vaulted in think-os as `flowos_prod_db`.
 #   FLOWOS_DSN  = postgresql://flowos:***@<tunnel-or-host>:5432/onestudio_hub   (READ ONLY)
-#   CABRAIN_DSN = postgresql://cabrain:***@<host>:5432/cabrain
+#   ZEKRA_DSN = postgresql://cabrain:***@<host>:5432/cabrain
 def _conn(dsn):
     u = urlparse(dsn)
     return pg.Connection(user=u.username, password=u.password, host=u.hostname,
                          port=u.port or 5432, database=u.path.lstrip("/"))
 def src():   return _conn(os.environ["FLOWOS_DSN"])
-def brain(): return _conn(os.environ["CABRAIN_DSN"])
+def brain(): return _conn(os.environ["ZEKRA_DSN"])
 
 s, b = src(), brain()
 s.run("BEGIN READ ONLY")

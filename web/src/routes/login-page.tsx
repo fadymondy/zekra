@@ -3,7 +3,7 @@ import { AuthFlow } from "@togo-framework/ui";
 import { BrandDescriptor, BrandLockup, CubeMark, FADY_MONDY_MARK } from "../components/brand";
 import { auth, clearSession, makeAuthClient } from "../lib/auth";
 
-// Full-screen sign-in for the CaBrain console, drawn on the grid from CaBrain Brand.dc.html:
+// Full-screen sign-in for the Zekra console, drawn on the grid from Zekra Brand.dc.html:
 // an indigo brand panel — the violet checkerboard strip, the lockup, and the brand's recall
 // panel — beside the bare togo AuthFlow form on the ground. AuthFlow keeps all of the auth
 // logic (email-first, password, 2FA, CSRF via lib/auth); withCard={false} drops its own card
@@ -58,8 +58,8 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
               Console
             </span>
             <div className="flex items-center gap-5">
-              <CubeMark size={64} tone="on-dark" title="CaBrain" />
-              <span dir="ltr" className="text-[40px] font-medium leading-none tracking-[-0.015em]">CaBrain</span>
+              <CubeMark size={64} tone="on-dark" title="Zekra" />
+              <span dir="ltr" className="text-[40px] font-medium leading-none tracking-[-0.015em]">Zekra</span>
             </div>
             <p className="max-w-[46ch] text-[15px] font-light leading-[1.9] text-[#a9b1c6]">
               A memory layer for AI agents, built on embeddings. Everything an agent says is kept by
@@ -72,7 +72,7 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
             <div className="flex items-center justify-between gap-3 pb-3" style={{ borderBottom: `1px solid ${PANEL_LINE}` }}>
               <span className="flex items-center gap-2.5">
                 <CubeMark size={22} tone="on-dark" />
-                <span className="text-[13.5px] font-medium">CaBrain</span>
+                <span className="text-[13.5px] font-medium">Zekra</span>
               </span>
               <span className="font-mono text-[11px] text-[#a9b1c6]">recall · top 3</span>
             </div>
@@ -122,7 +122,7 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
         </div>
 
         <footer className="flex items-center justify-between gap-4 border-t border-border px-6 py-4 font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground">
-          <span>CaBrain console</span>
+          <span>Zekra console</span>
           <span dir="ltr" className="normal-case tracking-normal">{window.location.host}</span>
         </footer>
       </main>

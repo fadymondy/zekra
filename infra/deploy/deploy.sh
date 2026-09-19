@@ -8,10 +8,10 @@ echo "=== [$(date -Is)] deploy triggered ==="
 . /deploy/.env
 
 if [ ! -d /src/.git ]; then
-  git clone https://x-access-token:${GITHUB_TOKEN}@github.com/togo-framework/cabrain.git /src
+  git clone https://x-access-token:${GITHUB_TOKEN}@github.com/fadymondy/zekra.git /src
 fi
 cd /src
-git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/togo-framework/cabrain.git
+git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/fadymondy/zekra.git
 git fetch --all --prune 2>&1 | tail -3
 git checkout main 2>&1 | tail -2 || true
 git reset --hard origin/main 2>&1 | tail -2
@@ -22,12 +22,12 @@ ls -d internal/db/gen internal/graph/gen 2>&1
 
 docker build -t cabrain:latest . 2>&1 | tail -12
 
-CABRAIN_PW=$(echo "$CABRAIN_DATABASE_URL" | sed -E 's|.*://cabrain:([^@]+)@.*|\1|')
+ZEKRA_PW=$(echo "$ZEKRA_DATABASE_URL" | sed -E 's|.*://cabrain:([^@]+)@.*|\1|')
 docker rm -f cabrain 2>/dev/null || true
 docker run -d --name cabrain \
   --network stack_stacknet --network-alias cabrain-app --restart unless-stopped \
   --env-file /deploy/.env \
-  -e DATABASE_URL="postgresql://cabrain:${CABRAIN_PW}@pg:5432/cabrain?search_path=cabrain_auth,public" \
+  -e DATABASE_URL="postgresql://cabrain:${ZEKRA_PW}@pg:5432/cabrain?search_path=cabrain_auth,public" \
   -e DB_DRIVER=pgx -e CACHE_DRIVER=redis -e REDIS_URL=redis://redis:6379 \
   -e BRAIN_BM25_TOKENIZER=cabrain_ml \
   cabrain:latest

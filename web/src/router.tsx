@@ -19,13 +19,13 @@ import { BrainUsers } from "./routes/brain-users";
 import { BrainPermissions } from "./routes/brain-permissions";
 import { ProfilePage } from "./routes/profile-page";
 
-// CaBrain memory console — everything is wired over the brain. The BRAIN is the
+// Zekra memory console — everything is wired over the brain. The BRAIN is the
 // main entry: "/" is the Brains hub, each brain opens a scoped workspace at
 // /b/$namespace (graph/mindmap centerpiece + its own sections), and cross-brain
 // admin (users, tokens, global search) lives out of the main flow under /admin.
 //
 // The whole console is wrapped by <AuthGate>: when the backend enforces auth
-// (CABRAIN_REQUIRE_AUTH) and there is no session, the login page replaces it;
+// (ZEKRA_REQUIRE_AUTH) and there is no session, the login page replaces it;
 // otherwise it renders as-is. RealtimeProvider (single shared SSE stream) wraps
 // the authed content so every layout live-updates.
 const rootRoute = createRootRoute({

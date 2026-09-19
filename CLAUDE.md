@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**CaBrain** is a memory organ for AI agents (hybrid BM25 + vector recall on Postgres/
+**Zekra** is a memory organ for AI agents (hybrid BM25 + vector recall on Postgres/
 VectorChord, hot/cold tiers, Redis L1, write-decision dedupe), built as a **togo** app
 (Go + sqlc + Atlas + GraphQL/REST, Vite/React console in `web/`). Design: `SPEC.md`;
 build plan: `PLAN.md`; decision log: `docs/decisions.md`; deploy: `DEPLOY.md`.
@@ -12,8 +12,8 @@ build plan: `PLAN.md`; decision log: `docs/decisions.md`; deploy: `DEPLOY.md`.
 - `togo serve` (or `make dev`) — run backend + frontend; `togo dev` for hot reload.
 - `togo generate` — sqlc → gqlgen → atlas diff → OpenAPI export. The OpenAPI export compiles
   the whole program, so it is the integration gate.
-- `togo migrate` / `go run ./cmd/brainctl migrate` — apply the harness schema / the brain
-  plugin's `schema.sql` + `bm25.sql` (needs `DATABASE_URL`). `brainctl inspect` shows the live DB.
+- `togo migrate` / `go run ./cmd/zekractl migrate` — apply the harness schema / the brain
+  plugin's `schema.sql` + `bm25.sql` (needs `DATABASE_URL`). `zekractl inspect` shows the live DB.
 - `go build ./...` · `go test ./...` · single test:
   `go test ./plugins/brain/internal/brain -run TestWriteDecision`.
 - `togo format` / `togo lint`.
@@ -34,8 +34,8 @@ build plan: `PLAN.md`; decision log: `docs/decisions.md`; deploy: `DEPLOY.md`.
   `internal/plugins` too, so plugin schemas (e.g. db-postgres) apply on migrate.
 - Module resolution: `go.mod` replaces `brain` → `./plugins/brain`; `go.work` shadows the
   parent `E:\Sites\togo\go.work` and pulls sibling togo plugins from `..\*`.
-- `cmd/brain-mcp` is the MCP server (memory_retain/recall/get/forget/…) — a thin stdio
-  adapter over the brain's REST API (`CABRAIN_API_URL`, identity via `CABRAIN_AGENT_ID` →
+- `cmd/zekra-mcp` is the MCP server (memory_retain/recall/get/forget/…) — a thin stdio
+  adapter over the brain's REST API (`ZEKRA_API_URL`, identity via `ZEKRA_AGENT_ID` →
   `X-Agent-Id` header). All scoping/validation stays server-side.
 - `scripts/*.py` are ingestion/sync jobs (FlowOS sync, graph edges, code indexing, rollups)
   run against the live API/DB.
@@ -49,9 +49,9 @@ build plan: `PLAN.md`; decision log: `docs/decisions.md`; deploy: `DEPLOY.md`.
 
 See `.claude/rules/` for detail.
 
-## The FlowOS brain (cabrain MCP)
+## The FlowOS brain (zekra MCP)
 
-The **cabrain** MCP server (in `.mcp.json`) exposes this project's memory organ. Two
+The **zekra** MCP server (in `.mcp.json`) exposes this project's memory organ. Two
 brains are loaded:
 - **`flowos`** (~1,780 memories) — the FlowOS / OneStudio hub: ventures, domain-expert
   agents, people, issues, posts, roadmaps, releases, goals, learnings, harvested research.
@@ -61,7 +61,7 @@ brains are loaded:
   questions.
 
 - **`cabrain`** — this project's own dev knowledge (repo docs + git history). Use when
-  developing/following up on CaBrain itself.
+  developing/following up on Zekra itself.
 
 Pick the namespace matching the question (`flowos` studio, `avo` founder readiness,
 `cabrain` this project's dev); recall both/all and merge only if genuinely ambiguous.
@@ -70,7 +70,7 @@ Manage brains with the MCP tools `brain_list`, `brain_details`, `memory_edit`,
 
 **MEMORY-FIRST IS MANDATORY. Every turn: recall → answer/act → retain.** For ANY
 question or task touching FlowOS / OneStudio — a venture, portfolio, person, agent,
-issue, task, post, decision, or learning — you **MUST** call the cabrain MCP
+issue, task, post, decision, or learning — you **MUST** call the zekra MCP
 `memory_recall` tool with `namespace: "flowos"` **before** answering, base the answer
 on what it returns (and cite it), and `memory_retain` anything new you produce. If
 recall returns nothing, say so — never invent facts.

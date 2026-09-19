@@ -12,7 +12,7 @@ running version before mass-syncing.
 Idempotent: a datasource whose name already exists in the namespace is skipped.
 
 Env (never hardcode):
-  GITHUB_TOKEN, CABRAIN_URL, CABRAIN_TOKEN, BRAIN_NS
+  GITHUB_TOKEN, ZEKRA_URL, ZEKRA_TOKEN, BRAIN_NS
 Usage:
   python3 scripts/create-code-datasources.py [--repos scripts/flowos-code-repos.json]
                                              [--sync owner/name]...
@@ -21,11 +21,14 @@ Usage:
 import argparse
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 
-CABRAIN_URL = os.environ.get("CABRAIN_URL", "https://cabrain.fadymondy.com").rstrip("/")
-CABRAIN_TOKEN = os.environ.get("CABRAIN_TOKEN", "")
+ZEKRA_URL = os.environ.get("ZEKRA_URL", "https://zekra.dev").rstrip("/")
+ZEKRA_TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 NS = os.environ.get("BRAIN_NS", "flowos")
 
@@ -37,8 +40,8 @@ EXCLUDE = ["node_modules/", "vendor/", "dist/", "build/", ".next/", "testdata/",
 
 
 def api(method, path, body=None):
-    cmd = ["curl", "-s", "--max-time", "300", "-X", method, CABRAIN_URL + path,
-           "-H", "X-Cabrain-Token: " + CABRAIN_TOKEN]
+    cmd = ["curl", "-s", "--max-time", "300", "-X", method, ZEKRA_URL + path,
+           "-H", "X-Zekra-Token: " + ZEKRA_TOKEN]
     if body is not None:
         cmd += ["-H", "content-type: application/json", "--data-binary", "@-"]
     p = subprocess.run(cmd, input=json.dumps(body) if body is not None else None,
@@ -54,8 +57,8 @@ def main():
     ap.add_argument("--repos", default=os.path.join(os.path.dirname(__file__), "flowos-code-repos.json"))
     ap.add_argument("--sync", action="append", default=[])
     args = ap.parse_args()
-    if not CABRAIN_TOKEN:
-        sys.exit("CABRAIN_TOKEN is required")
+    if not ZEKRA_TOKEN:
+        sys.exit("ZEKRA_TOKEN is required")
 
     existing = {d["name"]: d["id"] for d in api("GET", f"/api/brain/datasources?namespace={NS}").get("datasources") or []}
     entries = json.load(open(args.repos))["repos"]

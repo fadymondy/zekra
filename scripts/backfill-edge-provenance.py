@@ -11,13 +11,16 @@ record exists, sets memory_id + episode_id + metadata.source_ref. Aggregate edge
 `derived_from` / `aggregate` metadata instead — no link is invented.
 
 Usage:
-  CABRAIN_DSN=postgresql://…  FLOWOS_DSN=postgresql://…  \
+  ZEKRA_DSN=postgresql://…  FLOWOS_DSN=postgresql://…  \
     python3 scripts/backfill-edge-provenance.py [--apply]
 
 Without --apply it prints the plan and changes nothing.
 Never hard-code credentials here — this file is committed.
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import sys
 from urllib.parse import urlparse
 
@@ -26,7 +29,7 @@ import pg8000.native as pg
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from flowos_edge_provenance import FAMILIES, build_plan, apply_plan  # noqa: E402
 
-NS = os.environ.get("CABRAIN_NAMESPACE", "flowos")
+NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
 
 
 def _conn(dsn):
@@ -45,7 +48,7 @@ def counts(b):
 def main():
     apply = "--apply" in sys.argv
     s = _conn(os.environ["FLOWOS_DSN"])
-    b = _conn(os.environ["CABRAIN_DSN"])
+    b = _conn(os.environ["ZEKRA_DSN"])
     s.run("BEGIN READ ONLY")
     b.run("SET search_path = public")
     b.run("SET statement_timeout = 0")

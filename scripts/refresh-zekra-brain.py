@@ -5,15 +5,18 @@ changes so future sessions can recall the latest project state.
 Ingests (into namespace `cabrain`, deduped by the §4.1 write-decision):
   1. every repo markdown doc (SPEC/PLAN/DEPLOY/decisions/rules/CLAUDE.md/...), chunked
   2. the full git commit history (each commit = a build-log entry, with body)
-  3. (optional) the Claude project-memory file if $CABRAIN_MEMORY_FILE is set
+  3. (optional) the Claude project-memory file if $ZEKRA_MEMORY_FILE is set
 
-Usage:  python3 scripts/refresh-cabrain-brain.py
-        CABRAIN_API_URL=http://localhost:8080 (default)
+Usage:  python3 scripts/refresh-zekra-brain.py
+        ZEKRA_API_URL=http://localhost:8080 (default)
 """
 import json, os, re, subprocess, time, urllib.error, urllib.request
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-API = os.environ.get("CABRAIN_API_URL", "http://localhost:8080")
+API = os.environ.get("ZEKRA_API_URL", "http://localhost:8080")
 NS = "cabrain"
 MAXC = 2500
 EXCLUDE_DIRS = {"node_modules", "dist", "worktrees", "scratchpad", ".git"}
@@ -29,9 +32,9 @@ def retain(content, ref, meta):
     # say, while in fact not one write had ever landed.
     req = urllib.request.Request(API + "/api/brain/retain", data=body, headers={
         "Content-Type": "application/json", "User-Agent": "cabrain-refresh/1.0"})
-    tok = os.environ.get("CABRAIN_TOKEN")
+    tok = os.environ.get("ZEKRA_TOKEN")
     if tok:
-        req.add_header("X-Cabrain-Token", tok)
+        req.add_header("X-Zekra-Token", tok)
     # Retry the transient ones. A refresh is a few hundred sequential HTTPS calls, so
     # the occasional read timeout / SSL EOF / dropped keep-alive is expected; without
     # a retry those show up as permanently missing docs and commits. A 403 is not
@@ -87,7 +90,7 @@ def main():
                 continue
             cks = chunks(text) or [text]
             for i, ch in enumerate(cks):
-                hdr = f"CaBrain repo · {rel}" + (f" (part {i+1}/{len(cks)})" if len(cks) > 1 else "")
+                hdr = f"Zekra repo · {rel}" + (f" (part {i+1}/{len(cks)})" if len(cks) > 1 else "")
                 if retain(hdr + "\n\n" + ch, f"cabrain:{rel}#{i}", {"type": "doc", "path": rel}) != "ERR":
                     n_doc += 1
     print("docs:", n_doc, flush=True)
@@ -101,17 +104,17 @@ def main():
             continue
         h, date, subj = parts[0], parts[1], parts[2]
         body = parts[3] if len(parts) > 3 else ""
-        content = f"CaBrain build-log commit {h} ({date[:10]}): {subj}\n{body.strip()[:1800]}"
+        content = f"Zekra build-log commit {h} ({date[:10]}): {subj}\n{body.strip()[:1800]}"
         if retain(content, f"cabrain:log:{h}", {"type": "buildlog", "hash": h, "date": date[:10], "_sk": "cabrain_history"}) != "ERR":
             n_commit += 1
     print("commits:", n_commit, flush=True)
 
     # 3. optional curated project-memory
-    mem = os.environ.get("CABRAIN_MEMORY_FILE")
+    mem = os.environ.get("ZEKRA_MEMORY_FILE")
     if mem and os.path.exists(mem):
         text = open(mem, encoding="utf-8", errors="replace").read()
         for i, ch in enumerate(chunks(text)):
-            if retain(f"CaBrain project history / state (part {i+1})\n\n{ch}", f"cabrain:history:{i}",
+            if retain(f"Zekra project history / state (part {i+1})\n\n{ch}", f"cabrain:history:{i}",
                       {"type": "history", "_sk": "cabrain_history"}) != "ERR":
                 n_hist += 1
         print("history:", n_hist, flush=True)

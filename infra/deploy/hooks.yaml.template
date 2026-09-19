@@ -1,4 +1,4 @@
-# CaBrain webhook receiver (adnanh/webhook). Rendered with the shared secret from
+# Zekra webhook receiver (adnanh/webhook). Rendered with the shared secret from
 # /home/fadymondy/services/cabrain-deploy/.webhook-secret at install time.
 - id: cabrain-deploy
   execute-command: /home/fadymondy/services/cabrain-src/infra/deploy/deploy.sh

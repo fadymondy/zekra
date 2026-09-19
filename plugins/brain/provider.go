@@ -30,7 +30,7 @@ func RegisterReranker(k *togo.Kernel, r Reranker) { ib.RegisterReranker(k, r) }
 // RegisterEngine publishes the cognify-engine driver (e.g. brain-cognee) onto the kernel.
 func RegisterEngine(k *togo.Kernel, e Engine) { ib.RegisterEngine(k, e) }
 
-// --- Schema / migration surface (for ops tooling, e.g. cmd/brainctl) ----------
+// --- Schema / migration surface (for ops tooling, e.g. cmd/zekractl) ----------
 
 // Migrate applies the brain schema (SPEC §3) then the BM25 layer against db.
 func Migrate(ctx context.Context, db *sql.DB) error { return ib.Migrate(ctx, db) }

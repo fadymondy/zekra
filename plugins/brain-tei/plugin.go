@@ -1,4 +1,4 @@
-// Package braintei is the TEI provider plugin for CaBrain: it publishes an
+// Package braintei is the TEI provider plugin for Zekra: it publishes an
 // Embedder (BAAI/bge-m3) and Reranker (bge-reranker-v2-m3) onto the kernel for
 // the brain plugin to use. Config from env (TEI_EMBEDDINGS_URL / _RERANKER_URL /
 // _DIM). Self-registers on blank-import.

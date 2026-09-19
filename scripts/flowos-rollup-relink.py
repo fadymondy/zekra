@@ -18,19 +18,22 @@ that loop from the workspace, where the brain DSN does work.
 It needs no FlowOS access and no analytics DB: everything it needs is already in
 each rollup's own metadata (scope, repo, person, ranking, zeroCommit).
 
-    export CABRAIN_DSN=postgresql://cabrain:***@host:5432/cabrain
+    export ZEKRA_DSN=postgresql://cabrain:***@host:5432/cabrain
     python3 scripts/flowos-rollup-relink.py [--dry-run]
 """
 from __future__ import annotations
 
 import argparse
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import sys
 from urllib.parse import urlparse
 
 import pg8000.native as pg
 
-NS = os.environ.get("CABRAIN_NAMESPACE", os.environ.get("FLOWOS_NAMESPACE", "flowos"))
+NS = os.environ.get("ZEKRA_NAMESPACE", os.environ.get("FLOWOS_NAMESPACE", "flowos"))
 SOURCE_KIND = "flowos_activity_rollup"
 
 
@@ -73,9 +76,9 @@ def main() -> int:
                     help="cap how many people/repos are linked per rollup (0 = all)")
     args = ap.parse_args()
 
-    dsn = os.environ.get("CABRAIN_DSN", "")
+    dsn = os.environ.get("ZEKRA_DSN", "")
     if not dsn:
-        sys.exit("CABRAIN_DSN must be set")
+        sys.exit("ZEKRA_DSN must be set")
     b = conn(dsn)
 
     by_name: dict[str, str] = {}

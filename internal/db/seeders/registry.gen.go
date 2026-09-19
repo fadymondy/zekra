@@ -4,7 +4,7 @@ package seeders
 import (
 	"context"
 
-	"github.com/togo-framework/cabrain/internal/app"
+	"github.com/fadymondy/zekra/internal/app"
 )
 
 // SeedAll runs every resource seeder. Regenerated from togo.resources.yaml.

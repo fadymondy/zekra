@@ -10,9 +10,9 @@ package plugins
 //	togo install togo-framework/auth
 //	togo install togo-framework/auth-dev
 //
-// The console gate is COMPLEMENTARY to the existing MCP token ACL (X-Cabrain-Token):
+// The console gate is COMPLEMENTARY to the existing MCP token ACL (X-Zekra-Token):
 // auth governs the human web console; the token ACL governs MCP agents. See the
-// brain plugin's consoleAuth gate (CABRAIN_REQUIRE_AUTH).
+// brain plugin's consoleAuth gate (ZEKRA_REQUIRE_AUTH).
 import (
 	_ "github.com/togo-framework/auth"
 )

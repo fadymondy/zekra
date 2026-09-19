@@ -1,19 +1,19 @@
-// Command brain-mcp is CaBrain's Model Context Protocol server (SPEC §5.1): it
+// Command zekra-mcp is Zekra's Model Context Protocol server (SPEC §5.1): it
 // exposes the six memory tools — memory_retain, memory_recall,
 // memory_recall_archive, memory_get, memory_forget, memory_share — over stdio
 // JSON-RPC so Claude Code and other agents can use the memory organ.
 //
 // It is a thin adapter over the brain's REST surface (the same endpoints the
 // console uses), so all scoping/validation stays server-side in one place. The
-// agent identity travels as the X-Agent-Id header (F5), taken from CABRAIN_AGENT_ID
+// agent identity travels as the X-Agent-Id header (F5), taken from ZEKRA_AGENT_ID
 // — never from tool arguments.
 //
-//	CABRAIN_API_URL   base URL of the running cabrain app (default https://cabrain-app.fadymondy.com)
-//	CABRAIN_AGENT_ID  this MCP session's agent identity (empty = trusted/no grant checks)
+//	ZEKRA_API_URL   base URL of the running Zekra app (default https://app.zekra.dev)
+//	ZEKRA_AGENT_ID  this MCP session's agent identity (empty = trusted/no grant checks)
 //
 // Wire it into .mcp.json:
 //
-//	{"mcpServers":{"cabrain":{"command":"brain-mcp"}}}
+//	{"mcpServers":{"zekra":{"command":"zekra-mcp"}}}
 package main
 
 import (
@@ -33,12 +33,12 @@ import (
 const protocolVersion = "2024-11-05"
 
 func main() {
-	base := env("CABRAIN_API_URL", "https://cabrain-app.fadymondy.com")
+	base := env("ZEKRA_API_URL", "https://app.zekra.dev")
 	srv := &server{
 		base:      strings.TrimRight(base, "/"),
-		agent:     os.Getenv("CABRAIN_AGENT_ID"),
-		token:     os.Getenv("CABRAIN_TOKEN"),             // ACL token → per-brain read/write
-		defaultNS: os.Getenv("CABRAIN_DEFAULT_NAMESPACE"), // session bound to a brain
+		agent:     os.Getenv("ZEKRA_AGENT_ID"),
+		token:     os.Getenv("ZEKRA_TOKEN"),             // ACL token → per-brain read/write
+		defaultNS: os.Getenv("ZEKRA_DEFAULT_NAMESPACE"), // session bound to a brain
 		hc:        &http.Client{Timeout: 30 * time.Second},
 	}
 	srv.serve(os.Stdin, os.Stdout)
@@ -112,7 +112,7 @@ func (s *server) dispatch(req *rpcReq) {
 		s.reply(req.ID, map[string]any{
 			"protocolVersion": protocolVersion,
 			"capabilities":    map[string]any{"tools": map[string]any{}},
-			"serverInfo":      map[string]any{"name": "cabrain-brain", "version": "0.1.0"},
+			"serverInfo":      map[string]any{"name": "zekra-brain", "version": "0.1.0"},
 		})
 	case "notifications/initialized", "notifications/cancelled":
 		// notifications: no response
@@ -343,7 +343,7 @@ func (s *server) do(req *http.Request) (any, int, error) {
 		req.Header.Set("X-Agent-Id", s.agent)
 	}
 	if s.token != "" {
-		req.Header.Set("X-Cabrain-Token", s.token) // ACL: per-brain read/write
+		req.Header.Set("X-Zekra-Token", s.token) // ACL: per-brain read/write
 	}
 	resp, err := s.hc.Do(req)
 	if err != nil {

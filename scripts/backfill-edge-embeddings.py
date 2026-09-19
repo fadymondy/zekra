@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Backfill entity_edges.embedding for the CaBrain graph.
+Backfill entity_edges.embedding for the Zekra graph.
 
 Why this matters: every edge carries a human-readable `fact` sentence ("Sara owns
 Sentra"). Until that sentence is embedded, relationships are only *traversable*,
@@ -26,17 +26,20 @@ Idempotent: only edges with a non-empty fact AND embedding IS NULL are processed
 and the scratch namespace is cleaned out at the end (and on re-run).
 
 Environment:
-  CABRAIN_DSN            postgresql://user:pass@host:port/cabrain      (required)
-  CABRAIN_NAMESPACE      graph namespace to backfill        (default: flowos)
+  ZEKRA_DSN            postgresql://user:pass@host:port/cabrain      (required)
+  ZEKRA_NAMESPACE      graph namespace to backfill        (default: flowos)
   TEI_EMBEDDINGS_URL     e.g. http://tei-embed:80           (route A, optional)
-  CABRAIN_API_URL        e.g. https://cabrain.example.com   (route B)
-  CABRAIN_TOKEN          cbt_... brain token                (route B)
+  ZEKRA_API_URL        e.g. https://cabrain.example.com   (route B)
+  ZEKRA_TOKEN          cbt_... brain token                (route B)
   EMB_BATCH              rows per DB flush                  (default: 128)
   EMB_WORKERS            parallel HTTP calls for route B    (default: 8)
 
 Never hard-code credentials here — this file is committed.
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -45,19 +48,19 @@ from urllib.parse import urlparse
 import pg8000.native as pg
 import requests
 
-NS = os.environ.get("CABRAIN_NAMESPACE", "flowos")
+NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
 SCRATCH_NS = os.environ.get("EMB_SCRATCH_NS", "__edge_embed")
 BATCH = int(os.environ.get("EMB_BATCH", "128"))
 WORKERS = int(os.environ.get("EMB_WORKERS", "8"))
 TEI_URL = os.environ.get("TEI_EMBEDDINGS_URL", "").rstrip("/")
-API_URL = os.environ.get("CABRAIN_API_URL", "").rstrip("/")
-TOKEN = os.environ.get("CABRAIN_TOKEN", "")
+API_URL = os.environ.get("ZEKRA_API_URL", "").rstrip("/")
+TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 # Cloudflare blocks the default python UA, so present a normal one.
 UA = "Mozilla/5.0 (X11; Linux x86_64) cabrain-backfill/1.0"
 
 
 def brain():
-    u = urlparse(os.environ["CABRAIN_DSN"])
+    u = urlparse(os.environ["ZEKRA_DSN"])
     c = pg.Connection(user=u.username, password=u.password, host=u.hostname,
                       port=u.port or 5432, database=u.path.lstrip("/"))
     c.run("SET search_path = public")
@@ -90,7 +93,7 @@ def api_retain(edge_id, fact):
     body = {"namespace": SCRATCH_NS, "content": fact,
             "source_kind": "edge_fact", "source_ref": f"edge:{edge_id}"}
     hdr = {"Content-Type": "application/json", "User-Agent": UA,
-           "X-Cabrain-Token": TOKEN}
+           "X-Zekra-Token": TOKEN}
     for attempt in range(4):
         try:
             r = requests.post(API_URL + "/api/brain/retain", json=body,
@@ -124,8 +127,8 @@ def main():
         print(f"[route] DIRECT TEI at {TEI_URL}", flush=True)
     else:
         if not (API_URL and TOKEN):
-            sys.exit("no embedding route: TEI unreachable and CABRAIN_API_URL/"
-                     "CABRAIN_TOKEN unset. Run this in-cluster, or set the API vars.")
+            sys.exit("no embedding route: TEI unreachable and ZEKRA_API_URL/"
+                     "ZEKRA_TOKEN unset. Run this in-cluster, or set the API vars.")
         print(f"[route] hosted brain API at {API_URL} "
               f"(scratch namespace {SCRATCH_NS}, {WORKERS} workers)", flush=True)
         scratch_cleanup(c)

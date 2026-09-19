@@ -1,9 +1,9 @@
--- CaBrain BM25 — infra provisioning for the app role (`cabrain`). Run as a
+-- Zekra BM25 — infra provisioning for the app role (`cabrain`). Run as a
 -- SUPERUSER (or the extension owner) on the cabrain database.
 --
 -- STATUS (verified 2026-07-17 against the live cabrain DB):
 --   ✓ Grants below are APPLIED — `cabrain` can now USE vchord_bm25 + pg_tokenizer.
---   ✓ brainctl bm25 / bm25-test pass: content_bm25 column + memories_default_bm25
+--   ✓ zekractl bm25 / bm25-test pass: content_bm25 column + memories_default_bm25
 --     index build, and an Arabic BM25 query ranks the Arabic row at -0.7616.
 --   ⚠ The tokenizer currently in use, `cabrain_bm25_tok`, is a FIXED-VOCAB PROBE
 --     (a custom model built from a tiny sample table). It only tokenizes words in
@@ -68,7 +68,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA tokenizer_catalog TO :app_role;
 --   SELECT tokenizer_catalog.tokenize('PostgreSQL cluster pods scale out', 'cabrain_ml');
 --
 --   Then set BRAIN_BM25_TOKENIZER=cabrain_ml in the app env (this var already drives
---   the app's tokenize() calls) and re-run `brainctl bm25 && brainctl bm25-test` —
+--   the app's tokenize() calls) and re-run `zekractl bm25 && zekractl bm25-test` —
 --   "cluster pods" should now score English rows too. Leave the existing default
 --   `cabrain_bm25_tok` in place; switching is purely the env var.
 --

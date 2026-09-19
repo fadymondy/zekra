@@ -1,4 +1,4 @@
-// CaBrain's identity on the grid (fadymondy.com's design system), from CaBrain Brand.dc.html.
+// Zekra's identity on the grid (fadymondy.com's design system), from Zekra Brand.dc.html.
 // Marks are drawn from the grid's generated copy of web/lib/brand/marks.ts — never copy cells
 // by hand. With tone="auto" the colours come from the grid tokens, so the product's own mark
 // follows light/dark by itself: --grid-brand is violet #6d4de6 on ivory and ivory #f0ebe1 on
@@ -6,7 +6,7 @@
 import { Link } from "@tanstack/react-router";
 import { FADY_MONDY_MARK, PRODUCT_MARKS, type MarkSpec } from "../styles/grid-marks";
 
-export const CABRAIN_MARK: MarkSpec = PRODUCT_MARKS.cabrain;
+export const ZEKRA_MARK: MarkSpec = PRODUCT_MARKS.cabrain;
 export { FADY_MONDY_MARK };
 
 type CubeMarkProps = {
@@ -14,7 +14,7 @@ type CubeMarkProps = {
   /** Rendered width in px; height follows the mark's own proportions. */
   size?: number;
   /**
-   * auto     — grid tokens (theme-aware). Only meaningful for CaBrain's own mark, since
+   * auto     — grid tokens (theme-aware). Only meaningful for Zekra's own mark, since
    *            --grid-brand is set by <html data-brand="cabrain">.
    * on-dark  — the mark's own dark-ground colours (bodyOnDark + accent), for surfaces that are
    *            indigo in every theme, like the brand panel.
@@ -28,7 +28,7 @@ type CubeMarkProps = {
 /** A cube mark, normalised to its own bounding box (several marks start at column 1 or 2).
  *  Brand rules enforced here: square cells, no gaps, the dome never cut — and below a 5px
  *  cell the gold square drops and the whole mark is drawn in the body colour. */
-export function CubeMark({ mark = CABRAIN_MARK, size = 24, tone = "auto", title, className = "" }: CubeMarkProps) {
+export function CubeMark({ mark = ZEKRA_MARK, size = 24, tone = "auto", title, className = "" }: CubeMarkProps) {
   const cols = mark.cells.map((c) => c[0]);
   const rows = mark.cells.map((c) => c[1]);
   const minC = Math.min(...cols);
@@ -98,7 +98,7 @@ export function BrandLockup({
       <CubeMark size={size} />
       <span className="flex min-w-0 flex-col gap-1.5">
         <span dir="ltr" className="text-lg font-medium leading-none tracking-[-0.015em] text-foreground">
-          CaBrain
+          Zekra
         </span>
         {descriptor && <BrandDescriptor />}
       </span>
@@ -107,13 +107,13 @@ export function BrandLockup({
 }
 
 /** The sidebar's brand header. Collapsed to the icon rail it shows the mark alone. */
-export function SidebarBrand({ title = "CaBrain" }: { title?: string }) {
+export function SidebarBrand({ title = "Zekra" }: { title?: string }) {
   return (
     <Link to="/" title={title} className="flex items-center gap-2.5 px-2 py-1.5">
       <CubeMark size={26} />
       <span className="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
         <span dir="ltr" className="truncate text-[15px] font-medium leading-none tracking-[-0.015em] text-sidebar-foreground">
-          CaBrain
+          Zekra
         </span>
         <BrandDescriptor />
       </span>

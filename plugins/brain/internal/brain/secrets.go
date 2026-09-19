@@ -34,21 +34,21 @@ import (
 
 // --- encryption ---------------------------------------------------------------
 
-// secretKey resolves the 32-byte AES key. Preference: CABRAIN_SECRETS_KEY (64 hex
+// secretKey resolves the 32-byte AES key. Preference: ZEKRA_SECRETS_KEY (64 hex
 // chars) → derived from AUTH_SECRET → error (fail closed; never store plaintext).
 func secretKey() ([]byte, error) {
-	if h := strings.TrimSpace(os.Getenv("CABRAIN_SECRETS_KEY")); h != "" {
+	if h := strings.TrimSpace(os.Getenv("ZEKRA_SECRETS_KEY")); h != "" {
 		b, err := hex.DecodeString(h)
 		if err == nil && len(b) == 32 {
 			return b, nil
 		}
-		return nil, errors.New("CABRAIN_SECRETS_KEY must be 64 hex chars (32 bytes)")
+		return nil, errors.New("ZEKRA_SECRETS_KEY must be 64 hex chars (32 bytes)")
 	}
 	if s := strings.TrimSpace(os.Getenv("AUTH_SECRET")); s != "" {
 		sum := sha256.Sum256([]byte("cabrain-secrets-v1:" + s))
 		return sum[:], nil
 	}
-	return nil, errors.New("secrets vault has no key: set CABRAIN_SECRETS_KEY (64 hex) or AUTH_SECRET")
+	return nil, errors.New("secrets vault has no key: set ZEKRA_SECRETS_KEY (64 hex) or AUTH_SECRET")
 }
 
 // encryptSecret returns nonce||ciphertext (GCM), safe to store as bytea.

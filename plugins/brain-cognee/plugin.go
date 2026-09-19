@@ -1,4 +1,4 @@
-// Package braincognee is the Cognee provider plugin for CaBrain: it publishes an
+// Package braincognee is the Cognee provider plugin for Zekra: it publishes an
 // Engine (the cognify graph pipeline) onto the kernel for the brain plugin to call
 // off the hot path when a memory is retained. Config from env (COGNEE_API_URL /
 // COGNEE_API_TOKEN, optional COGNEE_AUTH_HEADER / COGNEE_AUTH_PREFIX).

@@ -1,6 +1,6 @@
 # FlowOS analytics plane (DuckDB)
 
-CaBrain answers two very different kinds of question, and they need two very
+Zekra answers two very different kinds of question, and they need two very
 different stores. This document explains the split, why it exists, and how to
 run the ETL.
 
@@ -265,8 +265,8 @@ instead of a confident wrong number.
 
 ```bash
 export FLOWOS_DSN='postgresql://…/onestudio_hub'     # read-only; login→person map
-export CABRAIN_TOKEN=cbt_…
-export CABRAIN_DSN='postgresql://cabrain:…/cabrain'
+export ZEKRA_TOKEN=cbt_…
+export ZEKRA_DSN='postgresql://cabrain:…/cabrain'
 
 python3 scripts/flowos-activity-rollups.py --dry-run   # build + print, write nothing
 python3 scripts/flowos-activity-rollups.py             # retain + wire the graph

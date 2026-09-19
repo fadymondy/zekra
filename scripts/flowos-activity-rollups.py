@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FlowOS activity ROLLUPS -> CaBrain vector brain.
+FlowOS activity ROLLUPS -> Zekra vector brain.
 
 The raw event tables live in DuckDB (see docs/analytics.md) because they are
 counting data, not semantic content. That split is right, but it left the brain
@@ -35,9 +35,9 @@ open-edge check before inserting.
 
 Credentials come from the environment -- never hard-code them:
 
-    export CABRAIN_API=https://cabrain.fadymondy.com
-    export CABRAIN_TOKEN=cbt_...
-    export CABRAIN_DSN=postgresql://cabrain:***@host:5432/cabrain
+    export ZEKRA_API=https://zekra.dev
+    export ZEKRA_TOKEN=cbt_...
+    export ZEKRA_DSN=postgresql://cabrain:***@host:5432/cabrain
     python3 scripts/flowos-activity-rollups.py --dry-run
     python3 scripts/flowos-activity-rollups.py
 """
@@ -47,6 +47,9 @@ import argparse
 import datetime as dt
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 from collections import defaultdict
@@ -154,7 +157,7 @@ def listing(pairs, unit="", limit=4) -> str:
 class Brain:
     """Retain goes over HTTPS; the graph work needs a direct brain DSN.
 
-    CABRAIN_DSN is OPTIONAL. The brain Postgres is not reachable from every host
+    ZEKRA_DSN is OPTIONAL. The brain Postgres is not reachable from every host
     that can run this job (the deployed timer box reaches the API but not the
     database), so with no DSN we still refresh every rollup's *content* through
     the API and simply skip the entity linking / USED_AI_ON edges. `self.db is
@@ -177,7 +180,7 @@ class Brain:
         p = subprocess.run(
             ["curl", "-sS", "--fail-with-body", "-m", "120", "-X", "POST",
              f"{self.api}/api/brain/retain",
-             "-H", f"X-Cabrain-Token: {self.token}",
+             "-H", f"X-Zekra-Token: {self.token}",
              "-H", "Content-Type: application/json",
              "--data-binary", "@-"],
             input=body, capture_output=True, text=True)
@@ -805,11 +808,11 @@ def main() -> int:
 
     duck = duckdb.connect(args.db, read_only=True)
 
-    api = os.environ.get("CABRAIN_API", "https://cabrain.fadymondy.com")
-    token = os.environ.get("CABRAIN_TOKEN", "")
-    dsn = os.environ.get("CABRAIN_DSN", "")
+    api = os.environ.get("ZEKRA_API", "https://zekra.dev")
+    token = os.environ.get("ZEKRA_TOKEN", "")
+    dsn = os.environ.get("ZEKRA_DSN", "")
     if not args.dry_run and not token:
-        sys.exit("CABRAIN_TOKEN must be set (see module docstring)")
+        sys.exit("ZEKRA_TOKEN must be set (see module docstring)")
 
     gh_map = github_login_map()
 
@@ -830,7 +833,7 @@ def main() -> int:
 
     b = Brain(api, token, dsn)
     if b.db is None:
-        print("no CABRAIN_DSN -> content refresh only "
+        print("no ZEKRA_DSN -> content refresh only "
               "(entity links and USED_AI_ON edges skipped)")
     by_type, by_name = (load_entities(b) if b.db is not None
                         else (defaultdict(dict), {}))

@@ -1,4 +1,4 @@
-// Package cognee is CaBrain's client for the Cognee cognify engine (SPEC §7): it
+// Package cognee is Zekra's client for the Cognee cognify engine (SPEC §7): it
 // feeds retained memories into Cognee's graph pipeline so entities/relations are
 // extracted off the hot path. It targets the Cognee 1.3.0 REST API discovered at
 // runtime:
@@ -92,7 +92,7 @@ func (c *Client) add(ctx context.Context, namespace, memoryID, content string) e
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
 	// data is an array of files; send the memory as one text part named by its id
-	// so Cognee's provenance can trace back to the CaBrain memory.
+	// so Cognee's provenance can trace back to the Zekra memory.
 	fw, err := mw.CreateFormFile("data", "mem-"+memoryID+".txt")
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func (c *Client) Datasets(ctx context.Context) ([]Dataset, error) {
 	return out, nil
 }
 
-// DatasetIDByName resolves a dataset name (== CaBrain namespace) to its id.
+// DatasetIDByName resolves a dataset name (== Zekra namespace) to its id.
 func (c *Client) DatasetIDByName(ctx context.Context, name string) (string, error) {
 	ds, err := c.Datasets(ctx)
 	if err != nil {
@@ -310,7 +310,7 @@ func (c *Client) DatasetGraphURL(datasetID string) string {
 //
 // GraphDTO mirrors Cognee's GET /api/v1/datasets/{id}/graph response (from its
 // public OpenAPI): nodes carry an id/label/type/properties, edges a source/target/
-// label. CaBrain mirrors the entity nodes into its own `entities` table so the
+// label. Zekra mirrors the entity nodes into its own `entities` table so the
 // Graph Explorer + 1-hop expansion read from Postgres (not a live Cognee call on
 // the hot path).
 
@@ -356,7 +356,7 @@ func ParseGraph(b []byte) (*GraphDTO, error) {
 }
 
 // EntityNames returns the distinct, non-empty entity labels from the graph — the
-// set CaBrain upserts into its `entities` table for a namespace. Cognee tags
+// set Zekra upserts into its `entities` table for a namespace. Cognee tags
 // structural nodes (documents, chunks) with a Type; when types are present we keep
 // only entity-like nodes, otherwise (older graphs) we fall back to all labeled
 // nodes. Deterministic order for stable upserts/tests.
@@ -397,19 +397,19 @@ func isEntityType(t string) bool {
 	}
 }
 
-// memDocRe recovers a CaBrain memory UUID from a Cognee document node: brain-cognee
+// memDocRe recovers a Zekra memory UUID from a Cognee document node: brain-cognee
 // uploads each memory as a file named "mem-<uuid>.txt", so the id round-trips
 // through Cognee's document node label/properties.
 var memDocRe = regexp.MustCompile(`mem-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})`)
 
-// MemLink pairs a CaBrain memory UUID with an entity label reachable from that
+// MemLink pairs a Zekra memory UUID with an entity label reachable from that
 // memory's document node in the graph.
 type MemLink struct {
 	MemoryID   string
 	EntityName string
 }
 
-// nodeMemoryID extracts a CaBrain memory UUID from a node's label or string-valued
+// nodeMemoryID extracts a Zekra memory UUID from a node's label or string-valued
 // properties (the "mem-<uuid>.txt" naming), or "" if none.
 func nodeMemoryID(n GraphNode) string {
 	if m := memDocRe.FindStringSubmatch(n.Label); m != nil {
@@ -426,7 +426,7 @@ func nodeMemoryID(n GraphNode) string {
 }
 
 // MemoryEntityLinks derives (memory_id, entity_name) pairs by finding document
-// nodes that carry a CaBrain memory id and collecting the entity nodes reachable
+// nodes that carry a Zekra memory id and collecting the entity nodes reachable
 // from them within maxHops (edges treated as undirected: doc → chunk → entity).
 // Best-effort: it depends on Cognee's document-node naming surviving cognify;
 // verify against a live graph once Cognee ingestion is fixed. Deterministic order.

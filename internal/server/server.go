@@ -19,11 +19,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/togo-framework/togo"
 
-	"github.com/togo-framework/cabrain/internal/app"
-	graphgen "github.com/togo-framework/cabrain/internal/graph/gen"
-	"github.com/togo-framework/cabrain/internal/graph/resolvers"
-	_ "github.com/togo-framework/cabrain/internal/plugins" // blank-imports installed plugins (togo install)
-	"github.com/togo-framework/cabrain/internal/rest"
+	"github.com/fadymondy/zekra/internal/app"
+	graphgen "github.com/fadymondy/zekra/internal/graph/gen"
+	"github.com/fadymondy/zekra/internal/graph/resolvers"
+	_ "github.com/fadymondy/zekra/internal/plugins" // blank-imports installed plugins (togo install)
+	"github.com/fadymondy/zekra/internal/rest"
 )
 
 // Boot builds the kernel + app and mounts REST, GraphQL, health, and SSE on the
@@ -32,14 +32,14 @@ func Boot() *app.App {
 	k := togo.New()
 	a := app.New(context.Background(), k)
 
-	api := humachi.New(k.Router, huma.DefaultConfig("Cabrain API", "0.1.0"))
+	api := humachi.New(k.Router, huma.DefaultConfig("Zekra API", "0.1.0"))
 	rest.RegisterRoutes(api, a)
 
 	gql := handler.NewDefaultServer(graphgen.NewExecutableSchema(graphgen.Config{
 		Resolvers: &resolvers.Resolver{App: a},
 	}))
 	k.Router.Handle(k.Config.GraphQLPath, gql)
-	k.Router.Handle("/graphql/play", playground.Handler("Cabrain GraphQL", k.Config.GraphQLPath))
+	k.Router.Handle("/graphql/play", playground.Handler("Zekra GraphQL", k.Config.GraphQLPath))
 
 	k.Router.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -156,7 +156,7 @@ func togoVersion() string {
 // OpenAPI returns the generated OpenAPI 3.1 document (used by `togo generate`).
 func OpenAPI() ([]byte, error) {
 	router := chi.NewMux()
-	api := humachi.New(router, huma.DefaultConfig("Cabrain API", "0.1.0"))
+	api := humachi.New(router, huma.DefaultConfig("Zekra API", "0.1.0"))
 	rest.RegisterRoutes(api, nil)
 	return api.OpenAPI().YAML()
 }

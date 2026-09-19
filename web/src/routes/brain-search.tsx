@@ -96,7 +96,7 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
   );
 }
 
-/** A toggleable facet — the grid chip with aria-pressed (CaBrain's active colour when on). */
+/** A toggleable facet — the grid chip with aria-pressed (Zekra's active colour when on). */
 function FacetChip({ label, active, onClick, icon }: { label: ReactNode; active: boolean; onClick: () => void; icon?: ReactNode }) {
   return (
     <button onClick={onClick} aria-pressed={active} className="grid-chip transition-colors hover:text-foreground">

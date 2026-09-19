@@ -22,9 +22,12 @@ would add a second live edge on every run. We check for an existing OPEN edge
 
 Credentials come from the environment only:
   FLOWOS_DSN   postgresql://…/onestudio_hub   (READ-ONLY; every read is in a tx)
-  CABRAIN_DSN  postgresql://…/cabrain
+  ZEKRA_DSN  postgresql://…/cabrain
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
 import sys
 from urllib.parse import urlparse
@@ -47,7 +50,7 @@ def norm(s):
 
 def main():
     s = conn(os.environ["FLOWOS_DSN"])
-    b = conn(os.environ["CABRAIN_DSN"])
+    b = conn(os.environ["ZEKRA_DSN"])
     b.run("SET search_path = public")
     s.run("BEGIN READ ONLY")
 

@@ -1,4 +1,4 @@
-# cabrain
+# Zekra (formerly CaBrain)
 
 A general, hardware-elastic **memory organ** for AI agents — built as togo plugins on
 `togo-postgres` (VectorChord + BM25 + pgvector) with hippocampal *hot* / cortical *cold*
@@ -30,7 +30,7 @@ Each provider is its own plugin (`brain-tei`, `brain-cognee`, …). Full design 
 ## Layout
 
 ```
-cabrain/                         project / dev harness (module github.com/togo-framework/cabrain)
+cabrain/                         project / dev harness (module github.com/fadymondy/zekra)
 ├── plugins/brain/               THE PLUGIN — module github.com/togo-framework/brain
 │   ├── plugin.go                RegisterProviderFunc: /api/brain/ping (+ retain/recall as they land)
 │   ├── togo.plugin.yaml

@@ -1,4 +1,4 @@
-module github.com/togo-framework/cabrain
+module github.com/fadymondy/zekra
 
 go 1.26.4
 

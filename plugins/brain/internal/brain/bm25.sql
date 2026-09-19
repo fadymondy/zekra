@@ -1,4 +1,4 @@
--- CaBrain BM25 layer — vchord_bm25 0.3.0 + pg_tokenizer 0.1.1 (CONFIRMED against
+-- Zekra BM25 layer — vchord_bm25 0.3.0 + pg_tokenizer 0.1.1 (CONFIRMED against
 -- the live cabrain DB). Kept separate from schema.sql so a BM25 issue can never
 -- block the core schema. Applied by ApplyBM25 (idempotent).
 --
