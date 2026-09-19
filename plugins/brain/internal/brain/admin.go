@@ -22,6 +22,8 @@ type BrainDetail struct {
 	Recalls   int            `json:"recalls"` // recall events, all time
 	FirstAt   *time.Time     `json:"firstAt,omitempty"`
 	LastAt    *time.Time     `json:"lastAt,omitempty"`
+	CanWrite  bool           `json:"canWrite"`       // the caller may write this brain
+	Role      string         `json:"role,omitempty"` // the caller's role: admin | owner | editor | viewer
 }
 
 func (s *Store) BrainDetail(ctx context.Context, ns string) (*BrainDetail, error) {

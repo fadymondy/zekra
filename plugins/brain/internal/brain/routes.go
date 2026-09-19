@@ -88,6 +88,7 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Get("/api/notes", sec(s.ListNotes))
 	r.Post("/api/notes", sec(s.CreateNote))
 	r.Post("/api/notes/adopt", sec(s.AdoptNotes))
+	r.Get("/api/notes/tags", sec(s.NoteTags))
 	r.Get("/api/notes/{id}", sec(s.GetNote))
 	r.Put("/api/notes/{id}", sec(s.UpdateNote))
 	r.Delete("/api/notes/{id}", sec(s.DeleteNote))

@@ -333,7 +333,9 @@ func (s *Service) BrainDetail(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
 		return
 	}
-	d, _ := s.Store.BrainDetail(r.Context(), r.URL.Query().Get("namespace"))
+	ns := r.URL.Query().Get("namespace")
+	d, _ := s.Store.BrainDetail(r.Context(), ns)
+	d.CanWrite, d.Role = s.canWrite(r, ns), s.brainRole(r, ns)
 	writeJSON(w, http.StatusOK, d)
 }
 

@@ -115,6 +115,22 @@ func (s *Service) noteWriteGuard(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
+// NoteTags — GET /api/notes/tags?namespace=&archived=: {tags:[{tag,count}]}, most used first.
+func (s *Service) NoteTags(w http.ResponseWriter, r *http.Request) {
+	ns := r.URL.Query().Get("namespace")
+	if !s.canRead(r, ns) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+		return
+	}
+	a := r.URL.Query().Get("archived")
+	tags, err := s.Store.NoteTags(r.Context(), ns, a == "1" || a == "true")
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"namespace": ns, "tags": tags})
+}
+
 // ListNotes — GET /api/notes
 func (s *Service) ListNotes(w http.ResponseWriter, r *http.Request) {
 	qv := r.URL.Query()
@@ -122,6 +138,17 @@ func (s *Service) ListNotes(w http.ResponseWriter, r *http.Request) {
 		Category: strings.TrimSpace(qv.Get("category"))}
 	q.Limit, _ = strconv.Atoi(qv.Get("limit"))
 	q.Archived = qv.Get("archived") == "1" || qv.Get("archived") == "true"
+	q.Pinned = qv.Get("pinned") == "1" || qv.Get("pinned") == "true"
+	if v := qv.Get("tags"); v != "" {
+		q.Tags = strings.Split(v, ",")
+	}
+	switch v := qv.Get("sort"); v {
+	case "", "updated", "created", "title":
+		q.Sort = v
+	default:
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "sort is updated, created or title"))
+		return
+	}
 	if v := qv.Get("since"); v != "" {
 		t, err := time.Parse(time.RFC3339Nano, v)
 		if err != nil {

@@ -469,6 +469,27 @@ func (s *Service) profileEditLevel(r *http.Request, ns string) string {
 	}
 }
 
+// brainRole is the caller's role on a brain: admin | owner | editor | viewer, or
+// "" without read access. Tokens and OAuth apps map to editor/viewer by write.
+func (s *Service) brainRole(r *http.Request, ns string) string {
+	if !s.canRead(r, ns) {
+		return ""
+	}
+	c := s.identify(r)
+	if c.admin {
+		return "admin"
+	}
+	if c.session && c.principal == nil && c.userID != "" {
+		if role, _ := s.Store.MemberRole(r.Context(), ns, c.userID); role != "" {
+			return role
+		}
+	}
+	if s.canWrite(r, ns) {
+		return "editor"
+	}
+	return "viewer"
+}
+
 // --- handlers --------------------------------------------------------------------
 
 // GetProfile — GET /api/brain/profile?namespace=
@@ -491,7 +512,8 @@ func (s *Service) profileBody(r *http.Request, p BrainProfile) map[string]any {
 	for i, c := range BrainPalette {
 		palette[i] = map[string]string{"key": c.Key, "hex": c.Hex}
 	}
-	return map[string]any{"profile": p, "edit": s.profileEditLevel(r, p.Namespace), "palette": palette}
+	return map[string]any{"profile": p, "edit": s.profileEditLevel(r, p.Namespace), "palette": palette,
+		"canWrite": s.canWrite(r, p.Namespace), "role": s.brainRole(r, p.Namespace)}
 }
 
 // PatchProfile — PATCH /api/brain/profile {namespace, …fields}

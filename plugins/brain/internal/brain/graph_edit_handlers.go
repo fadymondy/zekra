@@ -87,6 +87,7 @@ func (s *Service) GetEntityHandler(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	d.CanWrite = s.canWrite(r, e.Namespace)
 	writeJSON(w, http.StatusOK, d)
 }
 

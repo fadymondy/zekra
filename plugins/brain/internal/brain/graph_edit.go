@@ -81,6 +81,7 @@ type EntityDetail struct {
 	Entity
 	Edges    []EntityEdge   `json:"edges"`
 	Memories []EntityMemory `json:"memories"`
+	CanWrite bool           `json:"canWrite"` // the caller may edit this entity's brain (set by the handler)
 }
 
 // GraphEdgeRow is one entity_edges row (edge endpoints and history).
@@ -434,14 +435,20 @@ func (s *Store) UpdateEntity(ctx context.Context, id string, p EntityPatch, by N
 		}
 	}
 	if p.Metadata != nil {
-		clean := map[string]any{}
+		// Merge set keys; a key sent as null is removed (not stored as JSON null).
+		set, drop := map[string]any{}, stringArray{}
 		for k, v := range p.Metadata {
-			if !protectedEntityMeta[k] {
-				clean[k] = v
+			switch {
+			case protectedEntityMeta[k]:
+			case v == nil:
+				drop = append(drop, k)
+			default:
+				set[k] = v
 			}
 		}
-		raw, _ := json.Marshal(clean)
-		if _, err := db.ExecContext(ctx, `UPDATE entities SET metadata = metadata || $2::jsonb WHERE id=$1`, id, string(raw)); err != nil {
+		raw, _ := json.Marshal(set)
+		if _, err := db.ExecContext(ctx, `UPDATE entities SET metadata = (COALESCE(metadata,'{}'::jsonb) || $2::jsonb) - $3::text[] WHERE id=$1`,
+			id, string(raw), drop); err != nil {
 			return nil, nil, err
 		}
 	}

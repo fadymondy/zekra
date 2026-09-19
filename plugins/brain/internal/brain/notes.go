@@ -26,6 +26,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -656,6 +657,9 @@ type NoteQuery struct {
 	All        bool
 	Q          string
 	Tag        string
+	Tags       []string // all must match (in addition to Tag)
+	Pinned     bool     // pinned notes only
+	Sort       string   // updated (default, pinned first) | created | title; ignored when syncing
 	Category   string
 	Since      *time.Time // incremental sync: changes (incl. tombstones) after this instant
 	Archived   bool       // browse mode: include archived notes
@@ -728,8 +732,11 @@ func (s *Store) ListNotes(ctx context.Context, q NoteQuery) (*NotePage, error) {
 	if q.Category != "" {
 		where = append(where, "category = "+arg(q.Category))
 	}
-	if q.Tag != "" {
-		where = append(where, "tags @> "+arg(stringArray{q.Tag}))
+	if tags := noteTagFilter(q.Tag, q.Tags); len(tags) > 0 {
+		where = append(where, "tags @> "+arg(tags))
+	}
+	if q.Pinned {
+		where = append(where, "pinned")
 	}
 	sync := q.Since != nil
 	if sync {
@@ -740,24 +747,41 @@ func (s *Store) ListNotes(ctx context.Context, q NoteQuery) (*NotePage, error) {
 			where = append(where, "NOT archived")
 		}
 	}
-	if q.Cursor != "" {
-		t, id, ok := decodeCursor(q.Cursor)
-		if !ok {
-			return nil, fmt.Errorf("%w: bad cursor", ErrInvalidInput)
-		}
-		op := "<"
-		if sync {
-			op = ">"
-		}
-		where = append(where, "(updated_at, id) "+op+" ("+arg(t)+"::timestamptz, "+arg(id)+"::uuid)")
-	}
-	order := "updated_at DESC, id DESC"
+	sort := normalizeNoteSort(q.Sort)
+	var order string
 	if sync {
+		if q.Cursor != "" {
+			t, id, ok := decodeCursor(q.Cursor)
+			if !ok {
+				return nil, fmt.Errorf("%w: bad cursor", ErrInvalidInput)
+			}
+			where = append(where, "(updated_at, id) > ("+arg(t)+"::timestamptz, "+arg(id)+"::uuid)")
+		}
 		order = "updated_at ASC, id ASC"
 	} else {
-		order = "pinned DESC, " + order
+		// Keyset paging over the full sort key, so every page keeps the order
+		// (pinned-first included) and no row is skipped or repeated.
+		switch sort {
+		case "created":
+			order = "created_at DESC, id DESC"
+		case "title":
+			order = "lower(title) ASC, id ASC"
+		default:
+			order = "pinned DESC, updated_at DESC, id DESC"
+		}
 		if q.Cursor != "" {
-			order = "updated_at DESC, id DESC" // keyset paging ignores the pin boost
+			c, ok := decodeBrowseCursor(q.Cursor)
+			if !ok || c.Sort != sort {
+				return nil, fmt.Errorf("%w: bad cursor (it belongs to another sort)", ErrInvalidInput)
+			}
+			switch sort {
+			case "created":
+				where = append(where, "(created_at, id) < ("+arg(c.Time)+"::timestamptz, "+arg(c.ID)+"::uuid)")
+			case "title":
+				where = append(where, "(lower(title), id) > ("+arg(c.Key)+"::text, "+arg(c.ID)+"::uuid)")
+			default:
+				where = append(where, "(pinned, updated_at, id) < ("+arg(c.Pinned)+"::bool, "+arg(c.Time)+"::timestamptz, "+arg(c.ID)+"::uuid)")
+			}
 		}
 	}
 	query := `SELECT ` + noteCols + ` FROM notes WHERE ` + strings.Join(where, " AND ") +
@@ -783,13 +807,110 @@ func (s *Store) ListNotes(ctx context.Context, q NoteQuery) (*NotePage, error) {
 	if len(page.Notes) > q.Limit {
 		page.Notes = page.Notes[:q.Limit]
 		last := page.Notes[len(page.Notes)-1]
-		page.NextCursor = encodeCursor(last.UpdatedAt, last.ID)
+		if sync {
+			page.NextCursor = encodeCursor(last.UpdatedAt, last.ID)
+		} else {
+			page.NextCursor = encodeBrowseCursor(sort, last)
+		}
 	} else if sync && len(page.Notes) > 0 {
 		// The last page of a sync still hands back a cursor-equivalent watermark:
 		// clients store serverTime as their next `since`.
 		page.NextCursor = ""
 	}
 	return page, nil
+}
+
+// browseCursor is the keyset position of a browse page for one sort.
+type browseCursor struct {
+	Sort   string    `json:"s"`
+	Pinned bool      `json:"p,omitempty"`
+	Time   time.Time `json:"t,omitempty"`
+	Key    string    `json:"k,omitempty"`
+	ID     string    `json:"i"`
+}
+
+func encodeBrowseCursor(sort string, n Note) string {
+	c := browseCursor{Sort: sort, ID: n.ID}
+	switch sort {
+	case "created":
+		c.Time = n.CreatedAt
+	case "title":
+		c.Key = strings.ToLower(n.Title)
+	default:
+		c.Pinned, c.Time = n.Pinned, n.UpdatedAt
+	}
+	b, _ := json.Marshal(c)
+	return "b" + base64.RawURLEncoding.EncodeToString(b)
+}
+
+func decodeBrowseCursor(s string) (browseCursor, bool) {
+	var c browseCursor
+	if !strings.HasPrefix(s, "b") {
+		// A pre-sort cursor (updated_at|id, pin boost ignored): continue unpinned.
+		t, id, ok := decodeCursor(s)
+		return browseCursor{Sort: "updated", Time: t, ID: id}, ok
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(s[1:])
+	if err != nil || json.Unmarshal(raw, &c) != nil || !uuidRE.MatchString(c.ID) {
+		return c, false
+	}
+	return c, true
+}
+
+// normalizeNoteSort maps a sort parameter to updated | created | title.
+func normalizeNoteSort(s string) string {
+	switch s {
+	case "created", "title":
+		return s
+	}
+	return "updated"
+}
+
+// noteTagFilter merges tag= and tags= into one de-duplicated set.
+func noteTagFilter(tag string, tags []string) stringArray {
+	out, seen := stringArray{}, map[string]bool{}
+	for _, t := range append([]string{tag}, tags...) {
+		if t = strings.TrimSpace(t); t != "" && !seen[t] {
+			seen[t] = true
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// TagCount is one tag and how many notes carry it.
+type TagCount struct {
+	Tag   string `json:"tag"`
+	Count int    `json:"count"`
+}
+
+// NoteTags counts the tags of a brain's live notes (archived ones only when
+// asked), most used first.
+func (s *Store) NoteTags(ctx context.Context, ns string, archived bool) ([]TagCount, error) {
+	out := []TagCount{}
+	db, err := s.db(ctx)
+	if err != nil {
+		return out, err
+	}
+	q := `SELECT t, count(*) FROM notes, unnest(tags) AS t
+	      WHERE namespace=$1 AND deleted_at IS NULL`
+	if !archived {
+		q += ` AND NOT archived`
+	}
+	q += ` GROUP BY t ORDER BY count(*) DESC, t ASC LIMIT 1000`
+	rows, err := db.QueryContext(ctx, q, ns)
+	if err != nil {
+		return out, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tc TagCount
+		if err := rows.Scan(&tc.Tag, &tc.Count); err != nil {
+			return out, err
+		}
+		out = append(out, tc)
+	}
+	return out, rows.Err()
 }
 
 func escapeLike(s string) string {
