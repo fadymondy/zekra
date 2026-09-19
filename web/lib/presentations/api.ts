@@ -123,15 +123,22 @@ export const validateContent = (kind: Kind, content: Record<string, unknown>) =>
 export type FromBrainInput = {
   namespace: string
   source: FromBrainSource
-  kind: Kind
+  kinds: Kind[]
   locale: PLocale
   customer: Customer
   style?: string
   title?: string
 }
 
-/** Draft a document (status draft) from a brain's notes, a recall query, a graph entity or the whole brain. */
-export const createFromBrain = (input: FromBrainInput) => call<Detail>(`/api/presentations/from-brain`, { json: input })
+export type FromBrainResult = {
+  ok: boolean
+  status: "draft"
+  documents: { id: string; kind: Kind; title: string; status: Status }[]
+  sources?: unknown[]
+}
+
+/** Draft documents (status draft) from a brain's notes, a recall query, a graph entity or the whole brain. */
+export const createFromBrain = (input: FromBrainInput) => call<FromBrainResult>(`/api/presentations/from-brain`, { json: input })
 
 export type ShareCreated = { share: Share; token: string; url: string; recoverable: boolean }
 

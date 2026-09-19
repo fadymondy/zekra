@@ -352,7 +352,7 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
 
 // ---- From brain (notes / search / entity / whole brain) -------------------------------
 
-type SourceType = FromBrainSource["type"]
+type SourceType = "notes" | "search" | "entity" | "brain"
 const SOURCE_TYPES: { type: SourceType; icon: typeof StickyNoteIcon }[] = [
   { type: "notes", icon: StickyNoteIcon },
   { type: "search", icon: SearchIcon },
@@ -374,17 +374,17 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
   const source: FromBrainSource | null =
     type === "notes"
       ? noteIds.length
-        ? { type, note_ids: noteIds }
+        ? { kind: "notes", ids: noteIds }
         : null
       : type === "search"
         ? query.trim()
-          ? { type, query: query.trim() }
+          ? { kind: "query", q: query.trim() }
           : null
         : type === "entity"
           ? entity
-            ? { type, entity: entity.id }
+            ? { kind: "entity", id: entity.id }
             : null
-          : { type: "brain" }
+          : { kind: "namespace" }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -392,15 +392,16 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
     setBusy(true)
     setError(null)
     try {
-      const doc = await createFromBrain({
+      const res = await createFromBrain({
         namespace,
         source,
-        kind: meta.kind,
+        kinds: [meta.kind],
         locale: meta.lang,
         customer: { name: meta.name, company: meta.company, email: meta.email },
         style: meta.style,
       })
-      window.location.href = presentationsHref(locale, namespace, doc.id)
+      const doc = res.documents?.find((d) => d.kind === meta.kind) ?? res.documents?.[0]
+      window.location.href = presentationsHref(locale, namespace, doc?.id)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setBusy(false)

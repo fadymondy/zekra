@@ -262,9 +262,9 @@ export type Catalog = {
 
 export type FieldError = { path: string; message: string }
 
-/** Where POST /api/presentations/from-brain drafts a document from. */
+/** Where POST /api/presentations/from-brain drafts from (presentations.BrainSource in Go). */
 export type FromBrainSource =
-  | { type: "notes"; note_ids: string[] }
-  | { type: "search"; query: string }
-  | { type: "entity"; entity: string }
-  | { type: "brain" }
+  | { kind: "notes"; ids: string[] }
+  | { kind: "query"; q: string; limit?: number }
+  | { kind: "entity"; id: string }
+  | { kind: "namespace"; limit?: number }
