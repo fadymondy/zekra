@@ -15,7 +15,7 @@ whole thing up.
 
 ## 1. Env (on-stacknet, internal names)
 
-Point `--env-file` at the host env file (e.g. `/mnt/c/services/cabrain/.env`, which mirrors the
+Point `--env-file` at the host env file (e.g. `/mnt/e/Sites/services/cabrain/.env`, which mirrors the
 workspace's `~/.env.cabrain`); its `CABRAIN_DATABASE_URL` already targets `pg:5432`. Secrets are
 never baked into the image. The columns below are what the **app binary actually reads**
 (confirmed by `grep Getenv`); everything else in the env file is inert for this container.
@@ -51,11 +51,11 @@ docker build -t cabrain:latest .
 
 # Map CABRAIN_DATABASE_URL → DATABASE_URL. --env-file does NOT expand shell vars, so
 # source the file into THIS shell first, then the -e mapping resolves.
-set -a; . /mnt/c/services/cabrain/.env; set +a
+set -a; . /mnt/e/Sites/services/cabrain/.env; set +a
 
 docker run -d --name cabrain \
   --network stack_stacknet \
-  --env-file /mnt/c/services/cabrain/.env \
+  --env-file /mnt/e/Sites/services/cabrain/.env \
   -e DATABASE_URL="${CABRAIN_DATABASE_URL}?search_path=cabrain_auth,public" \
   -e DB_DRIVER=pgx \
   -e CACHE_DRIVER=redis -e REDIS_URL=redis://redis:6379 \

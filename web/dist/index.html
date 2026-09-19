@@ -1,23 +1,29 @@
 <!doctype html>
-<html lang="en" class="dark">
+<!-- CaBrain on the grid (fadymondy.com's design system): grid-surface paints the ground,
+     data-brand swaps in CaBrain's mark colours and violet action. -->
+<html lang="en" dir="ltr" class="grid-surface dark" data-brand="cabrain">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cabrain — built with togo</title>
-    <!-- No-flash theme: apply the persisted choice (default dark) before first paint -->
+    <meta name="theme-color" content="#0b1429" />
+    <title>CaBrain — memory for agents</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- No-flash theme: apply the persisted choice before first paint. Memory is read on a
+         dark ground (CaBrain brand), so dark is the default. The grid has two themes only:
+         any legacy preset (purple, rose, emerald…) falls back to dark. -->
     <script>
       (function () {
         try {
           var k = "togo-theme", t = localStorage.getItem(k);
-          if (!t) { t = "dark"; localStorage.setItem(k, t); }
+          if (t !== "light" && t !== "dark") { t = "dark"; localStorage.setItem(k, t); }
           var d = document.documentElement;
           d.setAttribute("data-theme", t);
-          d.classList.toggle("dark", t !== "light");
+          d.classList.toggle("dark", t === "dark");
         } catch (e) {}
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-7vWwHpKc.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CfMASe2w.css">
+    <script type="module" crossorigin src="/assets/index-u1-DkSNR.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BhfJo40B.css">
   </head>
   <body>
     <div id="root"></div>
