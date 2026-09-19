@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/togo-framework/togo"
 
+	"github.com/fadymondy/zekra/internal/account"
 	"github.com/fadymondy/zekra/internal/app"
 	graphgen "github.com/fadymondy/zekra/internal/graph/gen"
 	"github.com/fadymondy/zekra/internal/graph/resolvers"
@@ -34,6 +35,11 @@ func Boot() *app.App {
 
 	api := humachi.New(k.Router, huma.DefaultConfig("Zekra API", "0.1.0"))
 	rest.RegisterRoutes(api, a)
+
+	// Accounts around the togo auth plugin: email verification, password reset,
+	// sign-in codes, 2FA, Google/Apple/GitHub, the account area, deletion, data
+	// export, and the admin API (internal/account). No-op without Postgres.
+	account.Mount(context.Background(), k, api, a.SQLDB)
 
 	gql := handler.NewDefaultServer(graphgen.NewExecutableSchema(graphgen.Config{
 		Resolvers: &resolvers.Resolver{App: a},
@@ -158,5 +164,6 @@ func OpenAPI() ([]byte, error) {
 	router := chi.NewMux()
 	api := humachi.New(router, huma.DefaultConfig("Zekra API", "0.1.0"))
 	rest.RegisterRoutes(api, nil)
+	account.RegisterOpenAPI(api)
 	return api.OpenAPI().YAML()
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/togo-framework/togo"
 
+	accountschema "github.com/fadymondy/zekra/internal/account/schema"
 	"github.com/fadymondy/zekra/internal/app"
 	// Registers the installed plugins — including db-postgres, which provides the
 	// "pgx" database/sql driver. Without it k.SQL fails with: unknown driver "pgx".
@@ -42,6 +43,14 @@ func main() {
 			os.Exit(1)
 		}
 		k.Log.Info("applied", "file", filepath.Base(f))
+	}
+	// The account tables (internal/account/schema/schema.sql) — Postgres only.
+	if drv := k.Config.DBDriver; drv == "pgx" || drv == "postgres" {
+		if err := accountschema.Migrate(ctx, sqlDB); err != nil {
+			k.Log.Error("migrate failed", "file", "account schema", "err", err)
+			os.Exit(1)
+		}
+		k.Log.Info("applied", "file", "internal/account/schema/schema.sql")
 	}
 	k.Log.Info("migrate complete")
 }

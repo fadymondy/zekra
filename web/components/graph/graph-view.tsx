@@ -57,8 +57,8 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
     }
   }, [data])
 
-  const nodeCount = data.totalNodes ?? data.nodes?.length ?? 0
-  const edgeCount = data.totalEdges ?? data.edges?.length ?? 0
+  const nodeCount = data.totalNodes || data.nodes?.length || 0
+  const edgeCount = data.totalEdges || data.edges?.length || 0
   const shownNodes = data.nodes?.length ?? 0
   const shownEdges = data.edges?.length ?? 0
   const sampled = data.sampled ?? shownNodes < nodeCount

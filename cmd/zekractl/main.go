@@ -6,7 +6,8 @@
 // It connects with DATABASE_URL (pgx). Usage:
 //
 //	zekractl inspect     — extensions, tables, tokenizer, bm25 column/index, counts
-//	zekractl migrate     — apply schema.sql + bm25.sql (idempotent)
+//	zekractl migrate     — apply the account schema + schema.sql + bm25.sql (idempotent)
+//	zekractl admin <email> — grant the admin role to an existing account
 //	zekractl bm25         — apply just the BM25 layer (idempotent)
 //	zekractl bm25-test    — seed a few multilingual rows and run a BM25 ranking query
 //	zekractl mirror <ns>  — mirror a namespace's Cognee graph into entities/memory_entities
@@ -25,11 +26,13 @@ import (
 
 	"github.com/togo-framework/brain"
 	braincognee "github.com/togo-framework/brain-cognee"
+
+	accountschema "github.com/fadymondy/zekra/internal/account/schema"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test>")
+		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin>")
 		os.Exit(2)
 	}
 	dsn := os.Getenv("DATABASE_URL")
@@ -51,6 +54,9 @@ func main() {
 	case "inspect":
 		inspect(ctx, db)
 	case "migrate":
+		// Account tables first (cabrain_auth via search_path; independent of BM25).
+		must(accountschema.Migrate(ctx, db), "apply account schema")
+		fmt.Println("✓ account schema applied")
 		if err := brain.Migrate(ctx, db); err != nil {
 			if errors.Is(err, brain.ErrBM25Skipped) {
 				fmt.Println("✓ schema applied")
@@ -72,6 +78,17 @@ func main() {
 			fatal("usage: zekractl mirror <namespace>")
 		}
 		mirror(ctx, db, os.Args[2])
+	case "admin":
+		// Grant the admin role to an existing account (register or sign in first).
+		if len(os.Args) < 3 {
+			fatal("usage: zekractl admin <email>")
+		}
+		found, err := accountschema.Promote(ctx, db, os.Args[2], "admin")
+		must(err, "grant admin")
+		if !found {
+			fatal("no account with that email — register it first, then run this again")
+		}
+		fmt.Println("✓ admin role granted (takes effect on the account's next request)")
 	default:
 		fatal("unknown command: " + os.Args[1])
 	}
