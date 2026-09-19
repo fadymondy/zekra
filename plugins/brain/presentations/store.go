@@ -35,6 +35,8 @@ type Store struct {
 	Translator Translator
 	// Sealer keeps share tokens recoverable for the owner; nil = DefaultSealer().
 	Sealer Sealer
+	// Resolver is the DNS custom share domains are verified with; nil = net.DefaultResolver.
+	Resolver Resolver
 }
 
 // NewStore returns a Store on the given handle resolver.

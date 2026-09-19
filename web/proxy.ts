@@ -8,7 +8,7 @@ import {
   type Locale,
 } from "@/lib/i18n-locale"
 import { SHARE_PAGE_CSP } from "@/lib/presentations/code-scene"
-import { SITE_URL, siteHosts } from "@/lib/site/config"
+import { APP_URL, SITE_URL, siteHosts } from "@/lib/site/config"
 
 // Set by the togo auth plugin on login/register (HttpOnly).
 const SESSION_COOKIE = "togo_session"
@@ -66,6 +66,77 @@ const SITE_FILES: Record<string, string> = {
   "/llms.txt": "/zsite/llms.txt",
   "/feed.xml": "/zsite/feed.xml",
   "/indexnow.txt": "/zsite/indexnow",
+}
+
+/*
+Custom share domains: a brain can link its own host (deck.acme.com) to its share links. Such a
+host serves the read-only viewer and NOTHING else: no console, no login, no marketing site, no
+API. A host is custom when it is not one of ours: the console (app.zekra.dev, the host of
+NEXT_PUBLIC_APP_URL, ZEKRA_APP_HOSTS), the site hosts, *.zekra.dev, localhost, an IP or a bare
+service name. Both Host and X-Forwarded-Host are read, and either one being custom is enough,
+so a forged X-Forwarded-Host cannot turn a custom host into the console. Whether the host is
+verified, and whether the token belongs to the brain that owns it, is decided by the API: the
+viewer passes the host on (x-zekra-share-host, read by lib/presentations/api.ts) and the API
+answers 404 for anything else.
+*/
+const SHARE_HOST_HEADER = "x-zekra-share-host"
+const SHARE_ASSETS = /^\/(?:_next\/|icons\/|favicon\.(?:svg|ico)$)/
+
+function cleanHost(raw: string | null): string {
+  return (raw ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "")
+}
+
+function ownHosts(): string[] {
+  const extra = (process.env.ZEKRA_APP_HOSTS ?? "").split(",").map((h) => cleanHost(h)).filter(Boolean)
+  let app = "app.zekra.dev"
+  try {
+    app = new URL(APP_URL).hostname.toLowerCase()
+  } catch {
+    /* keep the default */
+  }
+  return ["app.zekra.dev", app, "localhost", ...siteHosts(), ...extra]
+}
+
+function isOwnHost(host: string): boolean {
+  if (host === "" || !host.includes(".") || host.startsWith("[") || /^[\d.]+$/.test(host)) return true
+  if (host === "zekra.dev" || host.endsWith(".zekra.dev")) return true
+  return ownHosts().includes(host)
+}
+
+/** The custom share host this request arrived on, or "" on one of our own hosts. */
+function customShareHost(request: NextRequest): string {
+  for (const name of ["host", "x-forwarded-host"]) {
+    const host = cleanHost(request.headers.get(name))
+    if (!isOwnHost(host)) return host
+  }
+  return ""
+}
+
+const NOT_FOUND = () =>
+  new NextResponse("Not found", {
+    status: 404,
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" },
+  })
+
+function shareHostProxy(request: NextRequest, host: string): NextResponse {
+  const { pathname } = request.nextUrl
+  if (SHARE_ASSETS.test(pathname)) return NextResponse.next()
+
+  const { locale, rest } = splitLocale(pathname)
+  if (!rest.startsWith("/p/") || rest === "/p/") return NOT_FOUND()
+  if (!locale) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/${preferredLocale(request)}${pathname}`
+    return NextResponse.redirect(url)
+  }
+
+  const headers = new Headers(request.headers)
+  headers.set("x-locale", locale)
+  headers.set(SHARE_HOST_HEADER, host)
+  const response = NextResponse.next({ request: { headers } })
+  response.headers.set("Content-Security-Policy", SHARE_PAGE_CSP)
+  response.headers.set("X-Robots-Tag", "noindex, nofollow")
+  return response
 }
 
 function requestHost(request: NextRequest): string {
@@ -134,6 +205,9 @@ function siteProxy(request: NextRequest): NextResponse {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   // The internal site tree is only reachable through the rewrite above.
+  // A linked customer domain: the share viewer only (before anything else can answer).
+  const shareHost = customShareHost(request)
+  if (shareHost) return shareHostProxy(request, shareHost)
   if (pathname === "/zsite" || pathname.startsWith("/zsite/")) return new NextResponse("Not found", { status: 404 })
   if (isSiteRequest(request)) return siteProxy(request)
   if (shouldSkip(pathname)) return NextResponse.next()
@@ -168,6 +242,7 @@ export function proxy(request: NextRequest) {
   // The root layout cannot read route params, so it reads the locale from here.
   const headers = new Headers(request.headers)
   headers.set("x-locale", locale)
+  headers.delete(SHARE_HOST_HEADER) // only shareHostProxy may set it
   const response = NextResponse.next({ request: { headers } })
   // A shared presentation may hold sandboxed srcdoc "code" scenes: same-origin frames only,
   // never framed by another site.

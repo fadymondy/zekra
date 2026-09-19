@@ -158,22 +158,38 @@ export function isTokenShape(token: string): boolean {
   return /^[A-Za-z0-9_-]{43}$/.test(token)
 }
 
+/** Set by proxy.ts (and only by it) when the request arrived on a brain's custom share domain. */
+export const SHARE_HOST_HEADER = "x-zekra-share-host"
+
 /**
- * The shared view, fetched on the server. The visitor's address is forwarded so the API's
- * per-address rate limit applies to them, not to this server.
+ * What the API needs to know about the visitor: their address (its per-address rate limit then
+ * applies to them, not to this server) and, on a custom share domain, the host they came in on.
+ * The API only opens a token on a custom host when the token's brain owns that host.
+ */
+function visitorHeaders(opts: { forwardedFor?: string | null; host?: string | null }): Record<string, string> {
+  return {
+    ...(opts.forwardedFor ? { "X-Forwarded-For": opts.forwardedFor } : {}),
+    ...(opts.host ? { "X-Forwarded-Host": opts.host } : {}),
+  }
+}
+
+/**
+ * The shared view, fetched on the server. Pass `host` = the request's SHARE_HOST_HEADER on every
+ * call (metadata included), or a custom domain would show another brain's document.
  */
 export async function fetchShared(
   token: string,
-  opts: { locale?: string; event?: "view" | "download" | ""; forwardedFor?: string | null },
+  opts: { locale?: string; event?: "view" | "download" | ""; forwardedFor?: string | null; host?: string | null },
 ): Promise<{ status: number; data: PublicPresentation | null }> {
   if (!isTokenShape(token)) return { status: 404, data: null }
   const qs = new URLSearchParams()
   if (opts.locale) qs.set("locale", opts.locale)
   if (opts.event) qs.set("event", opts.event)
+  if (opts.host) qs.set("host", opts.host)
   try {
     const res = await fetch(`${SERVER_API}/api/p/${token}?${qs}`, {
       cache: "no-store",
-      headers: opts.forwardedFor ? { "X-Forwarded-For": opts.forwardedFor } : {},
+      headers: visitorHeaders(opts),
     })
     if (!res.ok) return { status: res.status, data: null }
     return { status: 200, data: (await res.json()) as PublicPresentation }
@@ -202,15 +218,16 @@ export async function fetchOwned(id: string, req: Request): Promise<Detail | nul
 export async function fetchSharedEmbed(
   token: string,
   id: string,
-  opts: { locale?: string; forwardedFor?: string | null },
+  opts: { locale?: string; forwardedFor?: string | null; host?: string | null },
 ): Promise<{ status: number; data: PublicPresentation | null }> {
   if (!isTokenShape(token) || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return { status: 404, data: null }
   const qs = new URLSearchParams()
   if (opts.locale) qs.set("locale", opts.locale)
+  if (opts.host) qs.set("host", opts.host)
   try {
     const res = await fetch(`${SERVER_API}/api/p/${token}/embed/${enc(id)}?${qs}`, {
       cache: "no-store",
-      headers: opts.forwardedFor ? { "X-Forwarded-For": opts.forwardedFor } : {},
+      headers: visitorHeaders(opts),
     })
     if (!res.ok) return { status: res.status, data: null }
     return { status: 200, data: (await res.json()) as PublicPresentation }

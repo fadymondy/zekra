@@ -38,7 +38,7 @@ rule (sessionWriteOK).
 	PUT    /api/presentations/{id}               (PATCH too) partial update; content replaces one locale
 	DELETE /api/presentations/{id}
 	POST   /api/presentations/{id}/translate     {to?, content?}
-	POST   /api/presentations/{id}/share         {locale?, label?, expires_in_days?} → {share, token, url, recoverable, downloads}
+	POST   /api/presentations/{id}/share         {locale?, label?, expires_in_days?, domain_id?} → {share, token, url, recoverable, downloads}
 	DELETE /api/presentations/{id}/shares/{share}
 	DELETE /api/presentations/{id}/shares        revoke every link
 	POST   /api/presentations/{id}/export        {locale?} → download URLs (the web renders the files)
@@ -46,7 +46,9 @@ rule (sessionWriteOK).
 Public (no auth; the 256-bit token is the authorization, rate limited per
 client address, Cache-Control: no-store, X-Robots-Tag: noindex, nofollow):
 
-	GET    /api/p/{token}?locale=&event=view|download
+	GET    /api/p/{token}?locale=&event=view|download&host=
+	       host (or X-Forwarded-Host) = the host the visitor came in on: a custom share domain only
+	       opens its own brain's tokens (404 otherwise); see presentations_domains_handlers.go
 	GET    /api/p/{token}/embed/{id}?locale=     a page preview embedded in a shared deck
 */
 
@@ -54,6 +56,7 @@ func (s *Service) presStore() *presentations.Store {
 	s.presOnce.Do(func() {
 		s.pres = &presentations.Store{DB: s.Store.db, Translator: envTranslator()}
 		s.presLimit = presentations.NewLimiter()
+		s.presDomainLimit = presentations.NewLimiter()
 	})
 	return s.pres
 }
@@ -77,6 +80,8 @@ func (s *Service) mountPresentations(r chi.Router, sec func(http.HandlerFunc) ht
 	r.Post("/api/presentations/{id}/export", sec(s.ExportPresentation))
 
 	// Public share view: deliberately NOT secured.
+	s.mountPresentationDomains(r, sec)
+
 	r.Get("/api/p/{token}", s.PublicPresentation)
 	r.Get("/api/p/{token}/embed/{id}", s.PublicPresentationEmbed)
 }
@@ -361,10 +366,11 @@ func contentArg(v any) (map[string]any, error) {
 	return nil, presentations.InvalidError{Msg: "content must be a JSON object"}
 }
 
-func downloadsFor(kind, locale, token string) map[string]string {
+// downloadsFor lists a link's file exports; shareURL already carries the link's host.
+func downloadsFor(kind, shareURL string) map[string]string {
 	out := map[string]string{}
 	for _, f := range presentations.ExportFormats(kind) {
-		out[f] = presentations.DownloadURL(locale, token, f)
+		out[f] = shareURL + "/download/" + f
 	}
 	return out
 }
@@ -391,7 +397,7 @@ func (s *Service) SharePresentation(w http.ResponseWriter, r *http.Request) {
 	s.publishPresentation("share", p.Namespace, p.ID)
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"share": out.Share, "token": out.Token, "url": out.URL, "recoverable": out.Recoverable,
-		"downloads": downloadsFor(p.Kind, out.Share.Locale, out.Token)})
+		"downloads": downloadsFor(p.Kind, out.URL)})
 }
 
 // RevokePresentationShare — DELETE /api/presentations/{id}/shares/{share}
@@ -753,7 +759,7 @@ func (s *Service) PublicPresentation(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnprocessableEntity, apiErr("invalid_argument", "event must be view or download"))
 		return
 	}
-	out, err := st.OpenShared(r.Context(), chi.URLParam(r, "token"), r.URL.Query().Get("locale"), ev)
+	out, err := st.OpenSharedOn(r.Context(), requestShareHost(r), chi.URLParam(r, "token"), r.URL.Query().Get("locale"), ev)
 	if err != nil {
 		if errors.Is(err, presentations.ErrLinkUnavailable) {
 			s.presLimit.Miss(key)
@@ -773,7 +779,7 @@ func (s *Service) PublicPresentationEmbed(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusTooManyRequests, apiErr("rate_limited", "too many requests; try again in a minute"))
 		return
 	}
-	out, err := st.OpenSharedEmbed(r.Context(), chi.URLParam(r, "token"), chi.URLParam(r, "id"), r.URL.Query().Get("locale"))
+	out, err := st.OpenSharedEmbedOn(r.Context(), requestShareHost(r), chi.URLParam(r, "token"), chi.URLParam(r, "id"), r.URL.Query().Get("locale"))
 	if err != nil {
 		if errors.Is(err, presentations.ErrLinkUnavailable) {
 			s.presLimit.Miss(key)

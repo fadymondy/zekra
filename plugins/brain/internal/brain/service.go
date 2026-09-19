@@ -24,6 +24,7 @@ type Service struct {
 	presOnce  sync.Once
 	pres      *presentations.Store
 	presLimit *presentations.Limiter
+	presDomainLimit *presentations.Limiter
 }
 
 func New(k *togo.Kernel) *Service {

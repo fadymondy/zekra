@@ -32,7 +32,8 @@ The **zekra** MCP server (see `.mcp.json`), acting as an agent with write access
 | `presentation_validate` / `POST /api/presentations/validate` | Check content **without saving**; returns every error with `path`. Loop until valid |
 | `presentation_create` / `presentation_update` | Save a document (with `namespace`) / replace one locale's content |
 | `presentation_translate` | `{id, to}` uses the server model (may be offline); `{id, to, content}` stores a translation **you** wrote. Prefer this |
-| `presentation_share` / `presentation_unshare` | Private link (`expires_in_days`), revoke |
+| `presentation_share` / `presentation_unshare` | Private link (`expires_in_days`, `domain` = a verified custom domain, by host or id), revoke |
+| `presentation_domains` / `presentation_domain_add` / `presentation_domain_verify` | The brain's own share domains: list, link a host (returns the TXT + CNAME to publish), check DNS (`default: true` also makes it the default). Brain owner/admin only |
 | `presentation_get` / `presentation_list` / `presentation_export` | Read back, list (`namespace`), download links |
 
 Exact MCP tool names can differ by server version: check `tools/list`. The REST paths above are the contract (`/api/presentations*`, list with `?namespace=`).

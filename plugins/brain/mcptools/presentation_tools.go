@@ -97,9 +97,34 @@ func presentationToolDefs() []map[string]any {
 			"description": "WRITE (brain owner/editor). Create a share link the customer opens without an account: returns url " +
 				"({base}/{locale}/p/{token}) and download URLs (deck: pdf; report: pdf, docx). The 256-bit token is stored " +
 				"hashed; the view is read-only, noindex, without speaker notes or the customer's email. " +
-				"Args: id*, locale (default the document's), label, expires_in_days (0 = never). Views are counted.",
+				"Args: id*, locale (default the document's), label, expires_in_days (0 = never), domain (a VERIFIED custom " +
+				"domain of the brain, by host or id, see presentation_domains; default: the brain's default domain, else " +
+				"the built-in host). Views are counted.",
 			"inputSchema": obj(prop{"id": id, "locale": locale, "label": str,
+				"domain":          prop{"type": "string", "description": "host or id of a verified custom share domain"},
 				"expires_in_days": prop{"type": "integer", "minimum": 0, "maximum": 3650}}, "id"),
+		},
+		{
+			"name": "presentation_domains",
+			"description": "Custom share domains of a brain: the hosts its share links can be served on instead of the built-in " +
+				"one. Each has verified, default, the TXT record to publish (verifyRecord) and the CNAME (cname), and lastError " +
+				"from the last DNS check. Args: namespace*.",
+			"inputSchema": obj(prop{"namespace": str}, "namespace"),
+		},
+		{
+			"name": "presentation_domain_add",
+			"description": "WRITE (brain owner/admin). Link a domain or subdomain (deck.example.com: no scheme, path or port) to a " +
+				"brain's share links. Returns the two DNS records the domain's owner must publish: TXT verifyRecord.name = " +
+				"verifyRecord.value, and CNAME cname.name -> cname.target. Then call presentation_domain_verify. " +
+				"Args: namespace*, host*.",
+			"inputSchema": obj(prop{"namespace": str, "host": str}, "namespace", "host"),
+		},
+		{
+			"name": "presentation_domain_verify",
+			"description": "WRITE (brain owner/admin). Check a linked domain's DNS now (TXT + CNAME). verified = true means share " +
+				"links can use it (presentation_share domain); otherwise lastError says which record is wrong. DNS changes can " +
+				"take minutes to appear. Args: id* (the domain id), default (true = also make it the brain's default).",
+			"inputSchema": obj(prop{"id": str, "default": prop{"type": "boolean"}}, "id"),
 		},
 		{
 			"name": "presentation_unshare",
@@ -168,6 +193,9 @@ func init() {
 	for _, n := range []string{"page_styles", "presentation_list", "presentation_get", "presentation_templates", "presentation_validate"} {
 		toolAccess[n] = AccessRead
 	}
+	toolAccess["presentation_domains"] = AccessRead
+	toolAccess["presentation_domain_add"] = AccessWrite
+	toolAccess["presentation_domain_verify"] = AccessWrite
 	for _, n := range []string{"presentation_create", "presentation_update", "presentation_translate", "presentation_share",
 		"presentation_unshare", "presentation_export", "presentation_create_from_outline"} {
 		toolAccess[n] = AccessWrite
@@ -208,7 +236,19 @@ func callPresentation(name string, args map[string]any, post, patch func(string,
 	case "presentation_translate":
 		post(doc("/translate"), map[string]any{"to": args["to"], "content": objectContent(args["content"])})
 	case "presentation_share":
-		post(doc("/share"), map[string]any{"locale": args["locale"], "label": args["label"], "expires_in_days": args["expires_in_days"]})
+		post(doc("/share"), map[string]any{"locale": args["locale"], "label": args["label"], "expires_in_days": args["expires_in_days"],
+			"domain": args["domain"]})
+	case "presentation_domains":
+		get("/api/presentations/domains", nonEmpty(url.Values{"namespace": {str(args["namespace"])}}))
+	case "presentation_domain_add":
+		post("/api/presentations/domains", map[string]any{"namespace": args["namespace"], "host": args["host"]})
+	case "presentation_domain_verify":
+		base := "/api/presentations/domains/" + url.PathEscape(str(args["id"]))
+		if def, ok := args["default"].(bool); ok && def {
+			post(base+"/verify?default=1", map[string]any{})
+		} else {
+			post(base+"/verify", map[string]any{})
+		}
 	case "presentation_unshare":
 		if sid := str(args["share_id"]); sid != "" {
 			del(doc("/shares/" + url.PathEscape(sid)))

@@ -174,3 +174,42 @@ func TestServerDispatch(t *testing.T) {
 		t.Fatalf("a filtered tool was called: %+v (path %q)", res, b.path)
 	}
 }
+
+func TestPresentationDomainTools(t *testing.T) {
+	type call struct {
+		method, path string
+		body         map[string]any
+	}
+	var got call
+	post := func(p string, b map[string]any) { got = call{"POST", p, b} }
+	get := func(p string, q url.Values) { got = call{"GET", p + "?" + q.Encode(), nil} }
+	none := func(string) {}
+	for _, c := range []struct {
+		tool string
+		args map[string]any
+		want string
+	}{
+		{"presentation_domains", map[string]any{"namespace": "acme"}, "GET /api/presentations/domains?namespace=acme"},
+		{"presentation_domain_add", map[string]any{"namespace": "acme", "host": "deck.acme.com"}, "POST /api/presentations/domains"},
+		{"presentation_domain_verify", map[string]any{"id": "d/1"}, "POST /api/presentations/domains/d%2F1/verify"},
+		{"presentation_domain_verify", map[string]any{"id": "d1", "default": true}, "POST /api/presentations/domains/d1/verify?default=1"},
+		{"presentation_share", map[string]any{"id": "p1", "domain": "deck.acme.com"}, "POST /api/presentations/p1/share"},
+	} {
+		got = call{}
+		if !callPresentation(c.tool, c.args, post, func(string, map[string]any) {}, get, none) {
+			t.Fatalf("%s is not dispatched", c.tool)
+		}
+		if got.method+" "+got.path != c.want {
+			t.Errorf("%s: %s %s, want %s", c.tool, got.method, got.path, c.want)
+		}
+		if c.tool == "presentation_share" && got.body["domain"] != "deck.acme.com" {
+			t.Errorf("presentation_share does not pass domain: %v", got.body)
+		}
+		if c.tool == "presentation_domain_add" && got.body["host"] != "deck.acme.com" {
+			t.Errorf("presentation_domain_add body: %v", got.body)
+		}
+		if _, ok := toolAccess[c.tool]; !ok {
+			t.Errorf("%s has no access class", c.tool)
+		}
+	}
+}

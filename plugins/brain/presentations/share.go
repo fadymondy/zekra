@@ -33,19 +33,30 @@ const tokenBytes = 32
 
 // PresentationShare is one link, as the owner sees it.
 type PresentationShare struct {
-	ID             string     `json:"id"`
-	PresentationID string     `json:"presentation_id"`
-	Label          string     `json:"label"`
-	Locale         string     `json:"locale"`
-	Hint           string     `json:"hint"`
-	URL            string     `json:"url"`
-	ExpiresAt      *time.Time `json:"expires_at"`
-	RevokedAt      *time.Time `json:"revoked_at"`
-	Active         bool       `json:"active"`
-	ViewCount      int64      `json:"view_count"`
-	DownloadCount  int64      `json:"download_count"`
-	LastViewedAt   *time.Time `json:"last_viewed_at"`
-	CreatedAt      time.Time  `json:"created_at"`
+	ID             string `json:"id"`
+	PresentationID string `json:"presentation_id"`
+	Label          string `json:"label"`
+	Locale         string `json:"locale"`
+	Hint           string `json:"hint"`
+	// URL is set when the link is active and Recoverable.
+	URL string `json:"url"`
+	// Recoverable: the sealed token opens with this server's key. False for links
+	// made without a key, revoked ones, and imported links sealed with another
+	// key: reissue those to get a URL again.
+	Recoverable bool `json:"recoverable"`
+	// DomainID is the custom domain the link is pinned to ("" = none).
+	DomainID string `json:"domain_id"`
+	// Domain is the host the URL is built on: the pinned domain, else the brain's
+	// default verified domain, else the built-in host.
+	Domain        string `json:"domain"`
+	builtin       bool
+	ExpiresAt     *time.Time `json:"expires_at"`
+	RevokedAt     *time.Time `json:"revoked_at"`
+	Active        bool       `json:"active"`
+	ViewCount     int64      `json:"view_count"`
+	DownloadCount int64      `json:"download_count"`
+	LastViewedAt  *time.Time `json:"last_viewed_at"`
+	CreatedAt     time.Time  `json:"created_at"`
 }
 
 // PresentationShareInput creates a link.
@@ -55,6 +66,10 @@ type PresentationShareInput struct {
 	Locale string `json:"locale,omitempty"`
 	// Days until the link stops working; 0 = never.
 	ExpiresInDays int `json:"expires_in_days,omitempty" minimum:"0" maximum:"3650"`
+	// A verified custom domain (id) of the document's brain to build the URL on.
+	DomainID string `json:"domain_id,omitempty"`
+	// The same by host or id (the MCP tool's argument); domain_id wins.
+	Domain string `json:"domain,omitempty"`
 }
 
 // PresentationShareCreated carries the one moment the token is always visible.
@@ -158,43 +173,27 @@ func (s *Store) CreateShare(ctx context.Context, id string, in PresentationShare
 	if in.ExpiresInDays < 0 || in.ExpiresInDays > 3650 {
 		return nil, InvalidError{"expires_in_days must be between 0 (never) and 3650"}
 	}
-	label := strings.TrimSpace(in.Label)
-	if len([]rune(label)) > 80 {
-		return nil, InvalidError{"label is at most 80 characters"}
-	}
-	token, err := NewToken()
+	label, err := checkLabel(in.Label)
 	if err != nil {
 		return nil, err
 	}
-	sealed := ""
-	if sl := s.sealer(); sl.Configured() {
-		if sealed, err = sl.Seal(token); err != nil {
-			sealed = ""
-		}
+	ref := in.DomainID
+	if ref == "" {
+		ref = in.Domain
+	}
+	domainID, err := s.resolveDomainRef(ctx, doc.Namespace, ref)
+	if err != nil {
+		return nil, err
 	}
 	expires := "infinity"
 	if in.ExpiresInDays > 0 {
 		expires = time.Now().UTC().Add(time.Duration(in.ExpiresInDays) * 24 * time.Hour).Format(time.RFC3339)
 	}
-	shareID := newID()
-	if _, err := d.ExecContext(ctx, `INSERT INTO presentation_shares
-		(id, presentation_id, token_hash, token_sealed, token_hint, label, locale, expires_at, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::timestamptz,$9)`,
-		shareID, doc.ID, HashToken(token), sealed, token[:4], label, locale, expires, by); err != nil {
-		return nil, err
-	}
-	shares, err := s.ListShares(ctx, doc.ID)
+	shareID, token, recoverable, err := s.insertShare(ctx, d, doc.ID, label, locale, expires, domainID, by)
 	if err != nil {
 		return nil, err
 	}
-	out := &PresentationShareCreated{Token: token, URL: ShareURL(locale, token), Recoverable: sealed != ""}
-	for _, s := range shares {
-		if s.ID == shareID {
-			out.Share = s
-			out.Share.URL = out.URL
-		}
-	}
-	return out, nil
+	return s.created(ctx, doc.ID, shareID, token, recoverable)
 }
 
 // ListShares lists a document's links, newest first.
@@ -203,11 +202,16 @@ func (s *Store) ListShares(ctx context.Context, id string) ([]PresentationShare,
 	if err != nil {
 		return nil, err
 	}
-	rows, err := d.QueryContext(ctx, `SELECT id, presentation_id, label, locale, token_hint, token_sealed,
-		CASE WHEN expires_at = 'infinity' THEN 'epoch'::timestamptz ELSE expires_at END,
-		revoked_at, view_count, download_count, last_viewed_at, created_at,
-		(revoked_at = 'epoch' AND expires_at > now())
-		FROM presentation_shares WHERE presentation_id = $1 ORDER BY created_at DESC`, id)
+	rows, err := d.QueryContext(ctx, `SELECT s.id, s.presentation_id, s.label, s.locale, s.token_hint, s.token_sealed,
+		CASE WHEN s.expires_at = 'infinity' THEN 'epoch'::timestamptz ELSE s.expires_at END,
+		s.revoked_at, s.view_count, s.download_count, s.last_viewed_at, s.created_at,
+		(s.revoked_at = 'epoch' AND s.expires_at > now()),
+		COALESCE(s.domain_id, ''), COALESCE(pin.host, def.host, '')
+		FROM presentation_shares s
+		JOIN presentations p ON p.id = s.presentation_id
+		LEFT JOIN presentation_domains pin ON pin.id = s.domain_id AND pin.namespace = p.namespace AND pin.verified_at IS NOT NULL
+		LEFT JOIN presentation_domains def ON def.namespace = p.namespace AND def.is_default AND def.verified_at IS NOT NULL
+		WHERE s.presentation_id = $1 ORDER BY s.created_at DESC, s.id`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -216,19 +220,26 @@ func (s *Store) ListShares(ctx context.Context, id string) ([]PresentationShare,
 	out := []PresentationShare{}
 	for rows.Next() {
 		var s PresentationShare
-		var sealed string
+		var sealed, host string
 		var expires, revoked, viewed time.Time
 		if err := rows.Scan(&s.ID, &s.PresentationID, &s.Label, &s.Locale, &s.Hint, &sealed,
-			&expires, &revoked, &s.ViewCount, &s.DownloadCount, &viewed, &s.CreatedAt, &s.Active); err != nil {
+			&expires, &revoked, &s.ViewCount, &s.DownloadCount, &viewed, &s.CreatedAt, &s.Active,
+			&s.DomainID, &host); err != nil {
 			return nil, err
 		}
 		s.ExpiresAt = viewedPtr(expires)
 		s.RevokedAt = viewedPtr(revoked)
 		s.LastViewedAt = viewedPtr(viewed)
-		if sealed != "" && s.Active {
+		if sealed != "" {
 			if token, err := sealer.Open(sealed); err == nil {
-				s.URL = ShareURL(s.Locale, token)
+				s.Recoverable = true
+				if s.Active {
+					s.URL = ShareURLOn(host, s.Locale, token)
+				}
 			}
+		}
+		if s.Domain = host; host == "" {
+			s.Domain, s.builtin = BuiltinHost(), true
 		}
 		out = append(out, s)
 	}
@@ -281,7 +292,11 @@ type resolved struct {
 }
 
 // resolve turns a token into its document, or ErrLinkUnavailable.
-func (s *Store) resolve(ctx context.Context, token string) (*resolved, error) {
+//
+// host is the host the visitor's request arrived on: on a custom host only
+// documents of the brain that verified it open; a built-in host ("" included)
+// opens any token.
+func (s *Store) resolve(ctx context.Context, token, host string) (*resolved, error) {
 	d, err := s.db(ctx)
 	if err != nil {
 		return nil, err
@@ -309,6 +324,11 @@ func (s *Store) resolve(ctx context.Context, token string) (*resolved, error) {
 	}
 	if r.doc.Status == "archived" {
 		return nil, ErrLinkUnavailable
+	}
+	if host = CleanRequestHost(host); !IsBuiltinHost(host) {
+		if ns, ok := s.VerifiedHostNamespace(ctx, host); !ok || ns != r.doc.Namespace {
+			return nil, ErrLinkUnavailable
+		}
 	}
 	return &r, nil
 }
@@ -391,7 +411,12 @@ func pickLocale(doc *Presentation, want, fallback string) string {
 // OpenShared resolves a token and returns the read-only view, recording the
 // event ("" records nothing).
 func (s *Store) OpenShared(ctx context.Context, token, locale, event string) (*PublicPresentation, error) {
-	r, err := s.resolve(ctx, token)
+	return s.OpenSharedOn(ctx, "", token, locale, event)
+}
+
+// OpenSharedOn is OpenShared for a request that arrived on host (see resolve).
+func (s *Store) OpenSharedOn(ctx context.Context, host, token, locale, event string) (*PublicPresentation, error) {
+	r, err := s.resolve(ctx, token, host)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +465,12 @@ func embedIDs(content map[string]any) []string {
 // its locales) embeds. Anything else is ErrLinkUnavailable, exactly like an
 // unknown token, so ids cannot be probed. Nothing is recorded.
 func (s *Store) OpenSharedEmbed(ctx context.Context, token, id, locale string) (*PublicPresentation, error) {
-	r, err := s.resolve(ctx, token)
+	return s.OpenSharedEmbedOn(ctx, "", token, id, locale)
+}
+
+// OpenSharedEmbedOn is OpenSharedEmbed for a request that arrived on host.
+func (s *Store) OpenSharedEmbedOn(ctx context.Context, host, token, id, locale string) (*PublicPresentation, error) {
+	r, err := s.resolve(ctx, token, host)
 	if err != nil {
 		return nil, err
 	}

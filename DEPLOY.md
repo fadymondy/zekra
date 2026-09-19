@@ -152,6 +152,92 @@ curl -s -XPOST http://cabrain:8080/api/brain/retain \
 On-stacknet the `retain` embed call reaches `tei-embed` and succeeds — the same request that
 fails with `lookup tei-embed: no such host` from the workspace.
 
+## Custom share domains (presentations)
+
+A brain owner can link their own domain or subdomain (`deck.acme.com`) so share links read
+`https://deck.acme.com/{locale}/p/{token}`. The app side is done; this section is what has to
+exist OUTSIDE the app for such a host to reach it. **Nothing here is created yet.**
+
+**How it works.** The owner adds the host in the console (or `presentation_domain_add`) and
+publishes two DNS records: `TXT _zekra-verify.<host> = zekra-verify=…` (ownership) and
+`CNAME <host> → domains.zekra.dev` (routing). "Verify" checks both
+(`POST /api/presentations/domains/{id}/verify`). On a custom host the web app (`web/proxy.ts`)
+serves ONLY `/{locale}/p/…` plus `/_next`, `/icons`, `/favicon.*`: no console, login, site or
+`/api`. The viewer passes the visitor's host to the API, which opens a token on a custom host
+only when the token's brain owns that verified host (404 otherwise).
+
+**Env.**
+
+| Var | Default | Where | Meaning |
+|---|---|---|---|
+| `PRESENTATIONS_DOMAIN_TARGET` | `domains.zekra.dev` | API | the CNAME target shown to owners and checked by verify |
+| `PRESENTATIONS_SHARE_BASE` / `AUTH_PUBLIC_URL` | `https://app.zekra.dev` | API | the built-in share origin (unchanged) |
+| `PRESENTATIONS_BUILTIN_HOSTS` | empty | API | extra hosts (comma list) that open any token, for a console on a non-`zekra.dev` name |
+| `ZEKRA_APP_HOSTS` | empty | web | extra console hosts (comma list); any host not ours is treated as a custom share host |
+
+**Schema.** `schema.sql` adds table `presentation_domains` and column
+`presentation_shares.domain_id`. After applying it as the superuser:
+`ALTER TABLE public.presentation_domains OWNER TO cabrain;`
+
+**Routing.** `domains.zekra.dev` must end at the same NPM origin as `app.zekra.dev`, and NPM must
+forward unknown hosts to the **web** (Next.js) upstream, never to the API. NPM only routes names it
+knows, so add one catch-all, once, in NPM's `/data/nginx/custom/http.conf` (regex names win over
+NPM's default site; `zekra.dev` names keep their own proxy hosts):
+
+```nginx
+server {
+  listen 80;
+  server_name ~^(?!(.+\.)?zekra\.dev$).+$;
+  location / {
+    proxy_pass http://<web-upstream>:3000;          # the same upstream app.zekra.dev uses
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;         # overwrite, never pass the client's
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+```
+
+**TLS: three options.**
+
+| | How | Per-domain work | Notes |
+|---|---|---|---|
+| (a) **Cloudflare for SaaS** custom hostnames on the `zekra.dev` zone | Cloudflare issues and renews the cert and proxies to the fallback origin | one Custom Hostname per domain (dashboard or API) | origin IP stays hidden; WAF/DDoS as for `app.zekra.dev`; 100 hostnames free, then per-hostname billing. Required anyway if `domains.zekra.dev` is orange-clouded: a customer CNAME to a proxied name on another account fails (error 1014) without it |
+| (b) NPM proxy host per domain + Let's Encrypt | NPM's HTTP-01 | a proxy host per domain, by hand | no new infra, but `domains.zekra.dev` must be DNS-only (exposes the origin IP), and every domain is manual |
+| (c) Caddy on-demand TLS | Caddy asks `GET /api/presentations/domains/check?domain=<host>` (200 = verified, 404 = refuse) before issuing | none | fully automatic, but Caddy must own :443 on a public IP; NPM already owns it on this host, so it needs a second IP/VM or replacing NPM at the edge, and exposes the origin IP |
+
+**Recommendation: (a) Cloudflare for SaaS**, given `zekra.dev` is already served through
+Cloudflare → NPM. Infra to create, in order (host/admin action, do not automate):
+
+1. Cloudflare DNS, zone `zekra.dev`: `domains` record, **proxied**, pointing where `app` points.
+2. Cloudflare → SSL/TLS → Custom Hostnames: enable Cloudflare for SaaS; **Fallback Origin** =
+   `domains.zekra.dev`; wait for "Active".
+3. NPM: the catch-all `server` block above (one time). With Cloudflare terminating TLS, it stays on
+   port 80 exactly like the existing chain; if the zone's SSL mode is Full (strict), listen on 443
+   with the existing origin certificate instead.
+4. Per customer domain, after the owner's "Verify" passes: add a **Custom Hostname** (`<host>`,
+   certificate validation = HTTP, TLS 1.2+). It validates by itself through the owner's CNAME;
+   "Active" within minutes. Delete it when the owner removes the domain.
+5. Check: `curl -sI https://<host>/` → 404 (no console), `https://<host>/en/p/<token>` → 200,
+   and a token of ANOTHER brain on that host → the "link not available" page.
+
+Step 4 is manual today. The follow-up is for verify/delete to call
+`POST|DELETE /zones/{zone}/custom_hostnames` (needs `CLOUDFLARE_API_TOKEN` with SSL and
+Certificates:Edit + `CLOUDFLARE_ZONE_ID`); not built. If Cloudflare is ever dropped, switch to (c):
+the `check` endpoint is already there as Caddy's `ask` URL:
+
+```caddyfile
+{
+  on_demand_tls {
+    ask http://cabrain:8080/api/presentations/domains/check
+  }
+}
+https:// {
+  tls { on_demand }
+  reverse_proxy <web-upstream>:3000
+}
+```
+
 ## Redis L1 working-memory cache (SPEC §2.1, D4)
 
 Recall does **cache-aside over the kernel `Cache`** (driver-agnostic), keyed by a

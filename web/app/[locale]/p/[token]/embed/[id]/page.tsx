@@ -3,7 +3,7 @@ import { headers } from "next/headers"
 import { LinkIcon } from "lucide-react"
 
 import { getI18n } from "@/lib/i18n-server"
-import { fetchSharedEmbed } from "@/lib/presentations/api"
+import { SHARE_HOST_HEADER, fetchSharedEmbed } from "@/lib/presentations/api"
 import { SharedFrame } from "@/components/presentations/shared-frame"
 import { SharedView } from "@/components/presentations/shared-view"
 import { PresTheme } from "@/components/presentations/pres-theme"
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; token: string; id: string }> }): Promise<Metadata> {
   const { locale, token, id } = await params
   const { t } = await getI18n(locale)
-  const { data } = await fetchSharedEmbed(token, id, { locale })
+  const { data } = await fetchSharedEmbed(token, id, { locale, host: (await headers()).get(SHARE_HOST_HEADER) })
   return {
     title: data ? `${data.title} — ${t("presentations.shared.home")}` : t("presentations.shared.unavailableTitle"),
     robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
@@ -37,6 +37,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   const { status, data } = await fetchSharedEmbed(token, id, {
     locale,
     forwardedFor: h.get("x-forwarded-for") ?? h.get("x-real-ip"),
+    host: h.get(SHARE_HOST_HEADER),
   })
 
   if (!data) {

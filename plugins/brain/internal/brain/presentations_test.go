@@ -325,7 +325,8 @@ func TestPresentationToolsListed(t *testing.T) {
 	}
 	for _, name := range []string{"page_styles", "presentation_create", "presentation_create_from_outline", "presentation_get",
 		"presentation_list", "presentation_update", "presentation_translate", "presentation_validate", "presentation_templates",
-		"presentation_export", "presentation_share", "presentation_unshare"} {
+		"presentation_export", "presentation_share", "presentation_unshare", "presentation_domains", "presentation_domain_add",
+		"presentation_domain_verify"} {
 		if !strings.Contains(rec.Body.String(), `"name":"`+name+`"`) {
 			t.Errorf("tool %s is not listed", name)
 		}

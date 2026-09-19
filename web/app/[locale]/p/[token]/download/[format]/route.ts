@@ -1,4 +1,4 @@
-import { fetchShared } from "@/lib/presentations/api"
+import { SHARE_HOST_HEADER, fetchShared } from "@/lib/presentations/api"
 import { publicOrigin, renderExport } from "@/lib/presentations/export-server"
 import type { PageContent } from "@/lib/presentations/types"
 
@@ -19,6 +19,7 @@ export async function GET(
     locale,
     event: "download",
     forwardedFor: request.headers.get("x-forwarded-for"),
+    host: request.headers.get(SHARE_HOST_HEADER),
   })
   if (!data) {
     return new Response(status === 429 ? "Too many requests.\n" : "This link is not available.\n", {

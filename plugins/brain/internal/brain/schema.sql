@@ -707,3 +707,32 @@ CREATE TABLE IF NOT EXISTS public.presentation_shares (
     created_at        timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS presentation_shares_doc_idx ON public.presentation_shares (presentation_id, created_at DESC);
+
+-- ── Custom share domains (plugins/brain/presentations/domains.go) ──
+-- A brain links its own domain or subdomain so its share links read
+-- https://<host>/{locale}/p/{token}. A claim is unverified until DNS proves it (a TXT
+-- record at _zekra-verify.<host> = verify_token, and the host pointing at
+-- PRESENTATIONS_DOMAIN_TARGET). A VERIFIED host belongs to exactly one brain; an
+-- unverified claim blocks nobody. A request on a custom host only opens that brain's
+-- tokens. Deleting a domain keeps its links (domain_id → NULL; the URL falls back to
+-- the brain's default verified domain, else the built-in base). Idempotent.
+CREATE TABLE IF NOT EXISTS public.presentation_domains (
+    id                text        PRIMARY KEY,
+    namespace         text        NOT NULL,
+    host              text        NOT NULL CHECK (host = lower(host) AND length(host) <= 253),
+    verify_token      text        NOT NULL,
+    verified_at       timestamptz,                                  -- NULL = not verified
+    is_default        boolean     NOT NULL DEFAULT false,
+    created_by        text        NOT NULL DEFAULT '',
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    last_checked_at   timestamptz,
+    last_error        text        NOT NULL DEFAULT '',
+    CONSTRAINT presentation_domains_ns_host_key UNIQUE (namespace, host)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS presentation_domains_verified_host_key
+    ON public.presentation_domains (host) WHERE verified_at IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS presentation_domains_default_key
+    ON public.presentation_domains (namespace) WHERE is_default;
+
+ALTER TABLE public.presentation_shares ADD COLUMN IF NOT EXISTS domain_id text
+    REFERENCES public.presentation_domains (id) ON DELETE SET NULL;
