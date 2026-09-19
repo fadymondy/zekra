@@ -1,62 +1,77 @@
-# Zekra (formerly CaBrain)
+# Zekra
 
-A general, hardware-elastic **memory organ** for AI agents — built as togo plugins on
-`togo-postgres` (VectorChord + BM25 + pgvector) with hippocampal *hot* / cortical *cold*
-tiers, a Redis L1 cache, salience-gated sleep consolidation, and reconsolidation-on-recall.
-Exposed as MCP tools + a Claude Code Memory Tool backend.
+**ذكرة — shared long-term memory for AI agents.** What one session learns, the next one
+already knows.
 
-`cabrain` is the **project** (this monorepo / dev harness). The memory organ itself is the
-**`brain`** plugin (`github.com/togo-framework/brain`), installable like any togo plugin.
-Each provider is its own plugin (`brain-tei`, `brain-cognee`, …). Full design in
-[`SPEC.md`](./SPEC.md); sequenced build in [`PLAN.md`](./PLAN.md); running decisions in
-[`docs/decisions.md`](./docs/decisions.md).
+Zekra is a memory service that any agent (Claude Code, Codex, Gemini, Cursor, your own
+fleet) reaches over **MCP**. It stores what agents and people learn, deduplicates and
+updates it on write, and returns exactly the right memory on recall — with citations —
+so nobody re-derives what is already known.
 
-## Status — Phase 1
+- **Landing:** https://zekra.dev
+- **Console + API + MCP:** https://app.zekra.dev
+- **CLI:** [`fadymondy/zekra-cli`](https://github.com/fadymondy/zekra-cli)
 
-- **Green:** `go build ./...`, standalone `brain` build/vet, and `togo generate`
-  (sqlc → gqlgen → openapi) all pass.
-- **`brain` plugin** (`plugins/brain`, module `github.com/togo-framework/brain`): schema +
-  data layer + provider seams in place —
-  [`internal/brain/schema.sql`](./plugins/brain/internal/brain/schema.sql) (§3 data model,
-  `go:embed`ed + `Migrate`), `store.go` (retain/recall skeletons + hybrid recall SQL),
-  `providers.go` (`Embedder`/`Reranker`/`Engine` seams for the driver plugins).
-- **Contracts:** [`contracts/tools.md`](./contracts/tools.md) (§5.1 six MCP tools),
-  [`docs/capture-mode.md`](./docs/capture-mode.md) (§6 capture hook).
-- **Blocked (Blocker B):** `migrate`/`serve` and retain/recall execution await the finalized
-  infra bundle. The workspace-reachable Postgres is a vanilla PG16 without the required
-  extensions; the provisioned `cabrain` DB (vchord stack) is not yet reachable. Redis + NATS
-  are reachable. See [`docs/decisions.md`](./docs/decisions.md) D5.
+## What it does
 
-## Layout
+- **Retain / recall** — hybrid retrieval: dense vectors + multilingual BM25 fused with RRF,
+  a salience nudge, reranking, and 1-hop entity expansion. A write-decision step
+  (ADD / UPDATE / INVALIDATE / NOOP) updates contradicted facts instead of duplicating them.
+  Nothing is hard-deleted: `forget` soft-invalidates and history stays queryable.
+- **Many brains** — one namespace per project or team, with per-agent grants and access
+  tokens (`cbt_…`) enforced server-side.
+- **Knowledge graph** — entities and typed relations extracted from memories, with
+  traverse / neighbors / path / ontology queries and a graph "spine".
+- **Data sources** — connectors (`text`, `markdown`, `crawler`, `github`, `sql`, `webhook`)
+  pull external content, chunk it and retain it through the same write pipeline.
+  See [`docs/datasources.md`](./docs/datasources.md).
+- **Chat with a brain** — a tool-calling agent that uses the brain's own recall / search /
+  graph / retain as tools and answers with citations and an auditable trace.
+- **Knowledge gaps, secrets vault, activity log** — plus a web console to manage it all.
+- **Tiers** — Redis L1 working-memory cache, hot Postgres tier, object-store cold tier.
 
-```
-cabrain/                         project / dev harness (module github.com/fadymondy/zekra)
-├── plugins/brain/               THE PLUGIN — module github.com/togo-framework/brain
-│   ├── plugin.go                RegisterProviderFunc: /api/brain/ping (+ retain/recall as they land)
-│   ├── togo.plugin.yaml
-│   └── internal/brain/
-│       ├── schema.sql           §3 data model (embedded, applied by Migrate)
-│       ├── schema.go            go:embed + Migrate + recallSQL (§4.2)
-│       ├── store.go             Store: Retain (§4.1) / Recall (§4.2) + provider registration
-│       ├── providers.go         Embedder / Reranker / Engine seams (brain-tei, brain-cognee)
-│       └── service.go           HTTP surface + provider wiring
-├── internal/plugins/local.go    blank-imports the brain plugin (out of the DO-NOT-EDIT gen file)
-├── go.mod                       require + replace github.com/togo-framework/brain => ./plugins/brain
-├── internal/, cmd/, web/        harness (togo-generated API + serve/migrate entrypoints)
-├── SPEC.md · PLAN.md            design + sequenced build
-├── docs/decisions.md            running decision log (deltas on SPEC)
-├── docs/capture-mode.md         §6 capture design
-└── contracts/tools.md           §5.1 MCP tool contracts
-```
-
-## Dev loop (once the cabrain DB is live)
+## Connect an agent
 
 ```bash
-cp .env.example .env          # SPEC §1.5 / infra §4 values (secrets injected, never committed)
-togo generate                 # sqlc + gqlgen + openapi  (green today)
-togo migrate                  # apply schema — needs the live cabrain DB (Blocker B)
-togo serve                    # backend + frontend
+curl -fsSL https://app.zekra.dev/install.sh | sh     # installs the `zekra` CLI
+zekra auth login --token <cbt_…>
+zekra mcp:install claude-code                        # or claude-desktop | codex | gemini | cursor
 ```
 
-Toolchain is pinned to the cached go1.26.5 (`GOTOOLCHAIN=go1.26.5`); `sqlc` + `atlas` are in
-`~/go/bin`. Secrets are never committed; they arrive via the app env from the infra agent.
+MCP tools include `memory_retain`, `memory_recall`, `memory_get`, `memory_forget`,
+`memory_share`, `memory_edit`, `graph_*`, `memory_gaps`, `brain_*` (list, grants, tokens,
+chat), `secret_*` and `datasource_*`. Contracts: [`contracts/tools.md`](./contracts/tools.md).
+
+## Architecture
+
+Zekra is a [togo](https://to-go.dev) app built from plugins:
+
+| Part | Where | Role |
+|---|---|---|
+| `brain` | `plugins/brain` (module `github.com/togo-framework/brain`) | the memory organ: schema, retain/recall, graph, connectors, chat, REST |
+| `brain-tei` | `plugins/brain-tei` | embeddings + rerank via TEI (Qwen3-Embedding-0.6B, bge-reranker-v2-m3) |
+| `brain-cognee` | `plugins/brain-cognee` | entity / graph extraction engine (Cognee) |
+| `cache-redis` | `plugins/cache-redis` | L1 cache |
+| harness | `cmd/api`, `cmd/migrate`, `internal/`, `web/` | the app: API server, migrations, React console |
+| `zekra-mcp` | `cmd/zekra-mcp` | stdio MCP server — thin adapter over the REST API |
+| `zekractl` | `cmd/zekractl` | ops CLI: inspect DB, apply schema/BM25, BM25 smoke test, graph mirror |
+
+Storage is Postgres with VectorChord + BM25 + pgvector. Design: [`SPEC.md`](./SPEC.md) ·
+build plan: [`PLAN.md`](./PLAN.md) · decisions: [`docs/decisions.md`](./docs/decisions.md) ·
+deploy: [`DEPLOY.md`](./DEPLOY.md).
+
+## Develop
+
+```bash
+cp .env.example .env
+togo generate        # sqlc → gqlgen → atlas → OpenAPI (the build gate)
+togo migrate         # harness schema;  go run ./cmd/zekractl migrate  for the brain schema
+togo serve           # API + console
+go test ./plugins/brain/...
+cd web && npm run dev
+```
+
+Configuration comes from `.env` / `togo.yaml` (`ZEKRA_*` variables; legacy `CABRAIN_*` names
+are still honoured). Secrets are never committed.
+
+Zekra was previously called **CaBrain**.

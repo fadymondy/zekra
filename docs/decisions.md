@@ -1,4 +1,4 @@
-# CaBrain — decision log (deltas on top of SPEC.md)
+# Zekra — decision log (deltas on top of SPEC.md)
 
 Running ADR-style log. SPEC.md is the original contract; this file records decisions
 and reality-checks made during the build. Newest at top.
@@ -44,7 +44,7 @@ Empirically probed from the Coder workspace (pgx). What is **actually reachable*
 - The `pg:5432` internal hostname from the §4 bundle is **not** reachable from the workspace
   (it's inside Docker net `stack_stacknet`).
 
-**Conclusion:** the extension-equipped CaBrain DB described in the §4 bundle (dedicated `cabrain`
+**Conclusion:** the extension-equipped Zekra DB described in the §4 bundle (dedicated `cabrain`
 DB + `cabrain_sleep` role on `stack-togo-postgres:latest` with the vchord stack) is **not yet live
 / not reachable** — consistent with the infra note that the finalizer hasn't completed. The
 services-page image string (`PG17 + pg_duckdb + pg_search + vector + pg_cron`) does not match the
@@ -79,7 +79,7 @@ brain map, below the context window and above the hippocampal hot tier. Redis is
 
 ## D3 — Provider decomposition: one plugin per provider
 
-Everything ships as a togo plugin (OSS). CaBrain = the `cabrain` **project** composed of plugins:
+Everything ships as a togo plugin (OSS). Zekra = the `zekra` **project** composed of plugins:
 - **`brain`** (`github.com/togo-framework/brain`) — the memory organ: schema, retain/recall, MCP
   tools, capture. Providers behind interfaces.
 - **`brain-tei`** — TEI embeddings + rerank driver (Qwen3-Embedding-0.6B / bge-reranker-v2-m3).
@@ -91,8 +91,8 @@ lands. Mirrors togo's own driver-plugin pattern (`ai-openai`, `storage-s3`, `cac
 
 ## D2 — Repo shape: monorepo project + split plugin (2 repos)
 
-- **`togo-framework/cabrain`** — the project/dev-harness (togo app, module
-  `github.com/togo-framework/cabrain`); hosts `plugins/brain` (+ future plugins), SPEC/PLAN/docs.
+- **`fadymondy/zekra`** — the project/dev-harness (togo app, module
+  `github.com/fadymondy/zekra`); hosts `plugins/brain` (+ future plugins), SPEC/PLAN/docs.
 - **`togo-framework/brain`** — the publishable plugin, split from `plugins/brain`.
 - Wired locally via `require github.com/togo-framework/brain v0.0.0` +
   `replace … => ./plugins/brain` (works with all go tooling incl. `togo generate`); blank-imported

@@ -24,7 +24,7 @@ Add to your Claude Code settings (`.claude/settings.json` for this repo, or
   "env": {
     "ZEKRA_CAPTURE": "1",
     "ZEKRA_API_URL": "http://localhost:8080",
-    "ZEKRA_NAMESPACE": "cabrain",
+    "ZEKRA_NAMESPACE": "zekra",
     "ZEKRA_AGENT_ID": "claude-code"
   }
 }

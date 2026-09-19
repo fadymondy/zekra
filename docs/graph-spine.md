@@ -108,7 +108,7 @@ graph writes, so they need a direct **brain DSN**. Everything else on that host
 writes over HTTPS and needs none.
 
 An earlier attempt to move them there hit `password authentication failed for
-user cabrain` against `10.10.10.30:5432` and concluded the credentials were
+user zekra` against `10.10.10.30:5432` and concluded the credentials were
 wrong. They were not — **`10.10.10.30` is the wrong database.** It is Proxmox LXC
 102 `togo-db`, i.e. FlowOS PROD (`onestudio_hub`), which of course has no
 `cabrain` role. The brain lives in the `pg` container on the `stack_stacknet`

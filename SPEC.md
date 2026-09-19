@@ -39,7 +39,7 @@ The reference model is the human brain, with the biological ceilings deliberatel
 Zekra is a **project composed of shippable togo plugins** — nothing is a monolith, so every
 capability can be open-sourced and installed independently, the togo way.
 
-- **`cabrain`** — the *project* (this monorepo + dev harness; togo app, module
+- **`zekra`** — the *project* (this monorepo + dev harness; togo app, module
   `github.com/fadymondy/zekra`; repo `fadymondy/zekra`). It hosts the plugins,
   the design docs, and the `generate → migrate → serve` loop that exercises them.
 - **`brain`** — the *core memory-organ plugin* (module `github.com/togo-framework/brain`; repo
@@ -400,7 +400,7 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 
 ### Phase 1 — the brain + capture  ← *ship this first*
 1. **Infra first.** Confirm the infra agent's outputs are available (see `INFRA-Zekra.md`) and its acceptance checks pass — DB reachable with the required extensions present, TEI returns an embedding, Cognee `/health` responds, cold store writable. Load the outputs (§1.5) as env. **Do not provision infra in this phase.**
-2. **Project + plugin scaffold (done).** `cabrain` togo app (harness, `--db togo-postgres`) hosts the
+2. **Project + plugin scaffold (done).** `zekra` togo app (harness, `--db togo-postgres`) hosts the
    **`brain`** plugin (`togo make:plugin`), wired via `require`+`replace`. Config (DB, TEI, Cognee,
    extraction LLM, cold store, Redis) comes from `.env`/`togo.yaml`, never hard-coded (§1.5).
 3. **Schema in the plugin (done).** `brain` embeds the §3 DDL (`internal/brain/schema.sql`) and applies
@@ -461,4 +461,4 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 
 ## 9. One-line summary
 
-**Build Zekra as the `cabrain` project of togo plugins — the `brain` organ plugin on `togo-postgres` (VectorChord + BM25 + pgvector) with a Redis L1 cache, hippocampal hot / cortical cold tiers, salience-gated sleep consolidation, and reconsolidation-on-recall, plus one provider plugin per dependency (`brain-tei`, `brain-cognee`, `brain-cold-*`) — expose it as MCP tools + a Claude Code Memory Tool backend, run it in capture mode across every session to build memory mass, and only then attach the fleet (Omnigent/Coder/Autopilot) and the interfaces (live/WhatsApp) as new mouths on the same brain.**
+**Build Zekra as the `zekra` project of togo plugins — the `brain` organ plugin on `togo-postgres` (VectorChord + BM25 + pgvector) with a Redis L1 cache, hippocampal hot / cortical cold tiers, salience-gated sleep consolidation, and reconsolidation-on-recall, plus one provider plugin per dependency (`brain-tei`, `brain-cognee`, `brain-cold-*`) — expose it as MCP tools + a Claude Code Memory Tool backend, run it in capture mode across every session to build memory mass, and only then attach the fleet (Omnigent/Coder/Autopilot) and the interfaces (live/WhatsApp) as new mouths on the same brain.**

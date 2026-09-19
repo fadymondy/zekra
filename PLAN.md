@@ -56,8 +56,8 @@ Until both land, no step past 0.x runs. This plan is ordered so that the moment 
 
 ### Track A — unblocked by the ToGO pointer (Blocker A)
 - **A.1** Install `togo`; verify version.
-- **A.2** `togo new cabrain` (or add plugin to the named existing app), DB pointed at `ZEKRA_DATABASE_URL`.
-- **A.3** `togo make:plugin cabrain`; generate resources `memories`, `entities`, `memory_entities`, `memory_events`, `namespace_grants` → sqlc + Atlas + REST/GraphQL. Reconcile generated DDL against Track 0.2.
+- **A.2** `togo new zekra` (or add plugin to the named existing app), DB pointed at `ZEKRA_DATABASE_URL`.
+- **A.3** `togo make:plugin zekra`; generate resources `memories`, `entities`, `memory_entities`, `memory_events`, `namespace_grants` → sqlc + Atlas + REST/GraphQL. Reconcile generated DDL against Track 0.2.
 
 ### Track B — unblocked by infra outputs (Blocker B)
 - **B.1** Load §1.5 env; run the infra acceptance checks ourselves before trusting them.

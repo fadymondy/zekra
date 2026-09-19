@@ -31,8 +31,8 @@ togo install togo-framework/brain
 | `brain-cold-*` | cold-tier demotion (Iceberg/Parquet on S3/MinIO) — Phase 2 |
 | `brain-redis` *(optional)* | L1 working-memory cache |
 
-Developed in the [`cabrain`](https://github.com/fadymondy/zekra) project (dev harness);
-this repo is the split-out, installable plugin. Design lives in the cabrain project (`SPEC.md`).
+Developed in the [`zekra`](https://github.com/fadymondy/zekra) project (dev harness);
+this repo is the split-out, installable plugin. Design lives in the zekra project (`SPEC.md`).
 
 ## Status
 

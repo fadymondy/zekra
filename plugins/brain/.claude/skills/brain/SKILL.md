@@ -1,8 +1,8 @@
 ---
-name: cabrain
-description: Work with the cabrain togo plugin.
+name: zekra
+description: Work with the zekra togo plugin.
 ---
 
-# cabrain plugin
+# zekra plugin
 
 Backend in `internal/cabrain`, routes in `plugin.go`, UI under `web/`.
