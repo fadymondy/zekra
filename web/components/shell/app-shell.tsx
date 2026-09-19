@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { LanguageSwitcher, ThemeToggle } from "@/components/header-controls"
 import { ErrorState } from "@/components/states"
-import { ReportProblemDialog, feedbackEnabled } from "@/components/feedback/report-problem"
+import { MahaamWidget, feedbackEnabled, openFeedback } from "@/components/feedback/mahaam-widget"
 import { LiveIndicator } from "@/components/shell/live"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
@@ -115,9 +115,8 @@ export function AppShell({
   children: ReactNode
 }) {
   const me = useRequireAuth()
-  const { t, isRtl } = useTranslations()
+  const { t, isRtl, locale } = useTranslations()
   const [navOpen, setNavOpen] = useState(false)
-  const [reporting, setReporting] = useState(false)
 
   let body: ReactNode
   if (me.error) body = <ErrorState error={me.error} />
@@ -154,7 +153,7 @@ export function AppShell({
                 variant="outline"
                 size="sm"
                 className="hidden sm:inline-flex"
-                onClick={() => setReporting(true)}
+                onClick={() => openFeedback()}
                 aria-label={t("feedback.report")}
               >
                 <MessageSquarePlusIcon />
@@ -179,7 +178,8 @@ export function AppShell({
         </SheetContent>
       </Sheet>
 
-      {feedbackEnabled ? <ReportProblemDialog open={reporting} onOpenChange={setReporting} brain={brain} /> : null}
+      {/* Mahaam Feedback: loaded only inside the signed-in app, never on public pages. */}
+      {me.data ? <MahaamWidget locale={locale} /> : null}
     </div>
     </RealtimeProvider>
   )

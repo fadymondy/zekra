@@ -34,7 +34,8 @@ export function UserMenu({ user }: { user: User }) {
     resetCsrf()
     // Drop every cached response: the next account must not see this one's data.
     await mutate(() => true, undefined, { revalidate: false })
-    router.replace(`/${locale}/login`)
+    // A full load (not a client navigation) also unloads the signed-in-only feedback widget.
+    window.location.assign(`/${locale}/login`)
   }
 
   return (

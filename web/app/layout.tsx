@@ -1,5 +1,5 @@
 import { headers } from "next/headers"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 
 import "./globals.css"
 import { Providers } from "@/components/providers"
@@ -13,7 +13,14 @@ export async function generateMetadata(): Promise<Metadata> {
     description: ar ? "ذاكرة طويلة المدى مشتركة لوكلاء الذكاء الاصطناعي." : "Shared long-term memory for AI agents.",
     // The console is behind a login: zekra.dev is what search engines index.
     robots: { index: false, follow: false },
+    // Installed as a PWA (app/manifest.ts): iOS home-screen behaviour.
+    appleWebApp: { capable: true, title: ar ? "ذكرة" : "Zekra", statusBarStyle: "black-translucent" },
   }
+}
+
+export const viewport: Viewport = {
+  themeColor: "#0B1429",
+  colorScheme: "dark light",
 }
 
 // The locale lives in the URL (/en/…, /ar/…). A root layout cannot read route params, so

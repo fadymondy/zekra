@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offline · Zekra</title>
+<meta name="theme-color" content="#0B1429" />
+<style>
+  html,body{margin:0;height:100%;background:#0B1429;color:#F0EBE1;font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{min-height:100%;display:grid;place-items:center;padding:24px;text-align:center}
+  .card{max-width:420px;border:1px solid #25355C;background:#0E1A3C;padding:28px}
+  img{width:56px;height:56px}
+  h1{font-size:20px;font-weight:500;margin:16px 0 6px}
+  p{color:#8A97B8;margin:0 0 4px}
+  button{margin-top:18px;border:0;background:#6D4DE6;color:#fff;padding:9px 16px;font:inherit;cursor:pointer}
+  [dir=rtl]{font-family:"Segoe UI",Tahoma,sans-serif}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <img src="/icons/icon-192.png" alt="" />
+    <h1>You're offline</h1>
+    <p>Zekra needs a connection for this page. It will load as soon as you're back online.</p>
+    <p dir="rtl" lang="ar">أنت غير متصل. تحتاج ذكرة إلى اتصال لهذه الصفحة، وستُفتح فور عودة الاتصال.</p>
+    <button onclick="location.reload()">Retry · إعادة المحاولة</button>
+  </div>
+</main>
+</body>
+</html>

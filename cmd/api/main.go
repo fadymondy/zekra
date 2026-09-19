@@ -3,10 +3,14 @@
 package main
 
 import (
+	"context"
+	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	feedback "github.com/fadymondy/zekra/internal/mahaamfeedback"
 	"github.com/fadymondy/zekra/internal/server"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"net"
 	"net/http"
 	"net/url"
@@ -14,10 +18,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	_ "github.com/jackc/pgx/v5/stdlib"
-"context"
-"crypto/rand"
-
 )
 
 // ensureAuthSecret guarantees a >=32-byte AUTH_SECRET before Boot(), so the togo
@@ -144,6 +144,11 @@ func main() {
 	a := server.Boot()
 	defer a.Kernel.Close()
 	k := a.Kernel
+	// Mahaam Feedback: a panic in any handler is filed as an issue in the Zekra project on
+	// Mahaam (MAHAAM_URL, MAHAAM_FEEDBACK_KEY, MAHAAM_APP_URL). Off when the key is unset.
+	if fb := feedback.New(feedback.Config{}); fb.Enabled() {
+		k.UseMiddleware(fb.Recover)
+	}
 	if dist := os.Getenv("WEB_DIST"); dist != "" {
 		serveSPA(k.Router, dist)
 		fmt.Printf("→ serving frontend from %s\n", dist)
@@ -173,7 +178,10 @@ func waitForDatabase() {
 	}
 	for i := 0; i < 60; i++ {
 		conn, err := net.DialTimeout("tcp", hostPort, 2*time.Second)
-		if err == nil { _ = conn.Close(); break }
+		if err == nil {
+			_ = conn.Close()
+			break
+		}
 		time.Sleep(1 * time.Second)
 	}
 	db, derr := sql.Open("pgx", dsn)
@@ -188,7 +196,9 @@ func waitForDatabase() {
 		err := db.PingContext(ctx)
 		cancel()
 		if err == nil {
-			if i > 0 { fmt.Printf("→ database %s query-ready after %ds\n", hostPort, i) }
+			if i > 0 {
+				fmt.Printf("→ database %s query-ready after %ds\n", hostPort, i)
+			}
 			return
 		}
 		time.Sleep(1 * time.Second)
