@@ -70,6 +70,9 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/datasources/rotate-secret", sec(s.RotateDatasourceSecret))
 	r.Post("/api/brain/ingest/{id}", s.IngestWebhook)
 
+	// Presentations (presentations_handlers.go), incl. the public share view.
+	s.mountPresentations(r, sec)
+
 	// Brain membership (who may use which brain).
 	r.Get("/api/brain/mine", sec(s.MyBrains))
 	r.Post("/api/brain/brains", sec(s.CreateBrain))

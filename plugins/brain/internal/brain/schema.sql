@@ -648,3 +648,62 @@ CREATE TABLE IF NOT EXISTS public.brain_profiles (
   updated_by            text,
   CONSTRAINT brain_profiles_visibility_chk CHECK (visibility IN ('private','internal'))
 );
+
+-- ── Presentations (plugins/brain/presentations; ported from fadymondy.com FM-341/342) ──
+-- Decks, reports and page previews personalised for one customer, each owned by ONE
+-- brain (namespace) and the account that created it (owner_user_id). Access is the
+-- brain's: brain_members roles / X-Zekra-Token grants / OAuth brains:* scopes, checked
+-- in internal/brain/presentations_handlers.go. No generated CRUD on purpose: a CRUD on
+-- presentation_shares would be a second, unguarded way to list sealed share tokens, and
+-- one on presentations would skip the content validator.
+--
+--   presentations        one document; content holds {"en": {...}, "ar": {...}}
+--   presentation_shares  share links: sha256(token) for lookup (token_hash), the token
+--                        sealed (vault:v1 AES-GCM, seal.go) so the owner can copy it again
+--
+-- Conventions kept from the source so imported rows are byte-identical: nothing NULL
+-- except owner_user_id, 'epoch' = "never", 'infinity' = "no expiry". Idempotent.
+CREATE TABLE IF NOT EXISTS public.presentations (
+    id                text        PRIMARY KEY,
+    namespace         text        NOT NULL,
+    owner_user_id     text,
+    kind              text        NOT NULL CHECK (kind IN ('deck', 'report', 'page')),
+    title             text        NOT NULL DEFAULT '',
+    customer_name     text        NOT NULL DEFAULT '',
+    customer_company  text        NOT NULL DEFAULT '',
+    customer_email    text        NOT NULL DEFAULT '',
+    locale            text        NOT NULL DEFAULT 'en' CHECK (locale IN ('en', 'ar')),
+    status            text        NOT NULL DEFAULT 'draft',        -- draft | ready | archived
+    style             text        NOT NULL DEFAULT '',             -- pages: minimal | bold | editorial | tech-dark
+    content           jsonb       NOT NULL DEFAULT '{}'::jsonb,
+    translations      jsonb       NOT NULL DEFAULT '{}'::jsonb,    -- {"ar": {"from","by","provider","model","at"}}
+    view_count        bigint      NOT NULL DEFAULT 0,
+    download_count    bigint      NOT NULL DEFAULT 0,
+    last_viewed_at    timestamptz NOT NULL DEFAULT 'epoch',
+    created_by        text        NOT NULL DEFAULT '',
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    updated_at        timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.presentations ADD COLUMN IF NOT EXISTS namespace text;
+ALTER TABLE public.presentations ADD COLUMN IF NOT EXISTS owner_user_id text;
+CREATE INDEX IF NOT EXISTS presentations_ns_updated_idx ON public.presentations (namespace, updated_at DESC);
+CREATE INDEX IF NOT EXISTS presentations_owner_idx ON public.presentations (owner_user_id) WHERE owner_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS presentations_customer_idx ON public.presentations (lower(customer_company), lower(customer_name));
+
+CREATE TABLE IF NOT EXISTS public.presentation_shares (
+    id                text        PRIMARY KEY,
+    presentation_id   text        NOT NULL REFERENCES public.presentations (id) ON DELETE CASCADE,
+    token_hash        text        NOT NULL UNIQUE,                 -- sha256(token), hex: the only lookup key
+    token_sealed      text        NOT NULL DEFAULT '',             -- vault:v1:… ('' = shown once, not recoverable)
+    token_hint        text        NOT NULL DEFAULT '',             -- first 4 characters
+    label             text        NOT NULL DEFAULT '',
+    locale            text        NOT NULL DEFAULT 'en' CHECK (locale IN ('en', 'ar')),
+    expires_at        timestamptz NOT NULL DEFAULT 'infinity',
+    revoked_at        timestamptz NOT NULL DEFAULT 'epoch',
+    view_count        bigint      NOT NULL DEFAULT 0,
+    download_count    bigint      NOT NULL DEFAULT 0,
+    last_viewed_at    timestamptz NOT NULL DEFAULT 'epoch',
+    created_by        text        NOT NULL DEFAULT '',
+    created_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS presentation_shares_doc_idx ON public.presentation_shares (presentation_id, created_at DESC);

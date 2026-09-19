@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/togo-framework/togo"
+
+	"github.com/togo-framework/brain/presentations"
 )
 
 // Service is the brain plugin backend — the Zekra memory organ. It owns the
@@ -16,6 +19,11 @@ type Service struct {
 	Store *Store
 	hub   *hub // realtime SSE fan-out for multi-user live updates
 	oauth *oauthServer
+
+	// Presentations (presentations_handlers.go), built on first use.
+	presOnce  sync.Once
+	pres      *presentations.Store
+	presLimit *presentations.Limiter
 }
 
 func New(k *togo.Kernel) *Service {

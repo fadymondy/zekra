@@ -13,6 +13,7 @@
 //	zekractl mirror <ns>  — mirror a namespace's Cognee graph into entities/memory_entities
 //	zekractl notes-graph-backfill — make every existing note a graph node (idempotent)
 //	zekractl notes-adopt <ns>|--all — adopt a brain's existing documents as notes (idempotent)
+//	zekractl presentations-import <file.json|--from-postgres DSN> --namespace <ns> --owner <email> — copy fadymondy.com presentations (read-only source)
 package main
 
 import (
@@ -34,7 +35,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin|notes-graph-backfill|notes-adopt>")
+		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin|notes-graph-backfill|notes-adopt|presentations-import>")
 		os.Exit(2)
 	}
 	dsn := os.Getenv("DATABASE_URL")
@@ -88,6 +89,8 @@ func main() {
 			fatal(fmt.Sprintf("notes-graph-backfill (after %d notes): %v", n, err))
 		}
 		fmt.Printf("✓ %d notes synced into the graph\n", n)
+	case "presentations-import":
+		presentationsImport(db, os.Args[2:])
 	case "notes-adopt":
 		notesAdopt(db)
 	case "admin":
