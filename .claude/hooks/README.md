@@ -23,7 +23,8 @@ Add to your Claude Code settings (`.claude/settings.json` for this repo, or
   },
   "env": {
     "ZEKRA_CAPTURE": "1",
-    "ZEKRA_API_URL": "http://localhost:8080",
+    "ZEKRA_API_URL": "https://app.zekra.dev",
+    "ZEKRA_TOKEN": "<your zekra token>",
     "ZEKRA_NAMESPACE": "zekra",
     "ZEKRA_AGENT_ID": "claude-code"
   }
@@ -33,7 +34,8 @@ Add to your Claude Code settings (`.claude/settings.json` for this repo, or
 | Env | Default | Meaning |
 |---|---|---|
 | `ZEKRA_CAPTURE` | *(off)* | must be `1` to capture anything |
-| `ZEKRA_API_URL` | `http://localhost:8080` | the running Zekra app |
+| `ZEKRA_API_URL` | `https://app.zekra.dev` | the running Zekra app (self-hosted: your URL) |
+| `ZEKRA_TOKEN` | none (falls back to `CABRAIN_TOKEN`) | Sent as `X-Zekra-Token`; needs write on the brain |
 | `ZEKRA_NAMESPACE` | derived from `cwd` basename | project scope (one grant per project, F5) |
 | `ZEKRA_AGENT_ID` | *(empty = trusted)* | `X-Agent-Id` for grant checks |
 

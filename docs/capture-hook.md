@@ -13,11 +13,11 @@ something durable, redacts it, and sends it to `POST /api/brain/retain`.
 It lives in the Zekra server repository at `.claude/hooks/capture-mode.py`. It needs Python 3
 and no extra packages.
 
-> **Limitation:** the hook does not send an access token yet. It sends only `X-Agent-Id`,
-> so it works only against a self-hosted instance that accepts requests without a token
-> (see [Security](./security.md#enforcement-switches)). It does not work against
-> app.zekra.dev. With a token-based setup, use the `zekra` [hooks](./cli.md#hooks) and let
-> the model retain through MCP.
+> **Authentication:** the hook sends your access token as `X-Zekra-Token` (from
+> `ZEKRA_TOKEN`, or the legacy `CABRAIN_TOKEN`) and posts to app.zekra.dev by default.
+> The token needs write access on the target brain. Without a token it works only against
+> a self-hosted instance that accepts requests without one
+> (see [Security](./security.md#enforcement-switches)).
 
 ## What it captures
 
@@ -56,7 +56,8 @@ Capture is opt-in and does nothing unless `ZEKRA_CAPTURE=1`. Add the hook to
   },
   "env": {
     "ZEKRA_CAPTURE": "1",
-    "ZEKRA_API_URL": "http://localhost:8080",
+    "ZEKRA_API_URL": "https://app.zekra.dev",
+    "ZEKRA_TOKEN": "<your zekra token>",
     "ZEKRA_NAMESPACE": "my-project",
     "ZEKRA_AGENT_ID": "claude-code"
   }
@@ -66,7 +67,8 @@ Capture is opt-in and does nothing unless `ZEKRA_CAPTURE=1`. Add the hook to
 | Variable | Default | Meaning |
 |---|---|---|
 | `ZEKRA_CAPTURE` | off | Must be `1` to capture anything |
-| `ZEKRA_API_URL` | `http://localhost:8080` | Your Zekra instance |
+| `ZEKRA_API_URL` | `https://app.zekra.dev` | Your Zekra instance (self-hosted: your URL) |
+| `ZEKRA_TOKEN` | none (falls back to `CABRAIN_TOKEN`) | Sent as `X-Zekra-Token`; needs write on the brain |
 | `ZEKRA_NAMESPACE` | lower-cased name of the working directory | Brain to write to |
 | `ZEKRA_AGENT_ID` | none | Sent as `X-Agent-Id` |
 

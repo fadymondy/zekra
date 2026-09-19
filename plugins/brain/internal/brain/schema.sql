@@ -388,3 +388,169 @@ CREATE TABLE IF NOT EXISTS public.datasources (
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS datasources_ns ON public.datasources (namespace);
+
+-- ── Brain membership (Phase 1: notes + connect any AI agent) ─────────────────────────
+-- Brains are namespaces; before this table no user owned one. brain_members gives a
+-- signed-in user access to a brain: the user who creates a brain is its `owner`,
+-- editors read+write, viewers read. Admin/owner-ROLE accounts see every brain without
+-- a row here. Applied to notes, the remote MCP endpoint and OAuth grants; the older
+-- memory endpoints keep their X-Zekra-Token ACL (namespace_grants) unchanged.
+-- Pinned to public for the same search_path reason as datasources above.
+CREATE TABLE IF NOT EXISTS public.brain_members (
+  namespace   text        NOT NULL,
+  user_id     text        NOT NULL,
+  role        text        NOT NULL DEFAULT 'owner',
+  created_by  text,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (namespace, user_id),
+  CONSTRAINT brain_members_role_chk CHECK (role IN ('owner','editor','viewer'))
+);
+CREATE INDEX IF NOT EXISTS brain_members_user ON public.brain_members (user_id);
+
+-- ── Notes ────────────────────────────────────────────────────────────────────────────
+-- A note is a markdown document in a brain. Saving it chunks the body and retains each
+-- chunk through the normal write pipeline (source_kind='note',
+-- source_ref='note:<id>#<n>'); chunk_hashes remembers what was retained per chunk so an
+-- edit re-retains only changed chunks and soft-invalidates removed ones. Deleting a
+-- note tombstones it (deleted_at) so incremental sync can report the deletion.
+CREATE TABLE IF NOT EXISTS public.notes (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace        text        NOT NULL,
+  owner_user_id    text,                                   -- NULL when created by an ACL token
+  title            text        NOT NULL DEFAULT '',
+  body             text        NOT NULL DEFAULT '',        -- markdown
+  tags             text[]      NOT NULL DEFAULT '{}',
+  pinned           boolean     NOT NULL DEFAULT false,
+  archived         boolean     NOT NULL DEFAULT false,
+  source           text        NOT NULL DEFAULT 'web',
+  version          int         NOT NULL DEFAULT 1,
+  chunk_hashes     text[]      NOT NULL DEFAULT '{}',      -- sha256 per retained chunk ('' = not indexed)
+  indexed_version  int         NOT NULL DEFAULT 0,
+  index_error      text,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now(),
+  deleted_at       timestamptz,                            -- tombstone
+  CONSTRAINT notes_source_chk CHECK (source IN ('web','mobile','desktop','agent','api'))
+);
+CREATE INDEX IF NOT EXISTS notes_ns_updated ON public.notes (namespace, updated_at, id);
+CREATE INDEX IF NOT EXISTS notes_tags ON public.notes USING gin (tags);
+
+CREATE TABLE IF NOT EXISTS public.note_versions (
+  note_id         uuid        NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  version         int         NOT NULL,
+  title           text        NOT NULL DEFAULT '',
+  body            text        NOT NULL DEFAULT '',
+  tags            text[]      NOT NULL DEFAULT '{}',
+  pinned          boolean     NOT NULL DEFAULT false,
+  archived        boolean     NOT NULL DEFAULT false,
+  deleted         boolean     NOT NULL DEFAULT false,
+  source          text        NOT NULL DEFAULT 'web',
+  author_user_id  text,
+  author_agent    text,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (note_id, version)
+);
+
+-- ── OAuth 2.1 for the remote MCP endpoint (/api/mcp) ─────────────────────────────────
+-- Ported from fadymondy.com (db/mcp_oauth.postgres.sql). Nothing here is a usable
+-- credential at rest: codes, access/refresh tokens and client secrets are stored as
+-- sha256 hex digests. Prefixed mcp_ so they never collide with other oauth_* tables.
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_clients (
+  id                         text        PRIMARY KEY,
+  client_name                text        NOT NULL DEFAULT '',   -- self-asserted, shown as a claim
+  client_uri                 text        NOT NULL DEFAULT '',
+  redirect_uris              text        NOT NULL DEFAULT '[]', -- JSON array, exact-match
+  token_endpoint_auth_method text        NOT NULL DEFAULT 'none',
+  secret_hash                text        NOT NULL DEFAULT '',
+  jwks_uri                   text        NOT NULL DEFAULT '',
+  jwks                       text        NOT NULL DEFAULT '',
+  ip                         text        NOT NULL DEFAULT '',
+  created_at                 timestamptz NOT NULL DEFAULT now(),
+  updated_at                 timestamptz NOT NULL DEFAULT now()
+);
+
+-- One approved connection (user x client). Its brains live in
+-- mcp_oauth_grant_namespaces; revoking the grant kills every token under it.
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_grants (
+  id            text        PRIMARY KEY DEFAULT (gen_random_uuid())::text,
+  client_id     text        NOT NULL REFERENCES public.mcp_oauth_clients (id) ON DELETE CASCADE,
+  user_id       text        NOT NULL,
+  scopes        text        NOT NULL DEFAULT '',
+  resource      text        NOT NULL DEFAULT '',
+  last_used_at  timestamptz,
+  revoked_at    timestamptz,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_grants_user ON public.mcp_oauth_grants (user_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_grants_client ON public.mcp_oauth_grants (client_id);
+
+-- Per user x client x namespace: which brains a connection may touch and whether it
+-- may write. Re-checked on every MCP call against the user's current access.
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_grant_namespaces (
+  grant_id   text    NOT NULL REFERENCES public.mcp_oauth_grants (id) ON DELETE CASCADE,
+  namespace  text    NOT NULL,
+  can_write  boolean NOT NULL DEFAULT false,
+  PRIMARY KEY (grant_id, namespace)
+);
+
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_codes (
+  code_hash       text        PRIMARY KEY,
+  client_id       text        NOT NULL REFERENCES public.mcp_oauth_clients (id) ON DELETE CASCADE,
+  user_id         text        NOT NULL,
+  redirect_uri    text        NOT NULL,
+  code_challenge  text        NOT NULL,                  -- S256 only
+  scopes          text        NOT NULL DEFAULT '',
+  namespaces      text        NOT NULL DEFAULT '[]',     -- JSON [{namespace, write}] approved on consent
+  resource        text        NOT NULL DEFAULT '',
+  expires_at      timestamptz NOT NULL,
+  used_at         timestamptz,                           -- a second redemption revokes the grant
+  grant_id        text        NOT NULL DEFAULT '',
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_codes_expires ON public.mcp_oauth_codes (expires_at);
+
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_tokens (
+  token_hash  text        PRIMARY KEY,
+  grant_id    text        NOT NULL REFERENCES public.mcp_oauth_grants (id) ON DELETE CASCADE,
+  kind        text        NOT NULL,                      -- access | refresh
+  scopes      text        NOT NULL DEFAULT '',
+  expires_at  timestamptz NOT NULL,
+  used_at     timestamptz,                               -- refresh rotation; reuse revokes the grant
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_tokens_grant ON public.mcp_oauth_tokens (grant_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_tokens_expires ON public.mcp_oauth_tokens (expires_at);
+
+-- private_key_jwt assertion ids already spent (RFC 7523 replay protection).
+CREATE TABLE IF NOT EXISTS public.mcp_oauth_client_assertions (
+  client_id   text        NOT NULL,
+  jti         text        NOT NULL,
+  expires_at  timestamptz NOT NULL,
+  PRIMARY KEY (client_id, jti)
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_client_assertions_expires ON public.mcp_oauth_client_assertions (expires_at);
+
+-- Backfill: every brain that has no member yet is owned by the existing admin/owner-role
+-- accounts, so the move from "every signed-in account is admin of every brain" to
+-- per-brain membership leaves existing brains with owners. Only brains with NO member
+-- row are touched, so brains created by users later are never re-owned. Best-effort:
+-- the users table may be absent, live in another schema, or be a foreign table
+-- without a roles column (Cognee) - any error leaves the backfill for the next migrate.
+DO $$
+BEGIN
+  IF to_regclass('users') IS NOT NULL THEN
+    EXECUTE $q$
+      INSERT INTO public.brain_members (namespace, user_id, role, created_by)
+      SELECT DISTINCT n.namespace, u.id::text, 'owner', 'backfill'
+      FROM (SELECT DISTINCT namespace FROM public.memories WHERE invalid_at IS NULL
+            UNION SELECT DISTINCT namespace FROM public.notes) n
+      CROSS JOIN users u
+      WHERE (','||COALESCE(u.roles,'')||',') ~ ',(admin|owner),'
+        AND NOT EXISTS (SELECT 1 FROM public.brain_members b WHERE b.namespace = n.namespace)
+      ON CONFLICT DO NOTHING
+    $q$;
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'brain_members backfill skipped: %', SQLERRM;
+END $$;

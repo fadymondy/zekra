@@ -11,7 +11,8 @@ exits 0 silently. The live session is authoritative; capture only accumulates ma
 
 OPT-IN. Does nothing unless ZEKRA_CAPTURE=1. Config via env:
   ZEKRA_CAPTURE=1                 enable
-  ZEKRA_API_URL=http://localhost:8080
+  ZEKRA_API_URL=https://app.zekra.dev (default; self-hosted: your URL)
+  ZEKRA_TOKEN=<zekra token>       X-Zekra-Token (legacy CABRAIN_TOKEN also read)
   ZEKRA_NAMESPACE=<name>          override the derived project namespace
   ZEKRA_AGENT_ID=claude-code      X-Agent-Id (F5 scoping)
 """
@@ -122,7 +123,7 @@ def namespace(payload: dict) -> str:
 
 
 def post(ns: str, content: str, session: str) -> None:
-    base = os.environ.get("ZEKRA_API_URL", "http://localhost:8080").rstrip("/")
+    base = os.environ.get("ZEKRA_API_URL", "https://app.zekra.dev").rstrip("/")
     body = json.dumps({
         "namespace": ns,
         "content": content,
@@ -131,6 +132,8 @@ def post(ns: str, content: str, session: str) -> None:
     }).encode()
     req = urllib.request.Request(base + "/api/brain/retain", data=body,
                                  headers={"Content-Type": "application/json"})
+    if token := os.environ.get("ZEKRA_TOKEN"):  # CABRAIN_TOKEN via the shim above
+        req.add_header("X-Zekra-Token", token)
     if agent := os.environ.get("ZEKRA_AGENT_ID"):
         req.add_header("X-Agent-Id", agent)
     try:

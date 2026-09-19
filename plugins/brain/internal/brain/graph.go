@@ -399,8 +399,9 @@ func (s *Service) OntologyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	type et struct {
-		Name, Description string
-		Count             int
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Count       int    `json:"count"`
 	}
 	ents := []et{}
 	rows, _ := db.QueryContext(r.Context(), `
@@ -417,8 +418,11 @@ func (s *Service) OntologyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	type rt struct {
-		Name, Description, Src, Dst string
-		Count                       int
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Src         string `json:"src"`
+		Dst         string `json:"dst"`
+		Count       int    `json:"count"`
 	}
 	rels := []rt{}
 	rows2, _ := db.QueryContext(r.Context(), `

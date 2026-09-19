@@ -42,6 +42,9 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 
 	s := &Service{DB: db, Log: log, Auth: svc, Now: time.Now}
 	s.Send = NewSender(k, log)
+	// The brain plugin resolves session users (and their brain membership)
+	// through this; without it signed-in users would have no brain access.
+	k.Set(BrainDirectoryKey, NewBrainDirectory(s))
 
 	// Providers first, so the methods rewrite knows what is configured.
 	var methods []auth.LoginMethod

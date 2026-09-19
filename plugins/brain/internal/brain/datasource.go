@@ -350,3 +350,23 @@ func redactDatasourceSecrets(d *Datasource) {
 		}
 	}
 }
+
+// RotateWebhookSecret replaces a webhook source's shared secret and returns the
+// new one (the only time it is shown).
+func (s *Store) RotateWebhookSecret(ctx context.Context, id string) (string, error) {
+	db, err := s.db(ctx)
+	if err != nil {
+		return "", err
+	}
+	secret := "whk_" + randHex(16)
+	res, err := db.ExecContext(ctx, `
+		UPDATE datasources SET config = config || jsonb_build_object('secret', $2::text)
+		WHERE id = $1 AND kind = 'webhook'`, id, secret)
+	if err != nil {
+		return "", err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return "", ErrNotFound
+	}
+	return secret, nil
+}

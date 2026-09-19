@@ -15,6 +15,7 @@ type Service struct {
 	k     *togo.Kernel
 	Store *Store
 	hub   *hub // realtime SSE fan-out for multi-user live updates
+	oauth *oauthServer
 }
 
 func New(k *togo.Kernel) *Service {

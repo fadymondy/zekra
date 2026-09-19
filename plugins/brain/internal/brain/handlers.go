@@ -1,13 +1,11 @@
 package brain
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -34,27 +32,55 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 
 // GET /api/brain/stats
 func (s *Service) Stats(w http.ResponseWriter, r *http.Request) {
-	st, _ := s.Store.Stats(r.Context())
+	all, list := s.readableNamespaces(r)
+	if all {
+		st, _ := s.Store.Stats(r.Context())
+		writeJSON(w, http.StatusOK, st)
+		return
+	}
+	st, _ := s.Store.StatsFor(r.Context(), list)
 	writeJSON(w, http.StatusOK, st)
 }
 
 // GET /api/brain/activity?limit=50
 func (s *Service) Activity(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	items, _ := s.Store.Activity(r.Context(), limit)
+	all, list := s.readableNamespaces(r)
+	var items []ActivityItem
+	if all {
+		items, _ = s.Store.Activity(r.Context(), limit)
+	} else {
+		items, _ = s.Store.ActivityFor(r.Context(), list, limit)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }
 
 // GET /api/brain/namespaces
 func (s *Service) Namespaces(w http.ResponseWriter, r *http.Request) {
 	ns, _ := s.Store.Namespaces(r.Context())
+	// A non-admin caller (scoped token, OAuth-connected app) only sees its brains.
+	if c := s.identify(r); !c.admin {
+		kept := []NamespaceInfo{}
+		for _, b := range ns {
+			if s.canRead(r, b.Namespace) {
+				kept = append(kept, b)
+			}
+		}
+		ns = kept
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"brains": ns})
 }
 
 // GET /api/brain/graph?namespace=&limit=200
 func (s *Service) Graph(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	g, _ := s.Store.Graph(r.Context(), r.URL.Query().Get("namespace"), limit)
+	ns := r.URL.Query().Get("namespace")
+	// The all-brains graph is admin-only; a brain's graph needs read on it.
+	if c := s.identify(r); !c.admin && !s.canRead(r, ns) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+		return
+	}
+	g, _ := s.Store.Graph(r.Context(), ns, limit)
 	writeJSON(w, http.StatusOK, g)
 }
 
@@ -136,7 +162,7 @@ func (s *Service) Retain(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "namespace and content are required"))
 		return
 	}
-	if !s.canWrite(r, in.Namespace) {
+	if !s.canWriteOrClaim(r, in.Namespace) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
 		return
 	}
@@ -147,72 +173,6 @@ func (s *Service) Retain(w http.ResponseWriter, r *http.Request) {
 	}
 	s.hub.publish("retain", map[string]any{"namespace": in.Namespace, "decision": res.Decision})
 	writeJSON(w, http.StatusOK, res)
-}
-
-// agentID reads the MCP/session identity from a trusted header. Empty = the
-// server/console context (grant checks bypassed; namespace scoping still applies).
-// caller is the resolved identity of a request.
-type caller struct {
-	agent string
-	admin bool // admin bypasses grants
-	valid bool // a presented token resolved (or no token needed)
-}
-
-// identify resolves the caller from the X-Zekra-Token header (preferred) or the
-// X-Agent-Id header. A tokenless request is the trusted local console UNLESS
-// ZEKRA_REQUIRE_TOKEN=1. An invalid token resolves to no access.
-func (s *Service) identify(r *http.Request) caller {
-	if tok := TokenHeader(r.Header); tok != "" {
-		if agent, admin, ok := s.Store.ResolveToken(r.Context(), tok); ok {
-			return caller{agent: agent, admin: admin, valid: true}
-		}
-		return caller{valid: false} // bad/revoked token → deny
-	}
-	agent := r.Header.Get("X-Agent-Id")
-	// No token presented. The X-Zekra-Token ACL is the enforcement mechanism; a
-	// bare X-Agent-Id is only an identity label (activity attribution), NOT a
-	// credential. So unless token enforcement is explicitly ON, a tokenless caller
-	// is the trusted local console/MCP — EVEN when it sends an agent id. (Previously
-	// a tokenless call that set X-Agent-Id fell into grant checks and got denied on
-	// every brain — the local .mcp sets ZEKRA_AGENT_ID=claude-code, so it locked
-	// itself out.)
-	if os.Getenv("ZEKRA_REQUIRE_TOKEN") != "1" {
-		return caller{agent: agent, admin: true, valid: true}
-	}
-	// Enforcement ON + no token → must be a known, granted agent (never admin).
-	return caller{agent: agent, valid: agent != ""}
-}
-
-// ValidToken reports whether a raw token resolves to a live (non-revoked) token.
-// Used by the security gate to let MCP callers (who present X-Zekra-Token, not a
-// login session) through when console auth enforcement is on.
-func (s *Service) ValidToken(ctx context.Context, tok string) bool {
-	_, _, ok := s.Store.ResolveToken(ctx, tok)
-	return ok
-}
-
-func (s *Service) canRead(r *http.Request, ns string) bool {
-	c := s.identify(r)
-	if c.admin {
-		return true
-	}
-	if !c.valid || c.agent == "" {
-		return false
-	}
-	ok, _ := s.Store.CanRead(r.Context(), c.agent, ns)
-	return ok
-}
-
-func (s *Service) canWrite(r *http.Request, ns string) bool {
-	c := s.identify(r)
-	if c.admin {
-		return true
-	}
-	if !c.valid || c.agent == "" {
-		return false
-	}
-	ok, _ := s.Store.CanWrite(r.Context(), c.agent, ns)
-	return ok
 }
 
 func agentID(r *http.Request) string { return r.Header.Get("X-Agent-Id") }
@@ -231,7 +191,6 @@ func (s *Service) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, m)
 }
-
 
 // POST /api/brain/dedup  { namespace, sourceKind? }
 // Soft-invalidate duplicate memories in a namespace (same source_ref → keep newest).
@@ -293,7 +252,7 @@ func (s *Service) Share(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Caller must already hold a grant on the namespace (bootstrap seeded out-of-band).
-	if !s.canWrite(r, in.Namespace) {
+	if !s.canAdmin(r, in.Namespace) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "caller has no grant on namespace"))
 		return
 	}
@@ -316,6 +275,16 @@ func (s *Service) Share(w http.ResponseWriter, r *http.Request) {
 func (s *Service) Gaps(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	gaps, _ := s.Store.Gaps(r.Context(), r.URL.Query().Get("namespace"), r.URL.Query().Get("status"), limit)
+	// A non-admin caller only sees gaps in brains it can read.
+	if c := s.identify(r); !c.admin {
+		kept := gaps[:0]
+		for _, g := range gaps {
+			if s.canRead(r, g.Namespace) {
+				kept = append(kept, g)
+			}
+		}
+		gaps = kept
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"gaps": gaps})
 }
 
@@ -330,6 +299,18 @@ func (s *Service) ResolveGap(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "bad JSON body"))
 		return
 	}
+	// Resolving a gap is a write on the gap's brain.
+	if c := s.identify(r); !c.admin {
+		ns, err := s.Store.GapNamespace(r.Context(), in.ID)
+		if err != nil {
+			writeErr(w, err)
+			return
+		}
+		if !s.canWrite(r, ns) {
+			writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+ns))
+			return
+		}
+	}
 	if err := s.Store.ResolveGap(r.Context(), in.ID, in.Status, in.Resolution); err != nil {
 		writeErr(w, err)
 		return
@@ -340,6 +321,10 @@ func (s *Service) ResolveGap(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/brain/brain?namespace=   (brain details)
 func (s *Service) BrainDetail(w http.ResponseWriter, r *http.Request) {
+	if ns := r.URL.Query().Get("namespace"); !s.canRead(r, ns) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+		return
+	}
 	d, _ := s.Store.BrainDetail(r.Context(), r.URL.Query().Get("namespace"))
 	writeJSON(w, http.StatusOK, d)
 }
@@ -351,14 +336,31 @@ func (s *Service) Export(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "namespace required"))
 		return
 	}
+	if !s.canRead(r, ns) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+		return
+	}
 	w.Header().Set("Content-Type", "application/x-ndjson")
-	w.Header().Set("Content-Disposition", "attachment; filename=\"cabrain-"+ns+".ndjson\"")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"zekra-"+ns+".ndjson\"")
 	_, _ = s.Store.Export(r.Context(), ns, w)
 }
 
 // POST /api/brain/import?namespace=   (body = NDJSON export; namespace overrides)
 func (s *Service) Import(w http.ResponseWriter, r *http.Request) {
-	n, err := s.Store.Import(r.Context(), r.URL.Query().Get("namespace"), r.Body)
+	ns := r.URL.Query().Get("namespace")
+	// Only an admin may import a file into the namespaces it names; everyone else
+	// imports into one brain they can write (created on first write, owner = them).
+	if c := s.identify(r); !c.admin {
+		if ns == "" {
+			writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "namespace required"))
+			return
+		}
+		if !s.canWriteOrClaim(r, ns) {
+			writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+ns))
+			return
+		}
+	}
+	n, err := s.Store.Import(r.Context(), ns, r.Body)
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -377,7 +379,7 @@ func (s *Service) DeleteBrain(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "set confirm = namespace to delete"))
 		return
 	}
-	if !s.canWrite(r, in.Namespace) {
+	if !s.canAdmin(r, in.Namespace) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
 		return
 	}
@@ -386,7 +388,7 @@ func (s *Service) DeleteBrain(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
-	s.hub.publish("brain", map[string]any{"deleted": in.Namespace})
+	s.hub.publish("brain", map[string]any{"deleted": in.Namespace, "namespace": in.Namespace})
 	writeJSON(w, http.StatusOK, map[string]any{"namespace": in.Namespace, "deleted": n})
 }
 
@@ -693,32 +695,45 @@ func (s *Service) Session(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
-	// The URL an MCP client should call: the explicit public URL, else the app's own URL.
-	pub := os.Getenv("ZEKRA_PUBLIC_URL")
-	if pub == "" {
-		pub = os.Getenv("APP_URL")
-	}
+	// The REST base URL the local CLI should call: the explicit public URL, else the app's own URL.
+	pub := urlEnv("ZEKRA_PUBLIC_URL", "AUTH_PUBLIC_URL", "APP_URL")
 	if pub == "" {
 		pub = "http://localhost:8080"
 	}
-	mcp := map[string]any{"mcpServers": map[string]any{"cabrain": map[string]any{
-		"command": "zekra-mcp",
+	access := map[bool]string{true: "read+write", false: "read-only"}[in.Write]
+	// Two ways to connect, both under the server key "zekra":
+	//   remote — streamable HTTP to the hosted MCP endpoint, token in a header;
+	//   local  — the zekra CLI's stdio server (`zekra mcp`).
+	remote := map[string]any{"mcpServers": map[string]any{"zekra": map[string]any{
+		"type": "http",
+		"url":  MCPPublicURL(),
+		"headers": map[string]any{
+			"X-Zekra-Token":     t.Token,
+			"X-Zekra-Namespace": in.Namespace,
+		},
+	}}}
+	local := map[string]any{"mcpServers": map[string]any{"zekra": map[string]any{
+		"command": "zekra",
+		"args":    []string{"mcp"},
 		"env": map[string]any{
 			"ZEKRA_API_URL":           pub,
 			"ZEKRA_TOKEN":             t.Token,
+			"ZEKRA_AGENT_ID":          agent,
 			"ZEKRA_DEFAULT_NAMESPACE": in.Namespace,
 		},
 	}}}
 	s.hub.publish("session", map[string]any{"namespace": in.Namespace, "agentId": agent, "write": in.Write})
 	writeJSON(w, http.StatusOK, map[string]any{
-		"agentId":   agent,
-		"namespace": in.Namespace,
-		"write":     in.Write,
-		"token":     t.Token,
-		"mcpConfig": mcp,
-		"howto": "Install: go install ./cmd/zekra-mcp. Drop mcpConfig into .mcp.json, then start Claude Code — " +
-			"it recalls/retains against brain '" + in.Namespace + "' by default, with " +
-			map[bool]string{true: "read+write", false: "read-only"}[in.Write] + " access.",
+		"agentId":        agent,
+		"namespace":      in.Namespace,
+		"write":          in.Write,
+		"token":          t.Token,
+		"mcpConfig":      remote,
+		"mcpConfigLocal": local,
+		"howto": "Remote (no install): drop mcpConfig into .mcp.json — it points at " + MCPPublicURL() +
+			" with this token. Local: install the zekra CLI (curl -fsSL " + pub + "/install.sh | sh) and use " +
+			"mcpConfigLocal (runs `zekra mcp`). Either way the agent recalls/retains against brain '" +
+			in.Namespace + "' by default, with " + access + " access.",
 	})
 }
 
@@ -766,14 +781,57 @@ func (s *Service) CreateDatasource(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
 		return
 	}
+	_, callerSetSecret := in.Config["secret"]
 	ds, err := s.Store.CreateDatasource(r.Context(), in.Namespace, in.Kind, in.Name, in.Config)
 	if err != nil {
 		writeErr(w, err)
 		return
 	}
+	// A webhook secret the server generated is shown ONCE, here (the caller has
+	// no other way to learn it); every later read is masked. A secret the caller
+	// supplied is not echoed back.
+	generated := ""
+	if ds.Kind == "webhook" && !callerSetSecret {
+		generated, _ = ds.Config["secret"].(string)
+	}
 	redactDatasourceSecrets(ds)
+	if generated != "" {
+		ds.Config["secret"] = generated
+	}
 	s.hub.publish("datasource", map[string]any{"namespace": in.Namespace, "op": "create", "id": ds.ID, "kind": ds.Kind})
 	writeJSON(w, http.StatusOK, ds)
+}
+
+// POST /api/brain/datasources/rotate-secret  { id }  → a new webhook secret,
+// returned once. canWrite on the source's brain.
+func (s *Service) RotateDatasourceSecret(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.ID == "" {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "id required"))
+		return
+	}
+	ds, err := s.Store.getDatasource(r.Context(), in.ID)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	if !s.canWrite(r, ds.Namespace) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+ds.Namespace))
+		return
+	}
+	if ds.Kind != "webhook" {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "only webhook sources have a secret"))
+		return
+	}
+	secret, err := s.Store.RotateWebhookSecret(r.Context(), in.ID)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	s.hub.publish("datasource", map[string]any{"namespace": ds.Namespace, "op": "rotate-secret", "id": in.ID})
+	writeJSON(w, http.StatusOK, map[string]any{"id": in.ID, "secret": secret})
 }
 
 // POST /api/brain/datasources/sync  { id }  → run the connector, retain its docs. canWrite.

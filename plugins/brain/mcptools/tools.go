@@ -1,9 +1,15 @@
-package main
+// Package mcptools is Zekra's MCP tool surface, shared by the stdio binary
+// (cmd/zekra-mcp) and the remote streamable-HTTP endpoint (/api/mcp). The tool
+// definitions, the argument → REST translation and the JSON-RPC dispatch live
+// here once; each transport supplies a Backend that performs the REST call
+// (over HTTP for stdio, in-process for /api/mcp). All scoping/validation stays
+// server-side in the REST handlers.
+package mcptools
 
-// toolDefs is the MCP tools/list payload — the six Zekra memory tools (SPEC
-// §5.1 / contracts/tools.md). inputSchema is JSON Schema; field names are
-// snake_case to match the contract and are translated to the REST body in
-// callTool. agent_id is NOT a field — it comes from the session identity (F5).
+// toolDefs is the MCP tools/list payload (SPEC §5.1 / contracts/tools.md).
+// inputSchema is JSON Schema; field names are snake_case to match the contract
+// and are translated to the REST body in Call. agent_id is NOT a field — it
+// comes from the session identity (F5).
 
 type prop = map[string]any
 
@@ -40,19 +46,8 @@ var toolDefs = []map[string]any{
 			"limit":                prop{"type": "integer", "description": "final N after rerank (default 8, max 50)"},
 			"expand_entities":      prop{"type": "boolean", "description": "1-hop spreading activation (default true)"},
 			"min_importance":       prop{"type": "number", "description": "optional floor filter"},
-			"types":                prop{"type": "array", "items": prop{"type": "string"}, "description": "narrow to these memory_type values (e.g. [\"venture\",\"spec\",\"goal\"]) — cuts noise from bulk ingest types like git-activity"},
+			"types":                prop{"type": "array", "items": prop{"type": "string"}, "description": "narrow to memories whose metadata.type is one of these domain types (e.g. [\"venture\",\"spec\",\"goal\",\"note\"]) — cuts noise from bulk ingest types like git-activity"},
 			"exclude_source_kinds": prop{"type": "array", "items": prop{"type": "string"}, "description": "drop candidates from these source_kind streams (e.g. [\"flowos_github_activity\"]) to muffle high-volume noise"},
-		}, "namespace", "query"),
-	},
-	{
-		"name": "memory_recall_archive",
-		"description": "Explicit cold-tier deep recall (the ONLY tool that reads Iceberg/Parquet cold " +
-			"storage). Higher latency, never folded into memory_recall. Phase 2 — stubbed until cold demotion exists.",
-		"inputSchema": obj(prop{
-			"namespace": prop{"type": "string"},
-			"query":     prop{"type": "string"},
-			"since":     prop{"type": "string", "description": "RFC-3339 lower bound for the archive scan"},
-			"until":     prop{"type": "string", "description": "RFC-3339 upper bound for the archive scan"},
 		}, "namespace", "query"),
 	},
 	{
@@ -194,6 +189,14 @@ var toolDefs = []map[string]any{
 			"importance": prop{"type": "number", "description": "0..1 (optional)"},
 			"metadata":   prop{"type": "object", "description": "replacement metadata (optional)"},
 		}, "namespace", "id"),
+	},
+	{
+		"name": "brain_create",
+		"description": "Create a new, empty brain (namespace). A signed-in user becomes its owner. " +
+			"Names are 1-63 of a-z 0-9 _ . - starting with a letter or digit; an existing brain cannot be re-created.",
+		"inputSchema": obj(prop{
+			"namespace": prop{"type": "string", "description": "the new brain's name"},
+		}, "namespace"),
 	},
 	{
 		"name":        "brain_delete",

@@ -72,6 +72,10 @@ func secure(k *togo.Kernel, svc interface {
 			h(w, r)
 			return
 		}
+		if brain.PrincipalFrom(r.Context()) != nil {
+			h(w, r) // remote MCP: an OAuth connection verified by /api/mcp (in-process only)
+			return
+		}
 		if tok := brain.TokenHeader(r.Header); tok != "" && svc.ValidToken(r.Context(), tok) {
 			h(w, r) // MCP: authenticated by token; handler checks its grants
 			return
@@ -103,56 +107,7 @@ func init() {
 		// with enforcement on, the public URL demands a session or a token; with it
 		// off, they're served as-is for local/dev. In-handler canRead/canWrite/
 		// adminOnly (X-Zekra-Token ACL) is unchanged.
-		k.Router.Get("/api/brain/ping", svc.Ping)
-		k.Router.Get("/api/brain/events", secured(svc.Events)) // realtime SSE (cookie session)
-		k.Router.Get("/api/brain/stats", secured(svc.Stats))
-		k.Router.Get("/api/brain/activity", secured(svc.Activity))
-		k.Router.Get("/api/brain/namespaces", secured(svc.Namespaces))
-		k.Router.Get("/api/brain/graph", secured(svc.Graph))
-		k.Router.Post("/api/brain/recall", secured(svc.Recall))
-		k.Router.Post("/api/brain/search", secured(svc.Search))
-		k.Router.Post("/api/brain/retain", secured(svc.Retain))
-		k.Router.Get("/api/brain/memory", secured(svc.Get))
-		k.Router.Post("/api/brain/forget", secured(svc.Forget))
-		k.Router.Post("/api/brain/dedup", secured(svc.Dedup))
-		// Graph plane — multi-hop traversal, typed neighbours, shortest path,
-		// community detection and ontology discovery, all in Postgres.
-		k.Router.Post("/api/brain/graph/traverse", secured(svc.TraverseHandler))
-		// The spine: one entity's whole neighbourhood, grouped by role, in one call.
-		k.Router.Post("/api/brain/graph/spine", secured(svc.SpineHandler))
-		k.Router.Get("/api/brain/graph/spine", secured(svc.SpineHandler))
-		k.Router.Post("/api/brain/graph/neighbors", secured(svc.NeighborsHandler))
-		k.Router.Post("/api/brain/graph/path", secured(svc.PathHandler))
-		k.Router.Post("/api/brain/graph/communities", secured(svc.CommunitiesHandler))
-		k.Router.Get("/api/brain/graph/ontology", secured(svc.OntologyHandler))
-		k.Router.Post("/api/brain/share", secured(svc.Share))
-		k.Router.Get("/api/brain/gaps", secured(svc.Gaps))
-		k.Router.Post("/api/brain/gaps/resolve", secured(svc.ResolveGap))
-		k.Router.Get("/api/brain/brain", secured(svc.BrainDetail))
-		k.Router.Get("/api/brain/export", secured(svc.Export))
-		k.Router.Post("/api/brain/import", secured(svc.Import))
-		k.Router.Post("/api/brain/brain/delete", secured(svc.DeleteBrain))
-		k.Router.Post("/api/brain/memory/edit", secured(svc.EditMemory))
-		k.Router.Get("/api/brain/tokens", secured(svc.ListTokens))
-		k.Router.Post("/api/brain/tokens", secured(svc.CreateToken))
-		k.Router.Post("/api/brain/tokens/revoke", secured(svc.RevokeToken))
-		k.Router.Post("/api/brain/grant", secured(svc.GrantBrain))
-		k.Router.Post("/api/brain/grant/revoke", secured(svc.RevokeGrant))
-		k.Router.Post("/api/brain/session", secured(svc.Session))
-		// Live agent: chat with a selected brain.
-		k.Router.Post("/api/brain/chat", secured(svc.Chat))
-		// Per-brain secrets vault (reveal/write also do ACL in-handler).
-		k.Router.Get("/api/brain/secrets", secured(svc.SecretsList))
-		k.Router.Post("/api/brain/secrets", secured(svc.SecretPut))
-		k.Router.Post("/api/brain/secrets/reveal", secured(svc.SecretReveal))
-		k.Router.Post("/api/brain/secrets/delete", secured(svc.SecretDelete))
-		// Data sources (connectors). Console CRUD is secured (session/token); the
-		// webhook push path is NOT secured — it authenticates by its own X-Webhook-Secret.
-		k.Router.Get("/api/brain/datasources", secured(svc.Datasources))
-		k.Router.Post("/api/brain/datasources", secured(svc.CreateDatasource))
-		k.Router.Post("/api/brain/datasources/sync", secured(svc.SyncDatasource))
-		k.Router.Post("/api/brain/datasources/delete", secured(svc.DeleteDatasource))
-		k.Router.Post("/api/brain/ingest/{id}", svc.IngestWebhook)
+		svc.RegisterRoutes(k.Router, secured)
 		k.Set(Name, svc)
 		if k.Log != nil {
 			k.Log.Info("plugin active", "plugin", Name, "consoleAuth", authRequired())
