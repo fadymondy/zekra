@@ -102,6 +102,7 @@ func newFix(t *testing.T) *fix {
 	}
 	t.Setenv("ZEKRA_REQUIRE_AUTH", "1") // anonymous callers get nothing (production posture)
 	t.Setenv("ZEKRA_REQUIRE_TOKEN", "")
+	t.Setenv("ZEKRA_NOTES_AUTO_ADOPT", "0") // tests that want it turn it on
 	t.Setenv("ZEKRA_OAUTH_ISSUER", testIssuer)
 	t.Setenv("AUTH_PUBLIC_URL", testIssuer)
 	t.Setenv("APP_URL", "")

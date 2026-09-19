@@ -3,6 +3,7 @@ package brain
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -123,10 +124,10 @@ func (s *Store) Namespaces(ctx context.Context) ([]NamespaceInfo, error) {
 
 // Graph — the mindmap / Graph Explorer subgraph.
 type GraphNode struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Group string `json:"group,omitempty"` // for coloring: root | type | <type>
-	Type   string `json:"type,omitempty"`   // entity_type (entity graph only)
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Group  string `json:"group,omitempty"`  // for coloring: root | type | <type>
+	Type   string `json:"type,omitempty"`   // entity_type; on a derived memory node, its note's category
 	NoteID string `json:"noteId,omitempty"` // set when the node is a note's: the UI can "Open note"
 }
 type GraphEdge struct {
@@ -180,7 +181,9 @@ func (s *Store) Graph(ctx context.Context, namespace string, limit int) (*GraphD
 	_ = db.QueryRowContext(ctx,
 		`SELECT count(*) FROM entities WHERE ($1='' OR namespace=$1)`, namespace).Scan(&entCount)
 	if entCount == 0 {
-		return s.derivedGraph(ctx, db, namespace, limit)
+		dg, err := s.derivedGraph(ctx, db, namespace, limit)
+		annotateNoteNodes(ctx, db, dg)
+		return dg, err
 	}
 
 	// Nodes MUST carry entity_type as the group, otherwise every node renders as
@@ -533,4 +536,43 @@ func itoa(n int) string {
 		n /= 10
 	}
 	return string(b[i:])
+}
+
+// annotateNoteNodes marks the derived mindmap's memory nodes ('ent:<memoryId>')
+// whose memory is a note's chunk with that note's id and category, so the UI can
+// open/edit the note from the node — and the derived graph types a node exactly
+// like the entity graph types the note's entity.
+func annotateNoteNodes(ctx context.Context, db *sql.DB, g *GraphData) {
+	if g == nil {
+		return
+	}
+	idx := map[string]int{}
+	var ids []string
+	for i, n := range g.Nodes {
+		if id, ok := strings.CutPrefix(n.ID, "ent:"); ok && uuidRE.MatchString(id) {
+			idx[id] = i
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	rows, err := db.QueryContext(ctx, `
+		SELECT m.id::text, n.id::text, n.category
+		FROM memories m
+		JOIN notes n ON n.id::text = substring(m.source_ref from '^note:([0-9a-fA-F-]{36})#')
+		WHERE m.id = ANY($1::text[]::uuid[]) AND m.source_kind = 'note' AND n.deleted_at IS NULL`,
+		stringArray(ids))
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var mid, nid, cat string
+		if rows.Scan(&mid, &nid, &cat) == nil {
+			if i, ok := idx[mid]; ok {
+				g.Nodes[i].NoteID, g.Nodes[i].Type = nid, cat
+			}
+		}
+	}
 }

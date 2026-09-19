@@ -37,6 +37,7 @@ var toolAccess = map[string]Access{
 	"datasource_delete": AccessAdmin,
 	"note_create":       AccessWrite, "note_update": AccessWrite, "note_append": AccessWrite,
 	"note_get": AccessRead, "note_search": AccessRead, "note_list": AccessRead, "note_delete": AccessWrite,
+	"notes_adopt": AccessWrite,
 }
 
 // ToolAccess returns a tool's access class (admin for an unknown tool: fail closed).
@@ -242,6 +243,8 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 		get("/api/notes", qv)
 	case "note_delete":
 		del(note(""))
+	case "notes_adopt":
+		post("/api/notes/adopt", map[string]any{"namespace": args["namespace"]})
 	default:
 		if !callGraph(name, args, post, patch, get, del) {
 			return Result{}, ErrUnknownTool

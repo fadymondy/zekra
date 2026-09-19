@@ -72,4 +72,10 @@ var noteToolDefs = []map[string]any{
 		"description": "Delete a note. It is tombstoned (restorable from the console) and its memories are invalidated, never hard-deleted.",
 		"inputSchema": obj(prop{"id": prop{"type": "string"}}, "id"),
 	},
+	{
+		"name": "notes_adopt",
+		"description": "Turn the documents already in a brain (data-source files, ingested docs, memory_retain chunks grouped by source_ref) " +
+			"into notes. Their memories are re-pointed at the notes, not re-ingested. Idempotent. Returns {adopted, notes, memories}.",
+		"inputSchema": obj(prop{"namespace": prop{"type": "string", "description": "the brain whose documents to adopt"}}, "namespace"),
+	},
 }

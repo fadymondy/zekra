@@ -68,6 +68,7 @@ type Note struct {
 	UpdatedAt      time.Time  `json:"updatedAt"`
 	DeletedAt      *time.Time `json:"deletedAt,omitempty"`
 	Deleted        bool       `json:"deleted"`
+	OriginRef      string     `json:"originRef,omitempty"` // adopted document key (notes_adopt.go)
 	chunkHashes    []string
 	indexedVersion int
 }
@@ -215,7 +216,7 @@ func validateNote(title, body string) error {
 
 const noteCols = `id::text, namespace, COALESCE(owner_user_id,''), title, body, tags, pinned, archived,
 	source, version, chunk_hashes, indexed_version, COALESCE(index_error,''), created_at, updated_at, deleted_at,
-	category, COALESCE(entity_id::text,'')`
+	category, COALESCE(entity_id::text,''), COALESCE(origin_ref,'')`
 
 type rowScanner interface{ Scan(dest ...any) error }
 
@@ -225,7 +226,7 @@ func scanNote(row rowScanner) (*Note, error) {
 	var deleted sql.NullTime
 	if err := row.Scan(&n.ID, &n.Namespace, &n.OwnerUserID, &n.Title, &n.Body, &tags, &n.Pinned, &n.Archived,
 		&n.Source, &n.Version, &hashes, &n.indexedVersion, &n.IndexError, &n.CreatedAt, &n.UpdatedAt, &deleted,
-		&n.Category, &n.EntityID); err != nil {
+		&n.Category, &n.EntityID, &n.OriginRef); err != nil {
 		return nil, err
 	}
 	n.Tags = []string(tags)

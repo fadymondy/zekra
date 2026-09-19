@@ -240,6 +240,7 @@ type RetainResult struct {
 	Decision     string  `json:"decision"` // add|update|invalidate|noop
 	Importance   float64 `json:"importance"`
 	SupersededID string  `json:"supersededId,omitempty"`
+	NoteID       string  `json:"noteId,omitempty"` // the note this memory is a chunk of
 }
 
 // Retain embeds the content, runs the §4.1 write-decision against its nearest
@@ -271,6 +272,15 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		in.Metadata["hasSecrets"] = true
 		in.Metadata["secrets"] = names
 	}
+	// Every memory is a note (notes_adopt.go). A write that is not itself a note
+	// chunk goes through notes: a ref belonging to an adopted document is routed
+	// into that note first.
+	managed := noteManaged(in)
+	if managed && strings.TrimSpace(in.SourceRef) != "" {
+		if res, done, err := s.retainIntoAdoptedNote(ctx, db, in); done {
+			return res, err
+		}
+	}
 	vecs, err := emb.Embed(ctx, []string{in.Content})
 	if err != nil || len(vecs) == 0 {
 		return nil, errors.New("brain.Retain: embed failed: " + errStr(err))
@@ -300,8 +310,9 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		var existing string
 		err := db.QueryRowContext(ctx,
 			`SELECT id::text FROM memories
-			 WHERE namespace = $1 AND source_ref = $2 AND invalid_at IS NULL
-			 ORDER BY valid_at DESC LIMIT 1`, in.Namespace, in.SourceRef).Scan(&existing)
+			 WHERE namespace = $1 AND invalid_at IS NULL
+			   AND (source_ref = $2 OR ($3 AND source_kind = 'note' AND metadata->>'origin_ref' = $2))
+			 ORDER BY valid_at DESC LIMIT 1`, in.Namespace, in.SourceRef, managed).Scan(&existing)
 		switch {
 		case err == nil && existing != "":
 			decision, relatedID = "update", existing
@@ -312,6 +323,12 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		top = s.topNeighbor(ctx, db, in.Namespace, vec)
 		decision, relatedID = writeDecision(top, in.Content)
 	}
+	// The memory the decision relates to may be a note's chunk: then the write
+	// lands on that note (a new version / a removed chunk) — see notes_adopt.go.
+	var rel *memNote
+	if managed && relatedID != "" {
+		rel = s.noteOfMemory(ctx, db, relatedID)
+	}
 
 	// NOOP: the memory already exists — strengthen it (reconsolidation) instead of
 	// storing a duplicate. No new row.
@@ -320,7 +337,27 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 			`UPDATE memories SET access_count = access_count + 1, last_accessed_at = now(),
 			        importance = LEAST(1.0, importance + 0.02) WHERE id = $1`, relatedID)
 		s.event(ctx, db, "retain", in.Namespace, in.OwnerAgentID, "noop", relatedID, int(time.Since(start).Milliseconds()))
-		return &RetainResult{ID: relatedID, Decision: "noop", Importance: top.simImportance(imp)}, nil
+		res := &RetainResult{ID: relatedID, Decision: "noop", Importance: top.simImportance(imp)}
+		if rel != nil {
+			res.NoteID = rel.NoteID
+		}
+		return res, nil
+	}
+
+	// UPDATE of a note's chunk: the note gets a new version (its re-index retains
+	// the new text and supersedes the old chunk). No loose row is written.
+	if decision == "update" && rel != nil {
+		if n, err := s.updateNoteFromRetain(ctx, rel, in); err == nil {
+			s.event(ctx, db, "retain", in.Namespace, in.OwnerAgentID, "update", nil, int(time.Since(start).Milliseconds()))
+			return &RetainResult{ID: s.latestNoteMemory(ctx, db, in.Namespace, n.ID, in.SourceRef), Decision: "update",
+				Importance: imp, SupersededID: relatedID, NoteID: n.ID}, nil
+		}
+		// The note is gone or unreadable: fall back to a plain write (a new note).
+	}
+	// INVALIDATE of a note's chunk: take the text out of its note (tombstoning a
+	// note left empty); the correction below becomes a note of its own.
+	if decision == "invalidate" && rel != nil {
+		s.retractFromNote(ctx, rel, in)
 	}
 
 	// INVALIDATE: retract the contradicted memory, and record the correction as a
@@ -372,6 +409,10 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		go func() { _ = eng.Cognify(context.Background(), in.Namespace, id, in.Content) }()
 	}
 	res := &RetainResult{ID: id, Decision: decision, Importance: imp}
+	if managed {
+		// The new memory becomes a note (or a chunk of its document's note).
+		res.NoteID = s.adoptRetained(ctx, db, in, id)
+	}
 	if decision == "update" || decision == "invalidate" {
 		res.SupersededID = relatedID
 	}

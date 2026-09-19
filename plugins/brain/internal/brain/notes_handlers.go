@@ -27,6 +27,7 @@ publishes an SSE `note` event on /api/brain/events.
 	GET    /api/notes/{id}/versions
 	POST   /api/notes/{id}/restore       {version?}
 	POST   /api/notes/{id}/append        {text}
+	POST   /api/notes/adopt              {namespace} → {adopted, notes, memories, …} (notes_adopt.go)
 */
 
 // sessionWriteOK is the CSRF rule for a cookie-authenticated write: echo the
@@ -146,6 +147,12 @@ func (s *Service) ListNotes(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeErr(w, err)
 		return
+	}
+	// Browsing a brain adopts its existing documents as notes in the background.
+	if !q.All && q.Since == nil && len(q.Namespaces) <= 50 {
+		for _, ns := range q.Namespaces {
+			s.maybeAdoptAsync(ns)
+		}
 	}
 	writeJSON(w, http.StatusOK, page)
 }
@@ -559,4 +566,33 @@ func (s *Service) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	}
 	s.hub.publish("member", map[string]any{"namespace": in.Namespace, "userId": in.UserID, "removed": true})
 	writeJSON(w, http.StatusOK, map[string]any{"namespace": in.Namespace, "userId": in.UserID, "removed": true})
+}
+
+// AdoptNotes — POST /api/notes/adopt {namespace}: turn the brain's existing
+// documents into notes (notes_adopt.go). Needs write access; waits for a running
+// adoption of the same brain rather than failing.
+func (s *Service) AdoptNotes(w http.ResponseWriter, r *http.Request) {
+	if !s.noteWriteGuard(w, r) {
+		return
+	}
+	var in struct {
+		Namespace string `json:"namespace"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10)).Decode(&in); err != nil || strings.TrimSpace(in.Namespace) == "" {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "namespace is required"))
+		return
+	}
+	if !s.canWrite(r, in.Namespace) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
+		return
+	}
+	res, err := s.Store.AdoptDocuments(r.Context(), in.Namespace, true)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	if res.Adopted > 0 {
+		s.hub.publish("note", map[string]any{"namespace": in.Namespace, "action": "adopt", "notes": res.Notes})
+	}
+	writeJSON(w, http.StatusOK, res)
 }

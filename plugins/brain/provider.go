@@ -49,3 +49,19 @@ func BM25SQL() string   { return ib.BM25SQL() }
 // BackfillNotesGraph makes every existing note a graph node (entity, derived
 // wikilink/tag edges, memory links). Idempotent; returns the notes synced.
 func BackfillNotesGraph(ctx context.Context, db *sql.DB) (int, error) { return ib.BackfillNotesGraph(ctx, db) }
+
+// AdoptResult is what one document-adoption run did.
+type AdoptResult = ib.AdoptResult
+
+// AdoptDocuments turns a namespace's existing documents (data-source / CLI /
+// memory_retain chunks) into notes, re-pointing their memories instead of
+// re-ingesting. Idempotent; needs no embedder. wait=false fails fast when an
+// adoption of the same namespace is running.
+func AdoptDocuments(ctx context.Context, db *sql.DB, ns string, wait bool) (*AdoptResult, error) {
+	return ib.AdoptDocuments(ctx, db, ns, wait)
+}
+
+// UnadoptedNamespaces lists the namespaces that still have un-adopted documents.
+func UnadoptedNamespaces(ctx context.Context, db *sql.DB) ([]string, error) {
+	return ib.UnadoptedNamespaces(ctx, db)
+}

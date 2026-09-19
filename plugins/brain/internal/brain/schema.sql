@@ -598,3 +598,26 @@ END $$;
 -- Derived-edge sync looks up "this note's live wikilink edges" on every save.
 CREATE INDEX IF NOT EXISTS entity_edges_src_origin ON entity_edges (src_id, (metadata->>'origin'))
   WHERE valid_to IS NULL;
+
+-- ── Every memory is a note (notes_adopt.go) ──────────────────────────────────────────
+-- Memories written outside the notes editor (data sources, CLI, MCP memory_retain,
+-- ingestion scripts) are adopted as notes. origin_ref is the note's document key
+-- (a source_ref minus its chunk suffix, or 'zekra:memory:<id>' for a standalone
+-- memory) and makes adoption idempotent; origin_parts maps each original chunk ref
+-- to the text the note holds for it, so a re-retain of that chunk updates the note.
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS origin_ref   text;
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS origin_parts jsonb NOT NULL DEFAULT '{}';
+CREATE UNIQUE INDEX IF NOT EXISTS notes_ns_origin_ref ON public.notes (namespace, origin_ref)
+  WHERE origin_ref IS NOT NULL;
+-- notes.source also carries an adopted memory's source_kind (claude_code,
+-- datasource:github, import, …), so the fixed list becomes a token check.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.notes'::regclass AND conname = 'notes_source_chk'
+                   AND pg_get_constraintdef(oid) LIKE '%~%') THEN
+    ALTER TABLE public.notes DROP CONSTRAINT IF EXISTS notes_source_chk;
+    ALTER TABLE public.notes ADD CONSTRAINT notes_source_chk
+      CHECK (source ~ '^[A-Za-z0-9_:.\-]{1,64}$');
+  END IF;
+END $$;

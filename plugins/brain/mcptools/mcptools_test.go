@@ -68,6 +68,8 @@ func TestToolTranslation(t *testing.T) {
 			func(b *fakeBackend) bool { return b.body["text"] == "more" }},
 		{"note_get", map[string]any{"id": "a/b"}, "GET", "/api/notes/a%2Fb", nil},
 		{"note_delete", map[string]any{"id": "abc"}, "DELETE", "/api/notes/abc", nil},
+		{"notes_adopt", map[string]any{"namespace": "a"}, "POST", "/api/notes/adopt",
+			func(b *fakeBackend) bool { return b.body["namespace"] == "a" }},
 		{"note_search", map[string]any{"query": "q"}, "GET", "/api/notes",
 			func(b *fakeBackend) bool {
 				return b.query.Get("q") == "q" && b.query.Get("limit") == "20" && !b.query.Has("namespace")

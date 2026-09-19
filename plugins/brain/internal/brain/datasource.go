@@ -212,6 +212,8 @@ func (s *Store) SyncDatasource(ctx context.Context, id string) (*SyncResult, err
 	}
 	ingested := s.ingestDocuments(ctx, ds, docs)
 	s.setDatasourceStatus(ctx, id, "ok", "", nextCursor, ds.DocCount+ingested)
+	// New documents become notes (already-adopted ones were refreshed in place).
+	_, _ = s.AdoptDocuments(ctx, ds.Namespace, true)
 	return &SyncResult{Ingested: ingested, Status: "ok"}, nil
 }
 
@@ -220,6 +222,13 @@ func (s *Store) SyncDatasource(ctx context.Context, id string) (*SyncResult, err
 func (s *Store) ingestDocuments(ctx context.Context, ds *Datasource, docs []Document) int {
 	n := 0
 	for _, d := range docs {
+		// A document already adopted as a note is refreshed as that note.
+		if handled, err := s.refreshAdoptedDocument(ctx, ds.Namespace, d); handled {
+			if err == nil {
+				n++
+			}
+			continue
+		}
 		chunks := chunkText(d.Content, 1600)
 		for i, chunk := range chunks {
 			meta := map[string]any{"datasource": ds.Name, "datasourceKind": ds.Kind}
@@ -281,6 +290,7 @@ func (s *Store) IngestWebhook(ctx context.Context, id, content, ref string, meta
 		ref = "webhook"
 	}
 	n := s.ingestDocuments(ctx, ds, []Document{{Content: content, SourceRef: ref, Metadata: meta}})
+	_, _ = s.AdoptDocuments(ctx, ds.Namespace, true)
 	s.setDatasourceStatus(ctx, id, "ok", "", ds.Cursor, ds.DocCount+n)
 	return n, nil
 }
