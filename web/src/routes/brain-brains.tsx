@@ -14,7 +14,7 @@ import {
 } from "@togo-framework/ui";
 import { brainApi, type BrainDetail, type NamespaceInfo } from "../lib/brain";
 import { LaunchSessionModal } from "../components/launch-session-modal";
-import { Hatch, PageHeading, StatCells } from "../components/page";
+import { Hatch, Page, PageHeading, StatCells } from "../components/page";
 
 /* ---------------------------------------------------------------- helpers -- */
 
@@ -267,7 +267,7 @@ function BrainCard({ b, onLaunch, onDelete }: { b: NamespaceInfo; onLaunch: () =
 function BrainRow({ b, onLaunch, onDelete }: { b: NamespaceInfo; onLaunch: () => void; onDelete: () => void }) {
   const d = useDetail(b.namespace);
   return (
-    <div className="group relative flex items-center gap-3 bg-card px-3 py-2.5 transition-colors hover:bg-muted/50">
+    <div className="group relative flex items-center gap-3 bg-card px-6 py-3 transition-colors hover:bg-muted/50">
       <Link to="/b/$namespace" params={{ namespace: b.namespace }} aria-label={`Open ${b.namespace}`} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
       <div className="pointer-events-none"><BrainAvatar namespace={b.namespace} size={36} /></div>
       <div className="pointer-events-none min-w-0 flex-1">
@@ -334,7 +334,7 @@ export function BrainsHub() {
   const v = (n?: number) => (loading ? "—" : nf(n));
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Memory organ"
         title="Brains"
@@ -342,8 +342,9 @@ export function BrainsHub() {
         actions={<Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> New brain</Button>}
       />
 
+      <div className="overflow-hidden">
       <StatCells
-        className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+        className="grid-cells-flush-x grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
         stats={[
           { label: "Brains", value: v(s?.brains ?? brains.length) },
           { label: "Memories", value: v(s?.memories) },
@@ -352,11 +353,12 @@ export function BrainsHub() {
           { label: "Open gaps", value: v(s?.openGaps), tone: s?.openGaps ? "warn" : "muted" },
         ]}
       />
+      </div>
 
       <Hatch />
 
       {/* Toolbar — search + sort + view, stacks on mobile */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-xs">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search brains…" className="ps-9" />
@@ -379,9 +381,9 @@ export function BrainsHub() {
 
       {/* Content — hairline cells, never floating cards */}
       {loading ? (
-        <div className="grid-cells grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="overflow-hidden"><div className="grid-cells grid-cells-flush-x grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="bg-card p-4"><Skeleton className="h-44" /></div>)}
-        </div>
+        </div></div>
       ) : brains.length === 0 ? (
         <EmptyState
           icon={<Boxes className="h-6 w-6" />}
@@ -390,17 +392,17 @@ export function BrainsHub() {
           action={!search ? <Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> New brain</Button> : undefined}
         />
       ) : view === "grid" ? (
-        <div className="grid-cells grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="overflow-hidden"><div className="grid-cells grid-cells-flush-x grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {brains.map((b) => <BrainCard key={b.namespace} b={b} onLaunch={() => setLaunchNs(b.namespace)} onDelete={() => setDeleteNs(b.namespace)} />)}
-        </div>
+        </div></div>
       ) : (
-        <div className="grid-cells grid-cols-1">
+        <div className="divide-y divide-line border-y border-line">
           {brains.map((b) => <BrainRow key={b.namespace} b={b} onLaunch={() => setLaunchNs(b.namespace)} onDelete={() => setDeleteNs(b.namespace)} />)}
         </div>
       )}
 
       {/* Admin pointer */}
-      <div className="flex flex-wrap items-center gap-2 border border-border px-4 py-3 text-xs text-muted-foreground">
+      <div className="-mt-px flex flex-wrap items-center gap-2 border-y border-line px-6 py-3 text-xs text-grid-muted">
         <Lock className="h-3.5 w-3.5" /> Tokens, users and cross-brain access controls live under
         <Link to="/admin/users" className="text-foreground underline decoration-violet underline-offset-4">Admin</Link>.
         <span className="num ms-auto hidden items-center gap-4 text-[11px] sm:flex">
@@ -412,6 +414,6 @@ export function BrainsHub() {
       <NewBrainDialog open={creating} onClose={() => setCreating(false)} />
       {deleteNs && <DeleteBrainDialog namespace={deleteNs} onClose={() => setDeleteNs(null)} />}
       {launchNs && <LaunchSessionModal namespace={launchNs} onClose={() => setLaunchNs(null)} />}
-    </div>
+    </Page>
   );
 }

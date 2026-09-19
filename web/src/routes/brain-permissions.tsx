@@ -4,7 +4,7 @@ import { Plus, Check, ChevronRight, ChevronDown, X } from "lucide-react";
 import { Button, Checkbox, Input, Label, NativeSelect } from "@togo-framework/ui";
 import { brainApi, type Grant, type Token } from "../lib/brain";
 import {
-  PageHeading, Panel, Loading, Empty, Notice, ToneTag, Monogram, CodeValue, CopyButton, ConfirmDelete,
+  Page, PageHeading, Panel, Loading, Empty, Notice, ToneTag, Monogram, CodeValue, CopyButton, ConfirmDelete,
 } from "../components/page";
 import { GrantHeader, GrantRow } from "../components/grants";
 
@@ -31,14 +31,14 @@ function GrantsEditor({ agentId, grants }: { agentId: string; grants: Grant[] })
   const available = brains.filter((b) => !granted.has(b.namespace));
 
   return (
-    <div className="border-t border-border bg-background">
+    <div className="border-t border-line bg-grid-soft">
       <GrantHeader subject="Brain" />
       {grants.length === 0 ? (
-        <p className="px-4 py-3 text-xs text-muted-foreground">
+        <p className="px-6 py-3 text-xs text-grid-muted">
           No grants yet — this agent can only reach brains an admin token allows.
         </p>
       ) : (
-        <div className="divide-y divide-border">
+        <div className="divide-y divide-line">
           {grants.map((g) => (
             <GrantRow
               key={g.namespace}
@@ -55,7 +55,7 @@ function GrantsEditor({ agentId, grants }: { agentId: string; grants: Grant[] })
         </div>
       )}
       {available.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line px-6 py-3">
           <NativeSelect
             aria-label="Brain to grant"
             value={addNs}
@@ -91,7 +91,7 @@ function TokenRow({ t }: { t: Token }) {
 
   return (
     <div className={t.revoked ? "opacity-60" : ""}>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-6 py-3 text-sm">
         <Button
           variant="ghost"
           size="icon"
@@ -139,7 +139,7 @@ function CreateTokenForm() {
   return (
     <Panel label="Create token">
       <form
-        className="space-y-3 p-4"
+        className="space-y-3 px-6 py-4"
         onSubmit={(e) => { e.preventDefault(); if (agentId.trim()) create.mutate(); }}
       >
         <div className="grid gap-3 sm:grid-cols-[14rem_minmax(0,1fr)_auto_auto] sm:items-end">
@@ -191,7 +191,7 @@ export function BrainPermissions() {
   const active = list.filter((t) => !t.revoked).length;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Admin"
         title="Tokens & access"
@@ -211,11 +211,11 @@ export function BrainPermissions() {
         ) : list.length === 0 ? (
           <Empty title="No tokens yet">Create one above to let an agent reach a brain.</Empty>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-line">
             {list.map((t) => <TokenRow key={t.token} t={t} />)}
           </div>
         )}
       </Panel>
-    </div>
+    </Page>
   );
 }

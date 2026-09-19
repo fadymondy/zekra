@@ -13,7 +13,7 @@ export function ActivityRow({
   showAgent?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-sm">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3 text-sm">
       {showAgent && <Monogram id={a.agentId || "?"} />}
       <span className="num font-medium text-foreground">{a.op}</span>
       {showNamespace && <span dir="ltr" className="num text-xs text-muted-foreground">{a.namespace || "—"}</span>}

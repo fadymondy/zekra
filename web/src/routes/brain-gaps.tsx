@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, X, RotateCcw } from "lucide-react";
 import { Button, NativeSelect } from "@togo-framework/ui";
 import { brainApi, type Gap, type GapStatus } from "../lib/brain";
-import { PageHeading, Panel, Loading, Empty, Segmented, ToneSquare, type Tone } from "../components/page";
+import { Page, PageBody, PageHeading, Panel, Loading, Empty, Segmented, ToneSquare, type Tone } from "../components/page";
 
 const STATUS_META: Record<string, { label: string; tone: Tone }> = {
   open: { label: "Open", tone: "warn" },
@@ -18,10 +18,10 @@ const FILTERS = [
 
 function GapRow({ g, scoped, onResolve, busy }: { g: Gap; scoped: boolean; onResolve: (s: GapStatus) => void; busy: boolean }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+    <div className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-foreground" title={g.query}>{g.query}</div>
-        <div className="num mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <div className="truncate font-medium text-grid-fg" title={g.query}>{g.query}</div>
+        <div className="num mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-grid-muted">
           {!scoped && <span dir="ltr" className="grid-chip">{g.namespace}</span>}
           <span>{g.hits} {g.hits === 1 ? "miss" : "misses"}</span>
           <span>first {g.firstSeen ? new Date(g.firstSeen).toLocaleDateString() : "—"}</span>
@@ -97,14 +97,14 @@ export function BrainGaps({ namespace }: { namespace?: string } = {}) {
   const total = (gaps.data?.gaps ?? []).length;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Recall quality"
         title="Knowledge gaps"
         description="Recall queries that came back thin or empty. Index the ones worth capturing; dismiss the noise."
       />
 
-      <div className="flex flex-wrap items-center gap-2">
+      <PageBody className="flex flex-wrap items-center gap-2 pb-4">
         <Segmented label="Filter by status" options={FILTERS} value={statusFilter} onChange={setStatusFilter} />
         {!scoped && (
           <NativeSelect
@@ -117,8 +117,8 @@ export function BrainGaps({ namespace }: { namespace?: string } = {}) {
             {brains.map((b) => <option key={b.namespace} value={b.namespace}>{b.namespace}</option>)}
           </NativeSelect>
         )}
-        {total > 0 && <span className="num ms-auto text-[11px] text-muted-foreground">{total} gaps</span>}
-      </div>
+        {total > 0 && <span className="num ms-auto text-[11px] text-grid-muted">{total} gaps</span>}
+      </PageBody>
 
       {gaps.isLoading ? (
         <Panel><Loading label="Loading gaps…" /></Panel>
@@ -135,7 +135,7 @@ export function BrainGaps({ namespace }: { namespace?: string } = {}) {
               label={<span className="inline-flex items-center gap-2"><ToneSquare tone={meta.tone} />{meta.label}</span>}
               meta={rows.length}
             >
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-line">
                 {rows.map((g) => (
                   <GapRow
                     key={g.id}
@@ -150,6 +150,6 @@ export function BrainGaps({ namespace }: { namespace?: string } = {}) {
           );
         })
       )}
-    </div>
+    </Page>
   );
 }

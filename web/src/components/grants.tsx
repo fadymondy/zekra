@@ -8,7 +8,7 @@ const COLS = "grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem_2rem] items-center gap
 
 export function GrantHeader({ subject }: { subject: string }) {
   return (
-    <div className={`${COLS} border-b border-border px-4 py-2`}>
+    <div className={`${COLS} border-b border-line px-6 py-2`}>
       <span className="micro text-muted-foreground">{subject}</span>
       <span className="micro text-center text-muted-foreground">Read</span>
       <span className="micro text-center text-muted-foreground">Write</span>
@@ -40,7 +40,7 @@ export function GrantRow({
   revoking?: boolean;
 }) {
   return (
-    <div className={`${COLS} px-4 py-2.5 text-sm`}>
+    <div className={`${COLS} px-6 py-3 text-sm`}>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         {name}
         {extra}

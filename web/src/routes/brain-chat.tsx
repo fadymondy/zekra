@@ -150,18 +150,17 @@ export function BrainChat() {
     <div className="flex h-full flex-col">
       {/* Scrollable transcript */}
       <div ref={scrollRef} className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
-          {msgs.length === 0 ? (
-            // Initial invitation, seeded with the brain's own entities.
-            <section className="border border-border bg-card p-6 sm:p-8">
+        {msgs.length === 0 ? (
+            // Initial invitation, seeded with the brain's own entities — a full-bleed band.
+            <section className="border-b border-line bg-grid-card px-6 py-8">
               <div className="flex items-center gap-2.5">
                 <MemorySquare />
-                <span className="micro text-muted-foreground">Chat</span>
+                <span className="grid-micro">Chat</span>
               </div>
-              <h2 className="mt-3 text-2xl font-medium tracking-tight text-foreground">
+              <h2 className="grid-title mt-3 text-2xl">
                 Ask the <span dir="ltr" className="text-active">{namespace}</span> brain
               </h2>
-              <p className="mt-2 max-w-[60ch] text-sm font-light leading-relaxed text-card-foreground">
+              <p className="mt-2 max-w-[60ch] text-sm font-light leading-relaxed text-grid-body">
                 A live agent grounded only in this brain's memories — every answer cites the memories it used.
               </p>
               {suggestions.length > 0 && (
@@ -175,7 +174,8 @@ export function BrainChat() {
               )}
             </section>
           ) : (
-            msgs.map((m, i) =>
+            <div className="mx-auto max-w-3xl space-y-4 px-6 py-6">
+            {msgs.map((m, i) =>
               m.role === "user" ? (
                 <div key={i} className="flex justify-end">
                   <div className="max-w-[85%] whitespace-pre-wrap bg-primary px-4 py-2.5 text-sm text-primary-foreground">{m.content}</div>
@@ -205,13 +205,13 @@ export function BrainChat() {
                   </div>
                 </div>
               )
-            )
+            )}
+            </div>
           )}
-        </div>
       </div>
 
       {/* Composer */}
-      <div className="border-t border-border bg-background p-4">
+      <div className="border-t border-line bg-background px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-end gap-2">
           <Textarea
             value={input}
@@ -225,7 +225,7 @@ export function BrainChat() {
             <Send className="h-4 w-4" /> Ask
           </Button>
         </div>
-        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
+        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-grid-muted">
           Answers are grounded only in this brain's memories and cite their sources.
         </p>
       </div>

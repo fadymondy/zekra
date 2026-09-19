@@ -45,3 +45,9 @@
 @media (prefers-reduced-motion: reduce) {
   .cb-recall-square { animation: none; background-color: var(--cb-active); }
 }
+
+/* The hatched band as a surface, e.g. an "In development" notice (as in Managy). */
+.hatch-band {
+  background-image: var(--grid-hatch);
+  background-size: 8px 8px;
+}

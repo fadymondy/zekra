@@ -8,6 +8,7 @@ import {
 import { Button, Input, Textarea } from "@togo-framework/ui";
 import { brainApi, type Recalled } from "../lib/brain";
 import { MemorySquare } from "../components/brand";
+import { Page } from "../components/page";
 
 /** Which brain a result came from. One accent for every brain: identity is the name. */
 function BrainChip({ ns }: { ns: string }) {
@@ -49,7 +50,7 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
   });
 
   return (
-    <div className="bg-card p-4 transition-colors hover:bg-muted/40">
+    <div className="px-6 py-4 transition-colors hover:bg-grid-soft">
       {editing ? (
         <div className="space-y-2">
           <Textarea
@@ -187,9 +188,9 @@ export function BrainSearch({ namespace }: { namespace?: string } = {}) {
   ];
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5 p-4 sm:p-6">
+    <Page>
       {/* The search moment */}
-      <section className="border border-border bg-card p-5 sm:p-6">
+      <section className="border-b border-line px-6 py-6">
         {/* Mode switch */}
         <div className="inline-flex overflow-hidden border border-border bg-background">
           {modes.map((m, i) => {
@@ -209,10 +210,10 @@ export function BrainSearch({ namespace }: { namespace?: string } = {}) {
           })}
         </div>
 
-        <h1 className="mt-4 text-3xl font-medium tracking-tight text-foreground">
+        <h1 className="grid-title mt-4 text-2xl">
           {scoped ? (mode === "recall" ? "Recall from this brain" : "Search this brain") : "Search across every brain"}
         </h1>
-        <p className="mb-5 mt-2 max-w-[64ch] text-sm font-light leading-relaxed text-card-foreground">
+        <p className="mb-5 mt-2 max-w-[64ch] text-sm font-light leading-relaxed text-grid-body">
           {scoped
             ? (mode === "recall"
               ? <>Graph-aware recall scoped to <span dir="ltr" className="font-medium text-foreground">{namespace}</span> — walks entities to surface related memories.</>
@@ -254,12 +255,14 @@ export function BrainSearch({ namespace }: { namespace?: string } = {}) {
       </section>
 
       {state.error && (
-        <div className="border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-tone-danger">{state.error}</div>
+        <div className="px-6 py-4">
+          <div className="border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-tone-danger">{state.error}</div>
+        </div>
       )}
 
       {/* Tuners — visible filter chips over the results. */}
       {raw.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 border border-border px-3 py-2.5">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-6 py-3">
           <span className="micro me-1 inline-flex items-center gap-1.5 text-muted-foreground"><SlidersHorizontal className="h-3.5 w-3.5" /> Tune</span>
           {netFacets.map((n) => <FacetChip key={n} label={n} active={fNet.has(n)} onClick={() => toggleIn(fNet, setFNet, n)} />)}
           {typeFacets.length > 0 && <span aria-hidden className="mx-1 h-4 w-px bg-border" />}
@@ -279,17 +282,17 @@ export function BrainSearch({ namespace }: { namespace?: string } = {}) {
       )}
 
       {state.ran && !search.isPending && results.length > 0 && (
-        <div className="num text-[11px] text-muted-foreground">
+        <div className="num px-6 pt-6 pb-3 text-[11px] text-grid-muted">
           {results.length}{hasFilters ? ` of ${raw.length}` : ""} result{results.length === 1 ? "" : "s"} · {scoped ? namespace : allActive ? "all brains" : [...selected].join(", ")}
         </div>
       )}
 
       {/* Caveat — thin/empty recall shown as a styled state, not a raw error. */}
       {state.ran && !search.isPending && raw.length === 0 && !state.error && (
-        <section className="border border-border">
-          <div aria-hidden className="grid-hatch h-3 border-b border-border" />
-          <div className="px-4 py-10 text-center">
-            <div className="text-sm font-medium text-foreground">
+        <section className="-mb-px border-y border-line">
+          <div aria-hidden className="grid-hatch h-3 border-b border-line" />
+          <div className="px-6 py-10 text-center">
+            <div className="text-sm font-medium text-grid-fg">
               {scoped ? <>This brain has no memory of “{state.q}”.</> : <>No brain remembers “{state.q}”.</>}
             </div>
             <p className="mt-1 text-sm font-light text-muted-foreground">Try a shorter, keyword-forward query — or this may be a genuine knowledge gap.</p>
@@ -298,18 +301,18 @@ export function BrainSearch({ namespace }: { namespace?: string } = {}) {
       )}
       {/* Filtered everything out. */}
       {state.ran && !search.isPending && raw.length > 0 && results.length === 0 && (
-        <div className="border border-border px-4 py-8 text-center text-sm text-muted-foreground">
+        <div className="border-y border-line px-6 py-8 text-center text-sm text-grid-muted">
           All {raw.length} results are filtered out — loosen the tuners above.
         </div>
       )}
 
       {results.length > 0 && (
-        <div className="grid-cells grid-cols-1">
+        <div className="divide-y divide-line border-y border-line">
           {results.map((r) => (
             <ResultRow key={`${r.namespace}:${r.id}`} r={r} onSaved={(content) => patch(r.id, content)} />
           ))}
         </div>
       )}
-    </div>
+    </Page>
   );
 }

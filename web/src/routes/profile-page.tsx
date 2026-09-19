@@ -8,7 +8,7 @@ import {
 } from "@togo-framework/ui";
 import { useSession } from "./auth-gate";
 import { auth } from "../lib/auth";
-import { Notice, RecallSquares } from "../components/page";
+import { Notice, Page, PageBody, RecallSquares } from "../components/page";
 
 // Change-password dialog — the one profile action wired to a real endpoint
 // (POST /api/auth/change-password). The others (avatar, 2FA, session revoke) have
@@ -77,10 +77,14 @@ export function ProfilePage() {
   const [pwOpen, setPwOpen] = useState(false);
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5 p-4 sm:p-6">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to brains
-      </Link>
+    <Page>
+      <div className="px-6 pt-6">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-grid-muted hover:text-grid-fg">
+          <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /> Back to brains
+        </Link>
+      </div>
+
+      <PageBody className="py-6">
 
       {loading ? (
         <p className="flex items-center gap-3 text-sm text-muted-foreground"><RecallSquares /> Loading your profile…</p>
@@ -96,8 +100,9 @@ export function ProfilePage() {
           onChangePassword={() => setPwOpen(true)}
         />
       )}
+      </PageBody>
 
       <ChangePasswordDialog open={pwOpen} onClose={() => setPwOpen(false)} />
-    </div>
+    </Page>
   );
 }

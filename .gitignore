@@ -35,3 +35,4 @@ __pycache__/
 /cabrain-api
 cmd/hubq/
 cmd/sqlx/
+web/vite.preview.local.ts

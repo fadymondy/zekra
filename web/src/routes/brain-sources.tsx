@@ -10,7 +10,7 @@ import {
 } from "@togo-framework/ui";
 import { brainApi, type Datasource } from "../lib/brain";
 import {
-  PageHeading, Panel, Loading, Empty, Notice, ToneTag, toneFor, CodeValue, CopyButton, ConfirmDelete, RecallSquares,
+  Page, PageHeading, Panel, Loading, Empty, Notice, ToneTag, toneFor, CodeValue, CopyButton, ConfirmDelete, RecallSquares,
 } from "../components/page";
 
 // The connector kinds the picker offers. `fields` drive the per-kind form; a
@@ -126,17 +126,17 @@ function SourceRow({ s }: { s: Datasource }) {
   const Icon = iconFor(s.kind);
 
   return (
-    <div className="space-y-2.5 px-4 py-3.5 text-sm">
+    <div className="space-y-2.5 px-6 py-3 text-sm">
       <div className="flex flex-wrap items-center gap-3">
         <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-background text-active">
           <Icon className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium text-foreground">{s.name}</span>
+            <span className="truncate font-medium text-grid-fg">{s.name}</span>
             <KindChip kind={s.kind} />
           </div>
-          <div className="num mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          <div className="num mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-grid-muted">
             <ToneTag tone={toneFor(s.status)}>{s.status || "idle"}</ToneTag>
             <span>{s.docCount.toLocaleString()} docs</span>
             <span>synced {s.lastSyncAt ? new Date(s.lastSyncAt).toLocaleString() : "never"}</span>
@@ -175,7 +175,7 @@ function SourceRow({ s }: { s: Datasource }) {
       {del.data?.error && <Notice tone="danger">{del.data.error.code}: {del.data.error.message}</Notice>}
 
       {isWebhook && showHook && (
-        <div className="border border-border bg-background p-3">
+        <div className="border border-line bg-grid-soft p-3">
           <PushEndpoint id={s.id} secret={secret} />
         </div>
       )}
@@ -340,7 +340,7 @@ export function BrainSources({ namespace }: { namespace: string }) {
   const docs = list.reduce((n, s) => n + (s.docCount ?? 0), 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Ingest"
         title="Sources"
@@ -367,13 +367,13 @@ export function BrainSources({ namespace }: { namespace: string }) {
             Sources connect knowledge into this brain — GitHub, a website, a SQL database or a webhook. Add one to start ingesting.
           </Empty>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-line">
             {list.map((s) => <SourceRow key={s.id} s={s} />)}
           </div>
         )}
       </Panel>
 
       {adding && <AddSourceModal namespace={namespace} onClose={() => setAdding(false)} />}
-    </div>
+    </Page>
   );
 }

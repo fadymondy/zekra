@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { brainApi, type Grant, type Token } from "../lib/brain";
-import { PageHeading, Panel, Loading, Empty, Monogram } from "../components/page";
+import { Page, PageHeading, Panel, Loading, Empty, Monogram } from "../components/page";
 import { GrantHeader, GrantRow } from "../components/grants";
 
 /** Per-agent read/write row for THIS brain. Toggling read/write upserts the grant
@@ -70,7 +70,7 @@ export function BrainWorkspacePermissions({ namespace }: { namespace: string }) 
   }, [list, namespace]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Access"
         title="Permissions"
@@ -91,7 +91,7 @@ export function BrainWorkspacePermissions({ namespace }: { namespace: string }) 
         ) : (
           <>
             <GrantHeader subject="Agent" />
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-line">
               {rows.map((r) => (
                 <AgentGrantRow key={r.agentId} agentId={r.agentId} isAdmin={r.isAdmin} namespace={namespace} grant={r.grant} />
               ))}
@@ -99,6 +99,6 @@ export function BrainWorkspacePermissions({ namespace }: { namespace: string }) 
           </>
         )}
       </Panel>
-    </div>
+    </Page>
   );
 }

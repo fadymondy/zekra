@@ -4,7 +4,7 @@ import { Rocket } from "lucide-react";
 import { Button } from "@togo-framework/ui";
 import { brainApi } from "../lib/brain";
 import { LaunchSessionModal } from "../components/launch-session-modal";
-import { PageHeading, Panel, Loading, Empty, Segmented } from "../components/page";
+import { Page, PageHeading, Panel, Loading, Empty, Segmented } from "../components/page";
 import { ActivityRow } from "../components/activity-row";
 
 const FILTERS = [
@@ -34,7 +34,7 @@ export function BrainSessions({ namespace }: { namespace?: string } = {}) {
   }, [items, filter, scoped, namespace]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Agents"
         title="Sessions"
@@ -55,7 +55,7 @@ export function BrainSessions({ namespace }: { namespace?: string } = {}) {
         label="Operation feed"
         meta={rows.length > 0 ? `${rows.length} ops · live` : undefined}
       >
-        <div className="border-b border-border px-4 py-2.5">
+        <div className="border-b border-line px-6 py-3">
           <Segmented label="Filter operations" options={FILTERS} value={filter} onChange={setFilter} />
         </div>
         {q.isLoading ? (
@@ -65,11 +65,11 @@ export function BrainSessions({ namespace }: { namespace?: string } = {}) {
             Every recall and retain appears here as agents use the brain.
           </Empty>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-line">
             {rows.map((a) => <ActivityRow key={a.id} a={a} showNamespace={!scoped} />)}
           </div>
         )}
       </Panel>
-    </div>
+    </Page>
   );
 }

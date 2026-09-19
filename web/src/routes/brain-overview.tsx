@@ -6,7 +6,7 @@ import { Button } from "@togo-framework/ui";
 import { brainApi, type ActivityItem } from "../lib/brain";
 import { BrainGraphView } from "../components/brain-graph-view";
 import { MemorySquare } from "../components/brand";
-import { Hatch, Panel, StatCells } from "../components/page";
+import { Hatch, Page, Panel, StatCells, PageHeading } from "../components/page";
 
 /** Brain Overview — the flagship. "Everything wired over the brain": the graph explorer for
  * THIS brain is the centrepiece, framed by the brain's live stat cells, the invitation to ask
@@ -51,7 +51,12 @@ export function BrainOverview({ namespace }: { namespace: string }) {
   const gaps = d?.openGaps ?? 0;
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6">
+    <Page>
+      <PageHeading
+        eyebrow="Overview"
+        title={<span dir="ltr">{namespace}</span>}
+        actions={<span className="grid-chip num">{d ? `${d.memories.toLocaleString()} memories` : "brain"}</span>}
+      />
       <StatCells
         className="grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
         stats={[
@@ -66,15 +71,15 @@ export function BrainOverview({ namespace }: { namespace: string }) {
 
       {/* Ask the brain — the brand's recall panel as an invitation, seeded with the brain's own
           top entities as suggested questions. */}
-      <section className="flex flex-col gap-4 border border-border bg-card p-5 sm:flex-row sm:items-center">
+      <section className="-my-px flex flex-col gap-4 border-y border-line bg-grid-card px-6 py-6 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex items-center gap-2.5">
             <MemorySquare />
-            <span className="text-[15px] font-medium text-foreground">
+            <span className="text-[15px] font-medium text-grid-fg">
               Ask the <span dir="ltr" className="text-active">{namespace}</span> brain
             </span>
           </div>
-          <p className="text-sm font-light text-card-foreground">
+          <p className="text-sm font-light text-grid-body">
             A live agent grounded only in this brain's memories — every answer cites its sources.
           </p>
           {suggestions.length > 0 && (
@@ -130,13 +135,13 @@ export function BrainOverview({ namespace }: { namespace: string }) {
         }
       >
         {recent.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+          <div className="px-6 py-8 text-center text-sm text-grid-muted">
             {activity.isLoading ? "Loading…" : "No activity for this brain yet."}
           </div>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-line">
             {recent.map((a: ActivityItem) => (
-              <li key={a.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+              <li key={a.id} className="flex items-center gap-3 px-6 py-3 text-sm">
                 <span className="num font-medium text-foreground">{a.op}</span>
                 <span className="truncate text-xs text-muted-foreground">{a.agentId || "—"}</span>
                 <span className="num ms-auto text-[11px] text-muted-foreground">{a.latencyMs ? `${a.latencyMs}ms` : ""}</span>
@@ -146,6 +151,6 @@ export function BrainOverview({ namespace }: { namespace: string }) {
           </ul>
         )}
       </Panel>
-    </div>
+    </Page>
   );
 }

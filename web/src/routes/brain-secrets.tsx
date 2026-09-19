@@ -6,7 +6,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@togo-framework/ui";
 import { brainApi, type SecretMeta } from "../lib/brain";
-import { PageHeading, Panel, Loading, Empty, Notice, CopyButton, ConfirmDelete } from "../components/page";
+import { Page, PageHeading, Panel, Loading, Empty, Notice, CopyButton, ConfirmDelete } from "../components/page";
 
 // The kinds the backend recognises (auto-capture + manual). `generic` is the default.
 const KINDS = [
@@ -35,10 +35,10 @@ function SecretRow({ s }: { s: SecretMeta }) {
   const revealErr = reveal.data?.error;
 
   return (
-    <div className="space-y-2 px-4 py-3 text-sm">
+    <div className="space-y-2 px-6 py-3 text-sm">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span dir="ltr" className="truncate font-mono text-[13px] font-medium text-foreground">{s.name}</span>
+          <span dir="ltr" className="truncate font-mono text-[13px] font-medium text-grid-fg">{s.name}</span>
           <span className="grid-chip num">{s.kind || "generic"}</span>
         </div>
         {shown === undefined ? (
@@ -51,7 +51,7 @@ function SecretRow({ s }: { s: SecretMeta }) {
           </code>
         )}
 
-        <span className="num ms-auto flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+        <span className="num ms-auto flex flex-wrap gap-x-2 text-[11px] text-grid-muted">
           {s.sourceRef && <span dir="ltr">src {s.sourceRef}</span>}
           {s.createdBy && <span dir="ltr">by {s.createdBy}</span>}
           <span>upd {s.updatedAt ? new Date(s.updatedAt).toLocaleString() : "—"}</span>
@@ -179,7 +179,7 @@ export function BrainSecrets({ namespace }: { namespace?: string } = {}) {
   }, [list, filter]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+    <Page>
       <PageHeading
         eyebrow="Vault"
         title="Secrets"
@@ -213,7 +213,7 @@ export function BrainSecrets({ namespace }: { namespace?: string } = {}) {
         meta={list.length > 0 ? (filter ? `${visible.length} of ${list.length}` : `${list.length} secrets`) : undefined}
       >
         {list.length > 5 && (
-          <div className="border-b border-border px-4 py-2.5">
+          <div className="border-b border-line px-6 py-3">
             <div className="relative max-w-sm">
               <Search className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -231,7 +231,7 @@ export function BrainSecrets({ namespace }: { namespace?: string } = {}) {
         ) : secrets.isLoading ? (
           <Loading label="Loading secrets…" />
         ) : secrets.data?.secrets === undefined ? (
-          <div className="p-4"><Notice tone="danger">Couldn't load secrets.</Notice></div>
+          <div className="px-6 py-4"><Notice tone="danger">Couldn't load secrets.</Notice></div>
         ) : list.length === 0 ? (
           <Empty title="No secrets yet">
             Add one, or they appear in <span dir="ltr" className="font-mono">{ns}</span> as retained content is redacted.
@@ -239,13 +239,13 @@ export function BrainSecrets({ namespace }: { namespace?: string } = {}) {
         ) : visible.length === 0 ? (
           <Empty title="No matching secrets" />
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-line">
             {visible.map((s) => <SecretRow key={s.name} s={s} />)}
           </div>
         )}
       </Panel>
 
       {adding && ns && <AddSecretModal namespace={ns} onClose={() => setAdding(false)} />}
-    </div>
+    </Page>
   );
 }

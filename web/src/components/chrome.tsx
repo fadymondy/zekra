@@ -1,5 +1,5 @@
-import { LogOut, User as UserIcon, ChevronDown } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { CircleUser, LogOut, User as UserIcon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Button,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -8,55 +8,32 @@ import {
 import { useSession } from "../routes/auth-gate";
 import { auth } from "../lib/auth";
 
-/** First-letter monogram for the signed-in user — a square cell on the action colour, as the
- *  grid draws avatars (no circles, no gradients). */
-function Avatar({ seed }: { seed: string }) {
-  const ch = (seed.trim()[0] || "?").toUpperCase();
-  return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-xs font-medium text-primary-foreground">
-      {ch}
-    </span>
-  );
-}
-
-/** Signed-in identity as an account dropdown: avatar + email trigger opening a menu
- * with the profile page and sign-out. Only renders with an active session (auth may
- * be off, in which case there is nothing to show). Sign out clears the session then
- * reloads so the AuthGate re-evaluates. Shared by the hub, workspace, and admin chrome. */
+/** The signed-in account, as Managy draws it: an icon button opening "Signed in as <email>",
+ * the profile page and sign-out. Renders nothing when auth is off. Sign out clears the
+ * session then reloads so the AuthGate re-evaluates. */
 export function UserMenu() {
   const { me } = useSession();
+  const nav = useNavigate();
   if (!me) return null;
   const email = me.email || "signed in";
-  const roles = Array.isArray(me.roles) ? me.roles.filter(Boolean) : [];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 px-1.5 sm:px-2" aria-label="Account menu">
-          <Avatar seed={email} />
-          <span className="hidden max-w-[160px] truncate text-sm sm:inline">{email}</span>
-          <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:inline" />
+        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Account">
+          <UserIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="flex items-center gap-2.5 py-2">
-          <Avatar seed={email} />
-          <span className="min-w-0">
-            <span className="block truncate text-sm font-medium text-foreground">{email}</span>
-            <span className="block truncate text-xs font-normal text-muted-foreground">
-              {roles.length ? roles.join(" · ") : "member"}
-            </span>
-          </span>
+      <DropdownMenuContent align="end" className="min-w-56">
+        <DropdownMenuLabel>
+          <span className="grid-micro block">Signed in as</span>
+          <span dir="ltr" className="mt-1 block truncate text-sm font-normal text-grid-fg">{email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/profile"><UserIcon className="h-4 w-4" /> Profile &amp; settings</Link>
+        <DropdownMenuItem onSelect={() => nav({ to: "/profile" })}>
+          <CircleUser className="h-4 w-4" /> Profile
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
-          onSelect={async () => { await auth.logout(); window.location.reload(); }}
-        >
+        <DropdownMenuItem onSelect={async () => { await auth.logout(); window.location.reload(); }}>
           <LogOut className="h-4 w-4" /> Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

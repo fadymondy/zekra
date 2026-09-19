@@ -6,7 +6,13 @@ import { Link } from "@tanstack/react-router";
 import { Check, Copy, Trash2, X } from "lucide-react";
 import { Button } from "@togo-framework/ui";
 
-/** Eyebrow micro-label, a text-3xl/500 title, body copy, and actions on the trailing edge. */
+/** A console page, laid out as Managy's: full-bleed, no outer padding — sections run edge to
+ *  edge between the sidebar hairline and the viewport, split by their own hairlines. */
+export function Page({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`flex min-w-0 flex-col pb-10 ${className}`}>{children}</div>;
+}
+
+/** Page header (Managy's SectionHeader): micro-label eyebrow, title, body copy, trailing actions. */
 export function PageHeading({
   eyebrow,
   title,
@@ -19,20 +25,34 @@ export function PageHeading({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0 space-y-2.5">
-        {eyebrow && <div className="micro text-muted-foreground">{eyebrow}</div>}
-        <h1 className="text-3xl font-medium tracking-tight text-foreground">{title}</h1>
-        {description && (
-          <p className="max-w-[64ch] text-sm font-light leading-relaxed text-card-foreground">{description}</p>
-        )}
+    <div className="flex flex-wrap items-end justify-between gap-4 px-6 py-6">
+      <div className="min-w-0 space-y-1.5">
+        {eyebrow && <p className="grid-micro">{eyebrow}</p>}
+        <h1 className="grid-title text-2xl">{title}</h1>
+        {description && <p className="grid-body max-w-2xl text-sm">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
 
-/** A framed section: a hairline box with an optional header row (micro-label + meta). */
+/** A plain section title between full-bleed blocks (Managy's "Recent activity" heading). */
+export function SectionTitle({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-6 pt-6 pb-3">
+      <h2 className="text-base font-medium text-grid-fg">{children}</h2>
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** Horizontal padding for content that sits directly on the page (forms, toolbars, text). */
+export function PageBody({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`px-6 ${className}`}>{children}</div>;
+}
+
+/** A full-bleed section: hairlines above and below (overlapping a neighbour's by -1px), with an
+ *  optional header row (micro-label + meta + actions). No side borders, no card island. */
 export function Panel({
   label,
   meta,
@@ -49,18 +69,27 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={`flex flex-col border border-border bg-card ${className}`}>
+    <section className={`-mb-px flex flex-col border-y border-line bg-background ${className}`}>
       {(label || meta || actions) && (
-        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
-          <span className="micro text-muted-foreground">{label}</span>
+        <header className="flex items-center justify-between gap-3 border-b border-line px-6 py-3">
+          <span className="grid-micro">{label}</span>
           <span className="flex items-center gap-3">
-            {meta && <span className="num text-[11px] text-muted-foreground">{meta}</span>}
+            {meta && <span className="num text-[11px] text-grid-muted">{meta}</span>}
             {actions}
           </span>
         </header>
       )}
       <div className={`min-h-0 flex-1 ${bodyClassName}`}>{children}</div>
     </section>
+  );
+}
+
+/** Managy's "In development" band: a hatched strip framing a card with the message. */
+export function HatchBand({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`-mb-px border-y border-line p-3 hatch-band ${className}`}>
+      <div className="border border-line bg-grid-card px-5 py-4">{children}</div>
+    </div>
   );
 }
 
@@ -154,25 +183,28 @@ export type Stat = {
   params?: Record<string, string>;
 };
 
-/** Hairline stat cells — the grid's `grid-cells`, so a partial last row never paints a block. */
+/** The stat strip (Managy's overview details): full-bleed cells on the page ground, split by
+ *  hairlines, a micro label over the value. Callers set the column count. */
 export function StatCells({ stats, className = "" }: { stats: Stat[]; className?: string }) {
   return (
-    <div className={`grid-cells ${className}`}>
-      {stats.map((s) => {
-        const body = (
-          <>
-            <div className="micro text-muted-foreground">{s.label}</div>
-            <div className={`num mt-2 text-2xl font-medium ${s.tone ? TONE_TEXT[s.tone] : "text-foreground"}`}>{s.value}</div>
-          </>
-        );
-        return s.to ? (
-          <Link key={s.label} to={s.to} params={s.params} className="bg-card px-4 py-3.5 transition-colors hover:bg-muted">
-            {body}
-          </Link>
-        ) : (
-          <div key={s.label} className="bg-card px-4 py-3.5">{body}</div>
-        );
-      })}
+    <div className="-mb-px overflow-hidden">
+      <dl className={`grid-cells grid-cells-flush-x text-sm ${className}`}>
+        {stats.map((s) => {
+          const body = (
+            <>
+              <dt className="grid-micro mb-1">{s.label}</dt>
+              <dd className={`num text-xl font-medium ${s.tone ? TONE_TEXT[s.tone] : "text-grid-fg"}`}>{s.value}</dd>
+            </>
+          );
+          return s.to ? (
+            <Link key={s.label} to={s.to} params={s.params} className="block px-6 py-4 transition-colors hover:bg-grid-soft">
+              {body}
+            </Link>
+          ) : (
+            <div key={s.label} className="px-6 py-4">{body}</div>
+          );
+        })}
+      </dl>
     </div>
   );
 }
