@@ -8,8 +8,8 @@ import { dirForLocale, isLocale, type Locale } from "@/lib/i18n-locale"
 export async function generateMetadata(): Promise<Metadata> {
   const ar = (await headers()).get("x-locale") === "ar"
   return {
-    title: "Zekra",
-    applicationName: "Zekra",
+    title: ar ? "ذكرة" : "Zekra",
+    applicationName: ar ? "ذكرة" : "Zekra",
     description: ar ? "ذاكرة طويلة المدى مشتركة لوكلاء الذكاء الاصطناعي." : "Shared long-term memory for AI agents.",
     // The console is behind a login: zekra.dev is what search engines index.
     robots: { index: false, follow: false },

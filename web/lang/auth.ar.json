@@ -21,7 +21,7 @@
   "auth.haveAccount": "لديك حساب بالفعل؟",
   "auth.invalidCredentials": "البريد الإلكتروني وكلمة المرور لا يطابقان أي حساب.",
   "auth.newPassword": "كلمة المرور الجديدة",
-  "auth.noAccount": "جديد على Zekra؟",
+  "auth.noAccount": "جديد على ذكرة؟",
   "auth.oauth.cancelled": "أُلغي تسجيل الدخول عبر {provider}.",
   "auth.oauth.closed": "لا يوجد حساب مرتبط بعنوان {provider} هذا، والتسجيل مغلق حاليًا.",
   "auth.oauth.email": "لم يشارك {provider} بريدًا إلكترونيًا مؤكَّدًا. أكّد بريدك هناك ثم حاول مجددًا.",

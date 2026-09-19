@@ -19,6 +19,6 @@
   "sessions.mcpConfig": "إعداد MCP",
   "sessions.howTo": "طريقة الاستخدام",
   "sessions.step1": "انسخ الإعداد أعلاه إلى ملف .mcp.json في جذر مشروعك.",
-  "sessions.step2": "شغّل Claude Code في ذلك المجلد ووافق على خادم Zekra MCP.",
+  "sessions.step2": "شغّل Claude Code في ذلك المجلد ووافق على خادم ذكرة MCP.",
   "sessions.step3": "اطلب منه الاسترجاع من الدماغ، ومع تفعيل الكتابة يستطيع حفظ ذكريات جديدة أيضًا."
 }

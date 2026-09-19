@@ -23,6 +23,7 @@ import { useTranslations } from "@/lib/i18n"
 import { useRequireAuth } from "@/lib/use-require-auth"
 import { RealtimeProvider } from "@/lib/realtime"
 import { cn } from "@/lib/utils"
+import { brandName } from "@/lib/brand-name"
 
 export type NavItem = {
   /** Path after the locale, e.g. "/brains". */
@@ -40,7 +41,7 @@ function Brand() {
   return (
     <Link href={`/${locale}/brains`} className="flex items-center gap-2.5">
       <CubeMark mark={ZEKRA_MARK} size={24} />
-      <span className="text-[15px] font-medium">Zekra</span>
+      <span className="text-[15px] font-medium">{brandName(locale)}</span>
     </Link>
   )
 }
