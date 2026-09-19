@@ -1,0 +1,23 @@
+{
+  "oauth.eyebrow": "Connect an app",
+  "oauth.title": "Allow access to your brains?",
+  "oauth.description": "An AI app wants to read and write memories in Zekra on your behalf. Choose which brains it can use.",
+  "oauth.loading": "Checking the request…",
+  "oauth.invalid": "This connection request isn't valid.",
+  "oauth.claims": "says it is",
+  "oauth.redirectsTo": "Returns you to",
+  "oauth.loopback": "This app runs on your own computer (a local address). Only continue if you just started it yourself.",
+  "oauth.permissions": "It's asking to",
+  "oauth.brains": "Brains it can use",
+  "oauth.pickOne": "Choose at least one brain.",
+  "oauth.noBrains": "You don't have any brains yet. Create one first, then connect again.",
+  "oauth.read": "Read",
+  "oauth.readWrite": "Read & write",
+  "oauth.readOnlyRole": "You can only read this brain",
+  "oauth.memories": "{n} memories",
+  "oauth.allow": "Allow",
+  "oauth.deny": "Deny",
+  "oauth.signedInAs": "Signed in as {email}",
+  "oauth.expires": "Access refreshes automatically; revoke it any time under Connected apps.",
+  "oauth.redirecting": "Returning you to the app…"
+}

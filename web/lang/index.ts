@@ -32,9 +32,12 @@ import graphEn from "./graph.en.json"
 import graphAr from "./graph.ar.json"
 import adminEn from "./admin.en.json"
 import adminAr from "./admin.ar.json"
+import oauthEn from "./oauth.en.json"
+import oauthAr from "./oauth.ar.json"
 
 type Dict = Record<string, string>
 export const EN: Dict = {
+  ...oauthEn,
   ...commonEn,
   ...shellEn,
   ...authEn,
@@ -53,6 +56,7 @@ export const EN: Dict = {
   ...adminEn,
 }
 export const AR: Dict = {
+  ...oauthAr,
   ...commonAr,
   ...shellAr,
   ...authAr,

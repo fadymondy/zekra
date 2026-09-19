@@ -14,7 +14,7 @@ const SESSION_COOKIE = "togo_session"
 // Locale-stripped prefixes that need a session. The API is the security boundary; this file only
 // decides where to SEND someone. A missing cookie goes straight to login; a present-but-invalid
 // cookie is caught client-side when /api/auth/me answers 401.
-const PROTECTED_PREFIXES = ["/brains", "/b", "/account", "/admin"]
+const PROTECTED_PREFIXES = ["/brains", "/b", "/account", "/admin", "/oauth", "/connect"]
 
 function isProtected(rest: string): boolean {
   return PROTECTED_PREFIXES.some((p) => rest === p || rest.startsWith(p + "/"))
