@@ -1,0 +1,238 @@
+/*
+Presentations (FM-341): the series palette and the page-preview style presets.
+
+The site's --chart-1…5 are greys, which cannot carry series identity. This is
+the dataviz reference categorical palette, first six slots, validated with the
+dataviz skill's validate_palette.js against the page surfaces:
+  light (#ffffff): all checks pass; slots 3–5 are under 3:1 contrast, so every
+                   chart ships a legend AND a table view (the relief rule).
+  dark  (#0b1429): all checks pass.
+Dark values are their own steps, not a flip.
+*/
+.pres-root {
+  --pres-series-1: #2a78d6;
+  --pres-series-2: #eb6834;
+  --pres-series-3: #1baf7a;
+  --pres-series-4: #eda100;
+  --pres-series-5: #e87ba4;
+  --pres-series-6: #008300;
+}
+.dark .pres-root,
+.pres-root.dark {
+  --pres-series-1: #3987e5;
+  --pres-series-2: #d95926;
+  --pres-series-3: #199e70;
+  --pres-series-4: #c98500;
+  --pres-series-5: #d55181;
+  --pres-series-6: #008300;
+}
+
+/* ---- page-preview presets (FM-346) ---------------------------------------- */
+.pres-style-minimal .pres-heading {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.pres-style-bold .pres-heading {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.pres-style-bold .pres-hero {
+  background: color-mix(in oklab, var(--brand) 14%, var(--background));
+}
+.pres-style-editorial .pres-heading {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+html[dir="rtl"] .pres-style-editorial .pres-heading {
+  font-family: inherit;
+}
+.pres-style-editorial .pres-section {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.pres-style-tech-dark {
+  font-feature-settings: "ss01";
+}
+.pres-style-tech-dark .pres-eyebrow {
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.pres-style-tech-dark .pres-glow {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand) 45%, transparent),
+    0 0 32px -8px color-mix(in oklab, var(--brand) 55%, transparent);
+}
+
+/* ---- deck ------------------------------------------------------------------ */
+.pres-slide {
+  container-type: size;
+}
+.pres-slide .pres-slide-title {
+  font-size: clamp(1.4rem, 5.2cqw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.pres-slide .pres-slide-body {
+  font-size: clamp(0.95rem, 2.3cqw, 1.6rem);
+}
+.pres-slide .pres-slide-hero {
+  font-size: clamp(1.8rem, 7cqw, 4.6rem);
+  line-height: 1.05;
+}
+
+/* ---- deck layout (FM-341 polish, FM-350) ------------------------------------ */
+.pres-deck-stage {
+  container-type: size;
+}
+.pres-slide {
+  container-name: slide;
+}
+.pres-metrics {
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+}
+.pres-two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pres-two-col-second {
+  border-inline-start: 1px solid var(--border);
+  padding-inline-start: 4cqw;
+}
+/* Workflow and screen text inside a slide scales with the slide. */
+.pres-slide .pres-slide-small {
+  font-size: clamp(0.62rem, 1.5cqw, 1.05rem);
+}
+
+/*
+Phones: a 16:9 box inside a 390px-wide portrait screen (or under a 390px-tall
+landscape one) leaves the slide tiny in the middle. There the slide takes the
+whole stage and its content reflows; the text keeps its rem floors.
+Desktop keeps 16:9, and PDFs are printed from separate HTML.
+*/
+@media (max-width: 640px), (max-height: 500px) {
+  .pres-deck-stage {
+    padding: 0.5rem;
+  }
+  .pres-slide.pres-slide-fluid {
+    aspect-ratio: auto;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: max(1rem, 4%);
+  }
+}
+@container slide (max-width: 560px) {
+  .pres-metrics {
+    grid-template-columns: repeat(min(var(--cols, 3), 2), minmax(0, 1fr));
+  }
+  .pres-two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pres-two-col-second {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 3cqh;
+  }
+  .pres-slide .pres-slide-small {
+    font-size: 0.8rem;
+  }
+}
+@container slide (max-width: 380px) {
+  .pres-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Short landscape phones: keep the text readable rather than scaling it with the height. */
+@container slide (max-height: 320px) {
+  .pres-slide .pres-slide-title {
+    font-size: clamp(1.1rem, 3.2cqw, 1.8rem);
+    margin-bottom: 0.5rem;
+  }
+  .pres-slide .pres-slide-hero {
+    font-size: clamp(1.4rem, 5cqw, 2.4rem);
+  }
+}
+
+/*
+Screen mockups stay readable (production review): their smallest text is
+0.72em, so the base keeps that at or above 13px — 18px on pages at any width,
+and 18px or more on a desktop slide.
+*/
+.pres-screen-text {
+  font-size: 1.125rem;
+}
+.pres-slide .pres-screen-slide {
+  font-size: clamp(0.85rem, 1.75cqw, 1.4rem);
+}
+/* Phone slides: the mockup keeps a readable base and the slide scrolls instead. */
+@container slide (max-width: 560px) {
+  .pres-slide .pres-screen-slide {
+    font-size: 1.125rem;
+  }
+}
+
+/*
+Phone mockups (production finding). The device is 17em x 34em, so the host
+sets the font size: on a slide it fits the slide height (92cqh / 34) with a
+20px-ish cap, and on a narrow slide it fills the width instead (the slide
+scrolls). Its smallest text is 0.72em, so at 1440 x 900 that is about 14px.
+*/
+.pres-app-slide {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.pres-slide .pres-phone-host {
+  font-size: min(1.35rem, calc(92cqh / 34));
+  /* The phone figure is a size container, so its column needs a real width. */
+  width: 17.4em;
+}
+@container slide (max-width: 560px) {
+  .pres-app-slide {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .pres-slide .pres-phone-host {
+    font-size: min(1.35rem, calc(92cqw / 17.4));
+    width: 100%;
+  }
+}
+.pres-phone-page {
+  font-size: 1.125rem;
+}
+/* Inside a phone the smallest steps rise to 0.8em, so they stay >= 13px when the device fits the slide. */
+.pres-phone [class*="text-[0.72em]"],
+.pres-phone [class*="text-[0.75em]"] {
+  font-size: 0.8em;
+}
+
+/* ---- dispatch map (FM-350 follow-up) ------------------------------------------ */
+.pres-root,
+.pres-map {
+  --pres-map-bg: color-mix(in oklab, var(--muted) 85%, var(--background));
+  --pres-map-street: var(--background);
+  --pres-map-casing: color-mix(in oklab, var(--border) 80%, var(--muted));
+  --pres-map-river: color-mix(in oklab, var(--pres-series-1, #2a78d6) 30%, var(--muted));
+  --pres-map-park: color-mix(in oklab, var(--pres-series-6, #008300) 22%, var(--muted));
+}
+.dark .pres-map {
+  --pres-map-bg: color-mix(in oklab, var(--background) 70%, var(--muted));
+  --pres-map-street: color-mix(in oklab, var(--muted) 70%, var(--foreground) 12%);
+  --pres-map-casing: var(--background);
+  --pres-map-river: color-mix(in oklab, var(--pres-series-1, #3987e5) 35%, var(--background));
+  --pres-map-park: color-mix(in oklab, var(--pres-series-6, #008300) 25%, var(--background));
+}
+@keyframes pres-pulse {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(2.3); opacity: 0; }
+}
+.pres-pulse {
+  animation: pres-pulse 1.8s ease-out infinite;
+}
+.pres-pulse-strong {
+  animation-duration: 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pres-pulse {
+    animation: none;
+    opacity: 0;
+  }
+}

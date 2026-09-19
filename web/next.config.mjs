@@ -7,6 +7,13 @@ const nextConfig = {
   output: "standalone",
   allowedDevOrigins: ["127.0.0.1", "localhost", "app.zekra.dev"],
 
+  // Presentation PDF exports (lib/presentations/pdf.ts) read files the tracer can't see: the
+  // embedded print font, and on Linux @sparticuz/chromium's packed browser (bin/*.tar.br).
+  // puppeteer-core and @sparticuz/chromium are already server-external by Next's default list.
+  outputFileTracingIncludes: {
+    "/*": ["./assets/fonts/pdf/**/*", "./node_modules/@sparticuz/chromium/bin/**/*"],
+  },
+
   // The Go API and this app share one origin: session and CSRF cookies stay first-party.
   async rewrites() {
     return [

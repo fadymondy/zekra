@@ -1,0 +1,13 @@
+{
+  "title": "Modernising Acme's order platform",
+  "subtitle": "Discovery findings and a 12-week plan",
+  "slides": [
+    {"type": "title", "eyebrow": "Proposal", "title": "Modernising Acme's order platform", "subtitle": "Prepared for Acme Logistics", "notes": "Open with the outage from March."},
+    {"type": "bullets", "title": "What we found", "bullets": ["Checkout p95 is 4.2 s", "Three services share one database", "Deploys are manual and weekly"], "notes": "Keep this under a minute."},
+    {"type": "metric", "title": "Where we can be in 12 weeks", "metrics": [{"label": "Checkout p95", "value": "900 ms", "delta": "-78%", "trend": "down"}, {"label": "Deploys per week", "value": "20+", "delta": "+19", "trend": "up"}, {"label": "Infra cost", "value": "$3.1k", "delta": "-35%", "trend": "down"}]},
+    {"type": "two_column", "title": "Build vs. buy", "left": {"heading": "Build", "body": "Full control over the **order model**.", "bullets": ["Fits the warehouse flow", "Higher upfront cost"]}, "right": {"heading": "Buy", "body": "Faster start, less fit.", "bullets": ["Licence per seat", "Custom work still needed"]}},
+    {"type": "quote", "quote": "We lose orders every Friday afternoon.", "author": "Operations lead", "role": "Acme Logistics"},
+    {"type": "code", "title": "The new order API", "language": "ts", "code": "const order = await api.orders.create({ sku, qty })\nawait order.confirm()"},
+    {"type": "image", "title": "Target architecture", "image_url": "/brand/og.png", "alt": "Diagram of the target architecture", "caption": "One API, three clients"}
+  ]
+}

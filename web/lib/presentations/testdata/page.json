@@ -1,0 +1,13 @@
+{
+  "title": "Acme Track — live shipment tracking",
+  "description": "A concept page for Acme's customer tracking product.",
+  "sections": [
+    {"type": "hero", "eyebrow": "Concept", "heading": "Every parcel, live.", "body": "Acme Track shows customers where their order is, to the street.", "cta_label": "Book a demo", "cta_href": "https://fadymondy.com/en/book", "scene": {"type": "globe", "params": {"points": 900, "arcs": 10, "rotation_speed": 4}}},
+    {"type": "features", "heading": "Why it works", "items": [{"title": "Real-time", "body": "Updates every 5 seconds.", "icon": "zap"}, {"title": "Private", "body": "Data stays in your region.", "icon": "shield"}, {"title": "Open API", "body": "Plug it into anything.", "icon": "code"}]},
+    {"type": "scene", "heading": "Built on a live network", "scene": {"type": "particles", "params": {"count": 1200, "color": "brand"}}, "height": "md"},
+    {"type": "pricing", "heading": "Plans", "plans": [{"name": "Starter", "price": "$49", "period": "/month", "features": ["1,000 shipments", "Email alerts"]}, {"name": "Growth", "price": "$199", "period": "/month", "features": ["20,000 shipments", "SMS alerts", "API"], "highlighted": true, "cta_label": "Start"}]},
+    {"type": "testimonial", "quote": "Support tickets about 'where is my order' dropped by half.", "author": "Pilot customer", "role": "E-commerce lead"},
+    {"type": "scene", "scene": {"type": "gradient_mesh", "params": {"colors": ["brand", "chart-2", "chart-4"]}}, "height": "sm"},
+    {"type": "cta", "heading": "Ready to try it?", "body": "A two-week pilot, no integration work.", "cta_label": "Talk to us", "cta_href": "/en/contact"}
+  ]
+}

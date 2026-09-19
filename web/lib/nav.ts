@@ -1,6 +1,6 @@
 import {
   ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
-  KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, StickyNoteIcon,
+  KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, PresentationIcon, StickyNoteIcon,
   RocketIcon, SearchIcon, ShieldCheckIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 

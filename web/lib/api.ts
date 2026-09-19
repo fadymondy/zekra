@@ -32,6 +32,11 @@ async function getCsrf(force = false): Promise<string> {
   return csrfPending
 }
 
+/** The session's CSRF token, for callers that run their own fetch (e.g. to keep field errors). */
+export function getCsrfToken(force = false): Promise<string> {
+  return getCsrf(force)
+}
+
 /** Forget the cached token, e.g. after sign-out (a new session gets a new token). */
 export function resetCsrf() {
   csrfToken = null

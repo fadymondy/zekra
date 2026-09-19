@@ -42,6 +42,8 @@ import notesEn from "./notes.en.json"
 import notesAr from "./notes.ar.json"
 import appsEn from "./apps.en.json"
 import appsAr from "./apps.ar.json"
+import presentationsEn from "./presentations.en.json"
+import presentationsAr from "./presentations.ar.json"
 
 type Dict = Record<string, string>
 export const EN: Dict = {
@@ -50,6 +52,7 @@ export const EN: Dict = {
   ...connectEn,
   ...notesEn,
   ...appsEn,
+  ...presentationsEn,
   ...commonEn,
   ...shellEn,
   ...authEn,
@@ -73,6 +76,7 @@ export const AR: Dict = {
   ...connectAr,
   ...notesAr,
   ...appsAr,
+  ...presentationsAr,
   ...commonAr,
   ...shellAr,
   ...authAr,

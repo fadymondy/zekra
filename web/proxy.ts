@@ -7,6 +7,7 @@ import {
   localeFromAcceptLanguage,
   type Locale,
 } from "@/lib/i18n-locale"
+import { SHARE_PAGE_CSP } from "@/lib/presentations/code-scene"
 
 // Set by the togo auth plugin on login/register (HttpOnly).
 const SESSION_COOKIE = "togo_session"
@@ -16,7 +17,12 @@ const SESSION_COOKIE = "togo_session"
 // cookie is caught client-side when /api/auth/me answers 401.
 const PROTECTED_PREFIXES = ["/brains", "/b", "/account", "/admin", "/oauth", "/connect"]
 
+// Customer-facing share links (/p/{token}, its downloads and embeds) are public: the token is
+// the only authorization, checked by the API. Never send a visitor there to a login page.
+const PUBLIC_PREFIXES = ["/p"]
+
 function isProtected(rest: string): boolean {
+  if (PUBLIC_PREFIXES.some((p) => rest === p || rest.startsWith(p + "/"))) return false
   return PROTECTED_PREFIXES.some((p) => rest === p || rest.startsWith(p + "/"))
 }
 
@@ -77,6 +83,11 @@ export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers)
   headers.set("x-locale", locale)
   const response = NextResponse.next({ request: { headers } })
+  // A shared presentation may hold sandboxed srcdoc "code" scenes: same-origin frames only,
+  // never framed by another site.
+  if (restPath.startsWith("/p/")) {
+    response.headers.set("Content-Security-Policy", SHARE_PAGE_CSP)
+  }
   if (request.cookies.get(LOCALE_COOKIE)?.value !== locale) {
     response.cookies.set(LOCALE_COOKIE, locale, { path: "/", maxAge: 31536000, sameSite: "lax" })
   }
