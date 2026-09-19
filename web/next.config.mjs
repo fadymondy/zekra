@@ -10,8 +10,9 @@ const nextConfig = {
   // Presentation PDF exports (lib/presentations/pdf.ts) read files the tracer can't see: the
   // embedded print font, and on Linux @sparticuz/chromium's packed browser (bin/*.tar.br).
   // puppeteer-core and @sparticuz/chromium are already server-external by Next's default list.
+  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
   outputFileTracingIncludes: {
-    "/*": ["./assets/fonts/pdf/**/*", "./node_modules/@sparticuz/chromium/bin/**/*"],
+    "/*": ["./assets/fonts/pdf/**/*", "./node_modules/@sparticuz/chromium/**/*", "./node_modules/follow-redirects/**/*", "./node_modules/tar-fs/**/*"],
   },
 
   // The Go API and this app share one origin: session and CSRF cookies stay first-party.

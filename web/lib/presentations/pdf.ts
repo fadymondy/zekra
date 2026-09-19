@@ -61,15 +61,29 @@ One browser per process, started on first use and reused: launching Chromium cos
 than rendering a page. A crashed or closed browser clears the slot so the next request starts
 a fresh one instead of failing forever.
 */
+// A runtime import the bundler cannot analyse: Turbopack statically pruned the Linux branch
+// (compiled it to "unreachable"), so Chromium was never loaded on the server.
+// eslint-disable-next-line @typescript-eslint/no-implied-eval
+const runtimeImport = new Function("m", "return import(m)") as (m: string) => Promise<unknown>
+
+function isLinuxRuntime(): boolean {
+  return existsSync("/proc/self/exe") && !existsSync("C:\Windows")
+}
+
 function browser(): Promise<Browser> {
   browserPromise ??= (async () => {
-    const puppeteer = (await import("puppeteer-core")).default
+    // Bundled dynamic imports of external packages may add one level of default-wrapping.
+    const pmod = (await runtimeImport("puppeteer-core")) as unknown as { default?: unknown; launch?: unknown }
+    const puppeteer = ((pmod as { launch?: unknown }).launch ? pmod : (pmod.default as { launch?: unknown })?.launch ? pmod.default : (pmod.default as { default?: unknown })?.default) as typeof import("puppeteer-core").default
     const override = process.env.CHROME_PATH
     const launched =
-      process.platform === "linux" && !override
+      // Decided by the filesystem at run time: the bundler folds process.platform and even
+      // os.platform() into build-time constants, so a Windows-built bundle pruned this branch.
+      isLinuxRuntime() && !override
         ? await (async () => {
-            const pkg = await import("@sparticuz/chromium")
-            const chromium = pkg.default
+            const pkg = (await runtimeImport("@sparticuz/chromium")) as typeof import("@sparticuz/chromium")
+            const cmod = pkg as unknown as { default?: { executablePath?: unknown; default?: unknown } }
+            const chromium = (cmod.default?.executablePath ? cmod.default : cmod.default?.default) as typeof pkg.default
             const bin = path.join(process.cwd(), "node_modules", "@sparticuz", "chromium", "bin")
             const libs = path.join(bin, "al2023.tar.br")
             if (existsSync(libs)) {
