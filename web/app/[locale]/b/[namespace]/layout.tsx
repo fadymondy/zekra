@@ -10,7 +10,7 @@ export default function BrainLayout({ children }: { children: React.ReactNode })
   const { namespace } = useParams<{ namespace: string }>()
   const ns = decodeURIComponent(namespace)
   return (
-    <AppShell groups={brainNav(ns)} start={<BrainSwitcher namespace={ns} />}>
+    <AppShell groups={brainNav(ns)} start={<BrainSwitcher namespace={ns} />} brain={ns}>
       {children}
     </AppShell>
   )

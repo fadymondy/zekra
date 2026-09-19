@@ -51,5 +51,13 @@
   "footer.product": "Product",
   "footer.productValue": "Memory for AI agents",
   "footer.stack": "Stack",
-  "footer.tagline": "What one session learns, the next one already knows."
+  "footer.tagline": "What one session learns, the next one already knows.",
+  "feedback.report": "Report a problem",
+  "feedback.sent": "Report sent",
+  "feedback.sentHint": "Thanks — we'll look into it.",
+  "feedback.sentWithKey": "Report {key} filed",
+  "feedback.failed": "Couldn't send the report. Try again in a moment.",
+  "feedback.type.bug": "Bug",
+  "feedback.type.feature": "Feature request",
+  "feedback.type.task": "Task"
 }

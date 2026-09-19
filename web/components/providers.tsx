@@ -1,11 +1,12 @@
 "use client"
 
-import { type ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import { ThemeProvider, useTheme } from "next-themes"
 import { Toaster } from "sonner"
 
 import { I18nProvider } from "@/lib/i18n"
 import { dirForLocale } from "@/lib/i18n-locale"
+import { installDiagnostics } from "@/lib/feedback/core"
 
 function ThemedToaster({ locale }: { locale: string }) {
   const { resolvedTheme } = useTheme()
@@ -28,6 +29,11 @@ function ThemedToaster({ locale }: { locale: string }) {
 
 // Dark is Zekra's default ground (memory is read on a dark ground); the toggle offers light.
 export function Providers({ locale, children }: { locale: string; children: ReactNode }) {
+  // The feedback SDK records console/network activity only from the moment it is installed.
+  useEffect(() => {
+    installDiagnostics()
+  }, [])
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
       <I18nProvider locale={locale}>

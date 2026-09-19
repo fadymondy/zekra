@@ -7,7 +7,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, type ComponentType, type ReactNode } from "react"
-import { MenuIcon } from "lucide-react"
+import { MenuIcon, MessageSquarePlusIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { LanguageSwitcher, ThemeToggle } from "@/components/header-controls"
 import { ErrorState } from "@/components/states"
+import { ReportProblemDialog, feedbackEnabled } from "@/components/feedback/report-problem"
 import { LiveIndicator } from "@/components/shell/live"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
@@ -101,17 +102,21 @@ function ShellSkeleton() {
 export function AppShell({
   groups,
   start,
+  brain,
   gate,
   children,
 }: {
   groups: NavGroup[]
   start?: ReactNode
+  /** The brain in scope, attached to problem reports. */
+  brain?: string
   gate?: ReactNode
   children: ReactNode
 }) {
   const me = useRequireAuth()
   const { t, isRtl } = useTranslations()
   const [navOpen, setNavOpen] = useState(false)
+  const [reporting, setReporting] = useState(false)
 
   let body: ReactNode
   if (me.error) body = <ErrorState error={me.error} />
@@ -143,6 +148,18 @@ export function AppShell({
             {start}
           </div>
           <div className="flex items-center gap-1">
+            {me.data && feedbackEnabled ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:inline-flex"
+                onClick={() => setReporting(true)}
+                aria-label={t("feedback.report")}
+              >
+                <MessageSquarePlusIcon />
+                <span className="hidden sm:inline">{t("feedback.report")}</span>
+              </Button>
+            ) : null}
             <LiveIndicator />
             <LanguageSwitcher />
             <ThemeToggle />
@@ -160,6 +177,8 @@ export function AppShell({
           <ShellNav groups={groups} onNavigate={() => setNavOpen(false)} />
         </SheetContent>
       </Sheet>
+
+      {feedbackEnabled ? <ReportProblemDialog open={reporting} onOpenChange={setReporting} brain={brain} /> : null}
     </div>
     </RealtimeProvider>
   )
