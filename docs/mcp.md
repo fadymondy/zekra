@@ -175,11 +175,28 @@ Any client that can launch a stdio server works. Run `zekra mcp` (or `zekra-mcp`
 environment variables above. The server implements `initialize`, `ping`, `tools/list` and
 `tools/call`, and reports protocol version `2024-11-05`.
 
-## Remote MCP (coming soon)
+## Remote MCP (OAuth)
 
-> **Coming soon:** a remote MCP endpoint over HTTP with OAuth sign-in, so that ChatGPT and
-> claude.ai custom connectors can use Zekra without a local binary. It is planned and not
-> available yet. Today every client connects through the local stdio server described above.
+Zekra also runs a hosted MCP server at **`https://mcp.zekra.dev`** (Streamable HTTP). Clients
+that support remote MCP connect with just the URL and sign in with OAuth 2.1; no binary, no
+token to paste. On the consent screen you pick which brains the client may use, read or
+read + write. Manage or revoke access later under **Account → Connected apps** in the console.
+
+| Client | How to connect |
+|---|---|
+| Claude.ai / Claude Desktop | Settings → Connectors → **Add custom connector** → paste `https://mcp.zekra.dev` (leave client id/secret empty) → Connect |
+| ChatGPT | Settings → Apps & Connectors → Advanced → **Developer mode** → Create connector → URL `https://mcp.zekra.dev`, authentication **OAuth** |
+| Claude Code | `claude mcp add --transport http zekra https://mcp.zekra.dev`, then `/mcp` to sign in |
+| Cursor | `{"mcpServers":{"zekra":{"url":"https://mcp.zekra.dev"}}}` in `~/.cursor/mcp.json`, or `zekra mcp:install cursor --remote` |
+| Gemini CLI | `{"mcpServers":{"zekra":{"httpUrl":"https://mcp.zekra.dev"}}}` in `~/.gemini/settings.json` |
+
+The remote server exposes the same tools as the stdio server, from one shared registry
+(`GET https://app.zekra.dev/api/mcp/tools` lists them). OAuth apps never see the token, delete,
+vault-reveal or connector tools, and every call is re-checked against your grant and your
+current access to the brain. Discovery documents: `/.well-known/oauth-protected-resource` and
+`/.well-known/oauth-authorization-server` on `mcp.zekra.dev`.
+
+Clients without remote MCP support (for example Codex) keep using the stdio server above.
 
 ## Tool results and errors
 
