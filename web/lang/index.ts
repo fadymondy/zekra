@@ -34,10 +34,19 @@ import adminEn from "./admin.en.json"
 import adminAr from "./admin.ar.json"
 import oauthEn from "./oauth.en.json"
 import oauthAr from "./oauth.ar.json"
+import connectEn from "./connect.en.json"
+import connectAr from "./connect.ar.json"
+import notesEn from "./notes.en.json"
+import notesAr from "./notes.ar.json"
+import appsEn from "./apps.en.json"
+import appsAr from "./apps.ar.json"
 
 type Dict = Record<string, string>
 export const EN: Dict = {
   ...oauthEn,
+  ...connectEn,
+  ...notesEn,
+  ...appsEn,
   ...commonEn,
   ...shellEn,
   ...authEn,
@@ -57,6 +66,9 @@ export const EN: Dict = {
 }
 export const AR: Dict = {
   ...oauthAr,
+  ...connectAr,
+  ...notesAr,
+  ...appsAr,
   ...commonAr,
   ...shellAr,
   ...authAr,

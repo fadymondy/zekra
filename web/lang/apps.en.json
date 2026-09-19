@@ -1,0 +1,21 @@
+{
+  "nav.connectedApps": "Connected apps",
+  "apps.micro": "Account",
+  "apps.title": "Connected apps",
+  "apps.description": "AI apps you've allowed to use your brains over MCP. Revoke one to cut off its access immediately.",
+  "apps.read": "Read",
+  "apps.readWrite": "Read + write",
+  "apps.lastUsed": "Last used {when}",
+  "apps.neverUsed": "Not used yet",
+  "apps.connected": "Connected {date}",
+  "apps.revoke": "Revoke",
+  "apps.revokeTitle": "Revoke {name}?",
+  "apps.revokeBody": "The app loses access to your brains right away. To use it again, you'll need to reconnect it.",
+  "apps.revoked": "Access revoked",
+  "apps.revokedOn": "Revoked {date}",
+  "apps.revokedSection": "Revoked ({n})",
+  "apps.emptyTitle": "No connected apps yet",
+  "apps.emptyBody": "Connect Claude, ChatGPT, Cursor or another MCP client and it will show up here.",
+  "apps.connectCta": "Connect an agent",
+  "apps.noBrains": "No brains"
+}

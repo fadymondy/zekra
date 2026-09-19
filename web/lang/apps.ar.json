@@ -1,0 +1,21 @@
+{
+  "nav.connectedApps": "التطبيقات المرتبطة",
+  "apps.micro": "الحساب",
+  "apps.title": "التطبيقات المرتبطة",
+  "apps.description": "تطبيقات الذكاء الاصطناعي التي سمحت لها باستخدام أدمغتك عبر MCP. ألغِ وصول أي تطبيق لإيقافه فورًا.",
+  "apps.read": "قراءة",
+  "apps.readWrite": "قراءة وكتابة",
+  "apps.lastUsed": "آخر استخدام {when}",
+  "apps.neverUsed": "لم يُستخدم بعد",
+  "apps.connected": "رُبط في {date}",
+  "apps.revoke": "إلغاء الوصول",
+  "apps.revokeTitle": "إلغاء وصول {name}؟",
+  "apps.revokeBody": "سيفقد التطبيق وصوله إلى أدمغتك فورًا، وستحتاج إلى ربطه من جديد لاستخدامه مرة أخرى.",
+  "apps.revoked": "تم إلغاء الوصول",
+  "apps.revokedOn": "أُلغي في {date}",
+  "apps.revokedSection": "الملغاة ({n})",
+  "apps.emptyTitle": "لا توجد تطبيقات مرتبطة بعد",
+  "apps.emptyBody": "اربط Claude أو ChatGPT أو Cursor أو أي عميل MCP آخر وسيظهر هنا.",
+  "apps.connectCta": "ربط وكيل",
+  "apps.noBrains": "لا توجد أدمغة"
+}

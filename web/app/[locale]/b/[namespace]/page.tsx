@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
-import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon, PinIcon, PlusIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
@@ -13,7 +14,9 @@ import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useBrainActivity, useGraph, useSecretCount } from "@/lib/brains"
+import { ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
+import { notesApi, useNotes } from "@/lib/notes"
 import { useBrain } from "@/lib/queries"
 import { useDocumentTitle } from "@/lib/title"
 
@@ -22,6 +25,70 @@ function StatLink({ href, children }: { href: string; children: React.ReactNode 
     <Link href={href} className="underline decoration-line underline-offset-4 hover:decoration-grid-fg">
       {children}
     </Link>
+  )
+}
+
+/** The five latest notes, plus a shortcut to start one. */
+function RecentNotes({ ns, base }: { ns: string; base: string }) {
+  const { t, timeAgo } = useTranslations()
+  const router = useRouter()
+  const notes = useNotes({ namespace: ns, limit: 5 })
+  const [creating, setCreating] = useState(false)
+  const rows = notes.data?.notes ?? []
+
+  async function create() {
+    setCreating(true)
+    try {
+      const n = await notesApi.create(ns)
+      router.push(`${base}/notes?id=${encodeURIComponent(n.id)}`)
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
+      setCreating(false)
+    }
+  }
+
+  return (
+    <>
+      <SectionTitle
+        action={
+          <div className="flex items-center gap-3">
+            <Link href={`${base}/notes`} className="inline-flex items-center gap-1 text-xs text-grid-fg underline underline-offset-4">
+              {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
+            </Link>
+            <Button size="sm" variant="outline" onClick={create} disabled={creating}>
+              <PlusIcon />
+              {t("notes.new")}
+            </Button>
+          </div>
+        }
+      >
+        {t("notes.recent")}
+      </SectionTitle>
+      {notes.error ? (
+        <ErrorState error={notes.error} />
+      ) : notes.isLoading ? (
+        <LoadingRows rows={2} />
+      ) : rows.length === 0 ? (
+        <EmptyState title={t("notes.recentEmpty")} />
+      ) : (
+        <RowList label={t("notes.recent")}>
+          {rows.map((n) => (
+            <li key={n.id}>
+              <Link
+                href={`${base}/notes?id=${encodeURIComponent(n.id)}`}
+                className="flex items-center gap-3 px-6 py-3 text-sm transition-colors hover:bg-grid-soft"
+              >
+                {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-grid-action" /> : null}
+                <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
+                  {n.title || t("notes.untitled")}
+                </span>
+                <span className="shrink-0 text-xs text-grid-muted">{timeAgo(n.updatedAt)}</span>
+              </Link>
+            </li>
+          ))}
+        </RowList>
+      )}
+    </>
   )
 }
 
@@ -117,6 +184,8 @@ export default function BrainOverviewPage() {
           {t("overview.ask.chat")}
         </Button>
       </section>
+
+      <RecentNotes ns={ns} base={base} />
 
       <SectionTitle
         action={

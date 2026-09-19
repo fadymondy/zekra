@@ -3,12 +3,12 @@
 // One shared Server-Sent Events stream from the brain plugin (/api/brain/events) for the whole
 // console. Every brain event revalidates the cached /api/brain/* responses, so each open view
 // live-updates without its own subscription. Named events: retain · recall · search · gap ·
-// grant · brain · secret.
+// grant · brain · secret · note (note also revalidates /api/notes*).
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { useSWRConfig } from "swr"
 
 export type LiveStatus = "connecting" | "live" | "down"
-const EVENTS = ["retain", "recall", "search", "gap", "grant", "brain", "secret"] as const
+const EVENTS = ["retain", "recall", "search", "gap", "grant", "brain", "secret", "note"] as const
 
 const LiveContext = createContext<LiveStatus>("connecting")
 export const useLiveStatus = () => useContext(LiveContext)
@@ -27,7 +27,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         timer = null
         void mutate((key) => {
           const k = Array.isArray(key) ? key[0] : key
-          return typeof k === "string" && k.startsWith("/api/brain/")
+          return typeof k === "string" && (k.startsWith("/api/brain/") || k.startsWith("/api/notes"))
         })
       }, 400)
     }

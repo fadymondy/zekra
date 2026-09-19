@@ -1,6 +1,6 @@
 import {
-  ActivityIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
-  KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon,
+  ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
+  KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, StickyNoteIcon,
   RocketIcon, SearchIcon, ShieldCheckIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 
@@ -9,7 +9,12 @@ import type { NavGroup } from "@/components/shell/app-shell"
 // Every signed-in area's sidebar. Labels are dictionary keys; hrefs are locale-relative.
 
 export const BRAINS_NAV: NavGroup[] = [
-  { items: [{ href: "/brains", label: "nav.brains", icon: BrainIcon, exact: true }] },
+  {
+    items: [
+      { href: "/brains", label: "nav.brains", icon: BrainIcon, exact: true },
+      { href: "/connect", label: "nav.connect", icon: PlugZapIcon },
+    ],
+  },
   {
     label: "nav.you",
     items: [
@@ -25,6 +30,7 @@ export function brainNav(namespace: string): NavGroup[] {
     {
       items: [
         { href: b, label: "nav.overview", icon: NetworkIcon, exact: true },
+        { href: `${b}/notes`, label: "nav.notes", icon: StickyNoteIcon },
         { href: `${b}/chat`, label: "nav.chat", icon: MessagesSquareIcon },
         { href: `${b}/search`, label: "nav.search", icon: SearchIcon },
         { href: `${b}/sources`, label: "nav.sources", icon: PlugIcon },
@@ -51,6 +57,7 @@ export const ACCOUNT_NAV: NavGroup[] = [
       { href: "/account", label: "nav.profile", icon: UserIcon, exact: true },
       { href: "/account/security", label: "nav.security", icon: ShieldCheckIcon },
       { href: "/account/connections", label: "nav.connections", icon: LinkIcon },
+      { href: "/account/apps", label: "nav.connectedApps", icon: AppWindowIcon },
       { href: "/account/notifications", label: "nav.notifications", icon: BellIcon },
       { href: "/account/export", label: "nav.export", icon: DownloadIcon },
       { href: "/account/delete", label: "nav.deleteAccount", icon: TrashIcon },
