@@ -621,3 +621,30 @@ BEGIN
       CHECK (source ~ '^[A-Za-z0-9_:.\-]{1,64}$');
   END IF;
 END $$;
+
+-- ── Brain profiles (per-brain settings; profile.go) ──────────────────────────────────
+-- Presentation + defaults for one brain: display name, description, colour, icon,
+-- avatar/cover images, an advisory visibility label and the default note category.
+-- The namespace id stays immutable; display_name is what the console shows. No row =
+-- defaults (display_name = namespace, colour from a deterministic palette). Images are
+-- blobs in the kernel storage (brains/<ns>/...); image_key/cover_key hold the storage
+-- key of an uploaded blob, image_url/cover_url the URL the console renders (the
+-- member-only API route for uploads, or an external https URL).
+CREATE TABLE IF NOT EXISTS public.brain_profiles (
+  namespace             text        PRIMARY KEY,
+  display_name          text        NOT NULL DEFAULT '',
+  description           text        NOT NULL DEFAULT '',
+  color                 text        NOT NULL DEFAULT '',
+  icon                  text        NOT NULL DEFAULT '',
+  image_url             text        NOT NULL DEFAULT '',
+  image_key             text        NOT NULL DEFAULT '',
+  cover_url             text        NOT NULL DEFAULT '',
+  cover_key             text        NOT NULL DEFAULT '',
+  visibility            text        NOT NULL DEFAULT 'private',
+  default_note_category text        NOT NULL DEFAULT '',
+  settings              jsonb       NOT NULL DEFAULT '{}',
+  created_at            timestamptz NOT NULL DEFAULT now(),
+  updated_at            timestamptz NOT NULL DEFAULT now(),
+  updated_by            text,
+  CONSTRAINT brain_profiles_visibility_chk CHECK (visibility IN ('private','internal'))
+);

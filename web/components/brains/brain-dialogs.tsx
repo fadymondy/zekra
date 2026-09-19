@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { ColorPicker } from "@/components/brains/color-picker"
 import { ApiError, brainApi } from "@/lib/api"
+import { profileApi } from "@/lib/brain-profile"
 import { slugify } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
 
@@ -34,6 +37,7 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
   const { mutate } = useSWRConfig()
   const [name, setName] = useState("")
   const [desc, setDesc] = useState("")
+  const [color, setColor] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const slug = slugify(name)
@@ -43,6 +47,7 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
     if (!o) {
       setName("")
       setDesc("")
+      setColor("")
       setError(null)
     }
   }
@@ -52,13 +57,29 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
     if (!slug) return
     setBusy(true)
     setError(null)
+    const displayName = name.trim()
+    const profile = {
+      ...(displayName && displayName !== slug ? { displayName } : {}),
+      ...(color ? { color } : {}),
+      ...(desc.trim() ? { description: desc.trim() } : {}),
+    }
     try {
+      // Claim the brain (owner = me) with its profile; the local console without a session
+      // cannot claim, so it falls back to materializing the brain and patching the profile.
+      let claimed = true
+      try {
+        await profileApi.createBrain({ namespace: slug, ...profile })
+      } catch (err) {
+        if (!(err instanceof ApiError && err.status === 403)) throw err
+        claimed = false
+      }
       await brainApi.retain({
         namespace: slug,
         content: `Brain "${slug}" created from the console.${desc.trim() ? " " + desc.trim() : ""}`,
         sourceKind: "system",
         sourceRef: "console/new-brain",
       })
+      if (!claimed && Object.keys(profile).length) await profileApi.update(slug, profile).catch(() => undefined)
       void mutate(isBrainKey)
       toast.success(t("brains.new.created", { brain: slug }))
       close(false)
@@ -80,7 +101,7 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
           </DialogHeader>
           <div className="grid gap-1.5">
             <Label htmlFor="brain-name">{t("brains.new.name")}</Label>
-            <Input id="brain-name" dir="ltr" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t("brains.new.namePlaceholder")} />
+            <Input id="brain-name" dir="auto" autoFocus maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("brains.new.namePlaceholder")} />
             {name && slug !== name.trim().toLowerCase() ? (
               <p className="text-xs text-grid-muted">
                 {t("brains.new.namespace")}{" "}
@@ -94,7 +115,20 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
             <Label htmlFor="brain-desc">
               {t("brains.new.descriptionLabel")} <span className="text-grid-muted">({t("common.optional")})</span>
             </Label>
-            <Input id="brain-desc" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={t("brains.new.descriptionPlaceholder")} />
+            <Textarea
+              id="brain-desc"
+              rows={2}
+              maxLength={2000}
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder={t("brains.new.descriptionPlaceholder")}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>
+              {t("brainSettings.general.color")} <span className="text-grid-muted">({t("common.optional")})</span>
+            </Label>
+            <ColorPicker value={color} onChange={setColor} custom={false} idPrefix="new-brain-color" />
           </div>
           <ErrorLine message={error} />
           <DialogFooter>

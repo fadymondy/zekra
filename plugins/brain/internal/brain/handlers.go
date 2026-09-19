@@ -68,6 +68,14 @@ func (s *Service) Namespaces(w http.ResponseWriter, r *http.Request) {
 		}
 		ns = kept
 	}
+	names := make([]string, len(ns))
+	for i, b := range ns {
+		names[i] = b.Namespace
+	}
+	profiles := s.Store.ProfileSummaries(r.Context(), names)
+	for i := range ns {
+		ns[i].ProfileSummary = profiles[ns[i].Namespace]
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"brains": ns})
 }
 
@@ -388,6 +396,7 @@ func (s *Service) DeleteBrain(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	s.dropProfile(r.Context(), in.Namespace)
 	s.hub.publish("brain", map[string]any{"deleted": in.Namespace, "namespace": in.Namespace})
 	writeJSON(w, http.StatusOK, map[string]any{"namespace": in.Namespace, "deleted": n})
 }

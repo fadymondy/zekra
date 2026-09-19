@@ -8,6 +8,7 @@ import { toast } from "sonner"
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
+import { BrainDescription, BrainMicro, BrainTitle } from "@/components/brains/brain-header"
 import { BrainGraphView, type FocusRequest } from "@/components/graph/graph-view"
 import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -135,8 +136,9 @@ export default function BrainOverviewPage() {
   return (
     <>
       <SectionHeader
-        micro={t("overview.micro")}
-        title={<Ltr>{ns}</Ltr>}
+        micro={<BrainMicro ns={ns} label={t("overview.micro")} />}
+        title={<BrainTitle ns={ns} />}
+        description={<BrainDescription ns={ns} />}
         action={
           <Badge variant="outline">
             {d ? t("overview.memoriesBadge", { count: formatNumber(d.memories) }) : t("overview.brainBadge")}

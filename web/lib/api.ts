@@ -119,7 +119,18 @@ export type ActivityItem = {
   latencyMs: number;
 };
 
-export type NamespaceInfo = { namespace: string; memories: number; lastAt: string };
+// Brain list items carry the brain's profile summary (display name, colour, icon, avatar).
+export type NamespaceInfo = {
+  namespace: string;
+  memories: number;
+  lastAt: string;
+  displayName?: string;
+  description?: string;
+  color?: string;
+  colorHex?: string;
+  icon?: string;
+  imageUrl?: string;
+};
 
 // Derived hierarchy graph: root -> type nodes -> entity nodes.
 // `group` is "root" | "type" | "<typename>" (used to color nodes).

@@ -77,6 +77,13 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/members", sec(s.SetMember))
 	r.Post("/api/brain/members/remove", sec(s.RemoveMember))
 
+	// Brain profile (per-brain settings; profile.go).
+	r.Get("/api/brain/profile", sec(s.GetProfile))
+	r.Patch("/api/brain/profile", sec(s.PatchProfile))
+	r.Post("/api/brain/profile/image", sec(s.UploadProfileImage))
+	r.Delete("/api/brain/profile/image", sec(s.DeleteProfileImage))
+	r.Get("/api/brain/profile/image/{ns}/{kind}", sec(s.ServeProfileImage))
+
 	// Notes.
 	r.Get("/api/notes", sec(s.ListNotes))
 	r.Post("/api/notes", sec(s.CreateNote))

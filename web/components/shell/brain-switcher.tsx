@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { BrainAvatar, brainName } from "@/components/brains/brain-cells"
 import { useTranslations } from "@/lib/i18n"
 import { useBrains } from "@/lib/queries"
 
@@ -22,6 +23,7 @@ export function BrainSwitcher({ namespace }: { namespace: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const brains = useBrains()
+  const current = brains.data?.find((b) => b.namespace === namespace)
 
   function hrefFor(ns: string) {
     const prefix = `/${locale}/b/${encodeURIComponent(namespace)}`
@@ -40,11 +42,9 @@ export function BrainSwitcher({ namespace }: { namespace: string }) {
           />
         }
       >
-        <span className="flex size-6 shrink-0 items-center justify-center border border-line bg-grid-card text-xs font-medium text-grid-brand">
-          {namespace.slice(0, 1).toUpperCase()}
-        </span>
-        <span dir="ltr" className="hidden truncate text-sm font-medium sm:inline">
-          {namespace}
+        <BrainAvatar namespace={namespace} profile={current} size={24} />
+        <span dir="auto" className="hidden truncate text-sm font-medium sm:inline">
+          {current ? brainName(current) : namespace}
         </span>
         <ChevronsUpDownIcon className="text-grid-muted" />
       </DropdownMenuTrigger>
@@ -53,8 +53,9 @@ export function BrainSwitcher({ namespace }: { namespace: string }) {
           <DropdownMenuLabel>{t("shell.brains")}</DropdownMenuLabel>
           {(brains.data ?? []).map((b) => (
             <DropdownMenuItem key={b.namespace} onClick={() => router.push(hrefFor(b.namespace))}>
-              <span dir="ltr" className="min-w-0 flex-1 truncate">
-                {b.namespace}
+              <BrainAvatar namespace={b.namespace} profile={b} size={20} />
+              <span dir="auto" className="min-w-0 flex-1 truncate">
+                {brainName(b)}
               </span>
               <span className="text-xs text-grid-muted">{formatNumber(b.memories)}</span>
               {b.namespace === namespace ? <CheckIcon /> : null}

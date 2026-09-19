@@ -98,6 +98,12 @@ func TestToolTranslation(t *testing.T) {
 			func(b *fakeBackend) bool { return b.body["namespace"] == "new" }},
 		{"brain_delete", map[string]any{"namespace": "x", "confirm": "x"}, "POST", "/api/brain/brain/delete",
 			func(b *fakeBackend) bool { return b.body["confirm"] == "x" }},
+		{"brain_profile_get", map[string]any{"namespace": "x"}, "GET", "/api/brain/profile",
+			func(b *fakeBackend) bool { return b.query.Get("namespace") == "x" }},
+		{"brain_profile_update", map[string]any{"namespace": "x", "display_name": "X Brain", "color": "teal"}, "PATCH", "/api/brain/profile",
+			func(b *fakeBackend) bool {
+				return b.body["displayName"] == "X Brain" && b.body["color"] == "teal" && b.body["icon"] == nil
+			}},
 	}
 	for _, c := range cases {
 		b := &fakeBackend{}

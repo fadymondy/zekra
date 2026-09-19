@@ -156,6 +156,7 @@ func (f *fix) clean() {
 		`DELETE FROM entity_types WHERE namespace LIKE $1`,
 		`DELETE FROM edge_types WHERE namespace LIKE $1`,
 		`DELETE FROM brain_members WHERE namespace LIKE $1`,
+		`DELETE FROM brain_profiles WHERE namespace LIKE $1`,
 		`DELETE FROM namespace_grants WHERE namespace LIKE $1`,
 		`DELETE FROM memory_gaps WHERE namespace LIKE $1`,
 		`DELETE FROM memory_events WHERE namespace LIKE $1`,

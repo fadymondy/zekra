@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { LayoutGridIcon, ListIcon, LockIcon, PlusIcon, SearchIcon } from "lucide-react"
 
-import { BrainCard, BrainRow } from "@/components/brains/brain-cells"
+import { BrainCard, BrainRow, brainName } from "@/components/brains/brain-cells"
 import { DeleteBrainDialog, NewBrainDialog } from "@/components/brains/brain-dialogs"
 import { DetailStrip, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState } from "@/components/states"
@@ -39,13 +39,16 @@ export default function BrainsPage() {
   const brains = useMemo(() => {
     let rows = brainsQ.data ?? []
     const term = search.trim().toLowerCase()
-    if (term) rows = rows.filter((b) => b.namespace.toLowerCase().includes(term))
+    if (term)
+      rows = rows.filter((b) =>
+        [b.namespace, b.displayName ?? "", b.description ?? ""].some((s) => s.toLowerCase().includes(term)),
+      )
     return [...rows].sort((a, b) => {
-      if (sort === "name") return a.namespace.localeCompare(b.namespace)
+      if (sort === "name") return brainName(a).localeCompare(brainName(b), locale)
       if (sort === "memories") return b.memories - a.memories
       return new Date(b.lastAt || 0).getTime() - new Date(a.lastAt || 0).getTime()
     })
-  }, [brainsQ.data, search, sort])
+  }, [brainsQ.data, search, sort, locale])
 
   const s = stats.data
   const loading = brainsQ.isLoading

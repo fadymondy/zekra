@@ -203,6 +203,11 @@ func (s *Service) CreateNote(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
 		return
 	}
+	if in.Category == nil || strings.TrimSpace(*in.Category) == "" {
+		if p, err := s.Store.Profile(r.Context(), in.Namespace); err == nil && p.DefaultNoteCategory != "" {
+			in.Category = &p.DefaultNoteCategory
+		}
+	}
 	n, err := s.Store.CreateNote(r.Context(), NoteInput{Namespace: in.Namespace, Title: deref(in.Title), Body: deref(in.Body),
 		Tags: deref(in.Tags), Pinned: deref(in.Pinned), Category: deref(in.Category)}, s.noteAuthor(r, in.Source))
 	if err != nil {
@@ -391,10 +396,20 @@ type BrainChoice struct {
 	Role      string `json:"role"` // admin | owner | editor | viewer
 	CanWrite  bool   `json:"canWrite"`
 	Memories  int    `json:"memories"`
+	ProfileSummary
 }
 
 func (s *Service) brainsFor(r *http.Request) ([]BrainChoice, error) {
-	return s.brainsForUser(r, s.identify(r))
+	out, err := s.brainsForUser(r, s.identify(r))
+	names := make([]string, len(out))
+	for i, b := range out {
+		names[i] = b.Namespace
+	}
+	profiles := s.Store.ProfileSummaries(r.Context(), names)
+	for i := range out {
+		out[i].ProfileSummary = profiles[out[i].Namespace]
+	}
+	return out, err
 }
 
 func (s *Service) brainsForUser(r *http.Request, c caller) ([]BrainChoice, error) {
@@ -451,13 +466,26 @@ func (s *Service) CreateBrain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var in struct {
-		Namespace string `json:"namespace"`
+		Namespace   string  `json:"namespace"`
+		DisplayName *string `json:"displayName"`
+		Color       *string `json:"color"`
+		Description *string `json:"description"`
+		Icon        *string `json:"icon"`
 	}
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10)).Decode(&in); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8<<10)).Decode(&in); err != nil {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "bad JSON body"))
 		return
 	}
 	in.Namespace = strings.TrimSpace(in.Namespace)
+	// Optional profile fields, validated before the brain is claimed.
+	patch := ProfilePatch{Namespace: in.Namespace, DisplayName: in.DisplayName, Color: in.Color, Description: in.Description, Icon: in.Icon}
+	hasProfile := in.DisplayName != nil || in.Color != nil || in.Description != nil || in.Icon != nil
+	if hasProfile {
+		if _, err := buildProfileSets(patch); err != nil {
+			writeErr(w, err)
+			return
+		}
+	}
 	var err error
 	role := "owner"
 	if sessionUser {
@@ -478,6 +506,12 @@ func (s *Service) CreateBrain(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		writeErr(w, err)
 		return
+	}
+	if hasProfile {
+		if _, err := s.Store.UpdateProfile(r.Context(), patch, c.agent); err != nil {
+			writeErr(w, err)
+			return
+		}
 	}
 	s.hub.publish("brain", map[string]any{"namespace": in.Namespace, "created": true})
 	writeJSON(w, http.StatusCreated, map[string]any{"namespace": in.Namespace, "role": role})

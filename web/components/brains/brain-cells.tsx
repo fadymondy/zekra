@@ -1,7 +1,8 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import Link from "next/link"
-import { ArrowRightIcon, CircleCheckIcon, CircleHelpIcon, DownloadIcon, EllipsisIcon, RocketIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
+import { ArrowRightIcon, CircleCheckIcon, CircleHelpIcon, DownloadIcon, EllipsisIcon, RocketIcon, SettingsIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
 
 import { ToneTag } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
@@ -10,24 +11,46 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { brainApi, type BrainDetail, type NamespaceInfo } from "@/lib/api"
+import { resolveColor, type ProfileSummary } from "@/lib/brain-profile"
 import { useTranslations } from "@/lib/i18n"
 import { useBrain } from "@/lib/queries"
 
-/** A brain's identity tile: a hairline square with a two-letter mono monogram and the brand's
- *  memory square in the corner. One accent for every brain; identity comes from the name. */
-export function BrainAvatar({ namespace, size = 40 }: { namespace: string; size?: number }) {
+/** A brain's identity tile: its avatar image when it has one; otherwise a hairline square with
+ *  its icon (emoji) or a two-letter mono monogram, tinted with the brain's colour, and the colour
+ *  as the memory square in the corner. */
+export function BrainAvatar({
+  namespace,
+  profile,
+  size = 40,
+}: {
+  namespace: string
+  profile?: ProfileSummary
+  size?: number
+}) {
   const mono = namespace.replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase() || "··"
+  const hex = profile?.colorHex || resolveColor(profile?.color)
+  const style: CSSProperties = { height: size, width: size, fontSize: Math.round(size * (profile?.icon ? 0.5 : 0.3)) }
+  if (hex) style.backgroundColor = `color-mix(in srgb, ${hex} 14%, transparent)`
+  if (profile?.imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- member-only API image, not optimizable
+      <img aria-hidden alt="" src={profile.imageUrl} className="shrink-0 border border-line object-cover" style={{ height: size, width: size }} />
+    )
+  }
   return (
     <span
       aria-hidden
       className="relative flex shrink-0 items-center justify-center border border-line bg-grid-soft font-mono font-medium text-grid-fg"
-      style={{ height: size, width: size, fontSize: Math.round(size * 0.3) }}
+      style={style}
     >
-      {mono}
-      <span className="absolute -end-px -top-px size-2 bg-grid-action" />
+      {profile?.icon ? <span className="font-sans leading-none">{profile.icon}</span> : mono}
+      <span className="absolute -end-px -top-px size-2 bg-grid-action" style={hex ? { backgroundColor: hex } : undefined} />
     </span>
   )
 }
+
+/** The brain's shown name: its display name, else the namespace. */
+export const brainName = (b: { namespace: string; displayName?: string }) => b.displayName?.trim() || b.namespace
 
 function BrainMenu({ namespace, onDelete }: { namespace: string; onDelete: () => void }) {
   const { t, locale } = useTranslations()
@@ -45,6 +68,10 @@ function BrainMenu({ namespace, onDelete }: { namespace: string; onDelete: () =>
         <DropdownMenuItem render={<Link href={`${base}/sessions`} />}>
           <RocketIcon />
           {t("brains.menu.launch")}
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={`${base}/settings`} />}>
+          <SettingsIcon />
+          {t("brainSettings.menu")}
         </DropdownMenuItem>
         <DropdownMenuItem render={<a href={brainApi.exportUrl(namespace)} download />}>
           <DownloadIcon />
@@ -114,16 +141,30 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
   const { t, locale, formatNumber, timeAgo } = useTranslations()
   const { data: d } = useBrain(b.namespace)
   const href = `/${locale}/b/${encodeURIComponent(b.namespace)}`
+  const name = brainName(b)
+  const hex = b.colorHex || resolveColor(b.color)
   return (
     <div className="group relative flex flex-col bg-grid-card transition-colors hover:bg-grid-soft focus-within:bg-grid-soft">
-      <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-transparent transition-colors group-hover:bg-grid-action" />
-      <Link href={href} aria-label={t("brains.openBrain", { brain: b.namespace })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-0.5 bg-transparent opacity-60 transition-[background-color,opacity] group-hover:bg-grid-action group-hover:opacity-100"
+        style={hex ? { backgroundColor: hex } : undefined}
+      />
+      <Link href={href} aria-label={t("brains.openBrain", { brain: name })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
 
       <div className="pointer-events-none relative z-10 flex items-start gap-3 p-4">
-        <BrainAvatar namespace={b.namespace} size={44} />
+        <BrainAvatar namespace={b.namespace} profile={b} size={44} />
         <div className="min-w-0 flex-1">
-          <Ltr className="block truncate text-base font-medium text-grid-fg">{b.namespace}</Ltr>
-          <div className="mt-1 text-[11px] text-grid-muted">{t("brains.updated", { when: b.lastAt ? timeAgo(b.lastAt) : t("common.never") })}</div>
+          <span className="block truncate text-base font-medium text-grid-fg">{name}</span>
+          <div className="mt-1 truncate text-[11px] text-grid-muted">
+            {name !== b.namespace ? (
+              <>
+                <Ltr mono>{b.namespace}</Ltr> ·{" "}
+              </>
+            ) : null}
+            {t("brains.updated", { when: b.lastAt ? timeAgo(b.lastAt) : t("common.never") })}
+          </div>
+          {b.description ? <p className="mt-2 line-clamp-2 text-xs text-grid-muted">{b.description}</p> : null}
         </div>
         <div className="pointer-events-auto -me-1 -mt-1">
           <BrainMenu namespace={b.namespace} onDelete={onDelete} />
@@ -162,13 +203,19 @@ export function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => vo
   ]
   return (
     <li className="group relative flex items-center gap-3 px-6 py-3 transition-colors hover:bg-grid-soft">
-      <Link href={href} aria-label={t("brains.openBrain", { brain: b.namespace })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+      <Link href={href} aria-label={t("brains.openBrain", { brain: brainName(b) })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
       <div className="pointer-events-none">
-        <BrainAvatar namespace={b.namespace} size={36} />
+        <BrainAvatar namespace={b.namespace} profile={b} size={36} />
       </div>
       <div className="pointer-events-none min-w-0 flex-1">
-        <Ltr className="block truncate font-medium text-grid-fg">{b.namespace}</Ltr>
+        <span className="block truncate font-medium text-grid-fg">{brainName(b)}</span>
         <div className="mt-0.5 truncate text-[11px] text-grid-muted">
+          {brainName(b) !== b.namespace ? (
+            <>
+              <Ltr mono>{b.namespace}</Ltr> ·{" "}
+            </>
+          ) : null}
+          {b.description ? <span className="hidden lg:inline">{b.description} · </span> : null}
           {b.lastAt ? timeAgo(b.lastAt) : t("common.never")}
           <span className="sm:hidden"> · {t("brains.memoriesCount", { count: formatNumber(b.memories) })}</span>
         </div>

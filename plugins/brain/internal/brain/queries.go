@@ -97,6 +97,7 @@ type NamespaceInfo struct {
 	Namespace string    `json:"namespace"`
 	Memories  int       `json:"memories"`
 	LastAt    time.Time `json:"lastAt"`
+	ProfileSummary
 }
 
 func (s *Store) Namespaces(ctx context.Context) ([]NamespaceInfo, error) {

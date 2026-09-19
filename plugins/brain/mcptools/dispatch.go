@@ -246,7 +246,7 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	case "notes_adopt":
 		post("/api/notes/adopt", map[string]any{"namespace": args["namespace"]})
 	default:
-		if !callGraph(name, args, post, patch, get, del) {
+		if !callGraph(name, args, post, patch, get, del) && !callProfile(name, args, patch, get) {
 			return Result{}, ErrUnknownTool
 		}
 	}

@@ -42,6 +42,7 @@ export function brainNav(namespace: string): NavGroup[] {
     {
       label: "nav.settings",
       items: [
+        { href: `${b}/settings`, label: "brainSettings.nav", icon: SettingsIcon },
         { href: `${b}/secrets`, label: "nav.secrets", icon: LockIcon },
         { href: `${b}/permissions`, label: "nav.permissions", icon: KeyRoundIcon },
       ],
