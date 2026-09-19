@@ -236,3 +236,62 @@ scrolls). Its smallest text is 0.72em, so at 1440 x 900 that is about 14px.
     opacity: 0;
   }
 }
+
+/* ---- editing in place (the owner's editor; see edit.tsx) ----------------------- */
+.pres-edit {
+  border-radius: 0.2em;
+  outline: 1px dashed transparent;
+  outline-offset: 0.12em;
+  cursor: text;
+  transition: outline-color 120ms;
+  /* A field keeps its place in the text flow; only an empty one needs a box to click. */
+  min-width: 1ch;
+  -webkit-user-modify: read-write-plaintext-only;
+}
+.pres-edit:hover {
+  outline-color: color-mix(in oklab, var(--brand) 55%, transparent);
+}
+.pres-edit:focus {
+  outline: 2px solid var(--brand);
+  background: color-mix(in oklab, var(--brand) 6%, transparent);
+}
+.pres-edit[aria-invalid="true"] {
+  outline: 2px solid var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 8%, transparent);
+}
+.pres-edit:empty {
+  display: inline-block;
+  min-width: 4ch;
+}
+.pres-edit:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+  font-style: italic;
+  pointer-events: none;
+}
+.pres-edit-block {
+  display: block;
+  white-space: pre-wrap;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  text-align: start;
+}
+code > .pres-edit-block {
+  font-size: inherit;
+}
+.pres-edit-md {
+  border-radius: 0.3em;
+  outline: 1px dashed transparent;
+  outline-offset: 0.2em;
+  cursor: text;
+}
+.pres-edit-md:hover,
+.pres-edit-md:focus-visible {
+  outline-color: color-mix(in oklab, var(--brand) 55%, transparent);
+}
+/* Truncated labels open up while they are edited. */
+.truncate:has(> .pres-edit:focus) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}

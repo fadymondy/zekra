@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { PresTheme } from "./pres-theme"
+import { EditScope, Tx, TxMd } from "./edit"
 import { Md } from "./markdown"
 import { useReveal } from "@/lib/presentations/motion"
 import { PresIcon } from "./icon"
@@ -26,19 +27,19 @@ an http(s) or site URL; otherwise they render as a non-interactive label so a
 concept page never ships a button that does nothing.
 */
 
-function Cta({ label, href, variant = "default" }: { label?: string; href?: string; variant?: "default" | "outline" }) {
+function Cta({ label, href, variant = "default", p = "cta_label" }: { label?: string; href?: string; variant?: "default" | "outline"; p?: string }) {
   if (!label) return null
   if (!href) {
     return (
       <Badge variant="outline" className="h-8 px-3 text-sm">
-        {label}
+        <Tx p={p} v={label} />
       </Badge>
     )
   }
   const external = /^https?:/i.test(href)
   return (
     <Button variant={variant} size="lg" nativeButton={false} render={<a href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} />}>
-      {label}
+      <Tx p={p} v={label} />
     </Button>
   )
 }
@@ -97,20 +98,32 @@ function Section({
                 s.visual ? "min-w-0" : s.scene ? cn("max-w-2xl", !compact && "lg:max-w-[46%]") : "mx-auto max-w-4xl text-center",
               )}
             >
-              {s.eyebrow ? <p className="pres-eyebrow mb-3 text-sm font-medium text-brand">{s.eyebrow}</p> : null}
-              <h1 className={cn("pres-heading text-balance", compact ? "text-3xl" : s.visual ? "text-4xl sm:text-5xl" : "text-4xl sm:text-6xl")}>{s.heading}</h1>
-              {s.body ? <Md className={cn("mt-5 text-lg text-muted-foreground", !s.scene && !s.visual && "mx-auto max-w-2xl")}>{s.body}</Md> : null}
+              {s.eyebrow ? (
+                <p className="pres-eyebrow mb-3 text-sm font-medium text-brand">
+                  <Tx p="eyebrow" v={s.eyebrow} />
+                </p>
+              ) : null}
+              <h1 className={cn("pres-heading text-balance", compact ? "text-3xl" : s.visual ? "text-4xl sm:text-5xl" : "text-4xl sm:text-6xl")}>
+                <Tx p="heading" v={s.heading} />
+              </h1>
+              {s.body ? (
+                <TxMd p="body" raw={s.body}>
+                  <Md className={cn("mt-5 text-lg text-muted-foreground", !s.scene && !s.visual && "mx-auto max-w-2xl")}>{s.body}</Md>
+                </TxMd>
+              ) : null}
               <div className={cn("mt-8 flex flex-wrap gap-3", !s.scene && !s.visual && "justify-center")}>
                 <Cta label={s.cta_label} href={s.cta_href} />
               </div>
             </div>
             {s.visual ? (
               <div data-hero-visual className="min-w-0">
-                {s.visual.type === "screen" ? (
-                  <ScreenView block={s.visual} dir={dir} animate={animate} compact className="pres-screen-text" />
-                ) : (
-                  <WorkflowView block={s.visual} dir={dir} animate={animate} compact className="text-base" />
-                )}
+                <EditScope at="visual">
+                  {s.visual.type === "screen" ? (
+                    <ScreenView block={s.visual} dir={dir} animate={animate} compact className="pres-screen-text" />
+                  ) : (
+                    <WorkflowView block={s.visual} dir={dir} animate={animate} compact className="text-base" />
+                  )}
+                </EditScope>
               </div>
             ) : null}
           </div>
@@ -119,8 +132,16 @@ function Section({
     case "features":
       return (
         <section className={cn("pres-section border-b", pad)}>
-          {s.heading ? <h2 className="pres-heading mb-3 text-3xl text-balance">{s.heading}</h2> : null}
-          {s.body ? <Md className="mb-8 max-w-2xl text-muted-foreground">{s.body}</Md> : null}
+          {s.heading ? (
+            <h2 className="pres-heading mb-3 text-3xl text-balance">
+              <Tx p="heading" v={s.heading} />
+            </h2>
+          ) : null}
+          {s.body ? (
+            <TxMd p="body" raw={s.body}>
+              <Md className="mb-8 max-w-2xl text-muted-foreground">{s.body}</Md>
+            </TxMd>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {s.items.map((it, i) => {
               return (
@@ -129,10 +150,14 @@ function Section({
                     <div className="mb-2 flex size-9 items-center justify-center rounded-lg border bg-muted text-brand">
                       {it.icon ? <PresIcon name={it.icon} className="size-4" /> : <span className="size-2 rounded-full bg-brand" aria-hidden />}
                     </div>
-                    <CardTitle>{it.title}</CardTitle>
+                    <CardTitle>
+                      <Tx p={`items.${i}.title`} v={it.title} />
+                    </CardTitle>
                     {it.body ? (
                       <CardDescription>
-                        <Md>{it.body}</Md>
+                        <TxMd p={`items.${i}.body`} raw={it.body}>
+                          <Md>{it.body}</Md>
+                        </TxMd>
                       </CardDescription>
                     ) : null}
                   </CardHeader>
@@ -145,21 +170,39 @@ function Section({
     case "pricing":
       return (
         <section className={cn("pres-section border-b", pad)}>
-          {s.heading ? <h2 className="pres-heading mb-3 text-3xl">{s.heading}</h2> : null}
-          {s.body ? <Md className="mb-8 max-w-2xl text-muted-foreground">{s.body}</Md> : null}
+          {s.heading ? (
+            <h2 className="pres-heading mb-3 text-3xl">
+              <Tx p="heading" v={s.heading} />
+            </h2>
+          ) : null}
+          {s.body ? (
+            <TxMd p="body" raw={s.body}>
+              <Md className="mb-8 max-w-2xl text-muted-foreground">{s.body}</Md>
+            </TxMd>
+          ) : null}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {s.plans.map((p, i) => (
               <Card key={i} data-reveal className={cn("pres-glow", p.highlighted && "ring-2 ring-brand")}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between gap-2">
-                    {p.name}
+                    <Tx p={`plans.${i}.name`} v={p.name} />
                     {p.highlighted ? <Badge>★</Badge> : null}
                   </CardTitle>
                   <p className="mt-2">
-                    <bdi className="text-3xl font-semibold tabular-nums">{p.price}</bdi>
-                    {p.period ? <span className="ms-1 text-muted-foreground">{p.period}</span> : null}
+                    <bdi className="text-3xl font-semibold tabular-nums">
+                      <Tx p={`plans.${i}.price`} v={p.price} />
+                    </bdi>
+                    {p.period ? (
+                      <span className="ms-1 text-muted-foreground">
+                        <Tx p={`plans.${i}.period`} v={p.period} />
+                      </span>
+                    ) : null}
                   </p>
-                  {p.description ? <CardDescription>{p.description}</CardDescription> : null}
+                  {p.description ? (
+                    <CardDescription>
+                      <Tx p={`plans.${i}.description`} v={p.description} />
+                    </CardDescription>
+                  ) : null}
                 </CardHeader>
                 {p.features?.length ? (
                   <CardContent>
@@ -167,7 +210,9 @@ function Section({
                       {p.features.map((f, j) => (
                         <li key={j} className="flex gap-2">
                           <CheckIcon className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-                          {f}
+                          <span className="min-w-0 flex-1">
+                            <Tx p={`plans.${i}.features.${j}`} v={f} list={{ path: `plans.${i}.features`, index: j }} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -175,7 +220,7 @@ function Section({
                 ) : null}
                 {p.cta_label ? (
                   <CardFooter>
-                    <Cta label={p.cta_label} />
+                    <Cta label={p.cta_label} p={`plans.${i}.cta_label`} />
                   </CardFooter>
                 ) : null}
               </Card>
@@ -187,10 +232,19 @@ function Section({
       return (
         <section className={cn("pres-section border-b text-center", pad)}>
           <blockquote data-reveal className="mx-auto max-w-3xl">
-            <p className="pres-heading text-2xl text-balance sm:text-3xl"><q>{s.quote}</q></p>
+            <p className="pres-heading text-2xl text-balance sm:text-3xl">
+              <q>
+                <Tx p="quote" v={s.quote} />
+              </q>
+            </p>
             <footer className="mt-5 text-muted-foreground">
-              {s.author}
-              {s.role ? ` · ${s.role}` : ""}
+              <Tx p="author" v={s.author} />
+              {s.role ? (
+                <>
+                  {" · "}
+                  <Tx p="role" v={s.role} />
+                </>
+              ) : null}
             </footer>
           </blockquote>
         </section>
@@ -198,8 +252,14 @@ function Section({
     case "cta":
       return (
         <section className={cn("pres-section border-b text-center", pad)}>
-          <h2 data-reveal className="pres-heading text-3xl text-balance sm:text-4xl">{s.heading}</h2>
-          {s.body ? <Md className="mx-auto mt-4 max-w-xl text-muted-foreground">{s.body}</Md> : null}
+          <h2 data-reveal className="pres-heading text-3xl text-balance sm:text-4xl">
+            <Tx p="heading" v={s.heading} />
+          </h2>
+          {s.body ? (
+            <TxMd p="body" raw={s.body}>
+              <Md className="mx-auto mt-4 max-w-xl text-muted-foreground">{s.body}</Md>
+            </TxMd>
+          ) : null}
           <div className="mt-8 flex justify-center">
             <Cta label={s.cta_label} href={s.cta_href} />
           </div>
@@ -208,13 +268,21 @@ function Section({
     case "gallery":
       return (
         <section className={cn("pres-section border-b", pad)}>
-          {s.heading ? <h2 className="pres-heading mb-6 text-3xl">{s.heading}</h2> : null}
+          {s.heading ? (
+            <h2 className="pres-heading mb-6 text-3xl">
+              <Tx p="heading" v={s.heading} />
+            </h2>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {s.images.map((im, i) => (
               <figure key={i} data-reveal className="overflow-hidden rounded-xl border">
                 {/* eslint-disable-next-line @next/next/no-img-element -- validated http(s) or site path */}
                 <img src={im.url} alt={im.alt} className="aspect-video w-full object-cover" loading="lazy" />
-                {im.caption ? <figcaption className="p-3 text-sm text-muted-foreground">{im.caption}</figcaption> : null}
+                {im.caption ? (
+                  <figcaption className="p-3 text-sm text-muted-foreground">
+                    <Tx p={`images.${i}.caption`} v={im.caption} />
+                  </figcaption>
+                ) : null}
               </figure>
             ))}
           </div>
@@ -225,8 +293,16 @@ function Section({
         <section className="border-b">
           {s.heading || s.body ? (
             <div className={cn("pres-section", compact ? "px-5 pt-8" : "px-5 pt-14 sm:px-10")}>
-              {s.heading ? <h2 className="pres-heading text-3xl">{s.heading}</h2> : null}
-              {s.body ? <Md className="mt-3 max-w-2xl text-muted-foreground">{s.body}</Md> : null}
+              {s.heading ? (
+                <h2 className="pres-heading text-3xl">
+                  <Tx p="heading" v={s.heading} />
+                </h2>
+              ) : null}
+              {s.body ? (
+                <TxMd p="body" raw={s.body}>
+                  <Md className="mt-3 max-w-2xl text-muted-foreground">{s.body}</Md>
+                </TxMd>
+              ) : null}
             </div>
           ) : null}
           <SceneView
@@ -283,7 +359,11 @@ export function PagePreview({
       <div dir={dir}>
         {content.sections.map((s, i) => (
           <Reveal key={i} enabled={motion && s.type !== "workflow" && s.type !== "screen"} immediate={i === 0}>
-            <Section s={s} dir={dir} compact={compact} sceneLabel={t("presentations.scene.label")} animate={motion} />
+            <EditScope at={`sections.${i}`}>
+              <div data-section={i}>
+                <Section s={s} dir={dir} compact={compact} sceneLabel={t("presentations.scene.label")} animate={motion} />
+              </div>
+            </EditScope>
           </Reveal>
         ))}
       </div>

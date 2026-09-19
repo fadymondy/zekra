@@ -8,6 +8,7 @@ import { drawPaths, reveal, whenVisible } from "@/lib/presentations/motion"
 import type { WorkflowBlock, WorkflowStep } from "@/lib/presentations/types"
 import { connector, rowsFor, workflowEdges, type Box } from "@/lib/presentations/workflow"
 import { Badge } from "@/components/ui/badge"
+import { EditScope, IfSet, Tx, TxMd } from "./edit"
 import { PresIcon } from "./icon"
 import { Md } from "./markdown"
 
@@ -55,14 +56,20 @@ function StepCard({ step, highlight, kindLabel }: { step: WorkflowStep; highligh
             <PresIcon name={step.icon ?? (kind === "decision" ? "git-branch" : kind === "human_review" ? "user-check" : kind === "system" ? "cpu" : undefined)} className="size-[1.1em]" />
           </span>
         </span>
-        <span className="min-w-0 flex-1 font-semibold leading-tight text-balance">{step.title}</span>
+        <span className="min-w-0 flex-1 font-semibold leading-tight text-balance">
+          <Tx p="title" v={step.title} />
+        </span>
       </div>
-      {step.text ? <p className="text-[0.85em] leading-snug text-muted-foreground">{step.text}</p> : null}
+      <IfSet v={step.text}>
+        <p className="text-[0.85em] leading-snug text-muted-foreground">
+          <Tx p="text" v={step.text} />
+        </p>
+      </IfSet>
       {step.owner || kind !== "step" ? (
         <div className="flex flex-wrap items-center gap-[0.35em]">
           {step.owner ? (
             <Badge variant="secondary" className="h-auto px-[0.5em] py-[0.1em] text-[0.75em]">
-              {step.owner}
+              <Tx p="owner" v={step.owner} />
             </Badge>
           ) : null}
           {kind !== "step" ? (
@@ -171,8 +178,16 @@ export function WorkflowView({
   let start = 0
   return (
     <figure ref={root} className={cn("pres-workflow w-full", className)} data-layout={vertical ? "vertical" : "horizontal"} dir={dir}>
-      {!compact && block.title ? <figcaption className="pres-heading mb-[0.4em] text-[1.4em] font-semibold">{block.title}</figcaption> : null}
-      {!compact && block.body ? <Md className="mb-[1em] max-w-2xl text-muted-foreground">{block.body}</Md> : null}
+      {!compact && block.title ? (
+        <figcaption className="pres-heading mb-[0.4em] text-[1.4em] font-semibold">
+          <Tx p="title" v={block.title} />
+        </figcaption>
+      ) : null}
+      {!compact && block.body ? (
+        <TxMd p="body" raw={block.body}>
+          <Md className="mb-[1em] max-w-2xl text-muted-foreground">{block.body}</Md>
+        </TxMd>
+      ) : null}
       <div ref={flow} className={cn("relative", arcs && "pt-[3.4em]", vertical && edges.some((e) => Math.abs(e.to - e.from) > 1) && "px-[3.2em]")}>
         <svg
           aria-hidden
@@ -204,6 +219,7 @@ export function WorkflowView({
         </svg>
         <div className={cn("relative flex flex-col p-[8px]", vertical ? "gap-[2.2em]" : "gap-[2.6em]")}>
           {rows.map((count, r) => {
+            const rowStart = start
             const row = block.steps.slice(start, start + count)
             start += count
             return (
@@ -211,9 +227,11 @@ export function WorkflowView({
                 key={r}
                 className={cn("flex items-stretch justify-center", vertical ? "mx-auto w-full max-w-[26em]" : "gap-[2.6em]")}
               >
-                {row.map((s) => (
-                  <div key={s.id} className={cn("flex min-w-0", vertical ? "w-full" : "flex-1 basis-0")} style={vertical ? undefined : { maxWidth: "16em" }}>
-                    <StepCard step={s} highlight={s.id === block.highlight} kindLabel={t(`presentations.workflow.kind.${s.kind ?? "step"}`)} />
+                {row.map((s, k) => (
+                  <div key={rowStart + k} className={cn("flex min-w-0", vertical ? "w-full" : "flex-1 basis-0")} style={vertical ? undefined : { maxWidth: "16em" }}>
+                    <EditScope at={`steps.${rowStart + k}`}>
+                      <StepCard step={s} highlight={s.id === block.highlight} kindLabel={t(`presentations.workflow.kind.${s.kind ?? "step"}`)} />
+                    </EditScope>
                   </div>
                 ))}
               </div>
@@ -233,7 +251,11 @@ export function WorkflowView({
           ) : null,
         )}
       </div>
-      {!compact && block.caption ? <p className="mt-[0.8em] text-[0.85em] text-muted-foreground">{block.caption}</p> : null}
+      {!compact && block.caption ? (
+        <p className="mt-[0.8em] text-[0.85em] text-muted-foreground">
+          <Tx p="caption" v={block.caption} />
+        </p>
+      ) : null}
     </figure>
   )
 }

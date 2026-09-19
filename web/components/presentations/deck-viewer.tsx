@@ -188,7 +188,7 @@ export function DeckViewer({
       onKeyDown={fill ? undefined : onKey}
       className={cn(
         "pres-root flex flex-col bg-background text-foreground outline-none",
-        fill ? "min-h-0 flex-1" : "h-full min-h-[320px]",
+        fill ? "min-h-0 flex-1" : "w-full",
         className,
       )}
       aria-roledescription="slide deck"
@@ -196,7 +196,14 @@ export function DeckViewer({
       <Progress value={((index + 1) / total) * 100} locale={dir === "rtl" ? "ar-EG" : "en-US"} aria-label={t("presentations.deck.progress")} className="gap-0 [&_[data-slot=progress-track]]:h-1 [&_[data-slot=progress-track]]:rounded-none" />
 
       <div
-        className="pres-deck-stage relative flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6"
+        className={cn(
+          "pres-deck-stage relative flex items-center justify-center p-3 sm:p-6",
+          // The stage is a size container (the slide is sized in cqh), so it needs a real
+          // height. The public view and full screen get it from the viewport. Embedded, the
+          // parent often has none (an auto-height card, a scroll box): the stage collapsed to
+          // a few pixels and the slide with it. There it takes its height from its own width.
+          fill || full ? "min-h-0 flex-1" : "aspect-video w-full flex-none",
+        )}
         onPointerDown={(e) => {
           if (e.pointerType !== "mouse") touch.current = { x: e.clientX, y: e.clientY }
         }}

@@ -37,7 +37,7 @@ export const ITEM_TEMPLATES: Record<Kind, Record<string, Obj>> = {
   deck: {
     title: { type: "title", title: "Title", subtitle: "Subtitle" },
     bullets: { type: "bullets", title: "Key points", bullets: ["First point", "Second point"] },
-    image: { type: "image", title: "Image", image_url: "/brand/og.png", alt: "Describe the image" },
+    image: { type: "image", title: "Image", image_url: "/site/og.png", alt: "Describe the image" },
     quote: { type: "quote", quote: "A quote worth repeating.", author: "Name" },
     metric: { type: "metric", title: "Numbers", metrics: [{ label: "Metric", value: "42%", trend: "up" }] },
     two_column: { type: "two_column", title: "Compare", left: { heading: "Left", bullets: ["Point"] }, right: { heading: "Right", bullets: ["Point"] } },
@@ -69,7 +69,7 @@ export const ITEM_TEMPLATES: Record<Kind, Record<string, Obj>> = {
     pricing: { type: "pricing", heading: "Plans", plans: [{ name: "Starter", price: "$49", period: "/month", features: ["Feature"] }] },
     testimonial: { type: "testimonial", quote: "It changed how we work.", author: "Customer" },
     cta: { type: "cta", heading: "Ready?", cta_label: "Talk to us", cta_href: "/en/contact" },
-    gallery: { type: "gallery", heading: "Screens", images: [{ url: "/brand/og.png", alt: "Screenshot" }] },
+    gallery: { type: "gallery", heading: "Screens", images: [{ url: "/site/og.png", alt: "Screenshot" }] },
     scene: { type: "scene", heading: "", scene: { type: "particles", params: {} }, height: "md" },
     workflow: WORKFLOW,
     screen: SCREEN,
@@ -101,4 +101,78 @@ export function move<T>(list: T[], from: number, to: number): T[] {
   const [item] = out.splice(from, 1)
   out.splice(to, 0, item)
   return out
+}
+
+// The starter text in Arabic, so "Add" in an Arabic document does not drop English into it.
+const AR: Record<string, string> = {
+  Title: "العنوان",
+  Subtitle: "العنوان الفرعي",
+  "Key points": "أهم النقاط",
+  "First point": "النقطة الأولى",
+  "Second point": "النقطة الثانية",
+  Image: "صورة",
+  "Describe the image": "صف الصورة",
+  "A quote worth repeating.": "اقتباس يستحق أن يُذكر.",
+  Name: "الاسم",
+  Numbers: "أرقام",
+  Metric: "مؤشر",
+  Compare: "مقارنة",
+  Left: "الأول",
+  Right: "الثاني",
+  Point: "نقطة",
+  Code: "شيفرة",
+  "Concept page": "صفحة التصور",
+  "How it works": "كيف يعمل",
+  Request: "الطلب",
+  Customer: "العميل",
+  Check: "المراجعة",
+  Delivered: "التسليم",
+  "The main screen": "الشاشة الرئيسية",
+  Dashboard: "لوحة المتابعة",
+  Orders: "الطلبات",
+  Open: "مفتوحة",
+  Item: "البند",
+  Owner: "المسؤول",
+  First: "الأول",
+  Team: "الفريق",
+  Done: "تم",
+  "What the team sees first": "أول ما يراه الفريق",
+  "Write the section here.": "اكتب القسم هنا.",
+  Value: "القيمة",
+  Note: "ملاحظة",
+  "Something to highlight.": "أمر يستحق الانتباه.",
+  Chart: "رسم بياني",
+  Series: "السلسلة",
+  Concept: "تصور",
+  "A clear promise": "وعد واضح",
+  "One sentence that explains it.": "جملة واحدة تشرح الفكرة.",
+  "Get started": "ابدأ الآن",
+  "Why it works": "لماذا ينجح",
+  Fast: "سريع",
+  "Explain.": "اشرح.",
+  Plans: "الباقات",
+  Starter: "الأساسية",
+  "/month": "/شهريًا",
+  Feature: "ميزة",
+  "It changed how we work.": "غيّر طريقة عملنا.",
+  "Ready?": "جاهز؟",
+  "Talk to us": "تحدث معنا",
+  Screens: "الشاشات",
+  Screenshot: "لقطة شاشة",
+  "New section": "قسم جديد",
+}
+
+// Never translated: they are data, not words.
+const KEEP = new Set(["type", "id", "icon", "kind", "frame", "layout", "tone", "trend", "chart", "language", "code", "url", "image_url", "cta_href", "document_id", "height", "from", "to"])
+
+/** A template with its starter words in the document's language. */
+export function localized<V>(value: V, locale: string): V {
+  if (locale !== "ar") return JSON.parse(JSON.stringify(value)) as V
+  const walk = (v: unknown, key?: string): unknown => {
+    if (typeof v === "string") return key && KEEP.has(key) ? v : (AR[v] ?? v)
+    if (Array.isArray(v)) return v.map((x) => walk(x, key))
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v as Obj).filter(([, x]) => x !== undefined).map(([k, x]) => [k, walk(x, k)]))
+    return v
+  }
+  return walk(value) as V
 }

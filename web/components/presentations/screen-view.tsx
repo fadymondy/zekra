@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { EditScope, Tx, useEditing } from "./edit"
 import { PresIcon } from "./icon"
 import { MapView } from "./map-view"
 
@@ -32,11 +33,11 @@ const TONE_CLASS: Record<Tone, string> = {
   danger: "border-destructive/40 bg-destructive/10 text-destructive",
 }
 
-function Status({ text, tone }: { text?: string; tone?: Tone }) {
+function Status({ text, tone, p }: { text?: string; tone?: Tone; p?: string }) {
   if (!text) return null
   return (
     <Badge variant="outline" className={cn("h-auto px-[0.5em] py-[0.1em] text-[0.86em] font-medium", TONE_CLASS[tone ?? "neutral"])}>
-      {text}
+      {p ? <Tx p={p} v={text} /> : text}
     </Badge>
   )
 }
@@ -44,7 +45,11 @@ function Status({ text, tone }: { text?: string; tone?: Tone }) {
 const WIDE = new Set(["kpis", "table", "board", "split", "callout", "map"])
 
 function PartTitle({ title }: { title?: string }) {
-  return title ? <p className="mb-[0.5em] text-[0.8em] font-semibold tracking-wide text-muted-foreground uppercase">{title}</p> : null
+  return title ? (
+    <p className="mb-[0.5em] text-[0.8em] font-semibold tracking-wide text-muted-foreground uppercase">
+      <Tx p="title" v={title} />
+    </p>
+  ) : null
 }
 
 function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: boolean; dir?: "ltr" | "rtl" }) {
@@ -57,16 +62,22 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
           {part.items.map((k, i) => (
             <div key={i} className="rounded-[0.6em] border bg-card p-[0.7em]">
               <div className="flex items-center justify-between gap-2 text-[0.84em] text-muted-foreground">
-                <span className="truncate">{k.label}</span>
+                <span className="truncate">
+                  <Tx p={`items.${i}.label`} v={k.label} />
+                </span>
                 <PresIcon name={k.icon} className="size-[1.1em] shrink-0 text-brand" />
               </div>
               <div className="mt-[0.2em] text-[1.45em] font-semibold tabular-nums">
-                <bdi>{k.value}</bdi>
+                <bdi>
+                  <Tx p={`items.${i}.value`} v={k.value} />
+                </bdi>
               </div>
               {k.delta ? (
                 <div className="flex items-center gap-1 text-[0.75em] text-muted-foreground">
                   {k.trend === "up" ? <ArrowUpIcon className="size-[1em]" aria-hidden /> : k.trend === "down" ? <ArrowDownIcon className="size-[1em]" aria-hidden /> : <MinusIcon className="size-[1em]" aria-hidden />}
-                  <bdi>{k.delta}</bdi>
+                  <bdi>
+                    <Tx p={`items.${i}.delta`} v={k.delta} />
+                  </bdi>
                 </div>
               ) : null}
             </div>
@@ -84,14 +95,20 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
               {part.rows.map((r, i) => (
                 <div key={i} data-row className="rounded-[0.6em] border bg-card p-[0.65em]">
                   <div className="flex items-center justify-between gap-[0.5em]">
-                    <span className="min-w-0 truncate font-semibold">{r.cells[0] ?? ""}</span>
-                    <Status text={r.status} tone={r.tone} />
+                    <span className="min-w-0 truncate font-semibold">
+                      <Tx p={`rows.${i}.cells.0`} v={r.cells[0] ?? ""} />
+                    </span>
+                    <Status text={r.status} tone={r.tone} p={`rows.${i}.status`} />
                   </div>
                   {part.columns.slice(1).map((c, j) =>
                     r.cells[j + 1] ? (
                       <div key={j} className="mt-[0.15em] flex justify-between gap-[0.5em] text-[0.85em]">
-                        <span className="text-muted-foreground">{c}</span>
-                        <span className="min-w-0 truncate">{r.cells[j + 1]}</span>
+                        <span className="text-muted-foreground">
+                          <Tx p={`columns.${j + 1}`} v={c} />
+                        </span>
+                        <span className="min-w-0 truncate">
+                          <Tx p={`rows.${i}.cells.${j + 1}`} v={r.cells[j + 1]} />
+                        </span>
                       </div>
                     ) : null,
                   )}
@@ -110,7 +127,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                 <TableRow>
                   {part.columns.map((c, i) => (
                     <TableHead key={i} className="h-[2.4em]">
-                      {c}
+                      <Tx p={`columns.${i}`} v={c} />
                     </TableHead>
                   ))}
                   {hasStatus ? <TableHead className="h-[2.4em]" /> : null}
@@ -121,12 +138,12 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                   <TableRow key={i}>
                     {part.columns.map((_, j) => (
                       <TableCell key={j} className="py-[0.5em] whitespace-normal">
-                        {r.cells[j] ?? ""}
+                        <Tx p={`rows.${i}.cells.${j}`} v={r.cells[j] ?? ""} placeholder="—" />
                       </TableCell>
                     ))}
                     {hasStatus ? (
                       <TableCell className="py-[0.5em]">
-                        <Status text={r.status} tone={r.tone} />
+                        <Status text={r.status} tone={r.tone} p={`rows.${i}.status`} />
                       </TableCell>
                     ) : null}
                   </TableRow>
@@ -147,7 +164,9 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
               const StateIcon = f.state === "ok" ? CircleCheckIcon : f.state === "missing" ? CircleAlertIcon : f.state === "warning" ? TriangleAlertIcon : null
               return (
                 <div key={i} className="grid gap-[0.25em]">
-                  <span className="text-[0.84em] font-medium">{f.label}</span>
+                  <span className="text-[0.84em] font-medium">
+                    <Tx p={`fields.${i}.label`} v={f.label} />
+                  </span>
                   <div
                     className={cn(
                       "flex h-[2.3em] items-center gap-[0.4em] rounded-[0.45em] border bg-background px-[0.6em] text-[0.82em]",
@@ -156,7 +175,9 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                     )}
                   >
                     <span className={cn("min-w-0 flex-1 truncate", !f.value && "text-muted-foreground")}>
-                      <bdi>{f.value || "—"}</bdi>
+                      <bdi>
+                        <EditOr p={`fields.${i}.value`} v={f.value} empty="—" />
+                      </bdi>
                     </span>
                     {Icon ? <Icon className="size-[1em] text-muted-foreground" aria-hidden /> : null}
                     {StateIcon ? (
@@ -171,13 +192,17 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                       />
                     ) : null}
                   </div>
-                  {f.hint ? <span className="text-[0.72em] text-muted-foreground">{f.hint}</span> : null}
+                  {f.hint ? (
+                    <span className="text-[0.72em] text-muted-foreground">
+                      <Tx p={`fields.${i}.hint`} v={f.hint} />
+                    </span>
+                  ) : null}
                 </div>
               )
             })}
             {part.submit_label ? (
               <Button size="sm" className="mt-[0.2em] h-auto justify-self-start px-[0.8em] py-[0.35em] text-[0.85em]" tabIndex={-1} aria-disabled>
-                {part.submit_label}
+                <Tx p="submit_label" v={part.submit_label} />
               </Button>
             ) : null}
           </div>
@@ -248,10 +273,16 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.85em] font-medium leading-tight">{it.title}</div>
-                  {it.meta ? <div className="text-[0.72em] text-muted-foreground">{it.meta}</div> : null}
+                  <div className="text-[0.85em] font-medium leading-tight">
+                    <Tx p={`items.${i}.title`} v={it.title} list={{ path: "items", index: i }} />
+                  </div>
+                  {it.meta ? (
+                    <div className="text-[0.72em] text-muted-foreground">
+                      <Tx p={`items.${i}.meta`} v={it.meta} />
+                    </div>
+                  ) : null}
                 </div>
-                <Status text={it.status} tone={it.tone} />
+                <Status text={it.status} tone={it.tone} p={`items.${i}.status`} />
               </li>
             ))}
           </ol>
@@ -265,7 +296,9 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
             {part.columns.map((col, i) => (
               <div key={i} className="rounded-[0.6em] bg-muted/60 p-[0.5em]">
                 <div className="mb-[0.4em] flex items-center justify-between text-[0.84em] font-semibold">
-                  <span>{col.title}</span>
+                  <span>
+                    <Tx p={`columns.${i}.title`} v={col.title} />
+                  </span>
                   <span className="text-muted-foreground tabular-nums">{col.cards?.length ?? 0}</span>
                 </div>
                 <div className="grid gap-[0.4em]">
@@ -273,9 +306,15 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                     <div key={j} className={cn("rounded-[0.45em] border bg-card p-[0.5em] text-[0.84em]", c.tone && c.tone !== "neutral" && "border-s-[3px]", c.tone && TONE_CLASS[c.tone].split(" ")[0])}>
                       <div className="flex items-center gap-[0.35em] font-medium">
                         <PresIcon name={c.icon} className="size-[1em] text-brand" />
-                        <span className="min-w-0">{c.title}</span>
+                        <span className="min-w-0">
+                          <Tx p={`columns.${i}.cards.${j}.title`} v={c.title} />
+                        </span>
                       </div>
-                      {c.meta ? <div className="mt-[0.15em] text-muted-foreground">{c.meta}</div> : null}
+                      {c.meta ? (
+                        <div className="mt-[0.15em] text-muted-foreground">
+                          <Tx p={`columns.${i}.cards.${j}.meta`} v={c.meta} />
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -291,11 +330,13 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
             <div key={sideKey} className="grid content-start gap-[0.6em] rounded-[0.7em] border border-dashed p-[0.6em]">
               {(sideKey === "left" ? part.left_label : part.right_label) ? (
                 <Badge variant={sideKey === "left" ? "outline" : "default"} className="justify-self-start">
-                  {sideKey === "left" ? part.left_label : part.right_label}
+                  <Tx p={`${sideKey}_label`} v={sideKey === "left" ? part.left_label : part.right_label} />
                 </Badge>
               ) : null}
               {part[sideKey].map((p, i) => (
-                <Part key={i} part={p} phone={phone} dir={dir} />
+                <EditScope key={i} at={`${sideKey}.${i}`}>
+                  <Part part={p} phone={phone} dir={dir} />
+                </EditScope>
               ))}
             </div>
           ))}
@@ -307,8 +348,14 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
         <div className={cn("flex gap-[0.6em] rounded-[0.6em] border p-[0.7em] text-[0.85em]", TONE_CLASS[part.tone])}>
           <Icon className="mt-[0.1em] size-[1.1em] shrink-0" aria-hidden />
           <div className="min-w-0 text-foreground">
-            {part.title ? <div className="font-semibold">{part.title}</div> : null}
-            <div className="text-muted-foreground">{part.text}</div>
+            {part.title ? (
+              <div className="font-semibold">
+                <Tx p="title" v={part.title} />
+              </div>
+            ) : null}
+            <div className="text-muted-foreground">
+              <Tx p="text" v={part.text} />
+            </div>
           </div>
         </div>
       )
@@ -318,10 +365,20 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
         <figure className="overflow-hidden rounded-[0.6em] border bg-card">
           {/* eslint-disable-next-line @next/next/no-img-element -- validated http(s) or site path */}
           <img src={part.url} alt={part.alt} className="aspect-video w-full object-cover" loading="lazy" />
-          {part.caption ? <figcaption className="p-[0.5em] text-[0.75em] text-muted-foreground">{part.caption}</figcaption> : null}
+          {part.caption ? (
+            <figcaption className="p-[0.5em] text-[0.75em] text-muted-foreground">
+              <Tx p="caption" v={part.caption} />
+            </figcaption>
+          ) : null}
         </figure>
       )
   }
+}
+
+/** A value that shows a dash when empty for readers, and an empty field in the editor. */
+function EditOr({ p, v, empty }: { p: string; v?: string; empty: string }) {
+  const editing = useEditing()
+  return editing ? <Tx p={p} v={v} placeholder={empty} /> : <>{v || empty}</>
 }
 
 function Marker({ n }: { n: number }) {
@@ -400,7 +457,11 @@ export function ScreenView({
 
   return (
     <figure ref={root} className={cn("pres-screen @container/screenfig w-full", className)} dir={dir} data-focus={focus}>
-      {!compact && block.title ? <figcaption className="pres-heading mb-[0.6em] text-[1.4em] font-semibold">{block.title}</figcaption> : null}
+      {!compact && block.title ? (
+        <figcaption className="pres-heading mb-[0.6em] text-[1.4em] font-semibold">
+          <Tx p="title" v={block.title} />
+        </figcaption>
+      ) : null}
       <div className="relative grid gap-[1em]">
         <div
           data-reveal
@@ -416,11 +477,17 @@ export function ScreenView({
           <div className={cn("flex min-h-0 flex-col", layout === "sidebar" && "@md/screen:flex-row")}>
             {layout === "sidebar" ? (
               <nav className="hidden w-[11em] shrink-0 flex-col gap-[0.15em] border-e bg-muted/40 p-[0.6em] @md/screen:flex">
-                {block.screen_title ? <div className="mb-[0.4em] px-[0.4em] text-[0.8em] font-semibold">{block.screen_title}</div> : null}
+                {block.screen_title ? (
+                  <div className="mb-[0.4em] px-[0.4em] text-[0.8em] font-semibold">
+                    <Tx p="screen_title" v={block.screen_title} />
+                  </div>
+                ) : null}
                 {nav.map((n, i) => (
                   <span key={i} className={cn("flex items-center gap-[0.5em] rounded-[0.45em] px-[0.5em] py-[0.35em] text-[0.86em]", n.active ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
                     <PresIcon name={n.icon} className="size-[1em]" />
-                    <span className="truncate">{n.label}</span>
+                    <span className="truncate">
+                      <Tx p={`nav.${i}.label`} v={n.label} />
+                    </span>
                   </span>
                 ))}
               </nav>
@@ -430,7 +497,7 @@ export function ScreenView({
                 {nav.map((n, i) => (
                   <span key={i} className={cn("flex shrink-0 items-center gap-[0.35em] rounded-[0.45em] px-[0.5em] py-[0.25em] text-[0.86em]", n.active ? "bg-muted font-medium" : "text-muted-foreground")}>
                     <PresIcon name={n.icon} className="size-[1em]" />
-                    {n.label}
+                    <Tx p={`nav.${i}.label`} v={n.label} />
                   </span>
                 ))}
               </nav>
@@ -450,7 +517,9 @@ export function ScreenView({
                         : "[&>*:not(.pres-marks)]:opacity-40 [&>*:not(.pres-marks)]:saturate-50"),
                   )}
                 >
-                  <Part part={p} dir={dir} />
+                  <EditScope at={`parts.${i}`}>
+                    <Part part={p} dir={dir} />
+                  </EditScope>
                   {notes.has(i) ? (
                     <span className="pres-marks absolute -end-[0.35em] -top-[0.55em] z-10 flex gap-[0.2em]">
                       {notes.get(i)!.map((n) => (
@@ -476,13 +545,19 @@ export function ScreenView({
             {block.annotations.map((a, i) => (
               <li key={i} data-reveal className="flex items-start gap-[0.5em] text-[0.92em]">
                 <Marker n={i + 1} />
-                <span className="pt-[0.1em]">{a.text}</span>
+                <span className="pt-[0.1em]">
+                  <Tx p={`annotations.${i}.text`} v={a.text} />
+                </span>
               </li>
             ))}
           </ol>
         ) : null}
       </div>
-      {!compact && block.caption ? <p className="mt-[0.6em] text-[0.85em] text-muted-foreground">{block.caption}</p> : null}
+      {!compact && block.caption ? (
+        <p className="mt-[0.6em] text-[0.85em] text-muted-foreground">
+          <Tx p="caption" v={block.caption} />
+        </p>
+      ) : null}
     </figure>
   )
 }
@@ -523,7 +598,11 @@ export function PhoneScreen({
   const tabs = nav.length > 0 && block.layout !== "none"
   return (
     <figure ref={root} className={cn("pres-screen pres-phone @container/phonefig w-full", className)} dir={dir} data-frame="app" data-focus={focus}>
-      {!compact && block.title ? <figcaption className="pres-heading mb-[0.6em] text-[1.4em] font-semibold">{block.title}</figcaption> : null}
+      {!compact && block.title ? (
+        <figcaption className="pres-heading mb-[0.6em] text-[1.4em] font-semibold">
+          <Tx p="title" v={block.title} />
+        </figcaption>
+      ) : null}
       <div className={cn("flex flex-col items-center gap-[1.2em]", showNotes && block.annotations?.length && "@2xl/phonefig:flex-row @2xl/phonefig:items-center @2xl/phonefig:justify-center")}>
         <div
           data-reveal
@@ -559,7 +638,9 @@ export function PhoneScreen({
                       : "[&>*:not(.pres-marks)]:opacity-40 [&>*:not(.pres-marks)]:saturate-50"),
                 )}
               >
-                <Part part={p} phone dir={dir} />
+                <EditScope at={`parts.${i}`}>
+                  <Part part={p} phone dir={dir} />
+                </EditScope>
                 {marks.has(i) ? (
                   <span className="pres-marks absolute -end-[0.3em] -top-[0.5em] z-10 flex gap-[0.2em]">
                     {marks.get(i)!.map((n) => (
@@ -575,7 +656,9 @@ export function PhoneScreen({
               {nav.map((n, i) => (
                 <span key={i} data-active={n.active ? "" : undefined} className={cn("flex min-w-0 flex-col items-center gap-[0.15em] text-[0.72em]", n.active ? "font-semibold text-brand" : "text-muted-foreground")}>
                   <PresIcon name={n.icon ?? "layout-grid"} className="size-[1.5em]" />
-                  <span className="max-w-full truncate">{n.label}</span>
+                  <span className="max-w-full truncate">
+                    <Tx p={`nav.${i}.label`} v={n.label} />
+                  </span>
                 </span>
               ))}
             </nav>
@@ -589,13 +672,19 @@ export function PhoneScreen({
             {block.annotations.map((a, i) => (
               <li key={i} data-reveal className="flex items-start gap-[0.5em] text-[0.95em]">
                 <Marker n={i + 1} />
-                <span className="pt-[0.1em]">{a.text}</span>
+                <span className="pt-[0.1em]">
+                  <Tx p={`annotations.${i}.text`} v={a.text} />
+                </span>
               </li>
             ))}
           </ol>
         ) : null}
       </div>
-      {!compact && block.caption ? <p className="mt-[0.6em] text-center text-[0.85em] text-muted-foreground">{block.caption}</p> : null}
+      {!compact && block.caption ? (
+        <p className="mt-[0.6em] text-center text-[0.85em] text-muted-foreground">
+          <Tx p="caption" v={block.caption} />
+        </p>
+      ) : null}
     </figure>
   )
 }

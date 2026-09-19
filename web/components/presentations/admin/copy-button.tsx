@@ -7,13 +7,14 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/i18n"
 
-/** An icon button that copies `text` (a share link) and confirms with a toast. */
+/** A button that copies `text` (a share link) and confirms with a toast; children add a visible label. */
 export function CopyButton({
   text,
   variant = "outline",
   size = "icon",
+  children,
   ...props
-}: { text: string } & Omit<React.ComponentProps<typeof Button>, "onClick" | "children">) {
+}: { text: string } & Omit<React.ComponentProps<typeof Button>, "onClick">) {
   const { t } = useTranslations()
   const [done, setDone] = useState(false)
   const copy = async () => {
@@ -29,6 +30,7 @@ export function CopyButton({
   return (
     <Button type="button" variant={variant} size={size} onClick={copy} {...props}>
       {done ? <CheckIcon /> : <CopyIcon />}
+      {children}
     </Button>
   )
 }

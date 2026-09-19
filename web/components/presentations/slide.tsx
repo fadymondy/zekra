@@ -2,6 +2,7 @@ import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from "lucide-react"
 import { cn } from "cn"
 
 import { bulletIcon, bulletText, type PageContent, type Slide } from "@/lib/presentations/types"
+import { IfSet, NoEdit, Tx, TxMd } from "./edit"
 import { EmbedPreview } from "./embed-preview"
 import { FitBox } from "./fit-box"
 import { PresIcon } from "./icon"
@@ -34,7 +35,13 @@ export function SlideView({
   /** Where "Open the page" goes for an embedded page preview. */
   embedHref?: (documentId: string) => string | undefined
 }) {
-  const title = (t?: string) => (t ? <h2 className="pres-slide-title mb-[4cqh] font-semibold text-balance">{t}</h2> : null)
+  const title = (t?: string) => (
+    <IfSet v={t}>
+      <h2 className="pres-slide-title mb-[4cqh] font-semibold text-balance">
+        <Tx p="title" v={t} />
+      </h2>
+    </IfSet>
+  )
   switch (slide.type) {
     case "title":
       return (
@@ -44,9 +51,19 @@ export function SlideView({
               <PresIcon name={slide.icon} className="size-[55%]" />
             </span>
           ) : null}
-          {slide.eyebrow ? <p data-reveal className="pres-slide-body mb-[3cqh] font-medium text-brand">{slide.eyebrow}</p> : null}
-          <h1 data-reveal className="pres-slide-hero font-semibold text-balance">{slide.title}</h1>
-          {slide.subtitle ? <p data-reveal className="pres-slide-body mt-[4cqh] text-muted-foreground text-balance">{slide.subtitle}</p> : null}
+          <IfSet v={slide.eyebrow}>
+            <p data-reveal className="pres-slide-body mb-[3cqh] font-medium text-brand">
+              <Tx p="eyebrow" v={slide.eyebrow} />
+            </p>
+          </IfSet>
+          <h1 data-reveal className="pres-slide-hero font-semibold text-balance">
+            <Tx p="title" v={slide.title} />
+          </h1>
+          <IfSet v={slide.subtitle}>
+            <p data-reveal className="pres-slide-body mt-[4cqh] text-muted-foreground text-balance">
+              <Tx p="subtitle" v={slide.subtitle} />
+            </p>
+          </IfSet>
         </div>
       )
     case "bullets":
@@ -65,7 +82,9 @@ export function SlideView({
                   ) : (
                     <span aria-hidden className="mt-[0.55em] size-[0.45em] shrink-0 rounded-full bg-brand" />
                   )}
-                  <span>{bulletText(b)}</span>
+                  <span className="min-w-0 flex-1">
+                    <Tx p={typeof b === "string" ? `bullets.${i}` : `bullets.${i}.text`} v={bulletText(b)} list={{ path: "bullets", index: i }} />
+                  </span>
                 </li>
               )
             })}
@@ -78,21 +97,30 @@ export function SlideView({
           {title(slide.title)}
           {/* eslint-disable-next-line @next/next/no-img-element -- remote, validated http(s) or site path */}
           <img data-reveal src={slide.image_url} alt={slide.alt} className="mx-auto max-h-[60cqh] max-w-full rounded-lg border object-contain" />
-          {slide.caption ? <figcaption className="mt-[2cqh] text-center text-muted-foreground">{slide.caption}</figcaption> : null}
+          <IfSet v={slide.caption}>
+            <figcaption className="mt-[2cqh] text-center text-muted-foreground">
+              <Tx p="caption" v={slide.caption} />
+            </figcaption>
+          </IfSet>
         </figure>
       )
     case "quote":
       return (
         <blockquote className="flex h-full flex-col items-center justify-center text-center">
           <p data-reveal className="pres-slide-title max-w-[80cqw] font-medium text-balance">
-            <q>{slide.quote}</q>
+            <q>
+              <Tx p="quote" v={slide.quote} />
+            </q>
           </p>
-          {slide.author ? (
+          <IfSet v={slide.author}>
             <footer data-reveal className="pres-slide-body mt-[5cqh] text-muted-foreground">
-              {slide.author}
-              {slide.role ? ` · ${slide.role}` : ""}
+              <Tx p="author" v={slide.author} />
+              <IfSet v={slide.role}>
+                {" · "}
+                <Tx p="role" v={slide.role} />
+              </IfSet>
             </footer>
-          ) : null}
+          </IfSet>
         </blockquote>
       )
     case "metric":
@@ -104,7 +132,9 @@ export function SlideView({
               <div key={i} data-reveal className="rounded-xl border bg-card p-[2.5cqw]">
                 <div className="flex items-start justify-between gap-2">
                   <div className="pres-slide-title font-semibold tabular-nums">
-                    <bdi>{m.value}</bdi>
+                    <bdi>
+                      <Tx p={`metrics.${i}.value`} v={m.value} />
+                    </bdi>
                   </div>
                   {m.icon ? (
                     <span className="flex size-[max(1.8rem,6cqh)] shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
@@ -112,11 +142,15 @@ export function SlideView({
                     </span>
                   ) : null}
                 </div>
-                <div className="mt-[1cqh] text-muted-foreground">{m.label}</div>
+                <div className="mt-[1cqh] text-muted-foreground">
+                  <Tx p={`metrics.${i}.label`} v={m.label} />
+                </div>
                 {m.delta ? (
                   <div className="mt-[1cqh] flex items-center gap-1 text-sm">
                     {m.trend === "up" ? <ArrowUpIcon className="size-4" aria-hidden /> : m.trend === "down" ? <ArrowDownIcon className="size-4" aria-hidden /> : <MinusIcon className="size-4" aria-hidden />}
-                    <bdi>{m.delta}</bdi>
+                    <bdi>
+                      <Tx p={`metrics.${i}.delta`} v={m.delta} />
+                    </bdi>
                   </div>
                 ) : null}
               </div>
@@ -129,7 +163,9 @@ export function SlideView({
         <div className="flex h-full flex-col justify-center">
           {title(slide.title)}
           <div className="pres-two-col grid gap-[4cqw]">
-            {[slide.left, slide.right].map((c, i) => (
+            {[slide.left, slide.right].map((c, i) => {
+              const side = i === 0 ? "left" : "right"
+              return (
               <div key={i} data-reveal className={cn("space-y-[1.5cqh]", i === 1 && "pres-two-col-second")}>
                 {c.heading ? (
                   <h3 className="pres-slide-body flex items-center gap-[0.45em] font-semibold">
@@ -138,19 +174,24 @@ export function SlideView({
                         <PresIcon name={c.icon} className="size-[0.9em]" />
                       </span>
                     ) : null}
-                    {c.heading}
+                    <Tx p={`${side}.heading`} v={c.heading} />
                   </h3>
                 ) : null}
-                <Md>{c.body}</Md>
+                <TxMd p={`${side}.body`} raw={c.body}>
+                  <Md>{c.body}</Md>
+                </TxMd>
                 {c.bullets?.length ? (
                   <ul className="list-disc space-y-1 ps-5">
                     {c.bullets.map((b, j) => (
-                      <li key={j}>{b}</li>
+                      <li key={j}>
+                        <Tx p={`${side}.bullets.${j}`} v={b} list={{ path: `${side}.bullets`, index: j }} />
+                      </li>
                     ))}
                   </ul>
                 ) : null}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )
@@ -159,7 +200,9 @@ export function SlideView({
         <div className="flex h-full flex-col justify-center">
           {title(slide.title)}
           <pre dir="ltr" data-reveal className="max-h-[62cqh] overflow-auto rounded-lg border bg-muted/60 p-[2cqw] text-start font-mono text-[clamp(0.7rem,1.6cqw,1.1rem)] leading-relaxed">
-            <code>{slide.code}</code>
+            <code>
+              <Tx p="code" v={slide.code} multiline />
+            </code>
           </pre>
           {slide.language ? <p className="mt-2 font-mono text-xs text-muted-foreground">{slide.language}</p> : null}
         </div>
@@ -180,14 +223,24 @@ export function SlideView({
         return (
           <div className="pres-app-slide grid h-full min-h-0 items-center gap-[4cqw]">
             <div className="min-w-0 space-y-[2cqh]" data-reveal>
-              {slide.title ? <h2 className="pres-slide-title font-semibold text-balance">{slide.title}</h2> : null}
-              {slide.caption ? <p className="pres-slide-body text-muted-foreground">{slide.caption}</p> : null}
+              <IfSet v={slide.title}>
+                <h2 className="pres-slide-title font-semibold text-balance">
+                  <Tx p="title" v={slide.title} />
+                </h2>
+              </IfSet>
+              <IfSet v={slide.caption}>
+                <p className="pres-slide-body text-muted-foreground">
+                  <Tx p="caption" v={slide.caption} />
+                </p>
+              </IfSet>
               {slide.annotations?.length ? (
                 <ol className="pres-slide-body grid gap-[1.5cqh]" data-notes>
                   {slide.annotations.map((a, i) => (
                     <li key={i} className="flex items-start gap-[0.5em]">
                       <span className="flex size-[1.5em] shrink-0 items-center justify-center rounded-full bg-brand text-[0.9em] font-bold text-white">{i + 1}</span>
-                      <span>{a.text}</span>
+                      <span className="min-w-0 flex-1">
+                        <Tx p={`annotations.${i}.text`} v={a.text} />
+                      </span>
                     </li>
                   ))}
                 </ol>
@@ -203,7 +256,11 @@ export function SlideView({
       // that keeps its smallest text readable (production review).
       return (
         <div className="flex h-full min-h-0 flex-col">
-          {slide.title ? <h2 className="pres-slide-body mb-[2cqh] font-semibold text-balance">{slide.title}</h2> : null}
+          <IfSet v={slide.title}>
+            <h2 className="pres-slide-body mb-[2cqh] font-semibold text-balance">
+              <Tx p="title" v={slide.title} />
+            </h2>
+          </IfSet>
           <FitBox dir={dir} className="pres-slide-fit flex-1" minScale={0.8}>
             <ScreenView block={slide} dir={dir} animate={animate} compact className="pres-screen-slide" />
           </FitBox>
@@ -215,7 +272,8 @@ export function SlideView({
         <div className="flex h-full min-h-0 flex-col">
           {title(slide.title)}
           {emb ? (
-            <EmbedPreview
+            <NoEdit>
+              <EmbedPreview
               content={emb.content}
               style={emb.style}
               dir={dir}
@@ -223,6 +281,7 @@ export function SlideView({
               openLabel={labels.openPage}
               className="min-h-0 flex-1"
             />
+            </NoEdit>
           ) : (
             <p className="text-muted-foreground">{labels.missingEmbed}</p>
           )}

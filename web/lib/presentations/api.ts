@@ -15,6 +15,7 @@ import type {
   PLocale,
   PublicPresentation,
   Share,
+  ShareDomain,
   Status,
   Summary,
 } from "./types.ts"
@@ -40,11 +41,11 @@ async function failure(res: Response): Promise<ApiError> {
       title?: string
       message?: string
       error?: string | { message?: string }
-      errors?: { location?: string; path?: string; message?: string }[]
+      errors?: { location?: string; path?: string; message?: string; hint?: string }[]
     }
     const err = typeof body.error === "object" ? body.error?.message : body.error
     message = body.detail || err || body.message || body.title || message
-    errors = (body.errors ?? []).map((e) => ({ path: e.location ?? e.path ?? "", message: e.message ?? "" }))
+    errors = (body.errors ?? []).map((e) => ({ path: e.location ?? e.path ?? "", message: e.message ?? "", hint: e.hint }))
   } catch {
     /* no body */
   }
@@ -142,11 +143,76 @@ export const createFromBrain = (input: FromBrainInput) => call<FromBrainResult>(
 
 export type ShareCreated = { share: Share; token: string; url: string; recoverable: boolean }
 
-export const createShare = (id: string, input: { label?: string; locale?: PLocale; expires_in_days?: number }) =>
+export const createShare = (id: string, input: { label?: string; locale?: PLocale; expires_in_days?: number; domain_id?: string }) =>
   call<ShareCreated>(`/api/presentations/${enc(id)}/share`, { json: input })
 
 export const revokeShare = (id: string, shareId: string) =>
   call<{ revoked: number }>(`/api/presentations/${enc(id)}/shares/${enc(shareId)}`, { method: "DELETE" })
+
+/** Renames a link, moves its expiry or pins it to a domain. The token (and so the URL's path) stays. */
+export const updateShare = (id: string, shareId: string, input: { label?: string; expires_in_days?: number; expires_at?: string; domain_id?: string }) =>
+  call<Share>(`/api/presentations/${enc(id)}/shares/${enc(shareId)}`, { method: "PATCH", json: input })
+
+/**
+ * Revokes a link and makes a new one with the same label, language, expiry and domain — for an
+ * imported link whose address this server cannot show again. The old address stops working.
+ */
+export const reissueShare = (id: string, shareId: string) =>
+  call<ShareCreated>(`/api/presentations/${enc(id)}/shares/${enc(shareId)}/reissue`, { json: {} })
+
+// ---- share domains -----------------------------------------------------------
+// A brain can serve its share links from its own hosts (presentations_domains_handlers.go).
+// A server without the endpoints answers 404: listing then means "only the built-in host".
+
+export type DomainList = { domains: ShareDomain[]; supported: boolean; builtinHost: string }
+
+type RawDomain = {
+  id: string
+  host: string
+  verified: boolean
+  default: boolean
+  verifyRecord?: { type?: string; name?: string; value?: string } | null
+  cname?: { name?: string; target?: string } | null
+  lastError?: string | null
+  verifiedAt?: string | null
+  lastCheckedAt?: string | null
+}
+
+function toDomain(raw: RawDomain): ShareDomain {
+  return {
+    id: raw.id,
+    host: raw.host,
+    verified: Boolean(raw.verified),
+    default: Boolean(raw.default),
+    cname_name: raw.cname?.name || undefined,
+    cname_target: raw.cname?.target || undefined,
+    txt_name: raw.verifyRecord?.name || undefined,
+    txt_value: raw.verifyRecord?.value || undefined,
+    verified_at: raw.verifiedAt ?? null,
+    last_checked_at: raw.lastCheckedAt ?? null,
+    last_error: raw.lastError || null,
+  }
+}
+
+export async function listDomains(namespace: string): Promise<DomainList> {
+  try {
+    const out = await call<{ domains?: RawDomain[] | null; builtin?: { host?: string } }>(`/api/presentations/domains?namespace=${enc(namespace)}`)
+    return { domains: (out.domains ?? []).map(toDomain), supported: true, builtinHost: out.builtin?.host ?? "" }
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 404 || err.status === 405 || err.status === 501)) return { domains: [], supported: false, builtinHost: "" }
+    throw err
+  }
+}
+
+export const addDomain = (namespace: string, host: string) => call<RawDomain>(`/api/presentations/domains`, { json: { namespace, host } }).then(toDomain)
+
+/** Checks the DNS records now. The body is {} on purpose: the CSRF rule wants JSON. */
+export const verifyDomain = (id: string) => call<RawDomain>(`/api/presentations/domains/${enc(id)}/verify`, { json: {} }).then(toDomain)
+
+export const setDefaultDomain = (id: string, on = true) =>
+  call<RawDomain>(`/api/presentations/domains/${enc(id)}`, { method: "PATCH", json: { default: on } }).then(toDomain)
+
+export const deleteDomain = (id: string) => call<void>(`/api/presentations/domains/${enc(id)}`, { method: "DELETE" })
 
 // ---- server side -----------------------------------------------------------
 

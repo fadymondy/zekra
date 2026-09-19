@@ -4,6 +4,7 @@ import { cn } from "cn"
 import type { Block, ReportContent } from "@/lib/presentations/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { EditScope, IfSet, Tx, TxMd } from "./edit"
 import { Md } from "./markdown"
 import { ReportChart } from "./report-chart"
 import { ScreenView } from "./screen-view"
@@ -20,19 +21,29 @@ const TONES = {
   danger: { icon: CircleAlertIcon, className: "border-s-4 border-s-destructive" },
 } as const
 
-function BlockView({ block, locale, dir }: { block: Block; locale: string; dir: "ltr" | "rtl" }) {
+export function BlockView({ block, locale, dir }: { block: Block; locale: string; dir: "ltr" | "rtl" }) {
   switch (block.type) {
     case "markdown":
-      return <Md className="leading-relaxed">{block.text}</Md>
+      return (
+        <TxMd p="text" raw={block.text}>
+          <Md className="leading-relaxed">{block.text}</Md>
+        </TxMd>
+      )
     case "table":
       return (
         <div className="my-5 overflow-x-auto rounded-lg border">
           <Table>
-            {block.caption ? <TableCaption className="pb-3">{block.caption}</TableCaption> : null}
+            {block.caption ? (
+              <TableCaption className="pb-3">
+                <Tx p="caption" v={block.caption} />
+              </TableCaption>
+            ) : null}
             <TableHeader>
               <TableRow>
                 {block.columns.map((c, i) => (
-                  <TableHead key={i}>{c}</TableHead>
+                  <TableHead key={i}>
+                    <Tx p={`columns.${i}`} v={c} />
+                  </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
@@ -41,7 +52,7 @@ function BlockView({ block, locale, dir }: { block: Block; locale: string; dir: 
                 <TableRow key={i}>
                   {block.columns.map((_, j) => (
                     <TableCell key={j} className="whitespace-normal">
-                      {r[j] ?? ""}
+                      <Tx p={`rows.${i}.${j}`} v={r[j] ?? ""} placeholder="—" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -56,9 +67,15 @@ function BlockView({ block, locale, dir }: { block: Block; locale: string; dir: 
       return (
         <Alert className={cn("my-5", tone.className)} variant={block.tone === "danger" ? "destructive" : "default"}>
           <Icon />
-          {block.title ? <AlertTitle>{block.title}</AlertTitle> : null}
+          <IfSet v={block.title}>
+            <AlertTitle>
+              <Tx p="title" v={block.title} />
+            </AlertTitle>
+          </IfSet>
           <AlertDescription>
-            <Md>{block.text}</Md>
+            <TxMd p="text" raw={block.text}>
+              <Md>{block.text}</Md>
+            </TxMd>
           </AlertDescription>
         </Alert>
       )
@@ -89,8 +106,14 @@ export function ReportView({
     <article dir={dir} className="pres-root mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header className="border-b pb-8">
         <div className="mb-6 h-1 w-16 rounded-full bg-brand" aria-hidden />
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{content.title}</h1>
-        {content.subtitle ? <p className="mt-2 text-lg text-muted-foreground">{content.subtitle}</p> : null}
+        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          <Tx p="title" v={content.title} />
+        </h1>
+        <IfSet v={content.subtitle}>
+          <p className="mt-2 text-lg text-muted-foreground">
+            <Tx p="subtitle" v={content.subtitle} />
+          </p>
+        </IfSet>
         {preparedFor ? <p className="mt-4 text-sm text-muted-foreground">{preparedFor}</p> : null}
       </header>
 
@@ -109,19 +132,27 @@ export function ReportView({
         </nav>
       ) : null}
 
-      {content.summary ? (
+      <IfSet v={content.summary}>
         <section className="border-b py-8">
           <h2 className="mb-3 text-xl font-semibold">{labels.summary}</h2>
-          <Md className="text-lg leading-relaxed">{content.summary}</Md>
+          <TxMd p="summary" raw={content.summary}>
+            <Md className="text-lg leading-relaxed">{content.summary}</Md>
+          </TxMd>
         </section>
-      ) : null}
+      </IfSet>
 
       {content.sections.map((s, i) => (
-        <section key={i} id={`section-${i + 1}`} className="scroll-mt-20 py-8 [&+&]:border-t">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">{s.heading}</h2>
+        <section key={i} id={`section-${i + 1}`} data-section={i} className="scroll-mt-20 py-8 [&+&]:border-t">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight">
+            <Tx p={`sections.${i}.heading`} v={s.heading} />
+          </h2>
           <div className="space-y-4">
             {s.blocks.map((b, j) => (
-              <BlockView key={j} block={b} locale={locale} dir={dir} />
+              <EditScope key={j} at={`sections.${i}.blocks.${j}`}>
+                <div data-block={`${i}.${j}`}>
+                  <BlockView block={b} locale={locale} dir={dir} />
+                </div>
+              </EditScope>
             ))}
           </div>
         </section>

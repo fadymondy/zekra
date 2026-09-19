@@ -17,6 +17,7 @@ import { toastError } from "@/components/admin/toast-error"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
 import { HatchBand, SectionHeader } from "@/components/page"
+import { ShareDomains } from "@/components/presentations/admin/share-domains"
 import { ErrorState, LoadingRows } from "@/components/states"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -98,6 +99,9 @@ export default function BrainSettingsPage() {
           <GeneralSection key={data.profile.updatedAt ?? "new"} ns={ns} profile={data.profile} edit={data.edit} palette={data.palette} />
           <AppearanceSection ns={ns} profile={data.profile} edit={data.edit} />
           <MembersSection ns={ns} edit={data.edit} />
+          <Section id="share-domains" title={t("presentations.domains.title")} hint={t("presentations.domains.hint")}>
+            <ShareDomains namespace={ns} canEdit={data.edit === "full"} />
+          </Section>
           <DangerSection ns={ns} edit={data.edit} />
         </>
       )}

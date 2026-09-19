@@ -186,7 +186,13 @@ export type Share = {
   label: string
   locale: PLocale
   hint: string
+  /** The full address — only for an active link whose token this server can unseal. */
   url: string
+  /** False for an imported link: it works, but its address cannot be shown again (reissue it). */
+  recoverable?: boolean
+  /** The custom share domain the link was made for (absent = the app's own host). */
+  domain_id?: string | null
+  domain?: string | null
   expires_at: string | null
   revoked_at: string | null
   active: boolean
@@ -260,7 +266,7 @@ export type Catalog = {
   schemas: Record<string, unknown>
 }
 
-export type FieldError = { path: string; message: string }
+export type FieldError = { path: string; message: string; hint?: string }
 
 /** Where POST /api/presentations/from-brain drafts from (presentations.BrainSource in Go). */
 export type FromBrainSource =
@@ -268,3 +274,19 @@ export type FromBrainSource =
   | { kind: "query"; q: string; limit?: number }
   | { kind: "entity"; id: string }
   | { kind: "namespace"; limit?: number }
+
+/** A custom share domain of a brain (GET /api/presentations/domains). */
+export type ShareDomain = {
+  id: string
+  host: string
+  verified: boolean
+  default: boolean
+  /** The DNS records the API asks for: a CNAME to the app, and a TXT record proving ownership. */
+  cname_name?: string
+  cname_target?: string
+  txt_name?: string
+  txt_value?: string
+  verified_at?: string | null
+  last_checked_at?: string | null
+  last_error?: string | null
+}
