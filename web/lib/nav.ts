@@ -13,6 +13,7 @@ export const BRAINS_NAV: NavGroup[] = [
     items: [
       { href: "/brains", label: "nav.brains", icon: BrainIcon, exact: true },
       { href: "/connect", label: "nav.connect", icon: PlugZapIcon },
+      { href: "/admin/presentations", label: "nav.allPresentations", icon: PresentationIcon },
     ],
   },
   {
@@ -31,6 +32,7 @@ export function brainNav(namespace: string): NavGroup[] {
       items: [
         { href: b, label: "nav.overview", icon: NetworkIcon, exact: true },
         { href: `${b}/notes`, label: "nav.notes", icon: StickyNoteIcon },
+        { href: `${b}/presentations`, label: "nav.presentations", icon: PresentationIcon },
         { href: `${b}/chat`, label: "nav.chat", icon: MessagesSquareIcon },
         { href: `${b}/search`, label: "nav.search", icon: SearchIcon },
         { href: `${b}/sources`, label: "nav.sources", icon: PlugIcon },
@@ -72,6 +74,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin", label: "nav.adminOverview", icon: LayoutGridIcon, exact: true },
       { href: "/admin/users", label: "nav.users", icon: UsersIcon },
       { href: "/admin/brains", label: "nav.allBrains", icon: DatabaseIcon },
+      { href: "/admin/presentations", label: "nav.allPresentations", icon: PresentationIcon },
       { href: "/admin/tokens", label: "nav.tokens", icon: KeyRoundIcon },
       { href: "/admin/search", label: "nav.globalSearch", icon: SearchIcon },
       { href: "/admin/activity", label: "nav.systemActivity", icon: ChartColumnIcon },
