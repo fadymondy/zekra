@@ -5,7 +5,7 @@ FlowOS -> DuckDB analytics ETL.
 Moves the high-volume FlowOS *event* tables (counting data, not semantic recall)
 out of the production Postgres and into a local DuckDB file so that analytical
 questions can be answered with NUMBERS, fast, without touching prod and without
-polluting the vector brain. See docs/analytics.md for the why.
+polluting the vector brain. See contracts/internal/analytics.md for the why.
 
 Source  : FlowOS production Postgres, read via STRICTLY READ-ONLY transactions.
 Target  : data/flowos-analytics.duckdb (gitignored).

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Zekra** is a memory organ for AI agents (hybrid BM25 + vector recall on Postgres/
 VectorChord, hot/cold tiers, Redis L1, write-decision dedupe), built as a **togo** app
 (Go + sqlc + Atlas + GraphQL/REST, Vite/React console in `web/`). Design: `SPEC.md`;
-build plan: `PLAN.md`; decision log: `docs/decisions.md`; deploy: `DEPLOY.md`.
+build plan: `PLAN.md`; decision log: `contracts/internal/decisions.md`; deploy: `DEPLOY.md`.
 
 ## Commands
 
@@ -85,4 +85,4 @@ about auth gates?".
   on `stack_stacknet`.
 
 **Full mandatory ruleset: `.claude/rules/memory-first.md` (R1–R8).** Also see
-`docs/flowos-brain.md`.
+`contracts/internal/flowos-brain.md`.

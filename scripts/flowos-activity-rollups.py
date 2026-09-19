@@ -2,7 +2,7 @@
 """
 FlowOS activity ROLLUPS -> Zekra vector brain.
 
-The raw event tables live in DuckDB (see docs/analytics.md) because they are
+The raw event tables live in DuckDB (see contracts/internal/analytics.md) because they are
 counting data, not semantic content. That split is right, but it left the brain
 unable to answer *any* activity question -- "who was most active last week?",
 "which repo was hottest in July?" -- because the numbers sit in a file nothing

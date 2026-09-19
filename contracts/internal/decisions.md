@@ -100,5 +100,5 @@ lands. Mirrors togo's own driver-plugin pattern (`ai-openai`, `storage-s3`, `cac
 
 ## D1 — Engine-agnostic contracts first (Track 0)
 
-`db/schema.sql`, `contracts/tools.md`, `docs/capture-mode.md` are the source of truth and the
+`db/schema.sql`, `contracts/tools.md`, `contracts/internal/capture-mode.md` are the source of truth and the
 direct-on-Postgres fallback (SPEC §8), independent of ToGO and any live infra.

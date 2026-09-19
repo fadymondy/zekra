@@ -113,7 +113,7 @@ Secrets arrive via the app's env/secret mechanism from the infra agent; the buil
 ### 1.5.1 As-provisioned (infra §4 bundle + accepted deviations)
 
 The actual environment differs from the spec's assumptions in ways that don't change the Zekra
-contracts (full detail in `docs/decisions.md` D5). Accepted:
+contracts (full detail in `contracts/internal/decisions.md` D5). Accepted:
 
 - **Host:** P920 workstation, WSL2 + Docker Desktop — **not** Proxmox. Reverse proxy is **NPM**
   (Nginx Proxy Manager), not Caddy. From the workspace, stack services resolve at

@@ -55,7 +55,7 @@ ambiguous which brain, recall both (two calls) and merge.
 ## R8 — Keep the brain reachable
 The tools need the app on `:8080`. If `memory_recall` fails to connect, tell the user
 to run `bash /home/coder/run-cabrain.sh` (and confirm the workspace is on
-`stack_stacknet`). See `docs/flowos-brain.md`.
+`stack_stacknet`). See `contracts/internal/flowos-brain.md`.
 
 ## R9 — Keep the `cabrain` brain current (every update)
 After committing a set of changes to this project, **refresh the `cabrain` dev brain**
