@@ -3,8 +3,8 @@
 // Mahaam's official feedback widget (https://console.mahaam.app/embed/v1.js), the same dialog
 // Mahaam ships to every product: type, priority, details, screenshot, element picker, console
 // and network capture, "Powered by Mahaam". Reports land in the Zekra project on Mahaam.
-// Its floating "Report a problem" launcher shows on every page; the shell's header button
-// opens the same dialog.
+// Its floating launcher is off (data-launcher="false"): the dialog opens only from the shell's
+// "Report a problem" header button.
 import Script from "next/script"
 
 const MAHAAM_URL = process.env.NEXT_PUBLIC_MAHAAM_URL ?? "https://console.mahaam.app"
@@ -30,6 +30,7 @@ export function MahaamWidget({ locale }: { locale: string }) {
       src={`${MAHAAM_URL}/embed/v1.js`}
       data-key={FEEDBACK_KEY}
       data-locale={locale === "ar" ? "ar" : "en"}
+      data-launcher="false"
       strategy="afterInteractive"
     />
   )
