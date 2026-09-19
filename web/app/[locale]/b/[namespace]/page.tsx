@@ -1,12 +1,165 @@
 "use client"
 
+import { useMemo } from "react"
+import Link from "next/link"
 import { useParams } from "next/navigation"
+import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon } from "lucide-react"
 
-import { SectionHeader } from "@/components/page"
+import { ActivityRow } from "@/components/activity/activity-row"
+import { Ltr } from "@/components/copy-field"
+import { BrainGraphView } from "@/components/graph/graph-view"
+import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
+import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { useBrainActivity, useGraph, useSecretCount } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
+import { useBrain } from "@/lib/queries"
+import { useDocumentTitle } from "@/lib/title"
+
+function StatLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="underline decoration-line underline-offset-4 hover:decoration-grid-fg">
+      {children}
+    </Link>
+  )
+}
 
 export default function BrainOverviewPage() {
-  const { t } = useTranslations()
-  const { namespace } = useParams<{ namespace: string }>()
-  return <SectionHeader micro={t("nav.overview")} title={<span dir="ltr">{decodeURIComponent(namespace)}</span>} />
+  const { t, locale, formatNumber } = useTranslations()
+  const ns = decodeURIComponent(useParams<{ namespace: string }>().namespace)
+  useDocumentTitle(`${t("overview.micro")} · ${ns}`)
+  const base = `/${locale}/b/${encodeURIComponent(ns)}`
+
+  const detail = useBrain(ns)
+  const graph = useGraph(ns)
+  const secrets = useSecretCount(ns)
+  const activity = useBrainActivity(ns)
+
+  const d = detail.data
+  const nodes = graph.data?.nodes ?? []
+  const edges = graph.data?.edges ?? []
+  const nodeTotal = graph.data?.totalNodes || nodes.length
+  const edgeTotal = graph.data?.totalEdges || edges.length
+  const recent = activity.rows.slice(0, 8)
+  const gaps = d?.openGaps ?? 0
+
+  // Suggested questions from the brain's own named entities, so the page opens somewhere to go.
+  const suggestions = useMemo(() => {
+    const named = nodes.filter((n) => !["root", "type"].includes(n.group ?? "")).map((n) => n.name).filter(Boolean)
+    return Array.from(new Set(named)).slice(0, 4)
+  }, [nodes])
+
+  const num = (n: number | undefined, loading: boolean) => (loading || n === undefined ? "—" : formatNumber(n))
+
+  return (
+    <>
+      <SectionHeader
+        micro={t("overview.micro")}
+        title={<Ltr>{ns}</Ltr>}
+        action={
+          <Badge variant="outline">
+            {d ? t("overview.memoriesBadge", { count: formatNumber(d.memories) }) : t("overview.brainBadge")}
+          </Badge>
+        }
+      />
+
+      {detail.error ? <ErrorState error={detail.error} /> : null}
+
+      <DetailStrip
+        className="sm:grid-cols-3 lg:grid-cols-6"
+        items={[
+          { label: t("overview.stat.memories"), value: num(d?.memories, detail.isLoading) },
+          { label: t("overview.stat.nodes"), value: num(nodeTotal, graph.isLoading) },
+          { label: t("overview.stat.edges"), value: num(edgeTotal, graph.isLoading) },
+          { label: t("overview.stat.recalls"), value: num(d?.recalls, detail.isLoading) },
+          {
+            label: t("overview.stat.gaps"),
+            value: (
+              <StatLink href={`${base}/gaps`}>
+                <span className={gaps ? "text-grid-warn" : undefined}>{num(d?.openGaps, detail.isLoading)}</span>
+              </StatLink>
+            ),
+          },
+          {
+            label: t("overview.stat.secrets"),
+            value: <StatLink href={`${base}/secrets`}>{num(secrets.data, secrets.isLoading)}</StatLink>,
+          },
+        ]}
+      />
+
+      {/* Ask this brain: the recall panel as an invitation, seeded with the brain's own entities. */}
+      <section className="flex flex-col gap-4 border-b border-line bg-grid-card px-6 py-6 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <span aria-hidden className="size-2.5 shrink-0 bg-grid-action" />
+            <span className="text-[15px] font-medium text-grid-fg">
+              {t("overview.ask.title", { brain: "⁨" + ns + "⁩" })}
+            </span>
+          </div>
+          <p className="text-sm text-grid-body">{t("overview.ask.body")}</p>
+          {suggestions.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 pt-1.5">
+              {suggestions.map((s) => (
+                <Link
+                  key={s}
+                  href={`${base}/chat?q=${encodeURIComponent(t("overview.ask.suggestion", { topic: s }))}`}
+                  className="grid-chip transition-colors hover:text-grid-fg"
+                >
+                  {t("overview.ask.suggestion", { topic: "⁨" + s + "⁩" })}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <Button nativeButton={false} render={<Link href={`${base}/chat`} />}>
+          <MessagesSquareIcon />
+          {t("overview.ask.chat")}
+        </Button>
+      </section>
+
+      <SectionTitle
+        action={
+          graph.data?.derived ? <span className="grid-micro">{t("overview.graph.derived")}</span> : null
+        }
+      >
+        {t("overview.graph.title")}
+      </SectionTitle>
+      <div className="flex h-[600px] flex-col border-y border-line">
+        {graph.error ? (
+          <ErrorState error={graph.error} />
+        ) : nodes.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-grid-muted">
+            <NetworkIcon className="size-8 opacity-40" />
+            <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
+          </div>
+        ) : (
+          <BrainGraphView key={ns} data={graph.data!} namespace={ns} />
+        )}
+      </div>
+
+      <SectionTitle
+        action={
+          <Link href={`${base}/activity`} className="inline-flex items-center gap-1 text-xs text-grid-fg underline underline-offset-4">
+            {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
+          </Link>
+        }
+      >
+        {t("overview.recentActivity")}
+      </SectionTitle>
+      {activity.error ? (
+        <ErrorState error={activity.error} />
+      ) : activity.isLoading ? (
+        <LoadingRows rows={3} />
+      ) : recent.length === 0 ? (
+        <EmptyState title={t("overview.noActivity")} />
+      ) : (
+        <RowList label={t("overview.recentActivity")} className="mb-6">
+          {recent.map((a) => (
+            <ActivityRow key={a.id} a={a} />
+          ))}
+        </RowList>
+      )}
+    </>
+  )
 }

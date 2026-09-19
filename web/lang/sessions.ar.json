@@ -1,1 +1,24 @@
-{}
+{
+  "sessions.title": "الجلسات",
+  "sessions.micro": "الوكلاء",
+  "sessions.description": "ابدأ جلسة Claude Code مرتبطة بدماغ واحد برمز وصول محدود النطاق. الدماغ:",
+  "sessions.launch": "بدء جلسة",
+  "sessions.launchHint": "ابدأ جلسة Claude Code مرتبطة بـ",
+  "sessions.ready": "الجلسة جاهزة",
+  "sessions.allowWrites": "السماح بالكتابة",
+  "sessions.readHint": "قراءة فقط: يستطيع الوكيل الاسترجاع من هذا الدماغ دون أن يحفظ فيه.",
+  "sessions.writeHint": "قراءة وكتابة: يستطيع الوكيل الاسترجاع من هذا الدماغ وحفظ ذكريات جديدة فيه.",
+  "sessions.mint": "إنشاء رمز الجلسة",
+  "sessions.minting": "جارٍ الإنشاء…",
+  "sessions.another": "بدء جلسة أخرى",
+  "sessions.readOnly": "قراءة فقط",
+  "sessions.readWrite": "قراءة وكتابة",
+  "sessions.agent": "الوكيل",
+  "sessions.token": "رمز الجلسة",
+  "sessions.tokenOnce": "يظهر هذا الرمز مرة واحدة فقط. انسخه الآن.",
+  "sessions.mcpConfig": "إعداد MCP",
+  "sessions.howTo": "طريقة الاستخدام",
+  "sessions.step1": "انسخ الإعداد أعلاه إلى ملف .mcp.json في جذر مشروعك.",
+  "sessions.step2": "شغّل Claude Code في ذلك المجلد ووافق على خادم Zekra MCP.",
+  "sessions.step3": "اطلب منه الاسترجاع من الدماغ، ومع تفعيل الكتابة يستطيع حفظ ذكريات جديدة أيضًا."
+}

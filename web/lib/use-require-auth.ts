@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 
 import { useTranslations } from "@/lib/i18n"
 import { useMe } from "@/lib/queries"
+import { safeNext as strictNext } from "@/lib/auth"
 
 /**
  * Client-side guard: a session cookie that the API rejects (401) sends the visitor to login and
@@ -28,6 +29,5 @@ export function useRequireAuth() {
 
 /** Only same-app relative paths are honoured as a post-login destination. */
 export function safeNext(next: string | null | undefined, fallback: string): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback
-  return next
+  return strictNext(next) ?? fallback
 }

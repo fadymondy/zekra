@@ -1,1 +1,23 @@
-{}
+{
+  "gaps.micro": "جودة الاسترجاع",
+  "gaps.title": "فجوات المعرفة",
+  "gaps.description": "استعلامات استرجاع عادت بنتائج شحيحة أو فارغة. فهرِس ما يستحق الحفظ وتجاهل ما سواه.",
+  "gaps.filter": "تصفية حسب الحالة",
+  "gaps.filter.all": "الكل",
+  "gaps.status.open": "مفتوحة",
+  "gaps.status.indexed": "مفهرسة",
+  "gaps.status.dismissed": "متجاهَلة",
+  "gaps.count": "{count} فجوة",
+  "gaps.miss": "إخفاق واحد",
+  "gaps.misses": "{count} إخفاقات",
+  "gaps.firstSeen": "أول ظهور {date}",
+  "gaps.lastSeen": "آخر ظهور {date}",
+  "gaps.markIndexed": "تعليم كمفهرسة",
+  "gaps.dismiss": "تجاهل",
+  "gaps.reopen": "إعادة فتح",
+  "gaps.resolved.indexed": "عُلّمت الفجوة كمفهرسة.",
+  "gaps.resolved.dismissed": "تم تجاهل الفجوة.",
+  "gaps.resolved.open": "أُعيد فتح الفجوة.",
+  "gaps.empty": "لا فجوات هنا",
+  "gaps.emptyBody": "كل عمليات الاسترجاع تجد ذكريات."
+}

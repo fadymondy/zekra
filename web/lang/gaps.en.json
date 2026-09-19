@@ -1,1 +1,23 @@
-{}
+{
+  "gaps.micro": "Recall quality",
+  "gaps.title": "Knowledge gaps",
+  "gaps.description": "Recall queries that came back thin or empty. Index the ones worth capturing and dismiss the noise.",
+  "gaps.filter": "Filter by status",
+  "gaps.filter.all": "All",
+  "gaps.status.open": "Open",
+  "gaps.status.indexed": "Indexed",
+  "gaps.status.dismissed": "Dismissed",
+  "gaps.count": "{count} gaps",
+  "gaps.miss": "{count} miss",
+  "gaps.misses": "{count} misses",
+  "gaps.firstSeen": "First seen {date}",
+  "gaps.lastSeen": "Last seen {date}",
+  "gaps.markIndexed": "Mark indexed",
+  "gaps.dismiss": "Dismiss",
+  "gaps.reopen": "Reopen",
+  "gaps.resolved.indexed": "Gap marked as indexed.",
+  "gaps.resolved.dismissed": "Gap dismissed.",
+  "gaps.resolved.open": "Gap reopened.",
+  "gaps.empty": "No gaps here",
+  "gaps.emptyBody": "Every recall is finding memories."
+}

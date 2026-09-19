@@ -1,1 +1,27 @@
-{}
+{
+  "graph.view": "Graph view",
+  "graph.schema": "Schema",
+  "graph.spider": "Spider",
+  "graph.schemaHint": "Columnar memory-schema view",
+  "graph.spiderHint": "Force-directed spider view",
+  "graph.other": "Other · {count} types",
+  "graph.counts": "{nodes} nodes · {edges} edges",
+  "graph.showing": "showing {count}",
+  "graph.sampledTitle": "Drawing {shownNodes} of {nodes} nodes and {shownEdges} of {edges} edges",
+  "graph.focusedOn": "Focused on",
+  "graph.clearFocus": "Clear focus",
+  "graph.zoomIn": "Zoom in",
+  "graph.zoomOut": "Zoom out",
+  "graph.fit": "Fit to view",
+  "graph.fitReheat": "Fit and re-settle",
+  "graph.spiderHelp": "Drag to move · double-click to release · scroll to zoom",
+  "graph.node": "Node",
+  "graph.connections": "Connections",
+  "graph.noConnections": "No direct connections.",
+  "graph.memory": "Memory",
+  "graph.loadingMemory": "Loading memory…",
+  "graph.noMemory": "No memory content.",
+  "graph.loading": "Loading the graph…",
+  "graph.empty": "No graph yet. Retain memories to grow entities.",
+  "graph.mindmap": "Memory mindmap"
+}

@@ -1,1 +1,19 @@
-{}
+{
+  "overview.micro": "نظرة عامة",
+  "overview.memoriesBadge": "{count} ذكرى",
+  "overview.brainBadge": "دماغ",
+  "overview.stat.memories": "الذكريات",
+  "overview.stat.nodes": "عُقد المخطط",
+  "overview.stat.edges": "روابط المخطط",
+  "overview.stat.recalls": "الاسترجاع",
+  "overview.stat.gaps": "فجوات مفتوحة",
+  "overview.stat.secrets": "الأسرار",
+  "overview.ask.title": "اسأل دماغ {brain}",
+  "overview.ask.body": "وكيل مباشر لا يجيب إلا من ذكريات هذا الدماغ، ويذكر مصادره في كل إجابة.",
+  "overview.ask.suggestion": "حدّثني عن {topic}",
+  "overview.ask.chat": "محادثة",
+  "overview.graph.title": "مخطط المعرفة",
+  "overview.graph.derived": "مُشتق",
+  "overview.recentActivity": "آخر النشاط",
+  "overview.noActivity": "لا يوجد نشاط لهذا الدماغ بعد."
+}

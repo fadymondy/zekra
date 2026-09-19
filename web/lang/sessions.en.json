@@ -1,1 +1,24 @@
-{}
+{
+  "sessions.title": "Sessions",
+  "sessions.micro": "Agents",
+  "sessions.description": "Launch a Claude Code session bound to one brain with a scoped token. Brain:",
+  "sessions.launch": "Launch a session",
+  "sessions.launchHint": "Start a Claude Code session bound to",
+  "sessions.ready": "Session ready",
+  "sessions.allowWrites": "Allow writes",
+  "sessions.readHint": "Read-only: the agent can recall from this brain but not retain into it.",
+  "sessions.writeHint": "Read and write: the agent can recall from and retain into this brain.",
+  "sessions.mint": "Mint session token",
+  "sessions.minting": "Minting…",
+  "sessions.another": "Launch another",
+  "sessions.readOnly": "Read-only",
+  "sessions.readWrite": "Read and write",
+  "sessions.agent": "Agent",
+  "sessions.token": "Session token",
+  "sessions.tokenOnce": "This token is shown once. Copy it now.",
+  "sessions.mcpConfig": "MCP config",
+  "sessions.howTo": "How to use it",
+  "sessions.step1": "Copy the config above into .mcp.json at the root of your project.",
+  "sessions.step2": "Start Claude Code in that folder and approve the Zekra MCP server.",
+  "sessions.step3": "Ask it to recall from the brain. With writes on, it can retain new memories too."
+}

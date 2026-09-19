@@ -1,1 +1,23 @@
-{}
+{
+  "chat.title": "المحادثة",
+  "chat.micro": "المحادثة",
+  "chat.askThe": "اسأل الدماغ",
+  "chat.description": "وكيل مباشر يستند إلى ذكريات هذا الدماغ وحدها، وكل إجابة تذكر الذكريات التي اعتمدت عليها.",
+  "chat.newChat": "محادثة جديدة",
+  "chat.suggestions": "جرّب أن تسأل",
+  "chat.tellMeAbout": "حدّثني عن {name}",
+  "chat.emptyHint": "اسأل عن أي شيء قد يتذكره هذا الدماغ. ترفق كل إجابة مراجعها من الذكريات.",
+  "chat.thinking": "جارٍ استرجاع الذكريات والتفكير…",
+  "chat.placeholder": "اسأل دماغ {ns}…",
+  "chat.ask": "اسأل",
+  "chat.footnote": "تستند الإجابات إلى ذكريات هذا الدماغ وحدها وتذكر مراجعها. اضغط Enter للإرسال وShift+Enter لسطر جديد.",
+  "chat.sourceN": "المرجع {n}",
+  "chat.tracedFrom": "مصدر الإجابة",
+  "chat.recalledCount": "استُرجعت {n} ذكرى",
+  "chat.seconds": "{n} ث",
+  "chat.grounded": "مستندة إلى الذكريات",
+  "chat.ungrounded": "لا توجد ذكرى مطابقة",
+  "chat.citedOne": "مرجع واحد",
+  "chat.citedMany": "{n} مراجع",
+  "chat.score": "الدرجة {n}"
+}

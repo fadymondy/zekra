@@ -1,1 +1,27 @@
-{}
+{
+  "graph.view": "طريقة عرض المخطط",
+  "graph.schema": "أعمدة",
+  "graph.spider": "شبكة",
+  "graph.schemaHint": "عرض الذكريات في أعمدة حسب النوع",
+  "graph.spiderHint": "عرض شبكي تتوزّع فيه العُقد تلقائيًا",
+  "graph.other": "أخرى · {count} أنواع",
+  "graph.counts": "{nodes} عقدة · {edges} رابط",
+  "graph.showing": "المعروض {count}",
+  "graph.sampledTitle": "يُعرض {shownNodes} من {nodes} عقدة و{shownEdges} من {edges} رابط",
+  "graph.focusedOn": "التركيز على",
+  "graph.clearFocus": "إلغاء التركيز",
+  "graph.zoomIn": "تكبير",
+  "graph.zoomOut": "تصغير",
+  "graph.fit": "ملاءمة العرض",
+  "graph.fitReheat": "ملاءمة وإعادة الترتيب",
+  "graph.spiderHelp": "اسحب للتحريك · انقر مرتين للإفلات · مرّر للتكبير",
+  "graph.node": "عقدة",
+  "graph.connections": "الروابط",
+  "graph.noConnections": "لا توجد روابط مباشرة.",
+  "graph.memory": "الذكرى",
+  "graph.loadingMemory": "جارٍ تحميل الذكرى…",
+  "graph.noMemory": "لا يوجد محتوى لهذه الذكرى.",
+  "graph.loading": "جارٍ تحميل المخطط…",
+  "graph.empty": "لا يوجد مخطط بعد. احفظ ذكريات لتنمو الكيانات.",
+  "graph.mindmap": "خريطة الذكريات"
+}

@@ -1,1 +1,19 @@
-{}
+{
+  "overview.micro": "Overview",
+  "overview.memoriesBadge": "{count} memories",
+  "overview.brainBadge": "Brain",
+  "overview.stat.memories": "Memories",
+  "overview.stat.nodes": "Graph nodes",
+  "overview.stat.edges": "Graph edges",
+  "overview.stat.recalls": "Recalls",
+  "overview.stat.gaps": "Open gaps",
+  "overview.stat.secrets": "Secrets",
+  "overview.ask.title": "Ask the {brain} brain",
+  "overview.ask.body": "A live agent grounded only in this brain's memories. Every answer cites its sources.",
+  "overview.ask.suggestion": "Tell me about {topic}",
+  "overview.ask.chat": "Chat",
+  "overview.graph.title": "Memory graph",
+  "overview.graph.derived": "Derived",
+  "overview.recentActivity": "Recent activity",
+  "overview.noActivity": "No activity for this brain yet."
+}

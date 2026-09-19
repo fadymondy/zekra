@@ -1,1 +1,26 @@
-{}
+{
+  "activity.micro": "المراقبة",
+  "activity.title": "النشاط",
+  "activity.description": "كل عملية على {brain}، الأحدث أولًا.",
+  "activity.stat.operations": "العمليات",
+  "activity.stat.recalls": "الاسترجاع",
+  "activity.stat.writes": "الكتابة",
+  "activity.stat.errors": "الأخطاء",
+  "activity.log": "نشاط الذاكرة",
+  "activity.liveCount": "{count} عملية · مباشر",
+  "activity.empty": "لا يوجد نشاط بعد",
+  "activity.emptyBody": "كل عملية حفظ أو استرجاع على هذا الدماغ تظهر هنا.",
+  "activity.anonymous": "مجهول",
+  "activity.latency": "{ms} م.ث",
+  "activity.op.retain": "حفظ",
+  "activity.op.recall": "استرجاع",
+  "activity.op.reconsolidate": "إعادة تثبيت",
+  "activity.op.search": "بحث",
+  "activity.op.forget": "نسيان",
+  "activity.op.chat": "محادثة",
+  "activity.op.get": "جلب",
+  "activity.outcome.hit": "نتيجة",
+  "activity.outcome.empty": "فارغ",
+  "activity.outcome.error": "خطأ",
+  "activity.outcome.running": "قيد التنفيذ"
+}

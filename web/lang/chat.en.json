@@ -1,1 +1,23 @@
-{}
+{
+  "chat.title": "Chat",
+  "chat.micro": "Chat",
+  "chat.askThe": "Ask the brain",
+  "chat.description": "A live agent grounded only in this brain's memories. Every answer cites the memories it used.",
+  "chat.newChat": "New chat",
+  "chat.suggestions": "Try asking",
+  "chat.tellMeAbout": "Tell me about {name}",
+  "chat.emptyHint": "Ask anything this brain might remember. Answers cite the memories behind them.",
+  "chat.thinking": "Recalling memories and thinking…",
+  "chat.placeholder": "Ask the {ns} brain…",
+  "chat.ask": "Ask",
+  "chat.footnote": "Answers are grounded only in this brain's memories and cite their sources. Enter to send, Shift+Enter for a new line.",
+  "chat.sourceN": "Source {n}",
+  "chat.tracedFrom": "Traced from",
+  "chat.recalledCount": "{n} memories recalled",
+  "chat.seconds": "{n}s",
+  "chat.grounded": "Grounded",
+  "chat.ungrounded": "No matching memory",
+  "chat.citedOne": "1 citation",
+  "chat.citedMany": "{n} citations",
+  "chat.score": "score {n}"
+}

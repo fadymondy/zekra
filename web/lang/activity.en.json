@@ -1,1 +1,26 @@
-{}
+{
+  "activity.micro": "Observe",
+  "activity.title": "Activity",
+  "activity.description": "Every operation against {brain}, newest first.",
+  "activity.stat.operations": "Operations",
+  "activity.stat.recalls": "Recalls",
+  "activity.stat.writes": "Writes",
+  "activity.stat.errors": "Errors",
+  "activity.log": "Memory activity",
+  "activity.liveCount": "{count} ops · live",
+  "activity.empty": "No activity yet",
+  "activity.emptyBody": "Every retain and recall against this brain shows up here.",
+  "activity.anonymous": "Anonymous",
+  "activity.latency": "{ms} ms",
+  "activity.op.retain": "Retain",
+  "activity.op.recall": "Recall",
+  "activity.op.reconsolidate": "Reconsolidate",
+  "activity.op.search": "Search",
+  "activity.op.forget": "Forget",
+  "activity.op.chat": "Chat",
+  "activity.op.get": "Get",
+  "activity.outcome.hit": "hit",
+  "activity.outcome.empty": "empty",
+  "activity.outcome.error": "error",
+  "activity.outcome.running": "running"
+}
