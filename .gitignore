@@ -9,7 +9,7 @@
 /db/atlas/migrations/atlas.sum
 .DS_Store
 
-# CaBrain — secrets never committed (infra agent owns these; SPEC §1.5)
+# Zekra — secrets never committed (infra agent owns these; SPEC §1.5)
 .env.*
 !.env.example
 *.secrets
@@ -26,12 +26,12 @@ __pycache__/
 *.duckdb
 *.duckdb.wal
 
-# The CLI is its OWN repo (github.com/togo-framework/cabrain-cli) that people clone
+# The CLI is its OWN repo (github.com/fadymondy/zekra-cli) that people clone
 # side-by-side here. Committing it into this tree would fork it into two histories.
-/cabrain-cli/
+/zekra-cli/
 
 # built binaries
-/brain-mcp
+/zekra-mcp
 /cabrain-api
 cmd/hubq/
 cmd/sqlx/

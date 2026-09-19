@@ -1,6 +1,6 @@
 package main
 
-// toolDefs is the MCP tools/list payload — the six CaBrain memory tools (SPEC
+// toolDefs is the MCP tools/list payload — the six Zekra memory tools (SPEC
 // §5.1 / contracts/tools.md). inputSchema is JSON Schema; field names are
 // snake_case to match the contract and are translated to the REST body in
 // callTool. agent_id is NOT a field — it comes from the session identity (F5).
@@ -223,7 +223,7 @@ var toolDefs = []map[string]any{
 	},
 	{
 		"name":        "brain_create_token",
-		"description": "ACL (admin): mint an access token for an agent identity (optionally admin). Grant it brains with brain_grant; the holder sets CABRAIN_TOKEN.",
+		"description": "ACL (admin): mint an access token for an agent identity (optionally admin). Grant it brains with brain_grant; the holder sets ZEKRA_TOKEN.",
 		"inputSchema": obj(prop{
 			"agentId": prop{"type": "string"},
 			"label":   prop{"type": "string"},

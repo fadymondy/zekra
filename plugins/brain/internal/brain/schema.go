@@ -66,7 +66,7 @@ func hnswEFSearch() int {
 // schemas — an infra GRANT). Recall degrades to vector-only until it's granted.
 var ErrBM25Skipped = errors.New("brain: BM25 layer skipped (schema applied)")
 
-// schemaSQL is the canonical CaBrain data model (SPEC §3), shipped with the
+// schemaSQL is the canonical Zekra data model (SPEC §3), shipped with the
 // plugin and applied by Migrate. Postgres-specific (vector/BM25/partitioning);
 // requires togo-postgres with the vchord stack. See the file for the
 // version-sensitive bits (bm25 tokenizer wiring, pg_partman signature).
@@ -102,7 +102,7 @@ func Migrate(ctx context.Context, db *sql.DB) error {
 	}
 	if err := ApplyBM25(ctx, db); err != nil {
 		// Non-fatal: recall degrades to vector-only. Wrap ErrBM25Skipped so callers
-		// (brainctl, a boot hook) can errors.Is-distinguish it from a real failure.
+		// (zekractl, a boot hook) can errors.Is-distinguish it from a real failure.
 		return fmt.Errorf("%w: %v", ErrBM25Skipped, err)
 	}
 	return nil

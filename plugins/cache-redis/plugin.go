@@ -1,5 +1,5 @@
 // Package cacheredis registers a "redis" driver for the togo cache service, so
-// CaBrain's L1 working-memory cache (SPEC §2.1, D4) becomes a SHARED Redis tier
+// Zekra's L1 working-memory cache (SPEC §2.1, D4) becomes a SHARED Redis tier
 // across app replicas. Selected by CACHE_DRIVER=redis; connection from REDIS_URL
 // (default redis://redis:6379 — the stack_stacknet service name). Self-registers
 // on blank-import; the brain's cache-aside code is unchanged.

@@ -22,10 +22,13 @@ every run. Read-only against FlowOS prod.
 
 Environment (never hard-code credentials — this file is committed):
   FLOWOS_DSN         postgresql://flowos:***@<tunnel>:15433/onestudio_hub  (READ ONLY)
-  CABRAIN_DSN        postgresql://cabrain:***@<host>:5432/cabrain
-  CABRAIN_NAMESPACE  default: flowos
+  ZEKRA_DSN        postgresql://cabrain:***@<host>:5432/cabrain
+  ZEKRA_NAMESPACE  default: flowos
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
 import sys
 from collections import defaultdict
@@ -36,7 +39,7 @@ import pg8000.native as pg
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from flowos_edge_provenance import build_plan, apply_plan  # noqa: E402
 
-NS = os.environ.get("CABRAIN_NAMESPACE", "flowos")
+NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
 
 
 def _conn(dsn):
@@ -98,7 +101,7 @@ EDGE_TYPES = [
 
 
 def main():
-    s, b = _conn(os.environ["FLOWOS_DSN"]), _conn(os.environ["CABRAIN_DSN"])
+    s, b = _conn(os.environ["FLOWOS_DSN"]), _conn(os.environ["ZEKRA_DSN"])
     s.run("BEGIN READ ONLY")
     b.run("SET search_path = public")
     b.run("SET statement_timeout = 0")

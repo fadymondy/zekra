@@ -1,5 +1,5 @@
 [Unit]
-Description=CaBrain deploy webhook receiver (GitHub push → docker build+restart)
+Description=Zekra deploy webhook receiver (GitHub push → docker build+restart)
 After=network.target docker.service
 
 [Service]

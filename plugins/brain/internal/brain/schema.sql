@@ -1,4 +1,4 @@
--- CaBrain data model — SPEC §3
+-- Zekra data model — SPEC §3
 -- =====================================================================================
 -- Source of truth for the schema. Once ToGO is wired, `togo make:plugin cabrain` +
 -- sqlc/Atlas will own the generated migrations; this file is what they reconcile
@@ -322,8 +322,8 @@ CREATE INDEX IF NOT EXISTS memory_gaps_status ON memory_gaps (status, last_seen 
 
 -- Access tokens (ACL). A token identifies a caller (agent_id); its brain access is
 -- namespace_grants(agent_id, namespace, can_read, can_write). Admin tokens bypass
--- grants. Presented over MCP/REST as the X-Cabrain-Token header. Enforcement is on
--- when CABRAIN_REQUIRE_TOKEN=1 (else a tokenless caller is the trusted local console).
+-- grants. Presented over MCP/REST as the X-Zekra-Token header. Enforcement is on
+-- when ZEKRA_REQUIRE_TOKEN=1 (else a tokenless caller is the trusted local console).
 CREATE TABLE IF NOT EXISTS brain_tokens (
   token        text PRIMARY KEY,
   agent_id     text NOT NULL,
@@ -371,7 +371,7 @@ CREATE INDEX IF NOT EXISTS secrets_ns ON secrets (namespace, name);
 -- public.datasources already exists, an unqualified IF NOT EXISTS still creates a
 -- SECOND, empty cabrain_auth.datasources that then SHADOWS public in every unqualified
 -- read (verified empirically). Pinning to public keeps datasources alongside memories
--- and makes this file idempotent under brainctl migrate regardless of search_path. The
+-- and makes this file idempotent under zekractl migrate regardless of search_path. The
 -- app's own unqualified queries (ListDatasources, …) resolve to public since
 -- cabrain_auth has no datasources table.
 CREATE TABLE IF NOT EXISTS public.datasources (

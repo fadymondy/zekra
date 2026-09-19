@@ -17,23 +17,26 @@ Idempotent: episodes has UNIQUE(namespace, source_ref) → ON CONFLICT DO UPDATE
 the link UPDATEs are no-ops once applied.
 
 Environment:
-  CABRAIN_DSN        postgresql://user:pass@host:port/cabrain   (required)
-  CABRAIN_NAMESPACE  default: flowos
+  ZEKRA_DSN        postgresql://user:pass@host:port/cabrain   (required)
+  ZEKRA_NAMESPACE  default: flowos
   EPISODE_REF_LIKE   default: db:%
 
 Never hard-code credentials here — this file is committed.
 """
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 
 import pg8000.native as pg
 
-NS = os.environ.get("CABRAIN_NAMESPACE", "flowos")
+NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
 REF_LIKE = os.environ.get("EPISODE_REF_LIKE", "db:%")
 
 
 def brain():
-    u = urlparse(os.environ["CABRAIN_DSN"])
+    u = urlparse(os.environ["ZEKRA_DSN"])
     c = pg.Connection(user=u.username, password=u.password, host=u.hostname,
                       port=u.port or 5432, database=u.path.lstrip("/"))
     c.run("SET search_path = public")

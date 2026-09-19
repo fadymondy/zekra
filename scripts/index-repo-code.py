@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Index repository SOURCE CODE into a CaBrain namespace.
+"""Index repository SOURCE CODE into a Zekra namespace.
 
 SUPERSEDED by scripts/code-index.py (repomix-based, sha-gated, prunes stale
 chunks, and is what the cabrain-code-index systemd timer runs). Kept because it
@@ -24,9 +24,9 @@ once crowded real answers out of recall. So this script:
 Everything is read from the environment — never hardcode a token here:
 
   GITHUB_TOKEN     repo-read token (e.g. `gh auth token`)
-  CABRAIN_URL      brain API base (default https://cabrain.fadymondy.com)
-  CABRAIN_TOKEN    X-Cabrain-Token value
-  CABRAIN_PG_*     PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD for the entity links
+  ZEKRA_URL      brain API base (default https://zekra.dev)
+  ZEKRA_TOKEN    X-Zekra-Token value
+  ZEKRA_PG_*     PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD for the entity links
   BRAIN_NS         namespace (default flowos)
 
 Usage:
@@ -38,6 +38,9 @@ import argparse
 import base64
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 import time
@@ -46,8 +49,8 @@ import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 
 API = "https://api.github.com"
-CABRAIN_URL = os.environ.get("CABRAIN_URL", "https://cabrain.fadymondy.com").rstrip("/")
-CABRAIN_TOKEN = os.environ.get("CABRAIN_TOKEN", "")
+ZEKRA_URL = os.environ.get("ZEKRA_URL", "https://zekra.dev").rstrip("/")
+ZEKRA_TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 NS = os.environ.get("BRAIN_NS", "flowos")
 
@@ -193,8 +196,8 @@ def chunk(text, n, limit):
 def retain(payload):
     """POST /api/brain/retain via curl — Cloudflare 403s the python-urllib UA."""
     p = subprocess.run(
-        ["curl", "-s", "--max-time", "90", "-X", "POST", CABRAIN_URL + "/api/brain/retain",
-         "-H", "X-Cabrain-Token: " + CABRAIN_TOKEN, "-H", "content-type: application/json",
+        ["curl", "-s", "--max-time", "90", "-X", "POST", ZEKRA_URL + "/api/brain/retain",
+         "-H", "X-Zekra-Token: " + ZEKRA_TOKEN, "-H", "content-type: application/json",
          "--data-binary", "@-"],
         input=json.dumps(payload), capture_output=True, text=True)
     if p.returncode != 0 or not p.stdout.strip():
@@ -286,10 +289,10 @@ def index_repo(entry, dry=False, already=None):
 def pg():
     import pg8000.native
     c = pg8000.native.Connection(
-        user=os.environ["CABRAIN_PG_USER"], password=os.environ["CABRAIN_PG_PASSWORD"],
-        host=os.environ.get("CABRAIN_PG_HOST", "localhost"),
-        port=int(os.environ.get("CABRAIN_PG_PORT", "5432")),
-        database=os.environ.get("CABRAIN_PG_DATABASE", "cabrain"))
+        user=os.environ["ZEKRA_PG_USER"], password=os.environ["ZEKRA_PG_PASSWORD"],
+        host=os.environ.get("ZEKRA_PG_HOST", "localhost"),
+        port=int(os.environ.get("ZEKRA_PG_PORT", "5432")),
+        database=os.environ.get("ZEKRA_PG_DATABASE", "cabrain"))
     c.run("SET search_path = public")
     return c
 
@@ -327,8 +330,8 @@ def main():
     ap.add_argument("--skip-existing", action="store_true")
     args = ap.parse_args()
 
-    if not args.dry_run and not CABRAIN_TOKEN:
-        sys.exit("CABRAIN_TOKEN is required (export it; never hardcode it)")
+    if not args.dry_run and not ZEKRA_TOKEN:
+        sys.exit("ZEKRA_TOKEN is required (export it; never hardcode it)")
     entries = json.load(open(args.repos))["repos"]
     if args.only:
         entries = [e for e in entries if e["repo"].lower() == args.only.lower()]

@@ -1,4 +1,4 @@
-// Package brain is the CaBrain memory-organ togo plugin (a mini-app). It
+// Package brain is the Zekra memory-organ togo plugin (a mini-app). It
 // self-registers on blank-import via `togo install`. Backend logic lives in
 // internal/brain; UI in web/. Provider integrations (TEI embeddings/rerank,
 // the Cognee cognify engine, the object-store cold tier) plug in behind
@@ -28,17 +28,17 @@ type consoleAuthGuard interface {
 
 // authRequired reports whether the human console login gate is enforced. Off by
 // default so local/dev and the running instance stay reachable unauthenticated;
-// set CABRAIN_REQUIRE_AUTH=1 (or true) to enforce.
+// set ZEKRA_REQUIRE_AUTH=1 (or true) to enforce.
 func authRequired() bool {
-	v := os.Getenv("CABRAIN_REQUIRE_AUTH")
+	v := os.Getenv("ZEKRA_REQUIRE_AUTH")
 	return v == "1" || v == "true"
 }
 
 // consoleAuth wraps a console admin/management handler with the human login gate.
-// When CABRAIN_REQUIRE_AUTH is set, the auth plugin's JWT/session middleware must
+// When ZEKRA_REQUIRE_AUTH is set, the auth plugin's JWT/session middleware must
 // pass (valid Bearer token or session cookie) before the handler runs; otherwise
 // the handler is served as-is. This is COMPLEMENTARY to the MCP token ACL
-// (X-Cabrain-Token) enforced inside the handlers — that governs MCP agents and is
+// (X-Zekra-Token) enforced inside the handlers — that governs MCP agents and is
 // left untouched. Fails closed (503) if enforcement is on but auth isn't active.
 func consoleAuth(k *togo.Kernel, h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,13 +54,13 @@ func consoleAuth(k *togo.Kernel, h http.HandlerFunc) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
-		_, _ = w.Write([]byte(`{"error":{"code":"auth_unavailable","message":"CABRAIN_REQUIRE_AUTH is set but the auth plugin is not active"}}`))
+		_, _ = w.Write([]byte(`{"error":{"code":"auth_unavailable","message":"ZEKRA_REQUIRE_AUTH is set but the auth plugin is not active"}}`))
 	}
 }
 
-// secure authenticates EVERY brain endpoint when CABRAIN_REQUIRE_AUTH is on:
+// secure authenticates EVERY brain endpoint when ZEKRA_REQUIRE_AUTH is on:
 // the caller must present either a valid login session (browser — via the auth
-// plugin's cookie/JWT middleware) OR a valid X-Cabrain-Token (MCP/programmatic).
+// plugin's cookie/JWT middleware) OR a valid X-Zekra-Token (MCP/programmatic).
 // Anything else gets 401 from the auth middleware, so the public URL is no longer
 // open. Per-brain authorization (canRead/canWrite/adminOnly) still runs inside the
 // handlers. When enforcement is off, endpoints are served as-is (local/dev).
@@ -72,7 +72,7 @@ func secure(k *togo.Kernel, svc interface {
 			h(w, r)
 			return
 		}
-		if tok := r.Header.Get("X-Cabrain-Token"); tok != "" && svc.ValidToken(r.Context(), tok) {
+		if tok := brain.TokenHeader(r.Header); tok != "" && svc.ValidToken(r.Context(), tok) {
 			h(w, r) // MCP: authenticated by token; handler checks its grants
 			return
 		}
@@ -84,7 +84,7 @@ func secure(k *togo.Kernel, svc interface {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
-		_, _ = w.Write([]byte(`{"error":{"code":"auth_unavailable","message":"CABRAIN_REQUIRE_AUTH is set but the auth plugin is not active"}}`))
+		_, _ = w.Write([]byte(`{"error":{"code":"auth_unavailable","message":"ZEKRA_REQUIRE_AUTH is set but the auth plugin is not active"}}`))
 	}
 }
 
@@ -96,13 +96,13 @@ func init() {
 	togo.RegisterProviderFunc(Name, togo.PriorityLate+10, func(k *togo.Kernel) error {
 		svc := brain.New(k)
 		// secured authenticates a request (valid login session OR valid token) when
-		// CABRAIN_REQUIRE_AUTH is on; per-brain authorization still runs in-handler.
+		// ZEKRA_REQUIRE_AUTH is on; per-brain authorization still runs in-handler.
 		secured := func(h http.HandlerFunc) http.HandlerFunc { return secure(k, svc, h) }
 
 		// Health stays fully open (liveness probe). EVERY other endpoint is secured:
 		// with enforcement on, the public URL demands a session or a token; with it
 		// off, they're served as-is for local/dev. In-handler canRead/canWrite/
-		// adminOnly (X-Cabrain-Token ACL) is unchanged.
+		// adminOnly (X-Zekra-Token ACL) is unchanged.
 		k.Router.Get("/api/brain/ping", svc.Ping)
 		k.Router.Get("/api/brain/events", secured(svc.Events)) // realtime SSE (cookie session)
 		k.Router.Get("/api/brain/stats", secured(svc.Stats))

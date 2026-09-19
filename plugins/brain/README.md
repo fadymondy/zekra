@@ -1,6 +1,6 @@
 # brain
 
-The **CaBrain memory organ** as a [togo](https://github.com/togo-framework/togo) plugin — a
+The **Zekra memory organ** as a [togo](https://github.com/togo-framework/togo) plugin — a
 hardware-elastic memory brain for AI agents on `togo-postgres` (VectorChord + BM25 + pgvector):
 hippocampal *hot* / cortical *cold* tiers, a Redis L1 cache, salience-gated sleep consolidation,
 and reconsolidation-on-recall. Exposed as MCP tools + a Claude Code Memory Tool backend.
@@ -31,7 +31,7 @@ togo install togo-framework/brain
 | `brain-cold-*` | cold-tier demotion (Iceberg/Parquet on S3/MinIO) — Phase 2 |
 | `brain-redis` *(optional)* | L1 working-memory cache |
 
-Developed in the [`cabrain`](https://github.com/togo-framework/cabrain) project (dev harness);
+Developed in the [`cabrain`](https://github.com/fadymondy/zekra) project (dev harness);
 this repo is the split-out, installable plugin. Design lives in the cabrain project (`SPEC.md`).
 
 ## Status

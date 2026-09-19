@@ -1,15 +1,15 @@
-// Command brainctl is an ops CLI for the CaBrain brain plugin: apply the schema
+// Command zekractl is an ops CLI for the Zekra brain plugin: apply the schema
 // and BM25 layer, inspect the live database, and smoke-test the multilingual BM25
 // path — the one hybrid-recall half that needs no embeddings, so it is verifiable
 // before TEI is reachable on stack_stacknet.
 //
 // It connects with DATABASE_URL (pgx). Usage:
 //
-//	brainctl inspect     — extensions, tables, tokenizer, bm25 column/index, counts
-//	brainctl migrate     — apply schema.sql + bm25.sql (idempotent)
-//	brainctl bm25         — apply just the BM25 layer (idempotent)
-//	brainctl bm25-test    — seed a few multilingual rows and run a BM25 ranking query
-//	brainctl mirror <ns>  — mirror a namespace's Cognee graph into entities/memory_entities
+//	zekractl inspect     — extensions, tables, tokenizer, bm25 column/index, counts
+//	zekractl migrate     — apply schema.sql + bm25.sql (idempotent)
+//	zekractl bm25         — apply just the BM25 layer (idempotent)
+//	zekractl bm25-test    — seed a few multilingual rows and run a BM25 ranking query
+//	zekractl mirror <ns>  — mirror a namespace's Cognee graph into entities/memory_entities
 package main
 
 import (
@@ -29,7 +29,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: brainctl <inspect|migrate|bm25|bm25-test>")
+		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test>")
 		os.Exit(2)
 	}
 	dsn := os.Getenv("DATABASE_URL")
@@ -69,7 +69,7 @@ func main() {
 		bm25Test(ctx, db)
 	case "mirror":
 		if len(os.Args) < 3 {
-			fatal("usage: brainctl mirror <namespace>")
+			fatal("usage: zekractl mirror <namespace>")
 		}
 		mirror(ctx, db, os.Args[2])
 	default:
@@ -199,6 +199,6 @@ func must(err error, what string) {
 }
 
 func fatal(msg string) {
-	fmt.Fprintln(os.Stderr, "brainctl: "+msg)
+	fmt.Fprintln(os.Stderr, "zekractl: "+msg)
 	os.Exit(1)
 }

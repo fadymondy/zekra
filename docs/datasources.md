@@ -84,11 +84,11 @@ Then trigger it (owner, with the real DSN in place):
 
 ```bash
 # create returns {"id": "<uuid>", ...}
-curl -sS -H "X-Cabrain-Token: $CABRAIN_TOKEN" -H 'Content-Type: application/json' \
-  -X POST "$CABRAIN_API_URL/api/brain/datasources" -d @github-activity.json
+curl -sS -H "X-Zekra-Token: $ZEKRA_TOKEN" -H 'Content-Type: application/json' \
+  -X POST "$ZEKRA_API_URL/api/brain/datasources" -d @github-activity.json
 
-curl -sS -H "X-Cabrain-Token: $CABRAIN_TOKEN" -H 'Content-Type: application/json' \
-  -X POST "$CABRAIN_API_URL/api/brain/datasources/sync" -d '{"id":"<uuid>"}'
+curl -sS -H "X-Zekra-Token: $ZEKRA_TOKEN" -H 'Content-Type: application/json' \
+  -X POST "$ZEKRA_API_URL/api/brain/datasources/sync" -d '{"id":"<uuid>"}'
 # -> {"ingested": N, "status": "ok"}
 ```
 
@@ -101,14 +101,14 @@ its `github_activity.id`.
 
 ```bash
 # 1. create a webhook source (secret is auto-generated, redacted on read)
-curl -sS -H "X-Cabrain-Token: $CABRAIN_TOKEN" -H 'Content-Type: application/json' \
-  -X POST "$CABRAIN_API_URL/api/brain/datasources" \
+curl -sS -H "X-Zekra-Token: $ZEKRA_TOKEN" -H 'Content-Type: application/json' \
+  -X POST "$ZEKRA_API_URL/api/brain/datasources" \
   -d '{"namespace":"flowos","kind":"webhook","name":"ci-events"}'
 # the owner reads config.secret from the datasources row to configure the sender
 
 # 2. sender pushes content (authenticated by the secret, NOT the ACL token)
 curl -sS -H "X-Webhook-Secret: whk_…" -H 'Content-Type: application/json' \
-  -X POST "$CABRAIN_API_URL/api/brain/ingest/<uuid>" \
+  -X POST "$ZEKRA_API_URL/api/brain/ingest/<uuid>" \
   -d '{"content":"deploy 1234 succeeded on main","sourceRef":"ci/deploy/1234"}'
 ```
 
@@ -121,5 +121,5 @@ land in `cabrain_auth` (that is where `secrets` ended up) and — if a `public.d
 also existed — an unqualified `IF NOT EXISTS` would create a second, empty
 `cabrain_auth.datasources` that *shadows* public in every unqualified read. Pinning the
 DDL to `public.datasources` keeps it next to `memories` and makes the migration
-idempotent regardless of search_path. `Migrate` runs via `cmd/brainctl migrate` (not at
+idempotent regardless of search_path. `Migrate` runs via `cmd/zekractl migrate` (not at
 API boot), so on a fresh DB apply it there; the live table was applied additively.

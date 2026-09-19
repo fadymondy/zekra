@@ -1,6 +1,6 @@
-# CaBrain brains — FlowOS & AVO
+# Zekra brains — FlowOS & AVO
 
-CaBrain hosts multiple namespaces ("brains"):
+Zekra hosts multiple namespaces ("brains"):
 - **`flowos`** — the FlowOS / OneStudio hub (below).
 - **`avo`** (~2,490 memories) — the AVO "Founder Readiness Lab" repo
   (`onestudio-exp/AVO`) markdown: 359 files chunked by heading (board pack,
@@ -11,9 +11,9 @@ CaBrain hosts multiple namespaces ("brains"):
 
 ---
 
-# The FlowOS brain — querying CaBrain about ventures & people
+# The FlowOS brain — querying Zekra about ventures & people
 
-CaBrain has ingested the FlowOS (OneStudio hub) knowledge into the `flowos`
+Zekra has ingested the FlowOS (OneStudio hub) knowledge into the `flowos`
 namespace so any MCP-connected session can ask about a venture, agent, person,
 learning, or lean canvas and get the answer back from memory.
 
@@ -42,7 +42,7 @@ recallable by vector + BM25 + rerank. Re-run / extend with `scratchpad/ingest.py
 
 ## How to query it (from a new Claude Code session)
 
-The **cabrain** MCP server is wired in `.mcp.json` (stdio, `brain-mcp`, talks to the
+The **zekra** MCP server is wired in `.mcp.json` (stdio, `zekra-mcp`, talks to the
 app on `localhost:8080`). After restarting Claude Code so it loads, the agent has
 these tools: `memory_recall`, `memory_retain`, `memory_get`, `memory_forget`,
 `memory_share`, `memory_recall_archive`.
@@ -67,7 +67,7 @@ The app must be up for the brain MCP to reach it. It runs detached:
 bash /home/coder/run-cabrain.sh   # sources ~/.env.cabrain, serves :8080 (Redis L1)
 ```
 
-`run-cabrain.sh` sets `DATABASE_URL` (from `CABRAIN_DATABASE_URL`), the TEI/Cognee
+`run-cabrain.sh` sets `DATABASE_URL` (from `ZEKRA_DATABASE_URL`), the TEI/Cognee
 URLs, `CACHE_DRIVER=redis`, and `BRAIN_BM25_TOKENIZER`. The workspace must be on
 `stack_stacknet` (`sudo docker network connect stack_stacknet coder-…` on the WSL
 host) so `pg`/`tei-embed`/`cognee`/`redis` resolve.
@@ -90,5 +90,5 @@ config (`~/.claude.json` user scope), NOT the repo `.mcp.json`:
    `cabrain_ml` (llmlingua2), then set `BRAIN_BM25_TOKENIZER=cabrain_ml`.
 2. **Cognee graph** — cognify currently fails with *"Missing required pgvector
    credentials"* (Cognee's own vector store isn't configured). Once infra sets
-   Cognee's pgvector creds, `brainctl mirror flowos` populates the entity graph +
+   Cognee's pgvector creds, `zekractl mirror flowos` populates the entity graph +
    Graph Explorer.

@@ -175,7 +175,7 @@ function CreateTokenForm() {
               </Button>
             </div>
             <p className="mt-2 text-muted-foreground">
-              The holder sets <code className="font-mono">CABRAIN_TOKEN</code> in their MCP config to act as{" "}
+              The holder sets <code className="font-mono">ZEKRA_TOKEN</code> in their MCP config to act as{" "}
               <strong dir="ltr" className="font-medium text-foreground">{created.agentId}</strong>.
             </p>
           </Notice>
@@ -197,7 +197,7 @@ export function BrainPermissions() {
         title="Tokens & access"
         description={
           <>
-            Access tokens and per-brain grants. A token's holder sets <code className="font-mono text-foreground">CABRAIN_TOKEN</code> in
+            Access tokens and per-brain grants. A token's holder sets <code className="font-mono text-foreground">ZEKRA_TOKEN</code> in
             their MCP config to act as that agent.
           </>
         }

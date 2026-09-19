@@ -14,7 +14,7 @@ type Phase = "loading" | "login" | "ready";
 function Splash() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <CubeMark size={44} title="CaBrain" />
+      <CubeMark size={44} title="Zekra" />
     </div>
   );
 }

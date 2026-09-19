@@ -8,7 +8,7 @@
 @import "./styles/grid.css";
 @import "./styles/grid-tailwind.css";
 
-/* Repo-owned: how the togo kit adopts the grid, plus CaBrain's one extra colour. */
+/* Repo-owned: how the togo kit adopts the grid, plus Zekra's one extra colour. */
 @import "./styles/kit-bridge.css";
 
 @source "../node_modules/@togo-framework/ui/dist";

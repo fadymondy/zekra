@@ -1,4 +1,4 @@
-# CaBrain tool contracts — SPEC §5.1
+# Zekra tool contracts — SPEC §5.1
 
 The six MCP tools are the **only** consumer surface. They are engine-agnostic: the same
 request/response holds whether the engine is Cognee or the direct-on-Postgres fallback

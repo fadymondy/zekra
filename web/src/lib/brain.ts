@@ -96,7 +96,7 @@ export type Grant = {
   canWrite: boolean;
 };
 
-// Access token — the secret an agent puts in CABRAIN_TOKEN. `token` is the raw
+// Access token — the secret an agent puts in ZEKRA_TOKEN. `token` is the raw
 // secret and is only fully returned once (on create); the list may mask it.
 export type Token = {
   token: string;
@@ -160,7 +160,7 @@ export type ApiError = { error: { code: string; message: string } };
 
 // All console calls carry the session cookie (credentials) and — when a JWT was
 // captured at login — the Authorization: Bearer header, so the backend console
-// auth gate (CABRAIN_REQUIRE_AUTH) accepts either transport.
+// auth gate (ZEKRA_REQUIRE_AUTH) accepts either transport.
 async function getJSON<T>(path: string): Promise<T> {
   const r = await fetch(`${API}${path}`, { credentials: "include", headers: { ...authHeaders() } });
   return r.json() as Promise<T>;
@@ -186,7 +186,7 @@ const qs = (params: Record<string, string | number | undefined>) => {
 };
 
 export const brainApi = {
-  // `authRequired` reflects the backend CABRAIN_REQUIRE_AUTH flag — the SPA uses
+  // `authRequired` reflects the backend ZEKRA_REQUIRE_AUTH flag — the SPA uses
   // it to decide whether to show the login gate before hitting a gated endpoint.
   ping: () => getJSON<{ plugin: string; status: string; authRequired?: boolean }>("/api/brain/ping"),
   stats: () => getJSON<Stats>("/api/brain/stats"),

@@ -1,6 +1,6 @@
-# Memory-first rules (cabrain brain)
+# Memory-first rules (Zekra brain)
 
-This project has a memory organ exposed by the **cabrain** MCP server. The FlowOS /
+This project has a memory organ exposed by the **zekra** MCP server. The FlowOS /
 OneStudio knowledge lives in the `flowos` namespace. These rules are **mandatory** —
 follow them on every turn.
 
@@ -45,9 +45,9 @@ phrasing if the first is thin.
   repo (board, playbooks, kaizen engine, kickstart legal/finance, pitch/fundraising,
   research, theses, drills). Use for any question about AVO, founder readiness, the
   board pack, playbooks, or KSA/GCC founder prep.
-- `cabrain` — this project's own dev knowledge: the CaBrain repo docs (SPEC, PLAN,
+- `cabrain` — this project's own dev knowledge: the Zekra repo docs (SPEC, PLAN,
   DEPLOY, decisions, rules) + git commit history. Use when developing/following up
-  on CaBrain itself ("how does the Redis L1 work?", "why the partition-index BM25?").
+  on Zekra itself ("how does the Redis L1 work?", "why the partition-index BM25?").
 
 Pick the namespace that matches the question; never mix scopes in one query. If it's
 ambiguous which brain, recall both (two calls) and merge.
@@ -62,8 +62,8 @@ After committing a set of changes to this project, **refresh the `cabrain` dev b
 so the next session can recall the latest state and history:
 
 ```bash
-CABRAIN_MEMORY_FILE=~/.claude/projects/-home-coder-caBrain/memory/cabrain-project.md \
-  python3 scripts/refresh-cabrain-brain.py
+ZEKRA_MEMORY_FILE=~/.claude/projects/-home-coder-caBrain/memory/cabrain-project.md \
+  python3 scripts/refresh-zekra-brain.py
 ```
 
 This re-ingests the repo docs + the full git build-log (+ the curated project memory

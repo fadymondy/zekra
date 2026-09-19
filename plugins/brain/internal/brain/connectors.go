@@ -86,7 +86,7 @@ func crawlerConnector(ctx context.Context, cfg map[string]any, _ string) ([]Docu
 		return nil, "", errors.New("crawler source: config.url is empty")
 	}
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	req.Header.Set("User-Agent", "CaBrain-Crawler/1.0")
+	req.Header.Set("User-Agent", "Zekra-Crawler/1.0")
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, "", err

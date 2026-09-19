@@ -1,4 +1,4 @@
-# CaBrain — Execution Plan (Phase 1)
+# Zekra — Execution Plan (Phase 1)
 
 > Companion to `SPEC.md`. This maps the spec onto **this** environment and sequences the work
 > around two hard blockers. Decisions locked this session:
@@ -14,7 +14,7 @@
 | `/home/coder/caBrain` | empty, **not** a git repo | `git init` is step 0.1 |
 | `togo` CLI / ToGO framework | **absent everywhere on disk** | **BLOCKER A (still fully open)** — need repo URL or install cmd |
 | §1.5 env vars | **partial — see §0.1 below** | **BLOCKER B clearing** — awaiting finalizer + final `.env` |
-| `INFRA-CaBrain.md` | not yet delivered | part of Blocker B |
+| `INFRA-Zekra.md` | not yet delivered | part of Blocker B |
 | Postgres | **LIVE**: `cabrain` DB + `cabrain_sleep` role on shared `stack-togo-postgres:latest` | reachable **only from inside `stack_stacknet`** — see §0.2 |
 | Go 1.x | installed | ready for ToGO/sqlc once Blocker A clears |
 | Docker client | installed, daemon down | infra agent's concern, not ours |
@@ -29,13 +29,13 @@
 | TEI reranker | **downloading model** | `BAAI/bge-reranker-v2-m3` |
 | Cognee | **wired, waiting on TEI** | `http://cognee:8000`, token set |
 | Extraction LLM | **Ollama container coming up** | `mistral:7b-instruct` placeholder → override to `gpt-oss:20b` |
-| NPM routes | **pending** | `cabrain.fadymondy.com`, `cognee.fadymondy.com` (added after Cognee healthy) |
+| NPM routes | **pending** | `zekra.dev`, `cognee.fadymondy.com` (added after Cognee healthy) |
 
-**Deviations from spec (accepted):** host is P920 WSL2/Docker Desktop (not Proxmox); NPM (not Caddy); Ollama containerized; one shared Postgres; cold tier MinIO (not R2/GCS). None change the CaBrain build contracts.
+**Deviations from spec (accepted):** host is P920 WSL2/Docker Desktop (not Proxmox); NPM (not Caddy); Ollama containerized; one shared Postgres; cold tier MinIO (not R2/GCS). None change the Zekra build contracts.
 
-### 0.2 New open question — where does the CaBrain app run on the network?
+### 0.2 New open question — where does the Zekra app run on the network?
 
-All infra hostnames (`pg`, `tei-embed`, `tei-rerank`, `cognee`, `ollama`, `minio`) resolve **only inside the `stack_stacknet` Docker network**. So the CaBrain ToGO app must either **run as a container on `stack_stacknet`** (clean, matches the stack), or run on the WSL2 host against **published ports** (needs infra to expose them). This decides how `togo new`/deploy is configured and how I benchmark recall latency (N1). **Recommend: run CaBrain as a stack container on `stack_stacknet`.** Needs your confirmation — interacts with Blocker A (the ToGO app scaffold).
+All infra hostnames (`pg`, `tei-embed`, `tei-rerank`, `cognee`, `ollama`, `minio`) resolve **only inside the `stack_stacknet` Docker network**. So the Zekra ToGO app must either **run as a container on `stack_stacknet`** (clean, matches the stack), or run on the WSL2 host against **published ports** (needs infra to expose them). This decides how `togo new`/deploy is configured and how I benchmark recall latency (N1). **Recommend: run Zekra as a stack container on `stack_stacknet`.** Needs your confirmation — interacts with Blocker A (the ToGO app scaffold).
 
 **Two inputs unblock everything below:**
 - **A — ToGO pointer:** repo URL + how to install the `togo` CLI (and which togo app to add the plugin to, if any).
@@ -56,7 +56,7 @@ Until both land, no step past 0.x runs. This plan is ordered so that the moment 
 
 ### Track A — unblocked by the ToGO pointer (Blocker A)
 - **A.1** Install `togo`; verify version.
-- **A.2** `togo new cabrain` (or add plugin to the named existing app), DB pointed at `CABRAIN_DATABASE_URL`.
+- **A.2** `togo new cabrain` (or add plugin to the named existing app), DB pointed at `ZEKRA_DATABASE_URL`.
 - **A.3** `togo make:plugin cabrain`; generate resources `memories`, `entities`, `memory_entities`, `memory_events`, `namespace_grants` → sqlc + Atlas + REST/GraphQL. Reconcile generated DDL against Track 0.2.
 
 ### Track B — unblocked by infra outputs (Blocker B)
@@ -92,7 +92,7 @@ Explicitly out of scope for Phase 1 (later phases, do **not** build now): `refle
 ## 4. What I need from you to proceed
 
 1. **Blocker A (still the real gate):** ToGO repo URL + `togo` install command (and target app, if adding to an existing one). Infra is nearly ready; ToGO is not started.
-2. **Blocker B:** the finalizer ping + final `.env` bundle + `INFRA-CaBrain.md`. Postgres/MinIO already live.
-3. **App network placement (§0.2):** confirm CaBrain runs as a container on `stack_stacknet` (recommended) vs host + published ports.
+2. **Blocker B:** the finalizer ping + final `.env` bundle + `INFRA-Zekra.md`. Postgres/MinIO already live.
+3. **App network placement (§0.2):** confirm Zekra runs as a container on `stack_stacknet` (recommended) vs host + published ports.
 4. **Embedding lock:** infra has committed to **Qwen3-Embedding-0.6B / 1024-dim** by downloading it (schema `vector(1024)` matches). Spec §8 wanted a Qwen3-vs-BGE-M3 benchmark on real Arabic pairs *before* locking. Confirm: **accept Qwen3 as locked**, or still run the benchmark before any bulk `retain`? (Changing dimension later = re-embed everything.)
 5. **Green light on Track 0** (schema DDL + tool contracts + capture-hook design) — the only work runnable with neither blocker fully cleared, if you want momentum now.

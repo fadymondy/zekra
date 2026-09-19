@@ -10,10 +10,10 @@ import (
 
 	"github.com/togo-framework/togo"
 
-	"github.com/togo-framework/cabrain/internal/app"
+	"github.com/fadymondy/zekra/internal/app"
 	// Registers the installed plugins — including db-postgres, which provides the
 	// "pgx" database/sql driver. Without it k.SQL fails with: unknown driver "pgx".
-	_ "github.com/togo-framework/cabrain/internal/plugins"
+	_ "github.com/fadymondy/zekra/internal/plugins"
 )
 
 func main() {

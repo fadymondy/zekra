@@ -1,4 +1,4 @@
-// Command api is the cabrain HTTP entrypoint. It boots the shared togo stack
+// Command api is the Zekra HTTP entrypoint. It boots the shared togo stack
 // (Huma REST + OpenAPI and gqlgen GraphQL on the kernel) and serves it.
 package main
 
@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"github.com/togo-framework/cabrain/internal/server"
+	"github.com/fadymondy/zekra/internal/server"
 	"net"
 	"net/http"
 	"net/url"
@@ -148,19 +148,19 @@ func main() {
 		serveSPA(k.Router, dist)
 		fmt.Printf("→ serving frontend from %s\n", dist)
 	}
-	fmt.Printf("→ cabrain listening on %s  (GraphQL %s · REST %s · docs %s)\n",
+	fmt.Printf("→ zekra listening on %s  (GraphQL %s · REST %s · docs %s)\n",
 		k.Config.Addr, k.Config.GraphQLPath, k.Config.RESTPath, k.Config.DocsPath)
 	if err := k.Serve(context.Background()); err != nil {
 		panic(err)
 	}
 }
 
-// waitForDatabase blocks until the postgres URL in CABRAIN_DATABASE_URL / DATABASE_URL
+// waitForDatabase blocks until the postgres URL in ZEKRA_DATABASE_URL / DATABASE_URL
 // accepts connections. Solves the boot race on Docker Desktop restart: the auth plugin
 // runs ensureSchema() during provider registration, and if pg isn't up yet the provider
 // silently fails → /api/auth/* stays 404 for the entire container lifetime.
 func waitForDatabase() {
-	dsn := os.Getenv("CABRAIN_DATABASE_URL")
+	dsn := os.Getenv("ZEKRA_DATABASE_URL")
 	if dsn == "" {
 		dsn = os.Getenv("DATABASE_URL")
 	}

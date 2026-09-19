@@ -206,7 +206,7 @@ type MemoryInput struct {
 // json tags, so Go's case-insensitive matching binds "sourceKind" but silently
 // DROPS "source_kind" — which is what the cabrain-agents client sends, so every
 // memory an agent retained lost its provenance. Normalising here fixes that
-// without breaking the camelCase callers (cmd/brain-mcp) already in the field.
+// without breaking the camelCase callers (cmd/zekra-mcp) already in the field.
 func (m *MemoryInput) UnmarshalJSON(b []byte) error {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(b, &raw); err != nil {

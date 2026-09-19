@@ -158,25 +158,25 @@ type caller struct {
 	valid bool // a presented token resolved (or no token needed)
 }
 
-// identify resolves the caller from the X-Cabrain-Token header (preferred) or the
+// identify resolves the caller from the X-Zekra-Token header (preferred) or the
 // X-Agent-Id header. A tokenless request is the trusted local console UNLESS
-// CABRAIN_REQUIRE_TOKEN=1. An invalid token resolves to no access.
+// ZEKRA_REQUIRE_TOKEN=1. An invalid token resolves to no access.
 func (s *Service) identify(r *http.Request) caller {
-	if tok := r.Header.Get("X-Cabrain-Token"); tok != "" {
+	if tok := TokenHeader(r.Header); tok != "" {
 		if agent, admin, ok := s.Store.ResolveToken(r.Context(), tok); ok {
 			return caller{agent: agent, admin: admin, valid: true}
 		}
 		return caller{valid: false} // bad/revoked token → deny
 	}
 	agent := r.Header.Get("X-Agent-Id")
-	// No token presented. The X-Cabrain-Token ACL is the enforcement mechanism; a
+	// No token presented. The X-Zekra-Token ACL is the enforcement mechanism; a
 	// bare X-Agent-Id is only an identity label (activity attribution), NOT a
 	// credential. So unless token enforcement is explicitly ON, a tokenless caller
 	// is the trusted local console/MCP — EVEN when it sends an agent id. (Previously
 	// a tokenless call that set X-Agent-Id fell into grant checks and got denied on
-	// every brain — the local .mcp sets CABRAIN_AGENT_ID=claude-code, so it locked
+	// every brain — the local .mcp sets ZEKRA_AGENT_ID=claude-code, so it locked
 	// itself out.)
-	if os.Getenv("CABRAIN_REQUIRE_TOKEN") != "1" {
+	if os.Getenv("ZEKRA_REQUIRE_TOKEN") != "1" {
 		return caller{agent: agent, admin: true, valid: true}
 	}
 	// Enforcement ON + no token → must be a known, granted agent (never admin).
@@ -184,7 +184,7 @@ func (s *Service) identify(r *http.Request) caller {
 }
 
 // ValidToken reports whether a raw token resolves to a live (non-revoked) token.
-// Used by the security gate to let MCP callers (who present X-Cabrain-Token, not a
+// Used by the security gate to let MCP callers (who present X-Zekra-Token, not a
 // login session) through when console auth enforcement is on.
 func (s *Service) ValidToken(ctx context.Context, tok string) bool {
 	_, _, ok := s.Store.ResolveToken(ctx, tok)
@@ -694,7 +694,7 @@ func (s *Service) Session(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// The URL an MCP client should call: the explicit public URL, else the app's own URL.
-	pub := os.Getenv("CABRAIN_PUBLIC_URL")
+	pub := os.Getenv("ZEKRA_PUBLIC_URL")
 	if pub == "" {
 		pub = os.Getenv("APP_URL")
 	}
@@ -702,11 +702,11 @@ func (s *Service) Session(w http.ResponseWriter, r *http.Request) {
 		pub = "http://localhost:8080"
 	}
 	mcp := map[string]any{"mcpServers": map[string]any{"cabrain": map[string]any{
-		"command": "brain-mcp",
+		"command": "zekra-mcp",
 		"env": map[string]any{
-			"CABRAIN_API_URL":           pub,
-			"CABRAIN_TOKEN":             t.Token,
-			"CABRAIN_DEFAULT_NAMESPACE": in.Namespace,
+			"ZEKRA_API_URL":           pub,
+			"ZEKRA_TOKEN":             t.Token,
+			"ZEKRA_DEFAULT_NAMESPACE": in.Namespace,
 		},
 	}}}
 	s.hub.publish("session", map[string]any{"namespace": in.Namespace, "agentId": agent, "write": in.Write})
@@ -716,7 +716,7 @@ func (s *Service) Session(w http.ResponseWriter, r *http.Request) {
 		"write":     in.Write,
 		"token":     t.Token,
 		"mcpConfig": mcp,
-		"howto": "Install: go install ./cmd/brain-mcp. Drop mcpConfig into .mcp.json, then start Claude Code — " +
+		"howto": "Install: go install ./cmd/zekra-mcp. Drop mcpConfig into .mcp.json, then start Claude Code — " +
 			"it recalls/retains against brain '" + in.Namespace + "' by default, with " +
 			map[bool]string{true: "read+write", false: "read-only"}[in.Write] + " access.",
 	})

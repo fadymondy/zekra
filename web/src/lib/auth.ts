@@ -164,7 +164,7 @@ export function makeAuthClient(opts: { dev?: boolean } = {}): AuthClient {
       setStoredUser(d?.user ?? null); clearSession();
       return { challenge: "none" };
     },
-    // CaBrain only offers password (+ dev) login — there is no mail service for
+    // Zekra only offers password (+ dev) login — there is no mail service for
     // magic-link/OTP here. Returning just email_password stops <AuthFlow> from
     // rendering the "Send magic link" / "Email me a code" options.
     async getLoginMethods() { return { methods: ["email_password"] }; },

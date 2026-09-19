@@ -27,7 +27,7 @@ func clientFromEnv() (*cognee.Client, error) {
 	return cognee.New(base, os.Getenv("COGNEE_ADMIN_EMAIL"), os.Getenv("COGNEE_API_TOKEN")), nil
 }
 
-// Mirror pulls a namespace's Cognee knowledge graph and mirrors it into CaBrain's
+// Mirror pulls a namespace's Cognee knowledge graph and mirrors it into Zekra's
 // Postgres tables (SPEC §7), so the Graph Explorer + 1-hop recall read entities
 // from Postgres instead of hitting Cognee on the hot path:
 //

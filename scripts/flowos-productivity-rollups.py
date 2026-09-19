@@ -33,20 +33,23 @@ events. Do not let a reader infer per-project AI spend from this.
 
 Environment:
   FLOWOS_DSN     postgresql://…/onestudio_hub   (READ-ONLY; reads run in a txn)
-  CABRAIN_TOKEN  brain API token
-  CABRAIN_API_URL (default https://cabrain.fadymondy.com)
+  ZEKRA_TOKEN  brain API token
+  ZEKRA_API_URL (default https://zekra.dev)
   WEEKS          how many ISO weeks back to emit   (default 8)
 """
 import json
 import os
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 from urllib.parse import urlparse
 
 import pg8000.native as pg
 
-API = os.environ.get("CABRAIN_API_URL", "https://cabrain.fadymondy.com").rstrip("/")
-TOK = os.environ["CABRAIN_TOKEN"]
+API = os.environ.get("ZEKRA_API_URL", "https://zekra.dev").rstrip("/")
+TOK = os.environ["ZEKRA_TOKEN"]
 NS = os.environ.get("FLOWOS_NAMESPACE", "flowos")
 WEEKS = int(os.environ.get("WEEKS", "8"))
 
@@ -77,7 +80,7 @@ def retain(body, ref, valid_at, importance=0.6):
                "sourceRef": ref, "metadata": {"type": "productivity"},
                "validAt": valid_at, "importanceHint": importance}
     r = subprocess.run(["curl", "-s", "-m", "90", "-X", "POST", f"{API}/api/brain/retain",
-                        "-H", f"X-Cabrain-Token: {TOK}", "-H", "Content-Type: application/json",
+                        "-H", f"X-Zekra-Token: {TOK}", "-H", "Content-Type: application/json",
                         "-d", json.dumps(payload)], capture_output=True, text=True)
     try:
         return json.loads(r.stdout).get("decision", "?")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Rebuild the `flowos` CaBrain brain from the FlowOS production DB (onestudio_hub).
+Rebuild the `flowos` Zekra brain from the FlowOS production DB (onestudio_hub).
 
 Design notes
 ------------
@@ -16,12 +16,15 @@ Design notes
 * Read-only against prod: every query runs inside BEGIN READ ONLY.
 """
 import json, os, subprocess, sys, time
+# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
+    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
 import pg8000.native as pg
 
-CABRAIN = os.environ.get("CABRAIN_API_URL", "https://cabrain.fadymondy.com")
-TOK     = os.environ["CABRAIN_TOKEN"]                    # required
+ZEKRA = os.environ.get("ZEKRA_API_URL", "https://zekra.dev")
+TOK     = os.environ["ZEKRA_TOKEN"]                    # required
 NS      = os.environ.get("FLOWOS_NAMESPACE", "flowos")
 # FlowOS prod is on a private net — open a tunnel first, e.g.
 #   ssh -L 15433:10.10.10.30:5432 root@<proxmox-host>
@@ -680,8 +683,8 @@ def retain(item):
     body = {"namespace": NS, "content": content, "sourceKind": kind,
             "sourceRef": ref, "metadata": {"type": mtype}, "importanceHint": imp}
     if ts: body["validAt"] = ts.isoformat()
-    p = subprocess.run(["curl","-s","--max-time","120","-X","POST",f"{CABRAIN}/api/brain/retain",
-        "-H","Content-Type: application/json","-H",f"X-Cabrain-Token: {TOK}",
+    p = subprocess.run(["curl","-s","--max-time","120","-X","POST",f"{ZEKRA}/api/brain/retain",
+        "-H","Content-Type: application/json","-H",f"X-Zekra-Token: {TOK}",
         "-H","X-Agent-Id: flowos-rebuild","-d",json.dumps(body)],capture_output=True)
     try:
         return json.loads(p.stdout).get("decision","?")

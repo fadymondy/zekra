@@ -1,4 +1,4 @@
-# SPEC.md — CaBrain
+# SPEC.md — Zekra
 
 > **A general, hardware-elastic memory brain for AI agents, built as a ToGO plugin on `togo-postgres`.**
 > Build the brain first. Run it in capture mode across every session until it has real memory mass. Then attach any interface — Claude Code, `live` agents, chat, the Autopilot fleet — as a new mouth on the same brain.
@@ -9,7 +9,7 @@ This document is written to be executed by Claude Code, in order, phase by phase
 
 ## 0. North star (read this first)
 
-CaBrain is **not** an agent, a chatbot, or a coding tool. It is a *memory organ*: a service that ingests everything the org's agents and people say and do, distills it into durable knowledge, and — when asked, or proactively when something matters — returns exactly the right memory so the consumer never re-derives what is already known and never hits a context wall.
+Zekra is **not** an agent, a chatbot, or a coding tool. It is a *memory organ*: a service that ingests everything the org's agents and people say and do, distills it into durable knowledge, and — when asked, or proactively when something matters — returns exactly the right memory so the consumer never re-derives what is already known and never hits a context wall.
 
 The reference model is the human brain, with the biological ceilings deliberately removed:
 
@@ -24,23 +24,23 @@ The reference model is the human brain, with the biological ceilings deliberatel
 | Single isolated brain | — | ❌ one shared brain across N agents |
 | Confabulation | — | ❌ provenance kept; evidence never blurs into inference |
 
-**Engine decision:** CaBrain does not reinvent memory extraction. It **wraps Cognee** (Apache-2.0 — remember/recall/forget/improve, graph+vector, tenant isolation, MCP-native) as its cognify engine, and adds the four dynamics above plus the ToGO-native plugin shell and the Claude Code memory-tool front. If Cognee's pipeline proves too heavy at any point, the schema and tool contracts below are engine-agnostic and can fall back to a direct implementation on the same tables.
+**Engine decision:** Zekra does not reinvent memory extraction. It **wraps Cognee** (Apache-2.0 — remember/recall/forget/improve, graph+vector, tenant isolation, MCP-native) as its cognify engine, and adds the four dynamics above plus the ToGO-native plugin shell and the Claude Code memory-tool front. If Cognee's pipeline proves too heavy at any point, the schema and tool contracts below are engine-agnostic and can fall back to a direct implementation on the same tables.
 
 **Build order (non-negotiable):**
-1. **Phase 1 — the brain + capture.** Standalone CaBrain plugin, single Claude Code consumer via the Memory Tool, capturing session memory. *This is the only phase that must ship before you have anything usable.*
+1. **Phase 1 — the brain + capture.** Standalone Zekra plugin, single Claude Code consumer via the Memory Tool, capturing session memory. *This is the only phase that must ship before you have anything usable.*
 2. **Phase 2 — the sleep loop.** Consolidation, salience, reconsolidation, tiering workers. The brain starts getting *smarter*, not just bigger.
 3. **Phase 3 — the fleet seams.** `impl=omnigent`, `exec=coder`, Autopilot — many agents on one brain.
 4. **Phase 4 — the interfaces.** `live` + `live-whatsapp` + `live-notify`: conversation capture and the salience-gated proactive push.
 
 ---
 
-## 0.1 Project & plugin shape (how CaBrain is packaged)
+## 0.1 Project & plugin shape (how Zekra is packaged)
 
-CaBrain is a **project composed of shippable togo plugins** — nothing is a monolith, so every
+Zekra is a **project composed of shippable togo plugins** — nothing is a monolith, so every
 capability can be open-sourced and installed independently, the togo way.
 
 - **`cabrain`** — the *project* (this monorepo + dev harness; togo app, module
-  `github.com/togo-framework/cabrain`; repo `togo-framework/cabrain`). It hosts the plugins,
+  `github.com/fadymondy/zekra`; repo `fadymondy/zekra`). It hosts the plugins,
   the design docs, and the `generate → migrate → serve` loop that exercises them.
 - **`brain`** — the *core memory-organ plugin* (module `github.com/togo-framework/brain`; repo
   `togo-framework/brain`). Owns the schema (§3), the write/read pipelines (§4), the MCP surface
@@ -76,7 +76,7 @@ and the tool contracts (§5.1), which the plugin-native Go path realizes on post
 - **F3** Distill raw episodic memory into durable semantic facts + entity summaries via `reflect` (consolidation), on a schedule ("sleep").
 - **F4** Update contradicted facts on recall (reconsolidation) instead of accumulating contradictions.
 - **F5** Scope every memory by namespace + visibility so N agents share one brain without cross-scope leakage.
-- **F6** Expose the whole surface as **MCP tools** and as a **Claude Code Memory Tool backend**, so no consumer is ever coupled to CaBrain internals.
+- **F6** Expose the whole surface as **MCP tools** and as a **Claude Code Memory Tool backend**, so no consumer is ever coupled to Zekra internals.
 - **F7** Run in **capture mode**: passively record all consumer sessions into episodic memory with minimal friction.
 
 ### Non-functional
@@ -96,11 +96,11 @@ and the tool contracts (§5.1), which the plugin-native Go path realizes on post
 
 ## 1.5 Infra inputs (provisioned separately)
 
-Infrastructure is **not** provisioned by this spec. A separate infra agent stands it up and returns the outputs below (full brief + acceptance checks in `INFRA-CaBrain.md`). The CaBrain build reads them as environment variables and never hardcodes a host, port, or credential.
+Infrastructure is **not** provisioned by this spec. A separate infra agent stands it up and returns the outputs below (full brief + acceptance checks in `INFRA-Zekra.md`). The Zekra build reads them as environment variables and never hardcodes a host, port, or credential.
 
 | Env var | What it is |
 |---|---|
-| `CABRAIN_DATABASE_URL` | Postgres DSN for `togo-postgres` with all required extensions preinstalled |
+| `ZEKRA_DATABASE_URL` | Postgres DSN for `togo-postgres` with all required extensions preinstalled |
 | `COGNEE_API_URL` | Cognee engine REST base (e.g. `http://cognee:8000`) |
 | `COGNEE_API_TOKEN` | Cognee auth token, if set (optional) |
 | `TEI_EMBEDDINGS_URL` / `TEI_EMBEDDINGS_MODEL` | Embeddings endpoint + model (default `Qwen3-Embedding-0.6B`, 1024-dim) |
@@ -112,25 +112,25 @@ Secrets arrive via the app's env/secret mechanism from the infra agent; the buil
 
 ### 1.5.1 As-provisioned (infra §4 bundle + accepted deviations)
 
-The actual environment differs from the spec's assumptions in ways that don't change the CaBrain
+The actual environment differs from the spec's assumptions in ways that don't change the Zekra
 contracts (full detail in `docs/decisions.md` D5). Accepted:
 
 - **Host:** P920 workstation, WSL2 + Docker Desktop — **not** Proxmox. Reverse proxy is **NPM**
   (Nginx Proxy Manager), not Caddy. From the workspace, stack services resolve at
-  `host.docker.internal` (Postgres :5432, Redis :6379, NATS :4222); the CaBrain app runs as a
+  `host.docker.internal` (Postgres :5432, Redis :6379, NATS :4222); the Zekra app runs as a
   container on Docker net `stack_stacknet`, where infra uses internal names (`pg`, `tei-embed`,
   `cognee`, `ollama`, `minio`).
 - **Cold tier:** MinIO (S3-compatible, bucket `cabrain-cold`) substitutes for R2/GCS — the
   `data-iceberg`/`pg_duckdb` path is unchanged.
 - **Extraction LLM:** Ollama as a stack container (`mistral:7b-instruct` placeholder → `gpt-oss:20b`).
-- **Postgres:** one shared PG re-imaged to give CaBrain its extensions, with a dedicated `cabrain`
+- **Postgres:** one shared PG re-imaged to give Zekra its extensions, with a dedicated `cabrain`
   DB + `cabrain_sleep` role.
 - **Also live and usable:** **Redis** (L1 cache, §2.1) and **NATS**.
 
 **Status (as of build):** the finalizer had not completed — TEI models still downloading, Cognee
 waiting on TEI, the `cabrain` DB not yet reachable from the workspace (the workspace-reachable
 Postgres is a vanilla PG16 without the required extensions). So live `migrate`/`serve` and
-retain/recall **execution** stay gated (Blocker B) until the finalized `.env` + `INFRA-CaBrain.md`
+retain/recall **execution** stay gated (Blocker B) until the finalized `.env` + `INFRA-Zekra.md`
 land and the §3 extension checks pass. Schema-static work (build, sqlc, codegen) proceeds regardless.
 
 ---
@@ -164,7 +164,7 @@ land and the §3 extension checks pass. Schema-static work (build, sqlc, codegen
 ```
 
 **Memory subsystems (the brain map):**
-- **Working memory** = the consumer's context window + the MCP gateway (central executive). Not stored by CaBrain; it decides what to page in.
+- **Working memory** = the consumer's context window + the MCP gateway (central executive). Not stored by Zekra; it decides what to page in.
 - **L1 cache (Redis)** = a fast get/set layer in front of the hot tier (§2.1). Caches recent recall result-sets, hot rows by id, and content→embedding for dedup. Never authoritative — a cold Redis costs latency, never correctness.
 - **Hippocampus (hot tier)** = fresh, individually-stored episodic memories in `togo-postgres`, VectorChord-indexed. Small and fast.
 - **Neocortex (cold tier)** = consolidated semantic facts + entity summaries; raw episodics demoted to Iceberg. Unbounded.
@@ -375,10 +375,10 @@ Scoping is enforced in SQL via `namespace_grants`; when >1 agent connects, also 
 
 ### 5.2 Claude Code Memory Tool backend (the "never compact" front)
 
-Anthropic's Memory Tool is **client-side** — Claude requests file operations, your app executes them. CaBrain implements that backend so a Claude Code session's memory calls land in `togo-postgres` instead of flat files:
+Anthropic's Memory Tool is **client-side** — Claude requests file operations, your app executes them. Zekra implements that backend so a Claude Code session's memory calls land in `togo-postgres` instead of flat files:
 - `view`/`read` memory path → `memory_recall` (scoped to the project namespace, hybrid + rerank).
 - `write`/`str_replace` → `memory_retain`.
-- Pair with server-side compaction: compaction keeps the active window small, CaBrain preserves the "why" (decisions, rejected approaches) that compaction drops.
+- Pair with server-side compaction: compaction keeps the active window small, Zekra preserves the "why" (decisions, rejected approaches) that compaction drops.
 
 Borrow the proven hook pattern from `claude-mem`/Supermemory (both permissively licensed): proactively compact *before* degradation (~80%), project-scoped tags, `<private>` redaction, auto-continue.
 
@@ -399,7 +399,7 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 ## 7. Execution plan (phase gates)
 
 ### Phase 1 — the brain + capture  ← *ship this first*
-1. **Infra first.** Confirm the infra agent's outputs are available (see `INFRA-CaBrain.md`) and its acceptance checks pass — DB reachable with the required extensions present, TEI returns an embedding, Cognee `/health` responds, cold store writable. Load the outputs (§1.5) as env. **Do not provision infra in this phase.**
+1. **Infra first.** Confirm the infra agent's outputs are available (see `INFRA-Zekra.md`) and its acceptance checks pass — DB reachable with the required extensions present, TEI returns an embedding, Cognee `/health` responds, cold store writable. Load the outputs (§1.5) as env. **Do not provision infra in this phase.**
 2. **Project + plugin scaffold (done).** `cabrain` togo app (harness, `--db togo-postgres`) hosts the
    **`brain`** plugin (`togo make:plugin`), wired via `require`+`replace`. Config (DB, TEI, Cognee,
    extraction LLM, cold store, Redis) comes from `.env`/`togo.yaml`, never hard-coded (§1.5).
@@ -427,7 +427,7 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 11. `togo install` `providers`, `omnigent` (impl), `coder` (exec), `autopilot`, `ontology`, `ai-agentops`, `ai-gateway`.
 12. Give each Omnigent sub-agent the same MCP tool surface; enforce namespace scoping via `ontology`. Feed Coder run transcripts into `retain`.
 
-**Gate 3:** An Autopilot issue is implemented by an Omnigent-orchestrated, Coder-isolated agent that was *fed relevant memory from CaBrain at the start* and *wrote its learnings back at the end* — and the next issue benefits. `ai-agentops` shows per-agent token/cost.
+**Gate 3:** An Autopilot issue is implemented by an Omnigent-orchestrated, Coder-isolated agent that was *fed relevant memory from Zekra at the start* and *wrote its learnings back at the end* — and the next issue benefits. `ai-agentops` shows per-agent token/cost.
 
 ### Phase 4 — the interfaces
 13. `togo install` `live`, `live-whatsapp`, `live-notify`.
@@ -461,4 +461,4 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 
 ## 9. One-line summary
 
-**Build CaBrain as the `cabrain` project of togo plugins — the `brain` organ plugin on `togo-postgres` (VectorChord + BM25 + pgvector) with a Redis L1 cache, hippocampal hot / cortical cold tiers, salience-gated sleep consolidation, and reconsolidation-on-recall, plus one provider plugin per dependency (`brain-tei`, `brain-cognee`, `brain-cold-*`) — expose it as MCP tools + a Claude Code Memory Tool backend, run it in capture mode across every session to build memory mass, and only then attach the fleet (Omnigent/Coder/Autopilot) and the interfaces (live/WhatsApp) as new mouths on the same brain.**
+**Build Zekra as the `cabrain` project of togo plugins — the `brain` organ plugin on `togo-postgres` (VectorChord + BM25 + pgvector) with a Redis L1 cache, hippocampal hot / cortical cold tiers, salience-gated sleep consolidation, and reconsolidation-on-recall, plus one provider plugin per dependency (`brain-tei`, `brain-cognee`, `brain-cold-*`) — expose it as MCP tools + a Claude Code Memory Tool backend, run it in capture mode across every session to build memory mass, and only then attach the fleet (Omnigent/Coder/Autopilot) and the interfaces (live/WhatsApp) as new mouths on the same brain.**

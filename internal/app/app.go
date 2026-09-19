@@ -16,7 +16,7 @@ import (
 	// this app's go.mod or app.go (microkernel: drivers are plugins).
 	_ "modernc.org/sqlite"
 
-	db "github.com/togo-framework/cabrain/internal/db/gen"
+	db "github.com/fadymondy/zekra/internal/db/gen"
 )
 
 // App holds the shared services handed to controllers, resolvers, actions, seeders.
