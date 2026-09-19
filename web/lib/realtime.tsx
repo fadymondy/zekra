@@ -8,7 +8,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useSWRConfig } from "swr"
 
 export type LiveStatus = "connecting" | "live" | "down"
-const EVENTS = ["retain", "recall", "search", "gap", "grant", "brain", "secret", "note"] as const
+const EVENTS = ["retain", "recall", "search", "gap", "grant", "brain", "secret", "note", "graph"] as const
 
 const LiveContext = createContext<LiveStatus>("connecting")
 export const useLiveStatus = () => useContext(LiveContext)

@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 
-import { FocusBanner, NodeDetail, sortedNeighbors } from "@/components/graph/graph-view"
+import { FocusBanner, sortedNeighbors, useGraphFocus, useOpenNotePage } from "@/components/graph/graph-view"
+import { NodeHoverCard, NodeInspector, useHoverCard } from "@/components/graph/node-inspector"
 import { ZoomControls } from "@/components/graph/zoom-controls"
-import type { GraphData } from "@/lib/api"
+import type { GraphData, GraphNode } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 
 import { colorForGroup } from "./colors"
@@ -82,13 +83,16 @@ export function SpiderGraphView({
   data,
   namespace,
   palette = colorForGroup,
+  initialFocus = null,
 }: {
   data: GraphData
   namespace: string
   palette?: (group?: string | null) => string
+  initialFocus?: GraphNode | null
 }) {
   const { t } = useTranslations()
-  const [focusId, setFocusId] = useState<string | null>(null)
+  const openNotePage = useOpenNotePage(namespace)
+  const hover = useHoverCard()
   const [hoverId, setHoverId] = useState<string | null>(null)
   const [zoomPct, setZoomPct] = useState(100)
   const [panning, setPanning] = useState(false)
@@ -164,6 +168,7 @@ export function SpiderGraphView({
   }, [data, palette])
 
   const { nodes, edges, adj, nodeById } = sim
+  const { focusId, focus: setFocusId, focusNode } = useGraphFocus(nodeById, initialFocus, namespace)
 
   const viewRef = useRef<View>({ k: 1, tx: 0, ty: 0 })
   const alphaRef = useRef(ALPHA_WARM)
@@ -442,7 +447,8 @@ export function SpiderGraphView({
         // A click: toggle focus and free the node again.
         nd.node.fx = null
         nd.node.fy = null
-        setFocusId((cur) => (cur === nd.node.id ? null : nd.node.id))
+        hover.leave()
+        setFocusId(focusId === nd.node.id ? null : nd.node.id)
       }
       heat(0.35)
       return
@@ -458,6 +464,8 @@ export function SpiderGraphView({
     node.fx = null
     node.fy = null
     heat(0.5)
+    const g = nodeById.get(node.id)
+    if (g) openNotePage(g)
   }
 
   const recenter = () => {
@@ -476,7 +484,6 @@ export function SpiderGraphView({
     return set
   }, [focusId, adj])
 
-  const focusNode = focusId ? nodeById.get(focusId) : null
   const neighborNodes = useMemo(() => sortedNeighbors(focusId, adj, nodeById), [focusId, adj, nodeById])
 
   const labelSet = useMemo(() => {
@@ -519,8 +526,15 @@ export function SpiderGraphView({
                 style={{ opacity: dim(n.id) ? 0.12 : 1 }}
                 onPointerDown={(e) => onNodePointerDown(e, n)}
                 onDoubleClick={(e) => onNodeDoubleClick(e, n)}
-                onPointerEnter={() => setHoverId(n.id)}
-                onPointerLeave={() => setHoverId((h) => (h === n.id ? null : h))}
+                onPointerEnter={(e) => {
+                  setHoverId(n.id)
+                  const g = nodeById.get(n.id)
+                  if (g) hover.enter(g, e)
+                }}
+                onPointerLeave={() => {
+                  setHoverId((h) => (h === n.id ? null : h))
+                  hover.leave()
+                }}
               >
                 <rect x={-n.r - 8} y={-n.r - 8} width={side + 16} height={side + 16} fill="transparent" />
                 <rect
@@ -605,8 +619,10 @@ export function SpiderGraphView({
         </div>
       </div>
 
+      {hover.card && hover.card.node.id !== focusId ? <NodeHoverCard {...hover.card} /> : null}
+
       {focusNode ? (
-        <NodeDetail
+        <NodeInspector
           key={focusNode.id}
           node={focusNode}
           namespace={namespace}

@@ -123,7 +123,9 @@ export type NamespaceInfo = { namespace: string; memories: number; lastAt: strin
 
 // Derived hierarchy graph: root -> type nodes -> entity nodes.
 // `group` is "root" | "type" | "<typename>" (used to color nodes).
-export type GraphNode = { id: string; name: string; group?: string };
+// `type` is the entity type (on a derived memory node, its note's category); `noteId` is set
+// when the node is a note's.
+export type GraphNode = { id: string; name: string; group?: string; type?: string; noteId?: string };
 export type GraphEdge = { source: string; target: string };
 export type GraphTypeCount = { type: string; count: number };
 export type GraphData = {

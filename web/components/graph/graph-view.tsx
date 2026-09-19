@@ -1,31 +1,106 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Columns3Icon, FileTextIcon, Link2Icon, Loader2Icon, NetworkIcon, XIcon } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Columns3Icon, NetworkIcon, XIcon } from "lucide-react"
 
+import { NodeHoverCard, NodeInspector, noteHref, useHoverCard } from "@/components/graph/node-inspector"
 import { SpiderGraphView } from "@/components/graph/spider-view"
 import { ZoomControls } from "@/components/graph/zoom-controls"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ApiError, type GraphData, type GraphNode } from "@/lib/api"
-import { useMemory } from "@/lib/brains"
+import type { GraphData, GraphNode } from "@/lib/api"
+import { useOntology } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
-import { colorForGroup, compareGroups, GRAPH_PALETTE_CSS, makeGroupPalette, OTHER_COLOR, type GroupPalette } from "./colors"
+import { compareGroups, GRAPH_PALETTE_CSS, makeGroupPalette, OTHER_COLOR, type GroupPalette } from "./colors"
 
 type GraphMode = "schema" | "spider"
 const VIEW_KEY = "brain-graph-view-mode"
+
+/** Where the overview was asked to focus (`?focus=<entityId>&note=<noteId>`). */
+export type FocusRequest = { id?: string | null; noteId?: string | null }
 
 /** Injects the graph's series colours (scoped to .zk-graph). */
 export function GraphPaletteStyle() {
   return <style>{GRAPH_PALETTE_CSS}</style>
 }
 
+/** Resolve a focus request to a drawn node, or a stand-in the inspector can load by id. */
+function resolveFocus(data: GraphData, req?: FocusRequest | null): GraphNode | null {
+  if (!req || (!req.id && !req.noteId)) return null
+  const hit = (data.nodes ?? []).find((n) => (req.id && n.id === req.id) || (req.noteId && n.noteId === req.noteId))
+  if (hit) return hit
+  return { id: req.id || `note:${req.noteId}`, name: "", noteId: req.noteId ?? undefined }
+}
+
+/** Focus state shared by both views: a drawn node id, or a stand-in for a node outside the sample. */
+export function useGraphFocus(nodeById: Map<string, GraphNode>, initial: GraphNode | null, namespace: string) {
+  const [focusId, setFocusId] = useState<string | null>(initial?.id ?? null)
+  const [hint, setHint] = useState<GraphNode | null>(initial)
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    setFocusId(null)
+  }, [namespace])
+  const focus = useCallback((id: string | null, h?: GraphNode) => {
+    setFocusId(id)
+    setHint(h ?? null)
+  }, [])
+  const focusNode = focusId ? (nodeById.get(focusId) ?? (hint?.id === focusId ? hint : null)) : null
+  return { focusId, focus, focusNode }
+}
+
+/** Double-click: straight to the full note page. */
+export function useOpenNotePage(namespace: string) {
+  const router = useRouter()
+  const { locale } = useTranslations()
+  return useCallback(
+    (n: GraphNode) => {
+      if (n.noteId) router.push(noteHref(locale, namespace, n.noteId))
+    },
+    [router, locale, namespace],
+  )
+}
+
+/** The brain's categories (ontology entity types) with their node counts; each links to the
+ *  notes list filtered by it. */
+function CategoriesLegend({ namespace, palette }: { namespace: string; palette: GroupPalette }) {
+  const { t, locale, formatNumber } = useTranslations()
+  const onto = useOntology(namespace)
+  const cats = (onto.data?.entityTypes ?? []).filter((c) => c.count > 0 && c.name !== "tag").sort((a, b) => b.count - a.count)
+  if (cats.length === 0) return null
+  const base = `/${locale}/b/${encodeURIComponent(namespace)}/notes`
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-6 py-1.5 text-xs" aria-label={t("graph.categories")}>
+      <span className="grid-micro">{t("graph.categories")}</span>
+      {cats.slice(0, 16).map((c) => (
+        <Link
+          key={c.name}
+          href={`${base}?category=${encodeURIComponent(c.name)}`}
+          className="inline-flex items-center gap-1.5 hover:underline"
+          title={c.description || t("graph.categoryNotes", { name: c.name })}
+        >
+          <span aria-hidden className="size-2 shrink-0" style={{ background: palette(c.name) }} />
+          <span className="text-grid-fg" dir="auto">
+            {c.name}
+          </span>
+          <span className="text-grid-muted">{formatNumber(c.count)}</span>
+        </Link>
+      ))}
+      {cats.length > 16 ? <span className="text-grid-muted">{t("graph.moreCategories", { count: formatNumber(cats.length - 16) })}</span> : null}
+    </div>
+  )
+}
+
 /** Graph explorer: a Schema / Spider toggle and a shared colour legend over the columnar memory
  *  schema and the force-directed spider. One palette, built from the whole graph's type counts,
- *  so groups read the same in both views and sampling never repaints them. */
-export function BrainGraphView({ data, namespace }: { data: GraphData; namespace: string }) {
+ *  so groups read the same in both views and sampling never repaints them. Clicking a node opens
+ *  the node inspector (the node's note, links and properties). */
+export function BrainGraphView({ data, namespace, focus }: { data: GraphData; namespace: string; focus?: FocusRequest | null }) {
   const { t, formatNumber } = useTranslations()
   const [mode, setMode] = useState<GraphMode>("schema")
   useEffect(() => {
@@ -56,6 +131,11 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
       other: folded.length ? { groups: folded.map(([g]) => g), count: folded.reduce((s, [, c]) => s + c, 0) } : null,
     }
   }, [data])
+
+  // Resolved once per request (the graph refetches after edits; the focus must not jump back).
+  const focusKey = `${focus?.id ?? ""}|${focus?.noteId ?? ""}`
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialFocus = useMemo(() => resolveFocus(data, focus), [focusKey])
 
   const nodeCount = data.totalNodes || data.nodes?.length || 0
   const edgeCount = data.totalEdges || data.edges?.length || 0
@@ -131,10 +211,12 @@ export function BrainGraphView({ data, namespace }: { data: GraphData; namespace
         </span>
       </div>
 
+      <CategoriesLegend namespace={namespace} palette={palette} />
+
       {mode === "schema" ? (
-        <SchemaGraphView data={data} namespace={namespace} palette={palette} />
+        <SchemaGraphView data={data} namespace={namespace} palette={palette} initialFocus={initialFocus} />
       ) : (
-        <SpiderGraphView data={data} namespace={namespace} palette={palette} />
+        <SpiderGraphView data={data} namespace={namespace} palette={palette} initialFocus={initialFocus} />
       )}
     </div>
   )
@@ -214,8 +296,17 @@ export function FocusBanner({ node, palette, onClear }: { node: GraphNode; palet
   )
 }
 
-function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namespace: string; palette: GroupPalette }) {
-  const [focusId, setFocusId] = useState<string | null>(null)
+function SchemaGraphView({
+  data,
+  namespace,
+  palette,
+  initialFocus,
+}: {
+  data: GraphData
+  namespace: string
+  palette: GroupPalette
+  initialFocus: GraphNode | null
+}) {
   const [view, setView] = useState({ k: 1, tx: 0, ty: 0 })
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const [vpSize, setVpSize] = useState({ w: 0, h: 0 })
@@ -251,6 +342,10 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
   }, [data])
 
   const { columns, pos, edges, worldW, worldH, adj, nodeById } = layout
+  const { focusId, focus, focusNode } = useGraphFocus(nodeById, initialFocus, namespace)
+  const setFocusId = focus
+  const openNotePage = useOpenNotePage(namespace)
+  const hover = useHoverCard()
 
   useLayoutEffect(() => {
     const el = viewportRef.current
@@ -276,7 +371,6 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
     fit()
   }, [fitKey, vpSize.w, fit])
 
-  useEffect(() => setFocusId(null), [namespace])
 
   // Wheel zooms toward the cursor.
   useEffect(() => {
@@ -338,7 +432,6 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
     return set
   }, [focusId, adj])
 
-  const focusNode = focusId ? nodeById.get(focusId) : null
   const neighborNodes = useMemo(() => sortedNeighbors(focusId, adj, nodeById), [focusId, adj, nodeById])
 
   return (
@@ -406,9 +499,22 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
+                    hover.leave()
                     setFocusId(n.id)
                   }}
-                  title={n.name}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation()
+                    openNotePage(n)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && n.id === focusId && n.noteId) {
+                      e.preventDefault()
+                      openNotePage(n)
+                    }
+                  }}
+                  onMouseEnter={(e) => hover.enter(n, e)}
+                  onMouseLeave={hover.leave}
+                  aria-label={n.name}
                   className="absolute flex items-center gap-2 border border-line bg-grid-card px-2.5 text-start"
                   style={{
                     left: p.x,
@@ -433,8 +539,10 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
         <ZoomControls zoomPct={Math.round(view.k * 100)} onZoomIn={() => zoomBy(1.2)} onZoomOut={() => zoomBy(1 / 1.2)} onFit={fit} />
       </div>
 
+      {hover.card && hover.card.node.id !== focusId ? <NodeHoverCard {...hover.card} /> : null}
+
       {focusNode ? (
-        <NodeDetail
+        <NodeInspector
           key={focusNode.id}
           node={focusNode}
           namespace={namespace}
@@ -448,102 +556,3 @@ function SchemaGraphView({ data, namespace, palette }: { data: GraphData; namesp
   )
 }
 
-/** The side panel for a focused node: its connections and, for entity nodes, the memory itself. */
-export function NodeDetail({
-  node,
-  namespace,
-  neighbors,
-  palette = colorForGroup,
-  onFocus,
-  onClose,
-}: {
-  node: GraphNode
-  namespace: string
-  neighbors: GraphNode[]
-  palette?: (group?: string | null) => string
-  onFocus: (id: string) => void
-  onClose: () => void
-}) {
-  const { t, formatNumber } = useTranslations()
-  const uuid = node.id.startsWith("ent:") ? node.id.slice(4) : null
-  const mem = useMemory(namespace, uuid)
-  const color = palette(node.group)
-
-  return (
-    <aside className="flex w-80 shrink-0 flex-col border-s border-line bg-grid-card">
-      <div className="flex items-start justify-between gap-2 border-b border-line p-4">
-        <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-1.5">
-            <span aria-hidden className="size-2.5 shrink-0" style={{ background: color }} />
-            <Badge variant="outline">{node.group ?? t("graph.node")}</Badge>
-          </div>
-          <h2 className="break-words text-sm font-medium leading-snug text-grid-fg" dir="auto">
-            {node.name}
-          </h2>
-        </div>
-        <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label={t("common.close")}>
-          <XIcon />
-        </Button>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-auto p-4">
-        <div className="mb-5">
-          <div className="grid-micro mb-2 flex items-center gap-1.5">
-            <Link2Icon className="size-3.5" /> {t("graph.connections")}
-            <span>{formatNumber(neighbors.length)}</span>
-          </div>
-          {neighbors.length === 0 ? (
-            <p className="text-xs text-grid-muted">{t("graph.noConnections")}</p>
-          ) : (
-            <ul className="divide-y divide-line border-y border-line">
-              {neighbors.map((n) => (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    onClick={() => onFocus(n.id)}
-                    className="flex w-full items-center gap-2 px-2 py-1.5 text-start hover:bg-grid-soft"
-                  >
-                    <span aria-hidden className="h-4 w-1 shrink-0" style={{ background: palette(n.group) }} />
-                    <span className="min-w-0 flex-1 truncate text-xs text-grid-fg" dir="auto">
-                      {n.name}
-                    </span>
-                    <span className="shrink-0 text-[10px] text-grid-muted">{n.group}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {uuid ? (
-          <div>
-            <div className="grid-micro mb-2 flex items-center gap-1.5">
-              <FileTextIcon className="size-3.5" /> {t("graph.memory")}
-            </div>
-            {mem.isLoading ? (
-              <div className="flex items-center gap-2 text-xs text-grid-muted">
-                <Loader2Icon className="size-3.5 animate-spin" /> {t("graph.loadingMemory")}
-              </div>
-            ) : mem.data?.content ? (
-              <>
-                <div className="mb-2 flex flex-wrap gap-1.5">
-                  {mem.data.memoryType ? <Badge variant="secondary">{mem.data.memoryType}</Badge> : null}
-                  {mem.data.network ? <Badge variant="secondary">{mem.data.network}</Badge> : null}
-                  {mem.data.sourceKind ? <Badge variant="secondary">{mem.data.sourceKind}</Badge> : null}
-                </div>
-                <pre
-                  dir="auto"
-                  className="max-h-[46vh] overflow-auto whitespace-pre-wrap break-words border border-line bg-grid-bg p-3 font-mono text-xs leading-relaxed text-grid-body"
-                >
-                  {mem.data.content}
-                </pre>
-              </>
-            ) : (
-              <p className="text-xs text-grid-muted">{mem.error instanceof ApiError ? mem.error.message : t("graph.noMemory")}</p>
-            )}
-          </div>
-        ) : null}
-      </div>
-    </aside>
-  )
-}

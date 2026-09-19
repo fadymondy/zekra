@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon, PinIcon, PlusIcon } from "lucide-react"
@@ -8,7 +8,7 @@ import { toast } from "sonner"
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
-import { BrainGraphView } from "@/components/graph/graph-view"
+import { BrainGraphView, type FocusRequest } from "@/components/graph/graph-view"
 import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { Badge } from "@/components/ui/badge"
@@ -109,6 +109,19 @@ export default function BrainOverviewPage() {
   const nodeTotal = graph.data?.totalNodes || nodes.length
   const edgeTotal = graph.data?.totalEdges || edges.length
   const recent = activity.rows.slice(0, 8)
+
+  // ?focus=<entityId>&note=<noteId> (from a note's "View in graph"): open the graph on that node.
+  // Read from window once (no Suspense boundary); the graph waits for it so the focus is initial.
+  const [focusReq, setFocusReq] = useState<FocusRequest | null | undefined>(undefined)
+  const graphRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const sp = new URL(window.location.href).searchParams
+    const req = { id: sp.get("focus"), noteId: sp.get("note") }
+    setFocusReq(req.id || req.noteId ? req : null)
+  }, [])
+  useEffect(() => {
+    if (focusReq && graph.data) graphRef.current?.scrollIntoView({ block: "center" })
+  }, [focusReq, graph.data])
   const gaps = d?.openGaps ?? 0
 
   // Suggested questions from the brain's own named entities, so the page opens somewhere to go.
@@ -194,7 +207,7 @@ export default function BrainOverviewPage() {
       >
         {t("overview.graph.title")}
       </SectionTitle>
-      <div className="flex h-[600px] flex-col border-y border-line">
+      <div ref={graphRef} className="flex h-[680px] flex-col border-y border-line">
         {graph.error ? (
           <ErrorState error={graph.error} />
         ) : nodes.length === 0 ? (
@@ -203,7 +216,9 @@ export default function BrainOverviewPage() {
             <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
           </div>
         ) : (
-          <BrainGraphView key={ns} data={graph.data!} namespace={ns} />
+          focusReq === undefined ? null : (
+            <BrainGraphView key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`} data={graph.data!} namespace={ns} focus={focusReq} />
+          )
         )}
       </div>
 

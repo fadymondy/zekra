@@ -15,6 +15,10 @@ export type Note = {
   title: string
   body?: string
   tags: string[]
+  /** The note's graph category (its entity type); "note" by default. */
+  category?: string
+  /** The note's node in the brain graph. */
+  entityId?: string
   pinned: boolean
   archived: boolean
   source: string
@@ -44,9 +48,9 @@ export type NoteVersion = {
 
 export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string }
 
-export type NoteListQuery = { namespace: string; q?: string; tag?: string; archived?: boolean; limit?: number; cursor?: string }
+export type NoteListQuery = { namespace: string; q?: string; tag?: string; category?: string; archived?: boolean; limit?: number; cursor?: string }
 
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "pinned" | "archived">>
+export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived">>
 
 /** A 409 from PUT/DELETE: the note moved on; `current` is the server copy. */
 export class NoteConflict extends Error {
@@ -60,6 +64,7 @@ function listPath(q: NoteListQuery) {
   const sp = new URLSearchParams({ namespace: q.namespace })
   if (q.q) sp.set("q", q.q)
   if (q.tag) sp.set("tag", q.tag)
+  if (q.category) sp.set("category", q.category)
   if (q.archived) sp.set("archived", "1")
   if (q.limit) sp.set("limit", String(q.limit))
   if (q.cursor) sp.set("cursor", q.cursor)
@@ -73,7 +78,7 @@ export const notesApi = {
   get: (id: string) => api<Note>(`/api/notes/${enc(id)}`),
   create: (namespace: string, n: NotePatch = {}) =>
     api<Note>("/api/notes", {
-      json: { namespace, title: n.title ?? "", body: n.body ?? "", tags: n.tags ?? [], pinned: n.pinned ?? false, source: "web" },
+      json: { namespace, title: n.title ?? "", body: n.body ?? "", tags: n.tags ?? [], pinned: n.pinned ?? false, ...(n.category ? { category: n.category } : {}), source: "web" },
     }),
   /** Optimistic update: sends `version` in the body (the handler also accepts If-Match). */
   async update(id: string, version: number, patch: NotePatch): Promise<Note> {
@@ -101,4 +106,27 @@ export function useNote(id: string | null) {
 
 export function useNoteVersions(id: string | null, enabled: boolean) {
   return useSWR(id && enabled ? `/api/notes/${enc(id)}/versions` : null, () => notesApi.versions(id!).then((r) => r.versions ?? []), noRetryOn4xx)
+}
+
+export type TagCount = { tag: string; count: number }
+
+/** Tag → note count for a brain. There is no tags endpoint, so this pages the list (200 a page,
+ *  capped) once and caches it under a key the realtime stream leaves alone; call `mutate` after
+ *  a local tag edit. Only fetched when `enabled` (e.g. the tag picker is open). */
+export function useNoteTagCounts(namespace: string, enabled: boolean) {
+  return useSWR<TagCount[]>(
+    enabled && namespace ? ["notes-tag-counts", namespace] : null,
+    async () => {
+      const counts = new Map<string, number>()
+      let cursor: string | undefined
+      for (let page = 0; page < 25; page++) {
+        const res = await notesApi.list({ namespace, limit: 200, cursor })
+        for (const n of res.notes ?? []) for (const tag of n.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+        if (!res.nextCursor) break
+        cursor = res.nextCursor
+      }
+      return [...counts.entries()].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
+    },
+    { ...noRetryOn4xx, revalidateIfStale: false, dedupingInterval: 60_000 },
+  )
 }

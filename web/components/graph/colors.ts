@@ -68,3 +68,13 @@ export const GRAPH_PALETTE_CSS = `
 }
 .zk-node:hover .zk-node-core { stroke: var(--grid-fg); stroke-width: 1.5px; }
 `
+
+/** A stable colour per note category (outside the graph, where there is no whole-graph palette):
+ *  a hashed hue at a fixed lightness/chroma that reads on light and dark cards. */
+export function categoryColor(name: string | undefined | null): string {
+  const s = name || "note"
+  if (s === "note") return "var(--grid-muted)"
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0
+  return `oklch(0.62 0.13 ${h % 360})`
+}

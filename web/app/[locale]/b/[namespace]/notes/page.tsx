@@ -1,33 +1,56 @@
 "use client"
 
-// A brain's notes: list | editor on desktop (hairline between), one pane on mobile. Deep link:
-// ?id=<noteId>. Contract: plugins/brain/internal/brain/notes_handlers.go.
-import { useCallback, useEffect, useMemo, useState } from "react"
+// A brain's notes: list | editor on desktop (hairline between), one pane on mobile. The list is
+// search + one compact filter row (category, tags, pinned, archived, sort) over cursor-paged
+// rows that load more on scroll. Deep links: ?id=<noteId>, ?category=<name>.
+// Contract: plugins/brain/internal/brain/notes_handlers.go (server filters: q, category, one tag,
+// archived; everything else here is applied to the loaded pages).
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
+import useSWRInfinite from "swr/infinite"
 import { useSWRConfig } from "swr"
-import { PinIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
+import {
+  AlertTriangleIcon, ArchiveIcon, ArrowDownUpIcon, CheckIcon, ChevronsUpDownIcon, Loader2Icon, PinIcon, PlusIcon, SearchIcon,
+  TagIcon,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { Ltr } from "@/components/copy-field"
+import { CategoryPicker } from "@/components/graph/category-picker"
+import { categoryColor } from "@/components/graph/colors"
 import { NoteEditor } from "@/components/notes/note-editor"
+import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
-import { ApiError } from "@/lib/api"
+import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
-import { notesApi, useNote, useNotes, type Note } from "@/lib/notes"
+import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
 
 const PAGE = 50
+type Sort = "updated" | "created" | "title"
 
-function setUrlId(id: string | null) {
+function setUrlParam(name: string, value: string | null) {
   const url = new URL(window.location.href)
-  if (id) url.searchParams.set("id", id)
-  else url.searchParams.delete("id")
+  if (value) url.searchParams.set(name, value)
+  else url.searchParams.delete(name)
   window.history.replaceState(null, "", url.pathname + url.search)
+}
+
+function listKey(ns: string, f: { q: string; category: string; tag: string; archived: boolean }, cursor?: string) {
+  const sp = new URLSearchParams({ namespace: ns, limit: String(PAGE) })
+  if (f.q) sp.set("q", f.q)
+  if (f.category) sp.set("category", f.category)
+  if (f.tag) sp.set("tag", f.tag)
+  if (f.archived) sp.set("archived", "1")
+  if (cursor) sp.set("cursor", cursor)
+  return `/api/notes?${sp}`
 }
 
 export default function NotesPage() {
@@ -38,48 +61,95 @@ export default function NotesPage() {
 
   const [search, setSearch] = useState("")
   const [q, setQ] = useState("")
-  const [tag, setTag] = useState("")
+  const [category, setCategory] = useState("")
+  const [tags, setTags] = useState<string[]>([])
+  const [pinnedOnly, setPinnedOnly] = useState(false)
   const [archived, setArchived] = useState(false)
-  const [limit, setLimit] = useState(PAGE)
+  const [sort, setSort] = useState<Sort>("updated")
   const [selected, setSelected] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [justCreated, setJustCreated] = useState<string | null>(null)
 
-  // Deep link, read once from the URL (no Suspense boundary needed).
-  useEffect(() => setSelected(new URL(window.location.href).searchParams.get("id")), [])
+  // Deep links, read once from the URL (no Suspense boundary needed).
+  useEffect(() => {
+    const sp = new URL(window.location.href).searchParams
+    setSelected(sp.get("id"))
+    setCategory(sp.get("category") ?? "")
+  }, [])
 
   useEffect(() => {
     const h = setTimeout(() => setQ(search.trim()), 250)
     return () => clearTimeout(h)
   }, [search])
-  useEffect(() => setLimit(PAGE), [q, tag, archived])
 
-  const list = useNotes({ namespace: ns, q, tag, archived, limit })
-  const current = useNote(selected)
-  const notes = useMemo(() => list.data?.notes ?? [], [list.data])
-  const tags = useMemo(() => {
-    const all = new Set<string>()
-    for (const n of notes) for (const x of n.tags ?? []) all.add(x)
-    if (tag) all.add(tag)
-    return Array.from(all).sort()
-  }, [notes, tag])
-
-  const refreshList = useCallback(
-    () => mutate((key) => typeof key === "string" && key.startsWith("/api/notes?")),
-    [mutate],
+  // The server filters by one tag; the rest (AND), pinned and the non-default sorts apply to
+  // the loaded pages.
+  const filters = { q, category, tag: tags[0] ?? "", archived }
+  const list = useSWRInfinite<NotePage>(
+    (i, prev: NotePage | null) => (i > 0 && !prev?.nextCursor ? null : listKey(ns, filters, i > 0 ? prev!.nextCursor : undefined)),
+    (key: string) => api<NotePage>(key),
+    { revalidateFirstPage: false, revalidateOnFocus: false, keepPreviousData: true },
   )
+  // The realtime stream revalidates plain /api/notes? keys, not infinite ones: watch a one-row
+  // head of the same query and refresh the pages when it changes.
+  const head = useNotes({ namespace: ns, q, category, tag: filters.tag, archived, limit: 1 })
+  const headSig = head.data ? `${head.data.notes[0]?.id}:${head.data.notes[0]?.version}:${head.data.serverTime}` : ""
+  const lastHead = useRef("")
+  useEffect(() => {
+    if (!headSig) return
+    if (lastHead.current && lastHead.current !== headSig) void list.mutate()
+    lastHead.current = headSig
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headSig])
+
+  const pages = list.data
+  const hasMore = !!pages?.[pages.length - 1]?.nextCursor
+  const notes = useMemo(() => {
+    let all = (pages ?? []).flatMap((p) => p.notes ?? [])
+    if (tags.length > 1) all = all.filter((n) => tags.every((x) => n.tags?.includes(x)))
+    if (pinnedOnly) all = all.filter((n) => n.pinned)
+    if (sort === "created") all = [...all].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    else if (sort === "title") all = [...all].sort((a, b) => (a.title || "").localeCompare(b.title || ""))
+    return all
+  }, [pages, tags, pinnedOnly, sort])
+
+  // Load more when the sentinel scrolls into view.
+  const sentinel = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el || !hasMore) return
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && !list.isValidating) void list.setSize((s) => s + 1)
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasMore, list])
+
+  const current = useNote(selected)
+
+  const refreshList = useCallback(() => {
+    void list.mutate()
+    void mutate((key) => typeof key === "string" && key.startsWith("/api/notes?"))
+  }, [list, mutate])
 
   const select = (id: string | null) => {
     setSelected(id)
-    setUrlId(id)
+    setUrlParam("id", id)
+  }
+
+  const pickCategory = (c: string) => {
+    setCategory(c)
+    setUrlParam("category", c || null)
   }
 
   async function create() {
     setCreating(true)
     try {
-      const n = await notesApi.create(ns, tag ? { tags: [tag] } : {})
+      const n = await notesApi.create(ns, { ...(tags.length ? { tags } : {}), ...(category ? { category } : {}) })
       await mutate(`/api/notes/${encodeURIComponent(n.id)}`, n, { revalidate: false })
+      setJustCreated(n.id)
       select(n.id)
-      void refreshList()
+      refreshList()
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
     } finally {
@@ -90,9 +160,13 @@ export default function NotesPage() {
   const onSaved = useCallback(
     (n: Note) => {
       void mutate(`/api/notes/${encodeURIComponent(n.id)}`, n, { revalidate: false })
-      void refreshList()
+      // Patch the row in place; a full refetch of every loaded page per keystroke-save is waste.
+      void list.mutate(
+        (ps) => ps?.map((p) => ({ ...p, notes: p.notes.map((x) => (x.id === n.id ? n : x)) })),
+        { revalidate: false },
+      )
     },
-    [mutate, refreshList],
+    [mutate, list],
   )
 
   const newButton = (
@@ -101,16 +175,39 @@ export default function NotesPage() {
       {creating ? t("common.working") : t("notes.new")}
     </Button>
   )
-  const filtering = !!(q || tag)
+  const filtering = !!(q || category || tags.length || pinnedOnly)
+  const clearFilters = () => {
+    setSearch("")
+    setQ("")
+    pickCategory("")
+    setTags([])
+    setPinnedOnly(false)
+    setArchived(false)
+    setSort("updated")
+  }
+
+  const sortLabel: Record<Sort, string> = {
+    updated: t("notes.sortUpdated"),
+    created: t("notes.sortCreated"),
+    title: t("notes.sortTitle"),
+  }
+
+  const toggleBtn = (on: boolean) =>
+    cn("h-7 gap-1 px-2 text-xs font-normal", on ? "border-grid-fg bg-grid-soft text-grid-fg" : "text-grid-muted")
 
   return (
     <>
       <SectionHeader micro={<Ltr>{ns}</Ltr>} title={t("nav.notes")} action={newButton} />
 
-      <div className="grid border-t border-line lg:grid-cols-[22rem_1fr]">
+      <div className="grid border-t border-line lg:grid-cols-[24rem_1fr]">
         {/* List pane */}
-        <aside className={cn("min-w-0 lg:border-e lg:border-line", selected && "hidden lg:block")}>
-          <div className="space-y-3 border-b border-line px-6 py-3">
+        <aside
+          className={cn(
+            "flex min-w-0 flex-col lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:border-e lg:border-line",
+            selected && "hidden lg:flex",
+          )}
+        >
+          <div className="space-y-2 border-b border-line px-4 py-3">
             <div className="relative">
               <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-grid-muted" />
               <Input
@@ -123,86 +220,106 @@ export default function NotesPage() {
                 className="ps-8"
               />
             </div>
-            {tags.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((x) => (
-                  <button
-                    key={x}
-                    type="button"
-                    aria-pressed={tag === x}
-                    aria-label={tag === x ? t("notes.clearTag") : t("notes.filterTag", { tag: x })}
-                    onClick={() => setTag(tag === x ? "" : x)}
-                    className={cn(
-                      "grid-chip inline-flex items-center gap-1 transition-colors hover:text-grid-fg",
-                      tag === x && "bg-grid-soft text-grid-fg",
+
+            {/* One compact filter row */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <CategoryPicker namespace={ns} value={category} onChange={(c) => pickCategory(c)} allowAll className="min-w-28" />
+
+              <TagCombobox
+                namespace={ns}
+                selected={tags}
+                onToggle={(tag) => setTags((cur) => (cur.includes(tag) ? cur.filter((x) => x !== tag) : [...cur, tag]))}
+                onClear={() => setTags([])}
+                trigger={
+                  <Button variant="outline" size="sm" className={cn("max-w-56 font-normal", tags.length ? "text-grid-fg" : "text-grid-muted")}>
+                    <TagIcon />
+                    {tags.length === 0 ? (
+                      t("notes.tags")
+                    ) : (
+                      <span className="flex min-w-0 items-center gap-1">
+                        {tags.slice(0, tags.length > 3 ? 2 : 3).map((x) => (
+                          <bdi key={x} className="max-w-20 truncate">
+                            {x}
+                          </bdi>
+                        ))}
+                        {tags.length > 3 ? <span className="text-grid-muted">+{tags.length - 2}</span> : null}
+                      </span>
                     )}
-                  >
-                    <bdi>{x}</bdi>
-                    {tag === x ? <XIcon className="size-3" /> : null}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-grid-muted">
-              <Switch size="sm" checked={archived} onCheckedChange={(v) => setArchived(!!v)} />
-              {t("notes.showArchived")}
-            </label>
+                    <ChevronsUpDownIcon className="text-grid-muted" />
+                  </Button>
+                }
+              />
+
+              <Button variant="outline" size="sm" aria-pressed={pinnedOnly} onClick={() => setPinnedOnly((v) => !v)} className={toggleBtn(pinnedOnly)}>
+                <PinIcon /> {t("notes.pinnedFilter")}
+              </Button>
+              <Button variant="outline" size="sm" aria-pressed={archived} onClick={() => setArchived((v) => !v)} className={toggleBtn(archived)}>
+                <ArchiveIcon /> {t("notes.archivedFilter")}
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-normal text-grid-muted" />}>
+                  <ArrowDownUpIcon /> {sortLabel[sort]}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-40">
+                  {(["updated", "created", "title"] as Sort[]).map((s) => (
+                    <DropdownMenuItem key={s} onClick={() => setSort(s)}>
+                      <CheckIcon className={cn(sort === s ? "opacity-100" : "opacity-0")} />
+                      {sortLabel[s]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {filtering || archived || sort !== "updated" ? (
+                <button type="button" onClick={clearFilters} className="ms-auto text-xs text-grid-muted underline underline-offset-4 hover:text-grid-fg">
+                  {t("notes.clearFilters")}
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          {list.error ? (
-            <ErrorState error={list.error} />
-          ) : list.isLoading && !list.data ? (
-            <LoadingRows rows={4} />
-          ) : notes.length === 0 ? (
-            filtering ? (
-              <p className="px-6 py-6 text-sm text-grid-muted">{t("notes.noMatches")}</p>
-            ) : (
-              <EmptyState title={t("notes.emptyTitle")} body={t("notes.emptyBody")} action={newButton} />
-            )
-          ) : (
-            <ol className="divide-y divide-line border-b border-line" aria-label={t("nav.notes")}>
-              {notes.map((n) => (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    onClick={() => select(n.id)}
-                    aria-current={selected === n.id ? "true" : undefined}
-                    className={cn(
-                      "flex w-full flex-col gap-1 px-6 py-3 text-start transition-colors hover:bg-grid-soft",
-                      selected === n.id && "bg-grid-soft",
-                    )}
-                  >
-                    <span className="flex w-full items-center gap-2">
-                      {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-grid-action" aria-label={t("notes.pinned")} /> : null}
-                      <span dir="auto" className="min-w-0 flex-1 truncate text-sm font-medium text-grid-fg">
-                        {n.title || t("notes.untitled")}
-                      </span>
-                      {n.archived ? <span className="grid-micro">{t("notes.archived")}</span> : null}
-                    </span>
-                    {n.body ? (
-                      <span dir="auto" className="line-clamp-2 text-xs text-grid-muted">
-                        {n.body.slice(0, 200)}
-                      </span>
-                    ) : null}
-                    <span className="text-xs text-grid-muted">{timeAgo(n.updatedAt)}</span>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {list.error ? (
+              <ErrorState error={list.error} />
+            ) : !pages ? (
+              <LoadingRows rows={6} />
+            ) : notes.length === 0 ? (
+              filtering ? (
+                <div className="px-6 py-8 text-center text-sm text-grid-muted">
+                  <p>{t("notes.noMatches")}</p>
+                  <button type="button" onClick={clearFilters} className="mt-2 underline underline-offset-4 hover:text-grid-fg">
+                    {t("notes.clearFilters")}
                   </button>
-                </li>
-              ))}
-            </ol>
-          )}
-          {list.data?.nextCursor && limit < 200 ? (
-            <div className="px-6 py-3">
-              <Button variant="outline" size="sm" onClick={() => setLimit((l) => Math.min(200, l + PAGE))}>
-                {t("notes.loadMore")}
-              </Button>
-            </div>
-          ) : null}
+                </div>
+              ) : (
+                <EmptyState title={t("notes.emptyTitle")} body={t("notes.emptyBody")} action={newButton} />
+              )
+            ) : (
+              <ol className="divide-y divide-line" aria-label={t("nav.notes")}>
+                {notes.map((n) => (
+                  <NoteRow key={n.id} n={n} active={selected === n.id} onSelect={() => select(n.id)} timeAgo={timeAgo} />
+                ))}
+              </ol>
+            )}
+            {hasMore ? (
+              <div ref={sentinel} className="flex justify-center px-6 py-3">
+                <Button variant="ghost" size="sm" disabled={list.isValidating} onClick={() => void list.setSize((s) => s + 1)}>
+                  {list.isValidating ? <Loader2Icon className="animate-spin" /> : null}
+                  {t("notes.loadMore")}
+                </Button>
+              </div>
+            ) : null}
+          </div>
         </aside>
 
         {/* Editor pane */}
         <section className={cn("min-w-0", !selected && "hidden lg:block")}>
           {!selected ? (
-            <p className="px-6 py-12 text-center text-sm text-grid-muted">{t("notes.pickOne")}</p>
+            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+              <p className="text-sm text-grid-muted">{t("notes.pickOne")}</p>
+              {newButton}
+            </div>
           ) : current.error ? (
             <div>
               <ErrorState error={current.error instanceof ApiError && current.error.status === 404 ? new ApiError(404, t("notes.notFound")) : current.error} />
@@ -213,21 +330,86 @@ export default function NotesPage() {
               </div>
             </div>
           ) : !current.data ? (
-            <LoadingRows rows={2} />
+            <LoadingRows rows={3} />
           ) : (
             <NoteEditor
               key={current.data.id}
               note={current.data}
+              initialMode={justCreated === current.data.id ? "write" : undefined}
               onSaved={onSaved}
               onBack={() => select(null)}
+              onOpenNote={(id) => select(id)}
               onDeleted={() => {
                 select(null)
-                void refreshList()
+                refreshList()
               }}
             />
           )}
         </section>
       </div>
     </>
+  )
+}
+
+function NoteRow({
+  n,
+  active,
+  onSelect,
+  timeAgo,
+}: {
+  n: Note
+  active: boolean
+  onSelect: () => void
+  timeAgo: (v: string) => string
+}) {
+  const { t } = useTranslations()
+  const cat = n.category || "note"
+  const tags = n.tags ?? []
+  const snippet = (n.body ?? "").replace(/[#>*_`]|\[\[|\]\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220)
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-current={active ? "true" : undefined}
+        className={cn(
+          "relative flex w-full flex-col gap-1 px-4 py-3 text-start transition-colors hover:bg-grid-soft",
+          active && "bg-grid-soft before:absolute before:inset-y-0 before:start-0 before:w-0.5 before:bg-grid-fg",
+        )}
+      >
+        <span className="flex w-full items-center gap-1.5">
+          {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-grid-action" aria-label={t("notes.pinned")} /> : null}
+          <span dir="auto" className="min-w-0 flex-1 truncate text-sm font-medium text-grid-fg">
+            {n.title || t("notes.untitled")}
+          </span>
+          {!n.indexed ? (
+            n.indexError ? (
+              <AlertTriangleIcon className="size-3.5 shrink-0 text-grid-warn" aria-label={t("notes.notIndexed")} />
+            ) : (
+              <Loader2Icon className="size-3.5 shrink-0 animate-spin text-grid-muted" aria-label={t("notes.indexing")} />
+            )
+          ) : null}
+          <span className="shrink-0 text-[11px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
+        </span>
+        {snippet ? (
+          <span dir="auto" className="line-clamp-2 text-xs text-grid-muted">
+            {snippet}
+          </span>
+        ) : null}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-grid-body">
+            <span aria-hidden className="size-2 shrink-0" style={{ background: categoryColor(cat) }} />
+            <bdi>{cat}</bdi>
+          </span>
+          {tags.slice(0, 2).map((x) => (
+            <span key={x} className="grid-chip max-w-24 truncate !py-0 text-[10px]">
+              <bdi>{x}</bdi>
+            </span>
+          ))}
+          {tags.length > 2 ? <span className="text-[10px] text-grid-muted">+{tags.length - 2}</span> : null}
+          {n.archived ? <span className="grid-micro ms-auto">{t("notes.archived")}</span> : null}
+        </span>
+      </button>
+    </li>
   )
 }
