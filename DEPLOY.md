@@ -93,6 +93,44 @@ CREATE INDEX IF NOT EXISTS secrets_ns ON cabrain_auth.secrets (namespace, name);
 auto-created in `cabrain_auth` on first boot since they don't exist in `public`.) Set
 `AUTH_SECRET` and `ZEKRA_SECRETS_KEY` (§1) so JWTs + vaulted secrets survive restarts.
 
+### 2b. Auth & accounts
+
+`internal/account` wraps the togo auth plugin with fadymondy.com-v2's account cycle: email
+verification, password reset and sign-in by emailed 6-digit code, TOTP two-factor with
+recovery codes, Sign in with Google / Apple / GitHub (+ linked accounts), the account area
+(profile, notifications, data export, self-deletion with a 14-day grace period) and the admin
+API (`/api/admin/*`). It needs Postgres; on any other driver it stays off and the plain auth
+plugin routes keep working.
+
+- **Schema.** `internal/account/schema/schema.sql` (idempotent, unqualified, so it lands in
+  `cabrain_auth` via the search_path). It is applied on every boot, best effort; apply it
+  explicitly with `go run ./cmd/migrate` or `zekractl migrate` (which now also runs it).
+- **Mail.** Set `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Zekra <no-reply@zekra.dev>`, a
+  domain verified in Resend). Without a key, non-production logs each email **including its
+  code** (`DEV MAIL (not sent)`), and production logs a warning and cannot deliver codes.
+- **Providers.** A provider is on only when its credentials are set; otherwise its routes 404
+  and `/api/auth/methods` leaves it out. Set `AUTH_PUBLIC_URL=https://app.zekra.dev` and
+  register these callback URLs:
+  - Google: `https://app.zekra.dev/api/auth/google/callback` (`OAUTH_GOOGLE_CLIENT_ID/SECRET`)
+  - GitHub: `https://app.zekra.dev/api/auth/github/callback` (`OAUTH_GITHUB_CLIENT_ID/SECRET`;
+    an OAuth App or a GitHub App with "Email addresses: read")
+  - Apple: `https://app.zekra.dev/api/auth/apple/callback` (`APPLE_SERVICES_ID`, `APPLE_TEAM_ID`,
+    `APPLE_KEY_ID`, and `APPLE_PRIVATE_KEY_PATH` or inline `APPLE_PRIVATE_KEY`). Apple posts the
+    callback cross-site, so it only works over https.
+- **Two-factor.** Secrets are sealed with `VAULT_KEY` (else `ZEKRA_SECRETS_KEY`, else derived
+  from `AUTH_SECRET`). Set `VAULT_KEY` in production: rotating the key it derives from locks
+  every enrolled authenticator out.
+- **First admin.** Put the owner's address in `ADMIN_EMAILS` (comma-separated). The account
+  gets the `admin` role on boot, and on its first request after it registers. Or grant it once:
+  `zekractl admin you@example.com`. Roles are read from `users.roles` on every `/api/me/*`,
+  `/api/admin/*` and `/api/auth/me` request, so a change applies on the next request.
+- **Sessions.** Stateless JWT cookies cannot be deleted, so password reset, admin
+  "sign out everywhere", disable and deletion are enforced by revocation tables checked on every
+  request. `SESSION_DRIVER=database` additionally lets the admin API list and revoke individual
+  sessions.
+- **Registration.** Open by default; `ALLOW_REGISTRATION=false` closes password sign-up and
+  SSO account creation. Existing accounts still sign in.
+
 ## 3. Public entry (host/admin action — do not automate)
 
 Point **NPM `proxy_host id=28`** (`zekra.dev`, currently a Cognee placeholder) at
