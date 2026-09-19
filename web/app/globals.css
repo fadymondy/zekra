@@ -33,6 +33,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  /* The product's identity colour (violet), as the zekra.dev site uses it: text-brand, bg-brand. */
+  --color-brand: var(--grid-action);
+  --color-brand-foreground: var(--grid-on-action);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

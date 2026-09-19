@@ -1,0 +1,330 @@
+{
+  "wordmark": "ZEKRA",
+  "localWordmark": "ذكرة",
+  "name": "Zekra",
+  "headline": "ذكرة",
+  "metaTitle": "ذكرة — ذاكرة طويلة المدى لوكلاء الذكاء الاصطناعي عبر MCP",
+  "eyebrow": "ذاكرة لوكلاء الذكاء · عبر MCP",
+  "tagline": "عضو ذاكرة لوكلاء الذكاء الاصطناعي. استرجاع طويل المدى ورسم بياني للكيانات يصل إليه أي وكيل عبر MCP — فما تتعلّمه جلسة تعرفه التالية.",
+  "nav": [
+    {
+      "label": "المزايا",
+      "href": "#features"
+    },
+    {
+      "label": "لماذا ذكرة",
+      "href": "#why"
+    },
+    {
+      "label": "الأدوات",
+      "href": "#grid"
+    },
+    {
+      "label": "العروض",
+      "href": "#presentations"
+    },
+    {
+      "label": "التوثيق",
+      "href": "@docs"
+    }
+  ],
+  "primaryAction": {
+    "label": "افتح التطبيق",
+    "href": "https://app.zekra.dev"
+  },
+  "secondaryAction": {
+    "label": "اقرأ التوثيق",
+    "href": "@docs"
+  },
+  "install": "curl -fsSL https://app.zekra.dev/install.sh | sh",
+  "chips": [
+    {
+      "icon": "bot",
+      "label": "خادم MCP بعيد على mcp.zekra.dev"
+    },
+    {
+      "icon": "lock",
+      "label": "دخول OAuth لـ Claude.ai وChatGPT"
+    },
+    {
+      "icon": "database",
+      "label": "Postgres · VectorChord · BM25"
+    },
+    {
+      "icon": "file",
+      "label": "ملاحظات مشتركة بينك وبين وكلائك"
+    },
+    {
+      "icon": "terminal",
+      "label": "سطر أوامر واحد لـ Claude Code وCodex وGemini وCursor"
+    },
+    {
+      "icon": "globe",
+      "label": "اللوحة على app.zekra.dev"
+    }
+  ],
+  "terminal": {
+    "title": "claude — zekra",
+    "lines": [
+      {
+        "text": "❯ memory_recall{ namespace: \"my-project\", query: \"why is /docs scoped?\" }",
+        "tone": "prompt"
+      },
+      {
+        "text": "  hybrid recall · vector + BM25 · RRF · reranked"
+      },
+      {
+        "text": "  ✓ 3 memories, 41ms — hot tier",
+        "tone": "ok"
+      },
+      {
+        "text": "❯ memory_retain{ content: \"docs are per-site\", source_kind: \"claude_code\" }",
+        "tone": "prompt"
+      },
+      {
+        "text": "  salience gate → retained · ADD"
+      },
+      {
+        "text": "  ✓ consolidation scheduled",
+        "tone": "ok"
+      }
+    ]
+  },
+  "features": {
+    "title": "المزايا",
+    "cards": [
+      {
+        "icon": "search",
+        "title": "استرجاع هجين لا متجهات فقط",
+        "copy": "تشابه متجهي وBM25 يُدمجان برتبة متبادلة ثم يُعاد ترتيبهما. الاسم أو العبارة الحرفية يجدها النصف البارع في الأسماء."
+      },
+      {
+        "icon": "layers",
+        "title": "ساخن وبارد كالدماغ",
+        "copy": "طبقة ساخنة تُجيب بسرعة وطبقة باردة تحفظ كل شيء، وتوحيد محكوم بالأهمية ينقل ما يهم بينهما دون أن تنتبه."
+      },
+      {
+        "icon": "activity",
+        "title": "إعادة توحيد عند الاسترجاع",
+        "copy": "التذكّر يغيّر الذكرى — الاسترجاع يقوّيها ويتيح تصحيحها بدل ترك معلومة قديمة تُسترجع إلى الأبد."
+      },
+      {
+        "icon": "bot",
+        "title": "أي عميل، بروتوكول واحد",
+        "copy": "‏Claude Code وسطح المكتب وCodex وGemini CLI وCursor تتصل عبر سطر أوامر zekra. أما Claude.ai وChatGPT فتتصل بالخادم البعيد على mcp.zekra.dev وتسجّل الدخول عبر OAuth — دون أي برنامج محلي."
+      },
+      {
+        "icon": "file",
+        "title": "كل ذكرى ملاحظة",
+        "copy": "ما يحفظه الوكيل ملاحظة تستطيع قراءتها ووسمها وربطها وتحريرها من اللوحة — وكل ملاحظة عقدة في رسم كيانات الدماغ."
+      },
+      {
+        "icon": "shield",
+        "title": "أدمغة محدودة الصلاحية وخزنة أسرار",
+        "copy": "كل دماغ يُمنح لكل وكيل ولكل شخص على حدة برموز محدودة الصلاحية. وأي بيانات اعتماد تُلصق في ذكرى تُنقل إلى خزنة مشفّرة بدل حفظها نصًا."
+      }
+    ]
+  },
+  "grid": {
+    "title": "ما يستطيع الوكيل استدعاءه",
+    "items": [
+      {
+        "icon": "search",
+        "label": "memory_recall"
+      },
+      {
+        "icon": "save",
+        "label": "memory_retain"
+      },
+      {
+        "icon": "file",
+        "label": "memory_get"
+      },
+      {
+        "icon": "pen",
+        "label": "memory_edit"
+      },
+      {
+        "icon": "archive",
+        "label": "memory_forget"
+      },
+      {
+        "icon": "layers",
+        "label": "graph_neighbors"
+      },
+      {
+        "icon": "chart",
+        "label": "graph_path"
+      },
+      {
+        "icon": "chart",
+        "label": "graph_traverse"
+      },
+      {
+        "icon": "bot",
+        "label": "brain_chat"
+      },
+      {
+        "icon": "lock",
+        "label": "secret_store"
+      },
+      {
+        "icon": "clock",
+        "label": "memory_gaps"
+      },
+      {
+        "icon": "rocket",
+        "label": "datasource_sync"
+      }
+    ]
+  },
+  "groups": {
+    "title": "على أي شيء بُني",
+    "groups": [
+      {
+        "label": "التخزين",
+        "items": [
+          "Postgres",
+          "VectorChord",
+          "BM25"
+        ]
+      },
+      {
+        "label": "التخزين المؤقت",
+        "items": [
+          "Redis"
+        ]
+      },
+      {
+        "label": "المزوّدون",
+        "items": [
+          "brain-tei",
+          "brain-cognee"
+        ]
+      }
+    ]
+  },
+  "steps": {
+    "title": "البداية",
+    "steps": [
+      {
+        "title": "ثبّت سطر الأوامر",
+        "code": "curl -fsSL https://app.zekra.dev/install.sh | sh"
+      },
+      {
+        "title": "سجّل الدخول برمز من اللوحة",
+        "code": "zekra auth login --token cbt_..."
+      },
+      {
+        "title": "اربط ذكرة بعميلك",
+        "code": "zekra mcp:install claude-code --brain my-project"
+      },
+      {
+        "title": "أو أضفه إلى Claude.ai أو ChatGPT",
+        "copy": "أضف موصلًا مخصصًا بهذا الرابط وسجّل الدخول بحساب ذكرة.",
+        "code": "https://mcp.zekra.dev"
+      }
+    ]
+  },
+  "closing": {
+    "title": "الحالة",
+    "copy": "يعمل الآن. اللوحة على app.zekra.dev وخادم MCP البعيد على mcp.zekra.dev، فوق Postgres مع VectorChord وBM25، والتضمين وإعادة الترتيب عبر TEI — الحفظ والاسترجاع والملاحظات ورسم الكيانات قيد الاستخدام اليومي."
+  },
+  "cta": {
+    "title": "امنح وكلاءك ذاكرة.",
+    "copy": "افتح اللوحة لتنشئ دماغًا وتصدر رمزًا محدود الصلاحية وتربط Claude Code أو Cursor أو Claude.ai أو ChatGPT أو أي عميل MCP.",
+    "actions": [
+      {
+        "label": "افتح التطبيق",
+        "href": "https://app.zekra.dev"
+      },
+      {
+        "label": "ضع نجمة على GitHub",
+        "href": "https://github.com/fadymondy/zekra"
+      }
+    ],
+    "code": "curl -fsSL https://app.zekra.dev/install.sh | sh"
+  },
+  "explainer": {
+    "id": "why",
+    "title": "لماذا ذكرة؟",
+    "note": "أربع طرق يعرف بها الوكيل شيئًا، من الأقصر عمرًا إلى الأطول.",
+    "diagram": "conversation history   one session       lost when the context resets\n        ↓\ntraditional RAG        documents         retrieved, but the agent cannot write back\n        ↓\npersistent memory      what it learned   retained now, recalled next session\n        ↓\nZekra                  memory + graph    hybrid recall · entities · tiers · over MCP",
+    "items": [
+      {
+        "title": "سجل المحادثة",
+        "copy": "كل ما يعرفه الوكيل يعيش في نافذة السياق، ويذهب حين تنتهي الجلسة أو تمتلئ النافذة."
+      },
+      {
+        "title": "‏RAG التقليدي",
+        "copy": "استرجاع من مستندات فهرسها أحد. مفيد للمراجع؛ يقرؤها الوكيل لكنه لا يضيف إليها."
+      },
+      {
+        "title": "الذاكرة الدائمة",
+        "copy": "يحتفظ الوكيل بالقرارات والحقائق أثناء عمله، ويستدعيها في جلسة لاحقة — فتبدأ الجلسة الثانية من حيث انتهت الأولى."
+      },
+      {
+        "title": "ذكرة",
+        "copy": "ذاكرة دائمة مع رسم بياني للكيانات واسترجاع بالمتجهات وBM25 وطبقتين ساخنة وباردة، خلف أدوات MCP. والموصلات ما زالت تستوعب النصوص وماركداون وGitHub وSQL والصفحات المزحوفة — فالـ RAG داخله لا ضده."
+      }
+    ]
+  },
+  "related": [
+    {
+      "domain": "to-go.dev",
+      "copy": "‏ذكرة إضافة ToGO. تبني تطبيقًا ذكيًا بلغة Go؟ ابدأ بالإطار الذي يعمل عليه."
+    },
+    {
+      "domain": "orchestra-mcp.dev",
+      "copy": "أدوات للوكلاء الذين يستخدمون الذاكرة: إطار بيئة تطوير وكيلة بأكثر من ٢٩٠ أداة MCP."
+    }
+  ],
+  "community": true,
+  "repo": "https://github.com/fadymondy/zekra",
+  "copyright": "© 2026",
+  "presentations": {
+    "id": "presentations",
+    "eyebrow": "لفريقك",
+    "title": "حوّل ما يعرفه فريقك إلى عروض وتقارير وصفحات — بالعربية والإنجليزية",
+    "copy": "الذاكرة التي يبنيها وكلاؤك هي ذاكرة فريقك أيضًا. عروض ذكرة تبدأ من ملاحظة أو استعلام استرجاع أو دماغ كامل، وتصوغ عرضًا أو تقريرًا أو صفحة جاهزة للعميل مما يحويه الدماغ فعلًا.",
+    "cards": [
+      {
+        "icon": "sparkles",
+        "title": "من الملاحظات والأدمغة",
+        "copy": "اختر ملاحظات أو استعلامًا أو دماغًا؛ تُبنى المسودة من تلك الذكريات لا من صفحة فارغة."
+      },
+      {
+        "icon": "layout",
+        "title": "عرض أو تقرير أو صفحة",
+        "copy": "مصدر واحد بثلاثة أشكال: شرائح للعرض، وتقرير للإرسال، وصفحة للنشر."
+      },
+      {
+        "icon": "globe",
+        "title": "بالعربية والإنجليزية",
+        "copy": "العربية من اليمين إلى اليسار بتخطيط سليم، لا بانعكاس لاحق."
+      },
+      {
+        "icon": "download",
+        "title": "‏PDF وWord",
+        "copy": "صدّر العرض أو التقرير بصيغة PDF أو مستند Word قابل للتحرير."
+      },
+      {
+        "icon": "lock",
+        "title": "روابط مشاركة خاصة",
+        "copy": "شارك مع العميل برابط؛ الرابط هو المفتاح الوحيد ويمكنك إلغاؤه."
+      },
+      {
+        "icon": "users",
+        "title": "مملوكة للدماغ",
+        "copy": "تعيش العروض مع الدماغ الذي خرجت منه، وتحت صلاحيات الوصول نفسها."
+      }
+    ],
+    "actions": [
+      {
+        "label": "أنشئ عرضًا",
+        "href": "https://app.zekra.dev"
+      }
+    ]
+  },
+  "metaDescription": "عضو ذاكرة لوكلاء الذكاء الاصطناعي. استرجاع طويل المدى ورسم بياني للكيانات يصل إليه أي وكيل عبر MCP — فما تتعلّمه جلسة تعرفه التالية."
+}

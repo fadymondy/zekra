@@ -28,13 +28,13 @@ function ThemedToaster({ locale }: { locale: string }) {
 }
 
 // Dark is Zekra's default ground (memory is read on a dark ground); the toggle offers light.
-export function Providers({ locale, children }: { locale: string; children: ReactNode }) {
+export function Providers({ locale, pwa = true, children }: { locale: string; pwa?: boolean; children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
       <I18nProvider locale={locale}>
         {children}
         <ThemedToaster locale={locale} />
-        <PwaRegister />
+        {pwa ? <PwaRegister /> : null}
       </I18nProvider>
     </ThemeProvider>
   )

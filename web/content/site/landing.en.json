@@ -1,0 +1,330 @@
+{
+  "wordmark": "ZEKRA",
+  "localWordmark": "ZEKRA",
+  "name": "Zekra",
+  "headline": "Zekra",
+  "metaTitle": "Zekra — Long-term memory for AI agents over MCP",
+  "eyebrow": "MEMORY FOR AI AGENTS · OVER MCP",
+  "tagline": "A memory organ for AI agents. Long-term recall and an entity graph that any agent reaches over MCP — so what one session learns, the next one already knows.",
+  "nav": [
+    {
+      "label": "Features",
+      "href": "#features"
+    },
+    {
+      "label": "Why Zekra",
+      "href": "#why"
+    },
+    {
+      "label": "Tools",
+      "href": "#grid"
+    },
+    {
+      "label": "Presentations",
+      "href": "#presentations"
+    },
+    {
+      "label": "Docs",
+      "href": "@docs"
+    }
+  ],
+  "primaryAction": {
+    "label": "Open the app",
+    "href": "https://app.zekra.dev"
+  },
+  "secondaryAction": {
+    "label": "Read the docs",
+    "href": "@docs"
+  },
+  "install": "curl -fsSL https://app.zekra.dev/install.sh | sh",
+  "chips": [
+    {
+      "icon": "bot",
+      "label": "Remote MCP at mcp.zekra.dev"
+    },
+    {
+      "icon": "lock",
+      "label": "OAuth sign-in for Claude.ai and ChatGPT"
+    },
+    {
+      "icon": "database",
+      "label": "Postgres · VectorChord · BM25"
+    },
+    {
+      "icon": "file",
+      "label": "Notes you and your agents share"
+    },
+    {
+      "icon": "terminal",
+      "label": "One CLI for Claude Code, Codex, Gemini, Cursor"
+    },
+    {
+      "icon": "globe",
+      "label": "Console at app.zekra.dev"
+    }
+  ],
+  "terminal": {
+    "title": "claude — zekra",
+    "lines": [
+      {
+        "text": "❯ memory_recall{ namespace: \"my-project\", query: \"why is /docs scoped?\" }",
+        "tone": "prompt"
+      },
+      {
+        "text": "  hybrid recall · vector + BM25 · RRF · reranked"
+      },
+      {
+        "text": "  ✓ 3 memories, 41ms — hot tier",
+        "tone": "ok"
+      },
+      {
+        "text": "❯ memory_retain{ content: \"docs are per-site\", source_kind: \"claude_code\" }",
+        "tone": "prompt"
+      },
+      {
+        "text": "  salience gate → retained · ADD"
+      },
+      {
+        "text": "  ✓ consolidation scheduled",
+        "tone": "ok"
+      }
+    ]
+  },
+  "features": {
+    "title": "Features",
+    "cards": [
+      {
+        "icon": "search",
+        "title": "Hybrid recall, not just vectors",
+        "copy": "Vector similarity and BM25 fused with reciprocal rank, then reranked. A name or an exact phrase is found by the half of the search that is good at names."
+      },
+      {
+        "icon": "layers",
+        "title": "Hot and cold, like a brain",
+        "copy": "A hippocampal hot tier answers fast; a cortical cold tier keeps everything. Salience-gated consolidation moves what matters between them while you are not looking."
+      },
+      {
+        "icon": "activity",
+        "title": "Reconsolidation on recall",
+        "copy": "Remembering something changes it — recall strengthens a memory and lets it be corrected, rather than leaving a stale fact to be retrieved for ever."
+      },
+      {
+        "icon": "bot",
+        "title": "Any client, one protocol",
+        "copy": "Claude Code and Desktop, Codex, Gemini CLI and Cursor connect through the zekra CLI. Claude.ai and ChatGPT connect to the remote server at mcp.zekra.dev and sign in with OAuth — no local binary."
+      },
+      {
+        "icon": "file",
+        "title": "Every memory is a note",
+        "copy": "What an agent retains is a note you can read, tag, link and edit in the console — and every note is a node in the brain's entity graph."
+      },
+      {
+        "icon": "shield",
+        "title": "Scoped brains and a secrets vault",
+        "copy": "Each brain is granted per agent and per person, with scoped tokens. A credential pasted into a memory is moved into an encrypted vault instead of being stored as text."
+      }
+    ]
+  },
+  "grid": {
+    "title": "What an agent can call",
+    "items": [
+      {
+        "icon": "search",
+        "label": "memory_recall"
+      },
+      {
+        "icon": "save",
+        "label": "memory_retain"
+      },
+      {
+        "icon": "file",
+        "label": "memory_get"
+      },
+      {
+        "icon": "pen",
+        "label": "memory_edit"
+      },
+      {
+        "icon": "archive",
+        "label": "memory_forget"
+      },
+      {
+        "icon": "layers",
+        "label": "graph_neighbors"
+      },
+      {
+        "icon": "chart",
+        "label": "graph_path"
+      },
+      {
+        "icon": "chart",
+        "label": "graph_traverse"
+      },
+      {
+        "icon": "bot",
+        "label": "brain_chat"
+      },
+      {
+        "icon": "lock",
+        "label": "secret_store"
+      },
+      {
+        "icon": "clock",
+        "label": "memory_gaps"
+      },
+      {
+        "icon": "rocket",
+        "label": "datasource_sync"
+      }
+    ]
+  },
+  "groups": {
+    "title": "What it is built on",
+    "groups": [
+      {
+        "label": "Store",
+        "items": [
+          "Postgres",
+          "VectorChord",
+          "BM25"
+        ]
+      },
+      {
+        "label": "Cache",
+        "items": [
+          "Redis"
+        ]
+      },
+      {
+        "label": "Providers",
+        "items": [
+          "brain-tei",
+          "brain-cognee"
+        ]
+      }
+    ]
+  },
+  "steps": {
+    "title": "Get started",
+    "steps": [
+      {
+        "title": "Install the CLI",
+        "code": "curl -fsSL https://app.zekra.dev/install.sh | sh"
+      },
+      {
+        "title": "Log in with a token from the console",
+        "code": "zekra auth login --token cbt_..."
+      },
+      {
+        "title": "Wire Zekra into your client",
+        "code": "zekra mcp:install claude-code --brain my-project"
+      },
+      {
+        "title": "Or add it to Claude.ai or ChatGPT",
+        "copy": "Add a custom connector with this URL and sign in with your Zekra account.",
+        "code": "https://mcp.zekra.dev"
+      }
+    ]
+  },
+  "closing": {
+    "title": "Status",
+    "copy": "Live. The console runs at app.zekra.dev and the remote MCP server at mcp.zekra.dev, on Postgres with VectorChord and BM25, embedding and reranking through TEI — retain, recall, notes and the entity graph are in daily use."
+  },
+  "cta": {
+    "title": "Give your agents a memory.",
+    "copy": "Open the console to create a brain, mint a scoped token and connect Claude Code, Cursor, Claude.ai, ChatGPT or any MCP client.",
+    "actions": [
+      {
+        "label": "Open the app",
+        "href": "https://app.zekra.dev"
+      },
+      {
+        "label": "Star on GitHub",
+        "href": "https://github.com/fadymondy/zekra"
+      }
+    ],
+    "code": "curl -fsSL https://app.zekra.dev/install.sh | sh"
+  },
+  "explainer": {
+    "id": "why",
+    "title": "Why Zekra?",
+    "note": "Four ways an agent can know something, from the shortest-lived to the longest.",
+    "diagram": "conversation history   one session       lost when the context resets\n        ↓\ntraditional RAG        documents         retrieved, but the agent cannot write back\n        ↓\npersistent memory      what it learned   retained now, recalled next session\n        ↓\nZekra                  memory + graph    hybrid recall · entities · tiers · over MCP",
+    "items": [
+      {
+        "title": "Conversation history",
+        "copy": "Everything the agent knows lives in the context window, and goes when the session ends or the window fills."
+      },
+      {
+        "title": "Traditional RAG",
+        "copy": "Retrieval over documents someone indexed. Useful for reference material; the agent reads it but does not add to it."
+      },
+      {
+        "title": "Persistent memory",
+        "copy": "The agent retains decisions and facts as it works, and recalls them in a later session — so the second session starts where the first ended."
+      },
+      {
+        "title": "Zekra",
+        "copy": "Persistent memory with an entity graph, vector + BM25 recall and hot/cold tiers, behind MCP tools. Connectors still ingest text, markdown, GitHub, SQL and crawled pages — RAG sits inside it, not against it."
+      }
+    ]
+  },
+  "related": [
+    {
+      "domain": "to-go.dev",
+      "copy": "Zekra is a ToGO plugin. Building an AI-native app in Go? Start with the framework it runs on."
+    },
+    {
+      "domain": "orchestra-mcp.dev",
+      "copy": "Tools for the agents that use the memory: an AI-agentic IDE framework with 290+ MCP tools."
+    }
+  ],
+  "community": true,
+  "repo": "https://github.com/fadymondy/zekra",
+  "copyright": "© 2026",
+  "presentations": {
+    "id": "presentations",
+    "eyebrow": "FOR YOUR TEAM",
+    "title": "Turn what your team knows into decks, reports and pages — Arabic and English",
+    "copy": "The memory your agents build is also your team's. Zekra presentations start from a note, a recall query or a whole brain and draft a customer-ready deck, report or landing page from what the brain actually holds.",
+    "cards": [
+      {
+        "icon": "sparkles",
+        "title": "From notes and brains",
+        "copy": "Pick notes, a query or a brain; the draft is built from those memories, not from a blank page."
+      },
+      {
+        "icon": "layout",
+        "title": "Deck, report or page",
+        "copy": "One source, three shapes: slides to present, a report to send, a page to publish."
+      },
+      {
+        "icon": "globe",
+        "title": "Arabic and English",
+        "copy": "Right-to-left Arabic is laid out properly, not mirrored as an afterthought."
+      },
+      {
+        "icon": "download",
+        "title": "PDF and Word",
+        "copy": "Export a deck or report as PDF or as an editable Word document."
+      },
+      {
+        "icon": "lock",
+        "title": "Private share links",
+        "copy": "Share with a customer by link; the link is the only key, and you can revoke it."
+      },
+      {
+        "icon": "users",
+        "title": "Owned by the brain",
+        "copy": "Presentations live with the brain they came from, under the same access grants."
+      }
+    ],
+    "actions": [
+      {
+        "label": "Make a presentation",
+        "href": "https://app.zekra.dev"
+      }
+    ]
+  },
+  "metaDescription": "A memory organ for AI agents. Long-term recall and an entity graph that any agent reaches over MCP — so what one session learns, the next one already knows."
+}
