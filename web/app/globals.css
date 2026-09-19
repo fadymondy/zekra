@@ -70,3 +70,10 @@
   background-image: var(--grid-hatch);
   background-size: 8px 8px;
 }
+
+/* Collapsed sidebar (AppShell): an icon rail on desktop; mobile keeps its slide-out sheet. */
+@media (min-width: 768px) {
+  .grid-shell[data-collapsed="true"] {
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+  }
+}

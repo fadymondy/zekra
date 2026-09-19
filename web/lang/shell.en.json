@@ -59,5 +59,7 @@
   "feedback.failed": "Couldn't send the report. Try again in a moment.",
   "feedback.type.bug": "Bug",
   "feedback.type.feature": "Feature request",
-  "feedback.type.task": "Task"
+  "feedback.type.task": "Task",
+  "shell.collapseSidebar": "Collapse sidebar",
+  "shell.expandSidebar": "Expand sidebar"
 }

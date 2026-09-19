@@ -59,5 +59,7 @@
   "feedback.failed": "تعذّر إرسال البلاغ. حاول مرة أخرى بعد قليل.",
   "feedback.type.bug": "خلل",
   "feedback.type.feature": "طلب ميزة",
-  "feedback.type.task": "مهمة"
+  "feedback.type.task": "مهمة",
+  "shell.collapseSidebar": "طيّ الشريط الجانبي",
+  "shell.expandSidebar": "توسيع الشريط الجانبي"
 }

@@ -6,8 +6,8 @@
 // a brain's workspace, account, admin) renders through it with its own navigation.
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState, type ComponentType, type ReactNode } from "react"
-import { MenuIcon, MessageSquarePlusIcon } from "lucide-react"
+import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react"
+import { MenuIcon, MessageSquarePlusIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -36,17 +36,48 @@ export type NavItem = {
 }
 export type NavGroup = { label?: string; items: NavItem[] }
 
-function Brand() {
+function Brand({ compact = false }: { compact?: boolean }) {
   const { locale } = useTranslations()
   return (
-    <Link href={`/${locale}/brains`} className="flex items-center gap-2.5">
+    <Link href={`/${locale}/brains`} className="flex items-center gap-2.5" aria-label={brandName(locale)}>
       <CubeMark mark={ZEKRA_MARK} size={24} />
-      <span className="text-[15px] font-medium">{brandName(locale)}</span>
+      {compact ? null : <span className="text-[15px] font-medium">{brandName(locale)}</span>}
     </Link>
   )
 }
 
-function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+/** Desktop sidebar: full (15rem) or collapsed to an icon rail. Remembered per browser. */
+const SIDEBAR_KEY = "zekra.sidebar"
+function useSidebarCollapsed() {
+  const [collapsed, setCollapsed] = useState(false)
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(SIDEBAR_KEY) === "collapsed")
+    } catch {}
+  }, [])
+  const toggle = useCallback(() => {
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem(SIDEBAR_KEY, c ? "open" : "collapsed")
+      } catch {}
+      return !c
+    })
+  }, [])
+  // Ctrl/⌘+B toggles it, as in most editors.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "b") {
+        e.preventDefault()
+        toggle()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [toggle])
+  return { collapsed, toggle }
+}
+
+function NavLink({ item, onNavigate, compact = false }: { item: NavItem; onNavigate?: () => void; compact?: boolean }) {
   const pathname = usePathname()
   const { t, locale } = useTranslations()
   const href = `/${locale}${item.href}`
@@ -57,30 +88,37 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
       href={href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
+      aria-label={compact ? t(item.label) : undefined}
+      title={compact ? t(item.label) : undefined}
       className={cn(
-        "flex items-center gap-2.5 border-s-2 px-3 py-2 text-sm transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
+        "flex items-center gap-2.5 border-s-2 py-2 text-sm transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
+        compact ? "justify-center px-0" : "px-3",
         active
           ? "border-grid-action bg-grid-soft font-medium text-grid-fg"
           : "border-transparent text-grid-body hover:bg-grid-soft hover:text-grid-fg",
       )}
     >
       <Icon />
-      {t(item.label)}
+      {compact ? null : t(item.label)}
     </Link>
   )
 }
 
-function ShellNav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
+function ShellNav({ groups, onNavigate, compact = false }: { groups: NavGroup[]; onNavigate?: () => void; compact?: boolean }) {
   const { t } = useTranslations()
   return (
     <nav className="flex flex-col py-3" aria-label={t("shell.navigation")}>
       {groups.map((g, i) => (
         <div key={g.label ?? i} className="flex flex-col">
           {g.label ? (
-            <p className={cn("grid-micro px-4 pb-1", i > 0 ? "mt-4 border-t border-line pt-4" : "pt-1")}>{t(g.label)}</p>
+            compact ? (
+              i > 0 ? <div className="mx-3 my-3 border-t border-line" aria-hidden /> : null
+            ) : (
+              <p className={cn("grid-micro px-4 pb-1", i > 0 ? "mt-4 border-t border-line pt-4" : "pt-1")}>{t(g.label)}</p>
+            )
           ) : null}
           {g.items.map((item) => (
-            <NavLink key={item.href} item={item} onNavigate={onNavigate} />
+            <NavLink key={item.href} item={item} onNavigate={onNavigate} compact={compact} />
           ))}
         </div>
       ))}
@@ -117,6 +155,7 @@ export function AppShell({
   const me = useRequireAuth()
   const { t, isRtl, locale } = useTranslations()
   const [navOpen, setNavOpen] = useState(false)
+  const sidebar = useSidebarCollapsed()
 
   let body: ReactNode
   if (me.error) body = <ErrorState error={me.error} />
@@ -125,12 +164,12 @@ export function AppShell({
 
   return (
     <RealtimeProvider>
-    <div className="grid-shell">
+    <div className="grid-shell" data-collapsed={sidebar.collapsed ? "true" : undefined}>
       <aside className="grid-shell-nav sticky top-0 hidden h-dvh flex-col overflow-y-auto md:flex">
-        <div className="flex h-14 shrink-0 items-center border-b border-line px-4">
-          <Brand />
+        <div className={cn("flex h-14 shrink-0 items-center border-b border-line", sidebar.collapsed ? "justify-center px-0" : "px-4")}>
+          <Brand compact={sidebar.collapsed} />
         </div>
-        <ShellNav groups={groups} />
+        <ShellNav groups={groups} compact={sidebar.collapsed} />
       </aside>
 
       <div className="flex min-w-0 flex-col">
@@ -144,6 +183,17 @@ export function AppShell({
               onClick={() => setNavOpen(true)}
             >
               <MenuIcon />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="hidden md:inline-flex"
+              aria-label={sidebar.collapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")}
+              title={`${sidebar.collapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")} (Ctrl+B)`}
+              aria-pressed={sidebar.collapsed}
+              onClick={sidebar.toggle}
+            >
+              {sidebar.collapsed ? <PanelLeftOpenIcon className="rtl:-scale-x-100" /> : <PanelLeftCloseIcon className="rtl:-scale-x-100" />}
             </Button>
             {start}
           </div>
