@@ -159,8 +159,10 @@ CREATE TABLE IF NOT EXISTS entities (
   namespace text NOT NULL,
   name      text NOT NULL,
   summary   text,                                           -- consolidated "what we know about X"
-  embedding vector(1024),
-  UNIQUE (namespace, name)
+  embedding vector(1024)
+  -- Name uniqueness is a PARTIAL unique index (entities_ns_name, see "Notes are
+  -- graph nodes" below): extracted/Cognee entities dedupe by name, note entities
+  -- are keyed by natural_key so two notes may share a title.
 );
 
 -- memory ↔ entity edges. memory_id is a soft ref [D2] (memories is partitioned);
@@ -554,3 +556,45 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'brain_members backfill skipped: %', SQLERRM;
 END $$;
+
+-- ── Notes are graph nodes (the editable graph) ───────────────────────────────────────
+-- Every note owns one entity (natural_key 'note:<id>', entity_type = the note's
+-- category); [[wikilinks]] in its body become links_to edges from it, and its tags
+-- tagged edges. Edge provenance lives in entity_edges.metadata->>'origin'
+-- (manual | wikilink | extract | cognee): note saves only ever touch their own
+-- derived edges, never manual ones.
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS entity_id uuid;          -- soft ref -> entities.id
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS category  text NOT NULL DEFAULT 'note';
+CREATE INDEX IF NOT EXISTS notes_entity ON public.notes (entity_id) WHERE entity_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS notes_ns_category ON public.notes (namespace, category) WHERE deleted_at IS NULL;
+ALTER TABLE public.note_versions ADD COLUMN IF NOT EXISTS category text;  -- NULL = recorded before categories
+
+-- natural_key is a stable identity that is not the display name ('note:<id>',
+-- 'tag:<name>'). Keyed entities are unique by it; everything else keeps the old
+-- name-dedupe, now as a partial index. Writers that upsert by name must say
+--   ON CONFLICT (namespace, name) WHERE natural_key IS NULL
+ALTER TABLE entities ADD COLUMN IF NOT EXISTS natural_key text;
+CREATE UNIQUE INDEX IF NOT EXISTS entities_ns_natural_key ON entities (namespace, natural_key)
+  WHERE natural_key IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS entities_ns_name ON entities (namespace, name)
+  WHERE natural_key IS NULL;
+CREATE INDEX IF NOT EXISTS entities_ns_lname ON entities (namespace, lower(name));
+-- Drop the old table-level UNIQUE (namespace, name) whatever it is called, now that
+-- the partial index above carries the name-dedupe. Idempotent.
+DO $$
+DECLARE c text;
+BEGIN
+  FOR c IN
+    SELECT con.conname FROM pg_constraint con
+    WHERE con.conrelid = 'public.entities'::regclass AND con.contype = 'u'
+      AND (SELECT array_agg(a.attname::text ORDER BY a.attname)
+           FROM unnest(con.conkey) k JOIN pg_attribute a
+             ON a.attrelid = con.conrelid AND a.attnum = k) = ARRAY['name','namespace']
+  LOOP
+    EXECUTE format('ALTER TABLE public.entities DROP CONSTRAINT %I', c);
+  END LOOP;
+END $$;
+
+-- Derived-edge sync looks up "this note's live wikilink edges" on every save.
+CREATE INDEX IF NOT EXISTS entity_edges_src_origin ON entity_edges (src_id, (metadata->>'origin'))
+  WHERE valid_to IS NULL;

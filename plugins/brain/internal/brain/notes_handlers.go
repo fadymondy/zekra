@@ -44,7 +44,7 @@ func (s *Service) sessionWriteOK(r *http.Request) bool {
 	if csrfMatches(r) {
 		return true
 	}
-	if r.Method == http.MethodDelete || r.Method == http.MethodPut {
+	if r.Method == http.MethodDelete || r.Method == http.MethodPut || r.Method == http.MethodPatch {
 		return true // never a simple (form) request
 	}
 	mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
@@ -117,7 +117,8 @@ func (s *Service) noteWriteGuard(w http.ResponseWriter, r *http.Request) bool {
 // ListNotes — GET /api/notes
 func (s *Service) ListNotes(w http.ResponseWriter, r *http.Request) {
 	qv := r.URL.Query()
-	q := NoteQuery{Q: strings.TrimSpace(qv.Get("q")), Tag: strings.TrimSpace(qv.Get("tag")), Cursor: qv.Get("cursor")}
+	q := NoteQuery{Q: strings.TrimSpace(qv.Get("q")), Tag: strings.TrimSpace(qv.Get("tag")), Cursor: qv.Get("cursor"),
+		Category: strings.TrimSpace(qv.Get("category"))}
 	q.Limit, _ = strconv.Atoi(qv.Get("limit"))
 	q.Archived = qv.Get("archived") == "1" || qv.Get("archived") == "true"
 	if v := qv.Get("since"); v != "" {
@@ -156,6 +157,7 @@ type noteBody struct {
 	Tags      *[]string `json:"tags"`
 	Pinned    *bool     `json:"pinned"`
 	Archived  *bool     `json:"archived"`
+	Category  *string   `json:"category"`
 	Source    string    `json:"source"`
 	Version   int       `json:"version"`
 }
@@ -194,8 +196,8 @@ func (s *Service) CreateNote(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no write access to brain "+in.Namespace))
 		return
 	}
-	n, err := s.Store.CreateNote(r.Context(), in.Namespace, deref(in.Title), deref(in.Body), deref(in.Tags),
-		deref(in.Pinned), s.noteAuthor(r, in.Source))
+	n, err := s.Store.CreateNote(r.Context(), NoteInput{Namespace: in.Namespace, Title: deref(in.Title), Body: deref(in.Body),
+		Tags: deref(in.Tags), Pinned: deref(in.Pinned), Category: deref(in.Category)}, s.noteAuthor(r, in.Source))
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -257,7 +259,7 @@ func (s *Service) UpdateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n, err := s.Store.UpdateNote(r.Context(), chi.URLParam(r, "id"), expect, NotePatch{
-		Title: in.Title, Body: in.Body, Tags: in.Tags, Pinned: in.Pinned, Archived: in.Archived,
+		Title: in.Title, Body: in.Body, Tags: in.Tags, Pinned: in.Pinned, Archived: in.Archived, Category: in.Category,
 	}, s.noteAuthor(r, in.Source))
 	if errors.Is(err, ErrConflict) {
 		s.writeConflict(w, n)

@@ -14,6 +14,7 @@ var noteToolDefs = []map[string]any{
 			"body":      prop{"type": "string", "description": "markdown"},
 			"tags":      prop{"type": "array", "items": prop{"type": "string"}},
 			"pinned":    prop{"type": "boolean"},
+			"category":  prop{"type": "string", "description": "the note's graph node type (default note)"},
 		}, "namespace", "title"),
 	},
 	{
@@ -27,6 +28,7 @@ var noteToolDefs = []map[string]any{
 			"tags":     prop{"type": "array", "items": prop{"type": "string"}},
 			"pinned":   prop{"type": "boolean"},
 			"archived": prop{"type": "boolean"},
+			"category": prop{"type": "string", "description": "graph node type"},
 			"version":  prop{"type": "integer", "description": "optional optimistic-concurrency check"},
 		}, "id"),
 	},

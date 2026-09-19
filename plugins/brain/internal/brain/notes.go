@@ -55,6 +55,8 @@ type Note struct {
 	Title          string     `json:"title"`
 	Body           string     `json:"body,omitempty"`
 	Tags           []string   `json:"tags"`
+	Category       string     `json:"category"`
+	EntityID       string     `json:"entityId,omitempty"`
 	Pinned         bool       `json:"pinned"`
 	Archived       bool       `json:"archived"`
 	Source         string     `json:"source"`
@@ -76,6 +78,7 @@ type NoteVersion struct {
 	Title        string    `json:"title"`
 	Body         string    `json:"body"`
 	Tags         []string  `json:"tags"`
+	Category     string    `json:"category,omitempty"`
 	Pinned       bool      `json:"pinned"`
 	Archived     bool      `json:"archived"`
 	Deleted      bool      `json:"deleted"`
@@ -99,6 +102,7 @@ type NotePatch struct {
 	Tags     *[]string
 	Pinned   *bool
 	Archived *bool
+	Category *string
 }
 
 // --- chunking (pure) -----------------------------------------------------------
@@ -210,7 +214,8 @@ func validateNote(title, body string) error {
 // --- store ---------------------------------------------------------------------
 
 const noteCols = `id::text, namespace, COALESCE(owner_user_id,''), title, body, tags, pinned, archived,
-	source, version, chunk_hashes, indexed_version, COALESCE(index_error,''), created_at, updated_at, deleted_at`
+	source, version, chunk_hashes, indexed_version, COALESCE(index_error,''), created_at, updated_at, deleted_at,
+	category, COALESCE(entity_id::text,'')`
 
 type rowScanner interface{ Scan(dest ...any) error }
 
@@ -219,7 +224,8 @@ func scanNote(row rowScanner) (*Note, error) {
 	var tags, hashes stringArray
 	var deleted sql.NullTime
 	if err := row.Scan(&n.ID, &n.Namespace, &n.OwnerUserID, &n.Title, &n.Body, &tags, &n.Pinned, &n.Archived,
-		&n.Source, &n.Version, &hashes, &n.indexedVersion, &n.IndexError, &n.CreatedAt, &n.UpdatedAt, &deleted); err != nil {
+		&n.Source, &n.Version, &hashes, &n.indexedVersion, &n.IndexError, &n.CreatedAt, &n.UpdatedAt, &deleted,
+		&n.Category, &n.EntityID); err != nil {
 		return nil, err
 	}
 	n.Tags = []string(tags)
@@ -254,12 +260,31 @@ func (s *Store) GetNote(ctx context.Context, id string) (*Note, error) {
 
 var uuidRE = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
-// CreateNote inserts a note (version 1), records its history and indexes it.
-func (s *Store) CreateNote(ctx context.Context, ns, title, body string, tags []string, pinned bool, by NoteAuthor) (*Note, error) {
-	if ns == "" {
+// NoteInput is a new note.
+type NoteInput struct {
+	Namespace string
+	Title     string
+	Body      string
+	Tags      []string
+	Pinned    bool
+	Category  string // entity type of the note's graph node; "" = "note"
+	// EntityID attaches the note to an existing graph entity instead of minting
+	// one (open-an-entity-as-a-note). The entity must not already be a note's:
+	// that returns ErrEntityHasNote.
+	EntityID string
+}
+
+// CreateNote inserts a note (version 1), records its history, makes it a graph
+// node and indexes it.
+func (s *Store) CreateNote(ctx context.Context, in NoteInput, by NoteAuthor) (*Note, error) {
+	if in.Namespace == "" {
 		return nil, fmt.Errorf("%w: namespace is required", ErrInvalidInput)
 	}
-	if err := validateNote(title, body); err != nil {
+	if err := validateNote(in.Title, in.Body); err != nil {
+		return nil, err
+	}
+	cat, err := noteCategory(in.Category)
+	if err != nil {
 		return nil, err
 	}
 	src := by.Source
@@ -275,11 +300,30 @@ func (s *Store) CreateNote(ctx context.Context, ns, title, body string, tags []s
 		return nil, err
 	}
 	defer tx.Rollback()
+	if in.EntityID != "" {
+		// Lock the entity so two "open as note" clicks create one note.
+		var ns, key string
+		err := tx.QueryRowContext(ctx, `SELECT namespace, COALESCE(natural_key,'') FROM entities WHERE id=$1 FOR UPDATE`,
+			in.EntityID).Scan(&ns, &key)
+		if errors.Is(err, sql.ErrNoRows) || (err == nil && ns != in.Namespace) {
+			return nil, ErrNotFound
+		}
+		if err != nil {
+			return nil, err
+		}
+		if strings.HasPrefix(key, noteSourceRef) {
+			return nil, ErrEntityHasNote
+		}
+	}
 	n, err := scanNote(tx.QueryRowContext(ctx, `
-		INSERT INTO notes (namespace, owner_user_id, title, body, tags, pinned, source)
-		VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING `+noteCols,
-		ns, nullStr(by.UserID), strings.TrimSpace(title), body, stringArray(cleanTags(tags)), pinned, src))
+		INSERT INTO notes (namespace, owner_user_id, title, body, tags, pinned, source, category, entity_id)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING `+noteCols,
+		in.Namespace, nullStr(by.UserID), strings.TrimSpace(in.Title), in.Body, stringArray(cleanTags(in.Tags)),
+		in.Pinned, src, cat, nullStr(in.EntityID)))
 	if err != nil {
+		return nil, err
+	}
+	if err := syncNoteGraph(ctx, tx, n); err != nil {
 		return nil, err
 	}
 	if err := insertNoteVersion(ctx, tx, n, by); err != nil {
@@ -289,16 +333,17 @@ func (s *Store) CreateNote(ctx context.Context, ns, title, body string, tags []s
 		return nil, err
 	}
 	s.indexNote(ctx, n, by)
+	s.linkNoteMemories(ctx, n)
 	return n, nil
 }
 
 func insertNoteVersion(ctx context.Context, tx *sql.Tx, n *Note, by NoteAuthor) error {
 	_, err := tx.ExecContext(ctx, `
-		INSERT INTO note_versions (note_id, version, title, body, tags, pinned, archived, deleted, source, author_user_id, author_agent)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+		INSERT INTO note_versions (note_id, version, title, body, tags, pinned, archived, deleted, source, author_user_id, author_agent, category)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
 		ON CONFLICT (note_id, version) DO NOTHING`,
 		n.ID, n.Version, n.Title, n.Body, stringArray(n.Tags), n.Pinned, n.Archived, n.Deleted, n.Source,
-		nullStr(by.UserID), nullStr(by.Agent))
+		nullStr(by.UserID), nullStr(by.Agent), n.Category)
 	return err
 }
 
@@ -320,6 +365,13 @@ func (s *Store) UpdateNote(ctx context.Context, id string, expectVersion int, p 
 		}
 		if p.Pinned != nil {
 			n.Pinned = *p.Pinned
+		}
+		if p.Category != nil {
+			c, err := noteCategory(*p.Category)
+			if err != nil {
+				return err
+			}
+			n.Category = c
 		}
 		if p.Archived != nil {
 			n.Archived = *p.Archived
@@ -384,6 +436,9 @@ func (s *Store) RestoreNote(ctx context.Context, id string, version int, by Note
 		n.Deleted, n.DeletedAt = false, nil
 		if old != nil {
 			n.Title, n.Body, n.Tags, n.Pinned, n.Archived = old.Title, old.Body, old.Tags, old.Pinned, old.Archived
+			if old.Category != "" {
+				n.Category = old.Category
+			}
 		}
 		return nil
 	})
@@ -434,11 +489,14 @@ func (s *Store) mutateNote(ctx context.Context, id string, expectVersion int, by
 	}
 	updated, err := scanNote(tx.QueryRowContext(ctx, `
 		UPDATE notes SET title=$2, body=$3, tags=$4, pinned=$5, archived=$6, source=$7, version=$8,
-		       deleted_at=$9, chunk_hashes=$10, updated_at=clock_timestamp()
+		       deleted_at=$9, chunk_hashes=$10, category=$11, updated_at=clock_timestamp()
 		WHERE id=$1 RETURNING `+noteCols,
 		id, next.Title, next.Body, stringArray(next.Tags), next.Pinned, next.Archived, next.Source, next.Version,
-		deletedAt, stringArray(nonNil(hashes))))
+		deletedAt, stringArray(nonNil(hashes)), next.Category))
 	if err != nil {
+		return nil, err
+	}
+	if err := syncNoteGraph(ctx, tx, updated); err != nil {
 		return nil, err
 	}
 	if err := insertNoteVersion(ctx, tx, updated, by); err != nil {
@@ -457,6 +515,7 @@ func (s *Store) mutateNote(ctx context.Context, id string, expectVersion int, by
 	default:
 		s.indexNote(ctx, updated, by)
 	}
+	s.linkNoteMemories(ctx, updated)
 	return updated, nil
 }
 
@@ -571,7 +630,7 @@ func (s *Store) NoteVersions(ctx context.Context, id string) ([]NoteVersion, err
 	}
 	rows, err := db.QueryContext(ctx, `
 		SELECT version, title, body, tags, pinned, archived, deleted, source,
-		       COALESCE(author_user_id,''), COALESCE(author_agent,''), created_at
+		       COALESCE(author_user_id,''), COALESCE(author_agent,''), created_at, COALESCE(category,'')
 		FROM note_versions WHERE note_id=$1 ORDER BY version DESC LIMIT 500`, id)
 	if err != nil {
 		return out, err
@@ -581,7 +640,7 @@ func (s *Store) NoteVersions(ctx context.Context, id string) ([]NoteVersion, err
 		var v NoteVersion
 		var tags stringArray
 		if err := rows.Scan(&v.Version, &v.Title, &v.Body, &tags, &v.Pinned, &v.Archived, &v.Deleted, &v.Source,
-			&v.AuthorUserID, &v.AuthorAgent, &v.CreatedAt); err != nil {
+			&v.AuthorUserID, &v.AuthorAgent, &v.CreatedAt, &v.Category); err != nil {
 			return out, err
 		}
 		v.Tags = nonNil([]string(tags))
@@ -596,6 +655,7 @@ type NoteQuery struct {
 	All        bool
 	Q          string
 	Tag        string
+	Category   string
 	Since      *time.Time // incremental sync: changes (incl. tombstones) after this instant
 	Archived   bool       // browse mode: include archived notes
 	Limit      int
@@ -663,6 +723,9 @@ func (s *Store) ListNotes(ctx context.Context, q NoteQuery) (*NotePage, error) {
 	if q.Q != "" {
 		p := arg("%" + escapeLike(q.Q) + "%")
 		where = append(where, "(title ILIKE "+p+" OR body ILIKE "+p+")")
+	}
+	if q.Category != "" {
+		where = append(where, "category = "+arg(q.Category))
 	}
 	if q.Tag != "" {
 		where = append(where, "tags @> "+arg(stringArray{q.Tag}))

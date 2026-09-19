@@ -49,9 +49,10 @@ func ToolAccess(name string) Access {
 
 // Tools returns every tool definition (memory + graph + ACL + notes).
 func Tools() []map[string]any {
-	out := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs))
+	out := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs)+len(graphToolDefs))
 	out = append(out, toolDefs...)
-	return append(out, noteToolDefs...)
+	out = append(out, noteToolDefs...)
+	return append(out, graphToolDefs...)
 }
 
 // ToolsFor returns the tools whose access class is allowed.
@@ -97,6 +98,9 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	}
 	get := func(path string, q url.Values) { body, code, err = b.Do(ctx, "GET", path, q, nil) }
 	del := func(path string) { body, code, err = b.Do(ctx, "DELETE", path, nil, nil) }
+	patch := func(path string, payload map[string]any) {
+		body, code, err = b.Do(ctx, "PATCH", path, nil, clean(payload))
+	}
 	note := func(suffix string) string { return "/api/notes/" + url.PathEscape(str(args["id"])) + suffix }
 
 	switch name {
@@ -210,11 +214,11 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	case "note_create":
 		post("/api/notes", map[string]any{
 			"namespace": args["namespace"], "title": args["title"], "body": args["body"],
-			"tags": args["tags"], "pinned": args["pinned"], "source": "agent"})
+			"tags": args["tags"], "pinned": args["pinned"], "category": args["category"], "source": "agent"})
 	case "note_update":
 		put(note(""), map[string]any{
 			"title": args["title"], "body": args["body"], "tags": args["tags"],
-			"pinned": args["pinned"], "archived": args["archived"], "version": args["version"],
+			"pinned": args["pinned"], "archived": args["archived"], "version": args["version"], "category": args["category"],
 			"source": "agent"})
 	case "note_append":
 		post(note("/append"), map[string]any{"text": args["text"], "source": "agent"})
@@ -239,7 +243,9 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	case "note_delete":
 		del(note(""))
 	default:
-		return Result{}, ErrUnknownTool
+		if !callGraph(name, args, post, patch, get, del) {
+			return Result{}, ErrUnknownTool
+		}
 	}
 
 	if err != nil {

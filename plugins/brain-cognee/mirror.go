@@ -64,7 +64,7 @@ func Mirror(ctx context.Context, db *sql.DB, namespace string) (*MirrorResult, e
 		// Upsert then read back the id (works whether it was inserted or already present).
 		err := db.QueryRowContext(ctx, `
 			INSERT INTO entities (namespace, name) VALUES ($1, $2)
-			ON CONFLICT (namespace, name) DO UPDATE SET name = EXCLUDED.name
+			ON CONFLICT (namespace, name) WHERE natural_key IS NULL DO UPDATE SET name = EXCLUDED.name
 			RETURNING id::text`, namespace, name).Scan(&id)
 		if err != nil {
 			return res, fmt.Errorf("brain-cognee.Mirror: upsert entity %q: %w", name, err)

@@ -45,3 +45,7 @@ var ErrBM25Skipped = ib.ErrBM25Skipped
 // SchemaSQL / BM25SQL expose the embedded DDL for inspection.
 func SchemaSQL() string { return ib.SchemaSQL() }
 func BM25SQL() string   { return ib.BM25SQL() }
+
+// BackfillNotesGraph makes every existing note a graph node (entity, derived
+// wikilink/tag edges, memory links). Idempotent; returns the notes synced.
+func BackfillNotesGraph(ctx context.Context, db *sql.DB) (int, error) { return ib.BackfillNotesGraph(ctx, db) }

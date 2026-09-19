@@ -86,6 +86,31 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Get("/api/notes/{id}/versions", sec(s.NoteVersions))
 	r.Post("/api/notes/{id}/restore", sec(s.RestoreNote))
 	r.Post("/api/notes/{id}/append", sec(s.AppendNote))
+	r.Get("/api/notes/{id}/related", sec(s.NoteRelated))
+	r.Get("/api/notes/{id}/backlinks", sec(s.NoteBacklinks))
+
+	// Graph editing: entities (nodes), edges, ontology. Notes are nodes too.
+	r.Get("/api/brain/entities/search", sec(s.SearchEntitiesHandler))
+	r.Post("/api/brain/entities/neighbors", sec(s.EntityNeighborsHandler))
+	r.Post("/api/brain/entities/path", sec(s.EntityPathHandler))
+	r.Post("/api/brain/entities", sec(s.CreateEntityHandler))
+	r.Get("/api/brain/entities/{id}", sec(s.GetEntityHandler))
+	r.Patch("/api/brain/entities/{id}", sec(s.UpdateEntityHandler))
+	r.Delete("/api/brain/entities/{id}", sec(s.DeleteEntityHandler))
+	r.Post("/api/brain/entities/{id}/note", sec(s.EntityNoteHandler))
+	r.Post("/api/brain/edges", sec(s.CreateEdgeHandler))
+	r.Patch("/api/brain/edges/{id}", sec(s.UpdateEdgeHandler))
+	r.Delete("/api/brain/edges/{id}", sec(s.DeleteEdgeHandler))
+	r.Get("/api/brain/ontology", sec(s.OntologyV2Handler))
+	for _, k := range []struct {
+		path string
+		kind OntologyKind
+	}{{"/api/brain/ontology/entity-types", KindEntityType}, {"/api/brain/ontology/edge-types", KindEdgeType}} {
+		h := sec(s.ontologyWrite(k.kind))
+		r.Post(k.path, h)
+		r.Patch(k.path, h)
+		r.Delete(k.path, h)
+	}
 
 	// OAuth 2.1 authorization server + the remote MCP endpoint. Their own
 	// authentication (client auth, session consent, bearer tokens) applies.

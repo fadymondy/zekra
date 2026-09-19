@@ -126,6 +126,8 @@ type GraphNode struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Group string `json:"group,omitempty"` // for coloring: root | type | <type>
+	Type   string `json:"type,omitempty"`   // entity_type (entity graph only)
+	NoteID string `json:"noteId,omitempty"` // set when the node is a note's: the UI can "Open note"
 }
 type GraphEdge struct {
 	Source   string `json:"source"`
@@ -198,9 +200,10 @@ WITH ends AS (
 ), deg AS (
   SELECT id, count(*) AS d FROM ends WHERE ($1 = '' OR namespace = $1) GROUP BY id
 ), typed AS (
-  SELECT e.id, e.name, COALESCE(NULLIF(e.entity_type,''),'entity') AS grp, COALESCE(d.d,0) AS deg
+  SELECT e.id, e.name, COALESCE(NULLIF(e.entity_type,''),'entity') AS grp, COALESCE(d.d,0) AS deg,
+         CASE WHEN e.natural_key LIKE 'note:%' THEN substr(e.natural_key, 6) ELSE '' END AS note_id
   FROM entities e LEFT JOIN deg d ON d.id = e.id
-  WHERE ($1 = '' OR e.namespace = $1)
+  WHERE ($1 = '' OR e.namespace = $1) AND COALESCE(e.metadata->>'deleted','') <> 'true'
 ), grp_quota(grp, q) AS (
   VALUES ('portfolio', 500), ('venture', 500), ('person', 500), ('agent', 500),
          ('repo', 500), ('channel', 500), ('campaign', 500),
@@ -210,12 +213,12 @@ WITH ends AS (
 ), default_quota AS (
   SELECT GREATEST(20, ` + itoa(limit) + ` / GREATEST(1, (SELECT count(DISTINCT grp) FROM typed))) AS q
 ), ranked AS (
-  SELECT t.id, t.name, t.grp, t.deg,
+  SELECT t.id, t.name, t.grp, t.deg, t.note_id,
          COALESCE(gq.q, (SELECT q FROM default_quota)) AS q,
          ROW_NUMBER() OVER (PARTITION BY t.grp ORDER BY t.deg DESC, t.name) AS rn
   FROM typed t LEFT JOIN grp_quota gq ON gq.grp = t.grp
 )
-SELECT id::text, name, grp FROM ranked
+SELECT id::text, name, grp, note_id FROM ranked
 WHERE rn <= q
 ORDER BY deg DESC, grp, name
 LIMIT ` + itoa(limit)
@@ -228,7 +231,8 @@ LIMIT ` + itoa(limit)
 	keep := map[string]bool{}
 	for rows.Next() {
 		var n GraphNode
-		if err := rows.Scan(&n.ID, &n.Name, &n.Group); err == nil {
+		if err := rows.Scan(&n.ID, &n.Name, &n.Group, &n.NoteID); err == nil {
+			n.Type = n.Group
 			g.Nodes = append(g.Nodes, n)
 			keep[n.ID] = true
 		}
@@ -239,7 +243,7 @@ LIMIT ` + itoa(limit)
 	// best-connected repos.
 	if crows, err := db.QueryContext(ctx, `
 SELECT COALESCE(NULLIF(entity_type,''),'entity') AS grp, count(*)
-FROM entities WHERE ($1 = '' OR namespace = $1)
+FROM entities WHERE ($1 = '' OR namespace = $1) AND COALESCE(metadata->>'deleted','') <> 'true'
 GROUP BY 1 ORDER BY 2 DESC, 1`, namespace); err == nil {
 		defer crows.Close()
 		for crows.Next() {

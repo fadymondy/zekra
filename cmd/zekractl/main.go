@@ -11,6 +11,7 @@
 //	zekractl bm25         — apply just the BM25 layer (idempotent)
 //	zekractl bm25-test    — seed a few multilingual rows and run a BM25 ranking query
 //	zekractl mirror <ns>  — mirror a namespace's Cognee graph into entities/memory_entities
+//	zekractl notes-graph-backfill — make every existing note a graph node (idempotent)
 package main
 
 import (
@@ -32,7 +33,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin>")
+		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin|notes-graph-backfill>")
 		os.Exit(2)
 	}
 	dsn := os.Getenv("DATABASE_URL")
@@ -78,6 +79,14 @@ func main() {
 			fatal("usage: zekractl mirror <namespace>")
 		}
 		mirror(ctx, db, os.Args[2])
+	case "notes-graph-backfill":
+		bctx, bcancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		defer bcancel()
+		n, err := brain.BackfillNotesGraph(bctx, db)
+		if err != nil {
+			fatal(fmt.Sprintf("notes-graph-backfill (after %d notes): %v", n, err))
+		}
+		fmt.Printf("✓ %d notes synced into the graph\n", n)
 	case "admin":
 		// Grant the admin role to an existing account (register or sign in first).
 		if len(os.Args) < 3 {

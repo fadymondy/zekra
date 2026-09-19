@@ -950,6 +950,8 @@ func writeErr(w http.ResponseWriter, err error) {
 		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", err.Error()))
 	case errors.Is(err, ErrInvalidInput):
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", err.Error()))
+	case errors.Is(err, ErrGraphConflict), errors.Is(err, ErrEntityHasNote), errors.Is(err, ErrConflict):
+		writeJSON(w, http.StatusConflict, apiErr("conflict", err.Error()))
 	default:
 		writeJSON(w, http.StatusServiceUnavailable, unavailable(err))
 	}

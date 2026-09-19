@@ -150,6 +150,10 @@ func (f *fix) clean() {
 	for _, q := range []string{
 		`DELETE FROM memories WHERE namespace LIKE $1`,
 		`DELETE FROM notes WHERE namespace LIKE $1`,
+		`DELETE FROM entity_edges WHERE namespace LIKE $1`,
+		`DELETE FROM entities WHERE namespace LIKE $1`,
+		`DELETE FROM entity_types WHERE namespace LIKE $1`,
+		`DELETE FROM edge_types WHERE namespace LIKE $1`,
 		`DELETE FROM brain_members WHERE namespace LIKE $1`,
 		`DELETE FROM namespace_grants WHERE namespace LIKE $1`,
 		`DELETE FROM memory_gaps WHERE namespace LIKE $1`,
