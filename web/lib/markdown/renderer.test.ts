@@ -132,3 +132,50 @@ describe("mixed direction and edge cases", () => {
     assert.doesNotMatch(html, /<em>/)
   })
 })
+
+describe("code block chrome (MH-210)", () => {
+  test("emits the title bar with traffic lights and a menu hook", () => {
+    const html = render("```go\nfunc main() {}\n```")
+    assert.match(html, /<figure class="zk-code"/)
+    assert.match(html, /zk-code-lights/)
+    assert.match(html, /data-zk-code-menu/)
+  })
+
+  test("a bare language labels itself and gets a default filename", () => {
+    const html = render("```go\nx := 1\n```")
+    assert.match(html, /data-filename="snippet\.go"/)
+    assert.match(html, /<span class="zk-code-name">go<\/span>/)
+  })
+
+  test("an info string filename becomes the label", () => {
+    const html = render("```yml snippet.yml\nkey: value\n```")
+    assert.match(html, /<span class="zk-code-name">snippet\.yml<\/span>/)
+    assert.match(html, /data-filename="snippet\.yml"/)
+  })
+
+  test("carries the ORIGINAL source for copy and download, not the highlighted markup", () => {
+    const html = render("```go\nfunc main() {}\n```")
+    // data-code must be the author's text; copying spans would be useless.
+    assert.match(html, /data-code="func main\(\) \{\}"/)
+  })
+
+  test("still highlights, and survives sanitisation", () => {
+    const html = render("```go\nfunc main() {}\n```")
+    assert.match(html, /class="hljs language-go"/)
+    assert.match(html, /hljs-/)
+    // DOMPurify must not strip the chrome we just added.
+    assert.match(html, /<figcaption/)
+    assert.match(html, /<button/)
+  })
+
+  test("an unknown language degrades instead of throwing", () => {
+    const html = render("```not-a-real-language\nplain\n```")
+    assert.match(html, /language-plaintext/)
+    assert.match(html, /plain/)
+  })
+
+  test("source containing HTML is escaped inside data-code", () => {
+    const html = render("```html\n<script>alert(1)</script>\n```")
+    assert.doesNotMatch(html, /<script/i)
+  })
+})

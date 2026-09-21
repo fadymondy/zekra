@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { renderMarkdown } from "@/lib/markdown"
 import type { NoteRef } from "@/lib/markdown/wikilinks/resolver"
+import { useCodeActions } from "./code-actions"
 
 /*
 A note body, rendered through the markdown pipeline ported from mark-it-down
@@ -29,6 +30,10 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  // Code-block actions are delegated from this container (see code-actions).
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const codeMenu = useCodeActions(bodyRef)
+
   const html = useMemo(() => {
     if (!mounted) return ""
     // Mermaid is left as a plain fenced block for now: no mermaid runtime is
@@ -46,7 +51,12 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
     )
   }
 
-  return <div dir="auto" className={PROSE} dangerouslySetInnerHTML={{ __html: html }} />
+  return (
+    <>
+      <div ref={bodyRef} dir="auto" className={PROSE} dangerouslySetInnerHTML={{ __html: html }} />
+      {codeMenu}
+    </>
+  )
 }
 
 /*

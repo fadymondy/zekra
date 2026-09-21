@@ -1,23 +1,17 @@
 import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js/lib/common';
 import DOMPurify from 'dompurify';
 import { rewriteWikiLinks } from './wikilinks/renderer.ts';
 import type { NoteRef } from './wikilinks/resolver.ts';
+import { CODE_BLOCK_ATTRS, codeBlockExtension } from './code-block.ts';
 
 let initialized = false;
 
 function ensureInitialized(): void {
   if (initialized) return;
-  marked.use(
-    markedHighlight({
-      langPrefix: 'hljs language-',
-      highlight(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-        return hljs.highlight(code, { language }).value;
-      },
-    }) as Parameters<typeof marked.use>[0],
-  );
+  // Was marked-highlight upstream. codeBlockExtension does the highlighting
+  // itself because it also emits the block chrome (title bar, actions menu),
+  // and both want renderer.code — registering both would silently drop one.
+  marked.use(codeBlockExtension);
   marked.setOptions({ gfm: true, breaks: false });
   initialized = true;
 }
@@ -82,6 +76,9 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
       'data-wikilink-anchor',
       'class',
       'target',
+      // Code-block chrome: the title bar, and the hooks the React layer
+      // delegates its copy/download/PNG/line-number actions from.
+      ...CODE_BLOCK_ATTRS,
     ],
   });
 

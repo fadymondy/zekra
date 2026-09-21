@@ -170,3 +170,95 @@
     grid-template-columns: 3.5rem minmax(0, 1fr);
   }
 }
+
+/* --- Fenced code block chrome (lib/markdown/code-block.ts) ----------------
+   Markup comes from the markdown renderer as plain HTML so it survives
+   DOMPurify, so it is styled here rather than with utility classes. */
+.zk-code {
+  margin: 0.75rem 0;
+  border: 1px solid var(--grid-line);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--grid-card);
+}
+.zk-code-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--grid-line);
+  background: var(--grid-soft);
+  /* The bar is chrome, not content: keep it LTR even in an RTL note. */
+  direction: ltr;
+}
+.zk-code-lights {
+  display: inline-flex;
+  gap: 0.3rem;
+  flex: none;
+}
+.zk-code-lights i {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+.zk-code-lights i:nth-child(1) { color: #ff5f57; }
+.zk-code-lights i:nth-child(2) { color: #febc2e; }
+.zk-code-lights i:nth-child(3) { color: #28c840; }
+.zk-code-name {
+  flex: 1;
+  text-align: center;
+  font-family: var(--grid-font-mono);
+  font-size: 0.75rem;
+  color: var(--grid-muted);
+  /* A long filename must ellipsize, never push the menu button off the bar. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zk-code-menu {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+  color: var(--grid-muted);
+  cursor: pointer;
+}
+.zk-code-menu:hover { background: var(--grid-line); color: var(--grid-fg); }
+.zk-code-menu svg { fill: currentColor; }
+.zk-code > pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Line numbers: opt-in per block (the menu toggles it) or globally from the
+   Editor setting.
+
+   Implemented as a separate gutter column rather than by wrapping each line in
+   a span: highlight.js emits spans that can span newlines (block comments,
+   template literals), so splitting the highlighted HTML per line corrupts it.
+   The gutter stays aligned because the code never soft-wraps — the block
+   scrolls horizontally instead — so line boxes are exactly line-height apart. */
+.zk-code[data-lines="on"] > pre {
+  display: flex;
+  gap: 0.75rem;
+}
+.zk-gutter {
+  flex: none;
+  text-align: right;
+  color: var(--grid-muted);
+  user-select: none;
+  border-inline-end: 1px solid var(--grid-line);
+  padding-inline-end: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.zk-code[data-lines="on"] > pre > code {
+  flex: 1;
+  min-width: 0;
+}
