@@ -88,6 +88,10 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Get("/api/brain/profile/image/{ns}/{kind}", sec(s.ServeProfileImage))
 
 	// Notes.
+	// Inline note images (note_images.go): paste-to-upload writes here, and the
+	// rendered markdown reads back through the content-addressed serve route.
+	r.Post("/api/notes/image", sec(s.UploadNoteImage))
+	r.Get("/api/notes/image/{ns}/{name}", sec(s.ServeNoteImage))
 	r.Get("/api/notes", sec(s.ListNotes))
 	r.Post("/api/notes", sec(s.CreateNote))
 	r.Post("/api/notes/adopt", sec(s.AdoptNotes))
