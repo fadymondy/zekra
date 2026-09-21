@@ -1,12 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Image from "@tiptap/extension-image"
-import Link from "@tiptap/extension-link"
-import { Markdown } from "tiptap-markdown"
 
+import { editorExtensions } from "./editor-extensions"
+import { findLossyConstructs } from "./lossy-markdown"
 import { useNoteSettings } from "./note-settings-panel"
 import { readerStyle } from "@/lib/notes/note-settings"
 import { ImageUploadError, imageFilesFrom, uploadNoteImage } from "@/lib/notes/upload-image"
@@ -54,6 +52,18 @@ export function NoteEditorWysiwyg({
   const { settings } = useNoteSettings()
   const [uploading, setUploading] = useState(0)
   const [error, setError] = useState("")
+
+  /*
+  Footnotes and raw HTML blocks have no node in the schema, so opening such a
+  note here and saving would silently delete them (proved in
+  markdown-roundtrip.test.ts). Rather than risk that, the editor refuses until
+  the user says they accept the loss. Checked on the incoming value, not on
+  every keystroke.
+  */
+  const [override, setOverride] = useState(false)
+  const lossy = useMemo(() => findLossyConstructs(value), [value])
+  // A new note being opened must re-arm the guard.
+  useEffect(() => setOverride(false), [value])
   // Held in a ref so the autosave interval always sees the latest body without
   // being torn down and rebuilt on every keystroke.
   const latest = useRef(value)
@@ -64,12 +74,9 @@ export function NoteEditorWysiwyg({
     // Next renders this on the server first; without this flag TipTap warns
     // about a hydration mismatch it cannot avoid.
     immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({ codeBlock: { HTMLAttributes: { class: "hljs" } } }),
-      Image.configure({ inline: false, allowBase64: false }),
-      Link.configure({ openOnClick: false, autolink: true }),
-      Markdown.configure({ html: true, linkify: false, breaks: false, transformPastedText: true }),
-    ],
+    // Shared with markdown-roundtrip.test.ts, so the test proves what this
+    // editor actually does rather than a lookalike configuration.
+    extensions: editorExtensions(),
     content: value,
     onUpdate({ editor }) {
       const md = editor.storage.markdown.getMarkdown() as string
@@ -176,6 +183,35 @@ export function NoteEditorWysiwyg({
       dom.removeEventListener("drop", onDrop)
     }
   }, [editor, editable, insertImages])
+
+  if (lossy.length > 0 && !override) {
+    return (
+      <div className="space-y-3 rounded-md border border-grid-gold/50 bg-grid-soft p-4">
+        <div>
+          <p className="text-sm font-medium text-grid-fg">
+            This note uses markdown the visual editor cannot preserve.
+          </p>
+          <p className="mt-1 text-xs text-grid-muted">
+            Editing it here would remove {lossy.map((l) => l.label.toLowerCase()).join(" and ")} when it saves.
+          </p>
+        </div>
+        <ul className="space-y-1">
+          {lossy.map((l) => (
+            <li key={l.kind} className="font-mono text-xs text-grid-muted">
+              {l.label}: <span className="text-grid-fg">{l.sample}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={() => setOverride(true)}
+          className="rounded-md border border-line px-3 py-1.5 text-sm text-grid-fg hover:bg-grid-card"
+        >
+          Edit anyway and lose them
+        </button>
+      </div>
+    )
+  }
 
   if (!editor) return null
 
