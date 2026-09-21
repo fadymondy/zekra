@@ -20,6 +20,7 @@ import { CategoryPicker } from "@/components/graph/category-picker"
 import { categoryColor } from "@/components/graph/colors"
 import { NoteEditor } from "@/components/notes/note-editor"
 import { NoteRowActions, type NoteRowAction } from "@/components/notes/note-row-actions"
+import { NoteTabs } from "@/components/notes/note-tabs"
 import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -32,6 +33,7 @@ import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { refreshGraph } from "@/lib/graph-edit"
 import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
+import { closeTab, loadTabs, nextSelection, openTab, renameTab, type OpenTab } from "@/lib/notes/open-tabs"
 import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
@@ -135,15 +137,33 @@ export default function NotesPage() {
     void mutate((key) => typeof key === "string" && key.startsWith("/api/notes?"))
   }, [list, mutate])
 
+  // Open notes as tabs (MH-218), per brain.
+  const [tabs, setTabs] = useState<OpenTab[]>([])
+  useEffect(() => setTabs(loadTabs(ns)), [ns])
+
   const select = (id: string | null) => {
     setSelected(id)
     setUrlParam("id", id)
-    // Feeds the spotlight's RECENT section (MH-219). Recorded here rather than
-    // in the editor so it reflects what the user opened, not what happened to
-    // load — a deep link or a realtime refetch should not count as a visit.
     if (id) {
       const n = notes.find((x) => x.id === id)
-      if (n) pushRecent({ id: n.id, namespace: n.namespace, title: n.title })
+      if (n) {
+        // Feeds the spotlight's RECENT section (MH-219). Recorded here rather
+        // than in the editor so it reflects what the user opened, not what
+        // happened to load — a deep link or a refetch is not a visit.
+        pushRecent({ id: n.id, namespace: n.namespace, title: n.title })
+        setTabs(openTab(ns, { id: n.id, title: n.title }))
+      }
+    }
+  }
+
+  const closeTabAt = (id: string) => {
+    const next = closeTab(ns, id)
+    setTabs(next)
+    // Falls to the left neighbour, then the right — what every editor does.
+    const after = nextSelection(tabs, id, selected)
+    if (after !== selected) {
+      setSelected(after)
+      setUrlParam("id", after)
     }
   }
 
@@ -175,6 +195,7 @@ export default function NotesPage() {
         (ps) => ps?.map((p) => ({ ...p, notes: p.notes.map((x) => (x.id === n.id ? n : x)) })),
         { revalidate: false },
       )
+      setTabs((cur) => renameTab(n.namespace, n.id, n.title, cur))
     },
     [mutate, list],
   )
@@ -195,6 +216,7 @@ export default function NotesPage() {
           )
           setSelected((cur) => (cur === n.id ? null : cur))
           forgetRecent(n.id)
+          setTabs(closeTab(ns, n.id))
           refreshGraph(n.namespace)
           toast.success(t("notes.deletedToast"))
           return
@@ -355,6 +377,9 @@ export default function NotesPage() {
 
         {/* Editor pane */}
         <section className={cn("min-w-0", !selected && "hidden lg:block")}>
+          {/* Tabs (MH-218) sit above the pane and stay put while the note
+              below changes; the strip hides itself under two open notes. */}
+          <NoteTabs tabs={tabs} activeId={selected} onSelect={select} onClose={closeTabAt} />
           {!selected ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <p className="text-sm text-grid-muted">{t("notes.pickOne")}</p>

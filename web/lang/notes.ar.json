@@ -20,6 +20,7 @@
   "notes.write": "كتابة",
   "notes.preview": "معاينة",
   "notes.visual": "مرئي",
+  "notes.openTabs": "الملاحظات المفتوحة",
   "notes.nothingToPreview": "لا يوجد ما يُعاين.",
   "notes.tagsPlaceholder": "أضف وسمًا واضغط Enter",
   "notes.removeTag": "إزالة الوسم {tag}",

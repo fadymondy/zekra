@@ -20,6 +20,7 @@
   "notes.write": "Write",
   "notes.preview": "Preview",
   "notes.visual": "Visual",
+  "notes.openTabs": "Open notes",
   "notes.nothingToPreview": "Nothing to preview.",
   "notes.tagsPlaceholder": "Add a tag and press Enter",
   "notes.removeTag": "Remove tag {tag}",
