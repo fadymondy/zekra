@@ -50,10 +50,25 @@ func ToolAccess(name string) Access {
 
 // Tools returns every tool definition (memory + graph + ACL + notes).
 func Tools() []map[string]any {
-	out := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs)+len(graphToolDefs))
-	out = append(out, toolDefs...)
-	out = append(out, noteToolDefs...)
-	return append(out, graphToolDefs...)
+	defs := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs)+len(graphToolDefs))
+	defs = append(defs, toolDefs...)
+	defs = append(defs, noteToolDefs...)
+	defs = append(defs, graphToolDefs...)
+
+	// Codex's `writes` approval mode relies on the standard MCP annotation to
+	// distinguish read-only tools from mutations. Copy each definition before
+	// annotating it so callers cannot mutate the package-level registries.
+	out := make([]map[string]any, 0, len(defs))
+	for _, def := range defs {
+		tool := make(map[string]any, len(def)+1)
+		for key, value := range def {
+			tool[key] = value
+		}
+		name, _ := tool["name"].(string)
+		tool["annotations"] = map[string]any{"readOnlyHint": ToolAccess(name) == AccessRead}
+		out = append(out, tool)
+	}
+	return out
 }
 
 // ToolsFor returns the tools whose access class is allowed.

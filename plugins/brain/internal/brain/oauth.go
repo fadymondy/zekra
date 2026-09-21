@@ -13,8 +13,9 @@ implemented against the MCP authorization specification:
   - authorization-server metadata (RFC 8414);
   - client registration by Client ID Metadata Document and by dynamic
     registration (RFC 7591);
-  - authorization code + PKCE, S256 only, exact redirect-URI matching, the
-    `iss` response parameter (RFC 9207) and `resource` binding (RFC 8707);
+  - authorization code + PKCE, S256 only, exact redirect-URI matching except
+    for RFC 8252's dynamic loopback port, the `iss` response parameter
+    (RFC 9207) and `resource` binding (RFC 8707);
   - short-lived access tokens, rotating refresh tokens with reuse detection,
     and revocation (RFC 7009);
   - private_key_jwt client authentication (RFC 7523) for ChatGPT.
@@ -50,6 +51,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -81,6 +83,18 @@ var knownScopes = []scopeInfo{
 	{Scope: ScopeWrite, Write: true, Description: "Add and edit memories and notes in the brains you choose"},
 }
 
+// toleratedClientScopes are interoperability hints sent by some OAuth clients,
+// notably ChatGPT. Zekra is an OAuth authorization server, not an OpenID
+// Provider, so these scopes are deliberately neither advertised nor granted.
+// Accepting and dropping them lets the client complete OAuth while ensuring
+// that only the explicit brains:* scopes can authorize MCP operations.
+var toleratedClientScopes = map[string]bool{
+	"openid":         true,
+	"profile":        true,
+	"email":          true,
+	"offline_access": true,
+}
+
 func scopeNames() []string {
 	out := make([]string, 0, len(knownScopes))
 	for _, s := range knownScopes {
@@ -103,6 +117,9 @@ func validateScopes(in []string) (scopes []string, unknown string) {
 			continue
 		}
 		if !known[s] {
+			if toleratedClientScopes[s] {
+				continue
+			}
 			return nil, s
 		}
 		seen[s] = true
@@ -336,6 +353,11 @@ func (s *oauthServer) mount(r chi.Router) {
 	r.Get("/.well-known/oauth-protected-resource/", root)
 	r.Get("/.well-known/oauth-protected-resource/api/mcp", suffixed)
 	r.Get("/.well-known/oauth-authorization-server", s.serverMetadata)
+	// Zekra is an OAuth authorization server, not an OpenID Provider. Return an
+	// explicit 404 so the frontend fallback cannot masquerade as OIDC discovery.
+	r.Get("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSONNoStore(w, http.StatusNotFound, map[string]string{"error": "not_found"})
+	})
 	for _, p := range []string{"/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/",
 		"/.well-known/oauth-protected-resource/api/mcp", "/.well-known/oauth-authorization-server",
 		"/api/oauth/register", "/api/oauth/token", "/api/oauth/revoke"} {
@@ -466,6 +488,29 @@ func (c *oauthClient) allowsRedirect(uri string) bool {
 	for _, r := range c.RedirectURIs {
 		// Exact string comparison — no normalisation, no prefix, no wildcard.
 		if subtle.ConstantTimeCompare([]byte(r), []byte(uri)) == 1 {
+			return true
+		}
+
+		// RFC 8252 section 7.3 requires authorization servers to allow native
+		// clients to choose an ephemeral port for an HTTP loopback redirect.
+		// Codex publishes http://127.0.0.1/callback and supplies the selected
+		// port in each authorization request. Only substitute a missing port;
+		// the host, path, query, and every other byte must still match.
+		registered, err := url.Parse(r)
+		if err != nil || registered.Scheme != "http" || registered.Port() != "" || !isLoopbackRedirect(r) {
+			continue
+		}
+		requested, err := url.Parse(uri)
+		if err != nil || requested.Scheme != "http" || requested.Hostname() != registered.Hostname() || requested.Port() == "" {
+			continue
+		}
+		port, err := strconv.Atoi(requested.Port())
+		if err != nil || port < 1 || port > 65535 {
+			continue
+		}
+		normalized := *requested
+		normalized.Host = registered.Host
+		if subtle.ConstantTimeCompare([]byte(r), []byte(normalized.String())) == 1 {
 			return true
 		}
 	}
@@ -661,6 +706,9 @@ func (s *oauthServer) validateAuthz(ctx context.Context, p authzParams, fetch bo
 	scopes, unknown := validateScopes(requested)
 	if unknown != "" {
 		return client, nil, &authzProblem{http.StatusBadRequest, "invalid_scope", "unknown scope " + unknown, true}
+	}
+	if len(scopes) == 0 {
+		return client, nil, &authzProblem{http.StatusBadRequest, "invalid_scope", "request at least one supported brain scope", true}
 	}
 	return client, scopes, nil
 }

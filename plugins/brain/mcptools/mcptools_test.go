@@ -36,6 +36,10 @@ func TestEveryToolHasAnAccessClassAndDispatches(t *testing.T) {
 		if _, ok := toolAccess[name]; !ok {
 			t.Errorf("%s has no access class", name)
 		}
+		annotations, ok := tl["annotations"].(map[string]any)
+		if !ok || annotations["readOnlyHint"] != (ToolAccess(name) == AccessRead) {
+			t.Errorf("%s has incorrect MCP annotations: %v", name, tl["annotations"])
+		}
 		b := &fakeBackend{}
 		if _, err := Call(context.Background(), b, name, map[string]any{"namespace": "n", "id": "x"}); err != nil {
 			t.Errorf("%s does not dispatch: %v", name, err)

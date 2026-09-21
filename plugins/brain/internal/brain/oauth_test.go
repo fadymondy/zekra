@@ -225,6 +225,20 @@ func (f *oauthFix) toolNames(token string) (int, map[string]bool) {
 
 func oauthJSON(v any) []byte { b, _ := json.Marshal(v); return b }
 
+func TestOAuthToleratesChatGPTAuxiliaryScopesWithoutGrantingThem(t *testing.T) {
+	scopes, unknown := validateScopes(strings.Fields("openid profile email brains:write offline_access brains:read"))
+	if unknown != "" {
+		t.Fatalf("ChatGPT auxiliary scope rejected: %s", unknown)
+	}
+	want := []string{ScopeRead, ScopeWrite}
+	if len(scopes) != len(want) || scopes[0] != want[0] || scopes[1] != want[1] {
+		t.Fatalf("auxiliary scopes leaked into the grant: got %v, want %v", scopes, want)
+	}
+	if _, unknown := validateScopes([]string{"admin"}); unknown != "admin" {
+		t.Fatalf("unrecognized scope was tolerated: %q", unknown)
+	}
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 func TestOAuthMetadataAndChallenge(t *testing.T) {
@@ -265,6 +279,14 @@ func TestOAuthMetadataAndChallenge(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer zko_at_nope")
 	if res := f.do(req); res.Code != http.StatusUnauthorized || !strings.Contains(res.Header().Get("WWW-Authenticate"), `error="invalid_token"`) {
 		t.Fatalf("bad bearer: %d %q", res.Code, res.Header().Get("WWW-Authenticate"))
+	}
+}
+
+func TestOAuthDoesNotAdvertiseOpenIDDiscovery(t *testing.T) {
+	f := newOAuthFix(t)
+	res := f.do(httptest.NewRequest(http.MethodGet, "/.well-known/openid-configuration", nil))
+	if res.Code != http.StatusNotFound {
+		t.Fatalf("openid discovery status = %d, want 404", res.Code)
 	}
 }
 
@@ -385,6 +407,43 @@ func TestOAuthRedirectURIMustMatchExactly(t *testing.T) {
 	}
 	if _, rec := f.register(`{"client_name":"p1 loop","redirect_uris":["http://127.0.0.1:33418/cb"]}`); rec.Code != http.StatusCreated {
 		t.Errorf("loopback redirect refused: %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestOAuthLoopbackRedirectAllowsDynamicPort(t *testing.T) {
+	for _, registered := range []string{
+		"http://127.0.0.1/callback",
+		"http://localhost/callback",
+		"http://[::1]/callback",
+	} {
+		client := &oauthClient{RedirectURIs: []string{registered}}
+		u, err := url.Parse(registered)
+		if err != nil {
+			t.Fatal(err)
+		}
+		u.Host = net.JoinHostPort(u.Hostname(), "50722")
+		if !client.allowsRedirect(u.String()) {
+			t.Errorf("dynamic loopback port rejected: registered %q, requested %q", registered, u.String())
+		}
+	}
+
+	client := &oauthClient{RedirectURIs: []string{"http://127.0.0.1/callback?client=codex"}}
+	for _, bad := range []string{
+		"http://127.0.0.1:50722/other?client=codex",
+		"http://127.0.0.1:50722/callback?client=other",
+		"http://localhost:50722/callback?client=codex",
+		"http://127.0.0.1:0/callback?client=codex",
+		"http://127.0.0.1:65536/callback?client=codex",
+		"https://127.0.0.1:50722/callback?client=codex",
+	} {
+		if client.allowsRedirect(bad) {
+			t.Errorf("unsafe loopback redirect accepted: %q", bad)
+		}
+	}
+
+	fixed := &oauthClient{RedirectURIs: []string{"http://127.0.0.1:33418/callback"}}
+	if fixed.allowsRedirect("http://127.0.0.1:50722/callback") {
+		t.Error("a registered fixed port was treated as an ephemeral port")
 	}
 }
 

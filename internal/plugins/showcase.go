@@ -127,7 +127,10 @@ import (
 	_ "github.com/togo-framework/notifications-pusher"
 	_ "github.com/togo-framework/notifications-slack"
 	_ "github.com/togo-framework/notifications-webpush"
-	_ "github.com/togo-framework/oauth-server"
+	// Do not import github.com/togo-framework/oauth-server here. Zekra's brain
+	// plugin owns MCP OAuth and its discovery endpoints. The showcase OAuth
+	// server defaults to https://localhost and would publish a conflicting
+	// /.well-known/openid-configuration document that breaks remote clients.
 	_ "github.com/togo-framework/observability"
 	_ "github.com/togo-framework/ocr"
 	_ "github.com/togo-framework/omnigent"

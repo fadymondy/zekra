@@ -51,7 +51,9 @@ See `.claude/rules/` for detail.
 
 ## The FlowOS brain (zekra MCP)
 
-The **zekra** MCP server (in `.mcp.json`) exposes this project's memory organ. Two
+The **cabrain** MCP server connects to Zekra's remote Streamable HTTP endpoint at
+`https://mcp.zekra.dev` and exposes this project's memory organ. Configure it in the
+active client's MCP settings and authenticate with OAuth. Two
 brains are loaded:
 - **`flowos`** (~1,780 memories) — the FlowOS / OneStudio hub: ventures, domain-expert
   agents, people, issues, posts, roadmaps, releases, goals, learnings, harvested research.

@@ -42,8 +42,9 @@ recallable by vector + BM25 + rerank. Re-run / extend with `scratchpad/ingest.py
 
 ## How to query it (from a new Claude Code session)
 
-The **zekra** MCP server is wired in `.mcp.json` (stdio, `zekra-mcp`, talks to the
-app on `localhost:8080`). After restarting Claude Code so it loads, the agent has
+The **cabrain** MCP server is wired to the remote Streamable HTTP endpoint at
+`https://mcp.zekra.dev` and authenticated with OAuth. After the MCP client loads it,
+the agent has
 these tools: `memory_recall`, `memory_retain`, `memory_get`, `memory_forget`,
 `memory_share`, `memory_recall_archive`.
 
