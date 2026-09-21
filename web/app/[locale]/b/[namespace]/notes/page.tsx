@@ -19,6 +19,7 @@ import { Ltr } from "@/components/copy-field"
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { categoryColor } from "@/components/graph/colors"
 import { NoteEditor } from "@/components/notes/note-editor"
+import { NoteRowActions, type NoteRowAction } from "@/components/notes/note-row-actions"
 import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -29,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
+import { refreshGraph } from "@/lib/graph-edit"
 import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
@@ -169,6 +171,35 @@ export default function NotesPage() {
     [mutate, list],
   )
 
+  /*
+  Row actions from the list (MH-220): pin, archive, delete. Pin and archive go
+  through the same optimistic patch as an in-editor save; delete drops the row
+  and clears the selection if it was the open note.
+  */
+  const rowAction = useCallback(
+    async (n: Note, action: NoteRowAction) => {
+      try {
+        if (action === "delete") {
+          await notesApi.remove(n.id)
+          void list.mutate(
+            (ps) => ps?.map((p) => ({ ...p, notes: p.notes.filter((x) => x.id !== n.id) })),
+            { revalidate: false },
+          )
+          setSelected((cur) => (cur === n.id ? null : cur))
+          refreshGraph(n.namespace)
+          toast.success(t("notes.deletedToast"))
+          return
+        }
+        const patch = action === "pin" ? { pinned: !n.pinned } : { archived: !n.archived }
+        const updated = await notesApi.update(n.id, n.version, { ...n, body: n.body ?? "", ...patch })
+        onSaved(updated)
+      } catch (err) {
+        toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
+      }
+    },
+    [list, onSaved, t],
+  )
+
   const newButton = (
     <Button onClick={create} disabled={creating}>
       <PlusIcon />
@@ -298,7 +329,7 @@ export default function NotesPage() {
             ) : (
               <ol className="divide-y divide-line" aria-label={t("nav.notes")}>
                 {notes.map((n) => (
-                  <NoteRow key={n.id} n={n} active={selected === n.id} onSelect={() => select(n.id)} timeAgo={timeAgo} />
+                  <NoteRow key={n.id} n={n} active={selected === n.id} onSelect={() => select(n.id)} timeAgo={timeAgo} onAction={(a) => void rowAction(n, a)} />
                 ))}
               </ol>
             )}
@@ -356,11 +387,13 @@ function NoteRow({
   active,
   onSelect,
   timeAgo,
+  onAction,
 }: {
   n: Note
   active: boolean
   onSelect: () => void
   timeAgo: (v: string) => string
+  onAction: (action: NoteRowAction) => void
 }) {
   const { t } = useTranslations()
   const cat = n.category || "note"
@@ -368,6 +401,7 @@ function NoteRow({
   const snippet = (n.body ?? "").replace(/[#>*_`]|\[\[|\]\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220)
   return (
     <li>
+      <NoteRowActions pinned={n.pinned} archived={n.archived} title={n.title} onAction={onAction}>
       <button
         type="button"
         onClick={onSelect}
@@ -410,6 +444,7 @@ function NoteRow({
           {n.archived ? <span className="grid-micro ms-auto">{t("notes.archived")}</span> : null}
         </span>
       </button>
+      </NoteRowActions>
     </li>
   )
 }
