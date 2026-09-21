@@ -11,7 +11,11 @@ const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:8080";
 const nextConfig = {
   // Self-contained server (.next/standalone) for production, as in Managy.
   output: "standalone",
-  allowedDevOrigins: ["127.0.0.1", "localhost", "app.zekra.dev", "zekra.dev"],
+  // dev.zekra.dev is the tunnelled preview of THIS dev server (NPM 900.conf ->
+  // 10.10.10.1:18085 -> :3020). Next 16 refuses to serve dev assets to an origin
+  // that is not listed here, and the failure is silent-ish: the HTML renders but
+  // the client bundle never runs, so nothing hydrates and every button is dead.
+  allowedDevOrigins: ["127.0.0.1", "localhost", "app.zekra.dev", "zekra.dev", "dev.zekra.dev"],
 
   // Presentation PDF exports (lib/presentations/pdf.ts) read files the tracer can't see: the
   // embedded print font, and on Linux @sparticuz/chromium's packed browser (bin/*.tar.br).
