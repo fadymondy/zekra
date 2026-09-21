@@ -68,6 +68,8 @@
   "account.notifications.key.security_alerts": "تنبيهات الأمان",
   "account.notifications.key.weekly_digest": "الملخص الأسبوعي",
   "account.notifications.title": "الإشعارات",
+  "account.reading.title": "القراءة",
+  "account.reading.hint": "الخطوط وسلوك المحرر وسمة القراءة للملاحظات.",
   "account.password.changed": "تم تغيير كلمة المرور.",
   "account.password.current": "كلمة المرور الحالية",
   "account.password.hint": "ستبقى مسجّل الدخول هنا بعد تغييرها.",

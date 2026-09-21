@@ -68,6 +68,8 @@
   "account.notifications.key.security_alerts": "Security alerts",
   "account.notifications.key.weekly_digest": "Weekly digest",
   "account.notifications.title": "Notifications",
+  "account.reading.title": "Reading",
+  "account.reading.hint": "Typography, editor behaviour and the reading theme for notes.",
   "account.password.changed": "Password changed.",
   "account.password.current": "Current password",
   "account.password.hint": "Changing it keeps you signed in here.",

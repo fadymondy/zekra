@@ -19,6 +19,7 @@
   "notes.bodyPlaceholder": "Write in markdown…",
   "notes.write": "Write",
   "notes.preview": "Preview",
+  "notes.visual": "Visual",
   "notes.nothingToPreview": "Nothing to preview.",
   "notes.tagsPlaceholder": "Add a tag and press Enter",
   "notes.removeTag": "Remove tag {tag}",

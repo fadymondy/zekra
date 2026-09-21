@@ -18,6 +18,8 @@ import { CategoryPicker } from "@/components/graph/category-picker"
 import { EntityResults } from "@/components/graph/entity-picker"
 import { NoteLinksSection } from "@/components/notes/note-links"
 import { NoteMarkdown } from "@/components/notes/note-markdown"
+import { NoteExportItems } from "@/components/notes/note-export"
+import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg"
 import { TagCombobox } from "@/components/notes/tag-combobox"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -85,6 +87,8 @@ export function NoteEditor({
   )
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  // The rendered preview, captured by PNG export (MH-212).
+  const previewRef = useRef<HTMLDivElement | null>(null)
 
   const version = useRef(note.version)
   const serverRef = useRef(note)
@@ -281,6 +285,17 @@ export function NoteEditor({
                 {t("notes.viewInGraph")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {/* Export (MH-212). The submenu renders its own items; each one
+                  runs client-side except PDF, which posts to the print route. */}
+              <NoteExportItems
+                input={{
+                  title: draft.title,
+                  markdown: draft.body,
+                  theme: null,
+                  surface: previewRef.current,
+                }}
+              />
+              <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
                 <Trash2Icon />
                 {t("notes.delete")}
@@ -383,7 +398,18 @@ export function NoteEditor({
           <TabsList variant="line">
             <TabsTrigger value="preview">{t("notes.preview")}</TabsTrigger>
             <TabsTrigger value="write">{t("notes.edit")}</TabsTrigger>
+            {/* Visual editing (MH-215) sits alongside the markdown textarea
+                rather than replacing it: the textarea carries the [[wiki-link]]
+                picker, which the WYSIWYG surface has no equivalent for. */}
+            <TabsTrigger value="visual">{t("notes.visual")}</TabsTrigger>
           </TabsList>
+          <TabsContent value="visual">
+            <NoteEditorWysiwyg
+              namespace={note.namespace}
+              value={draft.body}
+              onChange={(body) => edit({ body })}
+            />
+          </TabsContent>
           <TabsContent value="write">
             <BodyEditor
               namespace={note.namespace}
@@ -395,7 +421,9 @@ export function NoteEditor({
           </TabsContent>
           <TabsContent value="preview" className={embedded ? "py-2" : "min-h-[40vh] py-3"}>
             {draft.body.trim() ? (
-              <NoteMarkdown text={draft.body} />
+              <div ref={previewRef}>
+                <NoteMarkdown text={draft.body} />
+              </div>
             ) : (
               <p className="text-sm text-grid-muted">
                 {t("notes.nothingToPreview")}{" "}

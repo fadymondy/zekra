@@ -1,7 +1,7 @@
 import {
   ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
   KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, PresentationIcon, StickyNoteIcon,
-  RocketIcon, SearchIcon, ShieldCheckIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
+  RocketIcon, SearchIcon, ShieldCheckIcon, TypeIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 
 import type { NavGroup } from "@/components/shell/app-shell"
@@ -62,6 +62,7 @@ export const ACCOUNT_NAV: NavGroup[] = [
       { href: "/account/connections", label: "nav.connections", icon: LinkIcon },
       { href: "/account/apps", label: "nav.connectedApps", icon: AppWindowIcon },
       { href: "/account/notifications", label: "nav.notifications", icon: BellIcon },
+      { href: "/account/reading", label: "nav.reading", icon: TypeIcon },
       { href: "/account/export", label: "nav.export", icon: DownloadIcon },
       { href: "/account/delete", label: "nav.deleteAccount", icon: TrashIcon },
     ],

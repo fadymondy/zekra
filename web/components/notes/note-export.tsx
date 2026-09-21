@@ -10,6 +10,7 @@ import {
   HashIcon,
 } from "lucide-react"
 
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { noteToHtml } from "@/lib/notes/export/html"
 import { markdownToTxt } from "@/lib/notes/export/txt"
 
@@ -147,6 +148,34 @@ const ITEMS: { format: ExportFormat; label: string; icon: React.ReactNode }[] = 
   { format: "png", label: "Export PNG", icon: <FileImageIcon className="size-4" /> },
   { format: "text", label: "Export plain text", icon: <FileTextIcon className="size-4" /> },
 ]
+
+/**
+ * The same actions as DropdownMenuItems, for composing into an existing menu
+ * (the note editor already has one, and a second trigger beside it would be
+ * clutter). Errors surface as an inline item because a dropdown closes on
+ * select and a toast elsewhere would be missed.
+ */
+export function NoteExportItems({ input }: { input: NoteExportInput }) {
+  const { run, busy, error } = useNoteExport(input)
+  return (
+    <>
+      {ITEMS.map((item) => (
+        <DropdownMenuItem
+          key={item.format}
+          disabled={busy !== null}
+          // Keep the menu open while an export runs so the "…" is visible.
+          closeOnClick={false}
+          onClick={() => run(item.format)}
+        >
+          {item.icon}
+          {item.label}
+          {busy === item.format ? <span className="ms-auto text-xs text-grid-muted">…</span> : null}
+        </DropdownMenuItem>
+      ))}
+      {error ? <p className="px-2 py-1 text-xs text-grid-danger">{error}</p> : null}
+    </>
+  )
+}
 
 export function NoteExportMenu({ input }: { input: NoteExportInput }) {
   const { run, busy, error } = useNoteExport(input)
