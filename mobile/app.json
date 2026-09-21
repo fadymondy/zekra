@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Zekra",
+    "slug": "zekra",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "zekra",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.zekra.mobile"
+    },
+    "android": {
+      "package": "dev.zekra.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#f0ebe1"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icon.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#f0ebe1",
+          "dark": { "backgroundColor": "#081024" }
+        }
+      ]
+    ],
+    "experiments": { "typedRoutes": true }
+  }
+}
