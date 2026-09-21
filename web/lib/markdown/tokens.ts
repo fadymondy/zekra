@@ -1,4 +1,8 @@
-import { marked, Token, Tokens } from 'marked';
+// Token and Tokens are types: Node's type-stripping cannot infer that from a
+// mixed import and fails at runtime with "does not provide an export named
+// 'Token'", even though tsc accepts it.
+import { marked } from 'marked';
+import type { Token, Tokens } from 'marked';
 
 export type MdToken = Token;
 
