@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { renderMarkdown } from "@/lib/markdown"
 import type { NoteRef } from "@/lib/markdown/wikilinks/resolver"
 import { useCodeActions } from "./code-actions"
+import { useTableActions } from "./table-actions"
 
 /*
 A note body, rendered through the markdown pipeline ported from mark-it-down
@@ -33,6 +34,7 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   // Code-block actions are delegated from this container (see code-actions).
   const bodyRef = useRef<HTMLDivElement>(null)
   const codeMenu = useCodeActions(bodyRef)
+  const tableMenu = useTableActions(bodyRef)
 
   const html = useMemo(() => {
     if (!mounted) return ""
@@ -55,6 +57,7 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
     <>
       <div ref={bodyRef} dir="auto" className={PROSE} dangerouslySetInnerHTML={{ __html: html }} />
       {codeMenu}
+      {tableMenu}
     </>
   )
 }

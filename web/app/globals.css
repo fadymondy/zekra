@@ -262,3 +262,99 @@
   flex: 1;
   min-width: 0;
 }
+
+/* --- Interactive markdown table (lib/markdown/table.ts) ------------------- */
+.zk-table {
+  margin: 0.75rem 0;
+  border: 1px solid var(--grid-line);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--grid-card);
+}
+.zk-table-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--grid-line);
+  background: var(--grid-soft);
+}
+.zk-table-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--grid-line);
+  border-radius: 0.375rem;
+  background: var(--grid-bg);
+  color: var(--grid-muted);
+  max-width: 18rem;
+}
+.zk-table-filter input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--grid-fg);
+  font-size: 0.8125rem;
+}
+.zk-table-count {
+  font-size: 0.75rem;
+  color: var(--grid-muted);
+  white-space: nowrap;
+}
+.zk-table-menu {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  color: var(--grid-muted);
+  cursor: pointer;
+}
+.zk-table-menu:hover { background: var(--grid-line); color: var(--grid-fg); }
+
+/* The table scrolls inside this box; the toolbar above must stay put. */
+.zk-table-scroll { overflow-x: auto; }
+.zk-table table { width: 100%; border-collapse: collapse; }
+.zk-table th, .zk-table td {
+  border-top: 1px solid var(--grid-line);
+  padding: 0.5rem 0.75rem;
+  text-align: start;
+  white-space: nowrap;
+}
+.zk-table thead th {
+  background: var(--grid-soft);
+  border-top: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grid-muted);
+  padding: 0;
+}
+.zk-table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.zk-table-sort:hover { color: var(--grid-fg); }
+/* The caret is always present so the header does not reflow when sorting. */
+.zk-sort-caret::after {
+  content: "⌄";
+  opacity: 0.35;
+  font-size: 0.75em;
+}
+.zk-table-sort[data-active="asc"] .zk-sort-caret::after { content: "⌃"; opacity: 1; }
+.zk-table-sort[data-active="desc"] .zk-sort-caret::after { content: "⌄"; opacity: 1; }
