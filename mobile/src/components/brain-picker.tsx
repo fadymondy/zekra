@@ -1,35 +1,72 @@
-import { ScrollView, Pressable, StyleSheet, Text, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { AppText } from "@/components/ui";
 import { useBrains } from "@/providers/brains";
-import { usePalette } from "@/theme";
+import { fonts, metrics, usePalette } from "@/theme";
+
+// A horizontal filter row of brains. The ScrollView MUST be flexGrow:0 with a
+// fixed height: as a plain flex child it stretched to fill the whole screen,
+// which pushed the search field to the bottom and left the note list with no
+// room at all.
+const ROW_HEIGHT = 38;
 
 export function BrainPicker() {
   const p = usePalette();
   const { brains, namespace, select } = useBrains();
   if (brains.length < 2) return null;
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ marginHorizontal: 16, borderColor: p.line, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth }}>
-      {brains.map((brain) => {
-        const active = brain.namespace === namespace;
-        return (
-          <Pressable
-            key={brain.namespace}
-            onPress={() => { void Haptics.selectionAsync(); void select(brain.namespace); }}
-            style={[styles.pill, { backgroundColor: active ? p.action : p.card, borderColor: active ? p.action : p.line }]}
-          >
-            <Text numberOfLines={1} style={[styles.text, { color: active ? p.onAction : p.body }]}>
-              {brain.displayName || brain.namespace}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
+    <View style={[styles.wrap, { borderBottomColor: p.line }]}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.row}
+        style={styles.scroll}
+      >
+        {brains.map((brain) => {
+          const active = brain.namespace === namespace;
+          return (
+            <Pressable
+              key={brain.namespace}
+              onPress={() => {
+                if (Platform.OS !== "web") void Haptics.selectionAsync();
+                void select(brain.namespace);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={[
+                styles.chip,
+                {
+                  borderColor: active ? p.gold : p.line,
+                  backgroundColor: active ? `${p.gold}1A` : p.card,
+                },
+              ]}
+            >
+              <AppText
+                numberOfLines={1}
+                color={active ? p.gold : p.body}
+                style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: 13 }}
+              >
+                {brain.displayName || brain.namespace}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { paddingHorizontal: 12, paddingVertical: 10, gap: 7 },
-  pill: { borderWidth: 1, borderRadius: 0, paddingHorizontal: 12, paddingVertical: 8, maxWidth: 190 },
-  text: { fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
+  wrap: { height: ROW_HEIGHT + 16, flexGrow: 0, flexShrink: 0, borderBottomWidth: 1, justifyContent: "center" },
+  scroll: { flexGrow: 0 },
+  row: { paddingHorizontal: metrics.padX, gap: 8, alignItems: "center" },
+  chip: {
+    height: ROW_HEIGHT,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderRadius: metrics.radius.chip,
+    maxWidth: 200,
+  },
 });

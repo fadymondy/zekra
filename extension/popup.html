@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Save to Zekra</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    body { width: 360px; padding: 0 0 14px; }
+    .zk-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 var(--zk-pad-x); }
+  </style>
+</head>
+<body>
+  <h1><img src="icons/mark.svg" alt="" width="22" height="18" /> Save to Zekra</h1>
+
+  <!-- Signed out: OAuth, not a pasted token. -->
+  <div id="signedOut" class="zk-card zk-stack" hidden>
+    <p class="zk-muted">Connect your Zekra account to save pages, notes and secrets straight into a brain.</p>
+    <button id="signInBtn">Connect Zekra account</button>
+    <div id="authStatus"></div>
+    <p class="zk-muted">Opens zekra.dev to sign in and approve access. Nothing is stored except the access token this grant issues.</p>
+  </div>
+
+  <div id="tabs" class="zk-tabs" hidden>
+    <button id="tabNote" class="zk-tab zk-tab-active" type="button">Note</button>
+    <button id="tabVault" class="zk-tab" type="button">Vault</button>
+  </div>
+
+  <div id="captureForm" class="zk-card zk-stack" hidden>
+    <div>
+      <label class="zk-label" for="brainSelect">Brain</label>
+      <select id="brainSelect"></select>
+    </div>
+    <div>
+      <label class="zk-label" for="titleInput">Title</label>
+      <input id="titleInput" type="text" />
+    </div>
+    <div>
+      <label class="zk-label" for="bodyInput">Note</label>
+      <textarea id="bodyInput" rows="5"></textarea>
+    </div>
+    <div>
+      <label class="zk-label" for="tagsInput">Tags (comma separated)</label>
+      <input id="tagsInput" type="text" placeholder="reading, later" />
+    </div>
+    <div class="zk-row">
+      <button id="saveBtn">Save to Zekra</button>
+      <button id="refreshBtn" class="zk-secondary" title="Reload page title/URL/selection">Reload page</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div id="vaultForm" class="zk-card zk-stack" hidden>
+    <div>
+      <label class="zk-label" for="vaultBrainSelect">Brain</label>
+      <select id="vaultBrainSelect"></select>
+    </div>
+    <div>
+      <label class="zk-label" for="secretName">Secret name</label>
+      <input id="secretName" type="text" placeholder="stripe-api-key" autocomplete="off" />
+    </div>
+    <div>
+      <label class="zk-label" for="secretValue">Value</label>
+      <input id="secretValue" type="password" placeholder="value" autocomplete="off" />
+    </div>
+    <button id="saveSecretBtn">Save to vault</button>
+    <div id="vaultStatus"></div>
+    <p class="zk-muted">Sealed in the brain's vault. Values are write-only — never read back here.</p>
+  </div>
+
+  <div class="zk-footer">
+    <span class="zk-muted" id="baseLabel"></span>
+    <a id="optionsLink" href="#" class="zk-muted">Options</a>
+  </div>
+
+  <script src="browser-shim.js"></script>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

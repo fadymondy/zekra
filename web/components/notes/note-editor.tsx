@@ -395,9 +395,7 @@ export function NoteEditor({
           </TabsContent>
           <TabsContent value="preview" className={embedded ? "py-2" : "min-h-[40vh] py-3"}>
             {draft.body.trim() ? (
-              <div className="max-w-[75ch]">
-                <NoteMarkdown text={draft.body} />
-              </div>
+              <NoteMarkdown text={draft.body} />
             ) : (
               <p className="text-sm text-grid-muted">
                 {t("notes.nothingToPreview")}{" "}

@@ -36,3 +36,13 @@ __pycache__/
 cmd/hubq/
 cmd/sqlx/
 web/vite.preview.local.ts
+
+# Local MCP server config (may carry tokens)
+.mcp.json
+
+# Local Codex config (machine-specific)
+.codex/
+
+# Local dev database
+togo.db
+

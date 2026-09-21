@@ -80,30 +80,18 @@ func (s *Store) SearchAll(ctx context.Context, q SearchQuery) ([]Recalled, error
 	nsList := strings.Join(cleanNamespaces(q.Namespaces), ",")
 	const pool = 60
 
-	// Same ANN post-filter guard as recall (see hnswEFSearch): the index holds
-	// superseded rows too, so a small candidate list is gutted by the
-	// invalid_at/tier filter. SET LOCAL keeps it scoped to this transaction.
-	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	// Hybrid first, vector-only as a fallback when the BM25 layer is absent.
+	// Each attempt runs in its OWN transaction (searchPool): Postgres aborts a
+	// transaction on the first failed statement and rejects every command after
+	// it with 25P02, so sharing one tx made the fallback fail too and masked the
+	// real BM25 error behind "current transaction is aborted". recallPool opens
+	// one transaction per attempt for exactly this reason.
+	out, err := s.searchPool(ctx, db, searchSQL, vec, nsList, q.Query, pool, bm25Tokenizer())
 	if err != nil {
-		return nil, errors.New("brain.Search: begin: " + err.Error())
-	}
-	defer tx.Rollback() //nolint:errcheck // read-only tx: rollback is the normal exit
-	_, _ = tx.ExecContext(ctx, "SET LOCAL hnsw.ef_search = "+strconv.Itoa(hnswEFSearch()))
-
-	rows, err := tx.QueryContext(ctx, searchSQL, vec, nsList, q.Query, pool, bm25Tokenizer())
-	if err != nil {
-		rows, err = tx.QueryContext(ctx, searchVecSQL, vec, nsList, q.Limit)
+		hybridErr := err
+		out, err = s.searchPool(ctx, db, searchVecSQL, vec, nsList, q.Limit)
 		if err != nil {
-			return nil, errors.New("brain.Search: query: " + err.Error())
-		}
-	}
-	defer rows.Close()
-	out := []Recalled{}
-	for rows.Next() {
-		var r Recalled
-		if err := rows.Scan(&r.ID, &r.Namespace, &r.Content, &r.Network, &r.MemoryType,
-			&r.SourceKind, &r.SourceRef, &r.Importance, &r.ValidAt, &r.Score); err == nil {
-			out = append(out, r)
+			return nil, errors.New("brain.Search: query: " + err.Error() + " (hybrid: " + hybridErr.Error() + ")")
 		}
 	}
 	// Rerank the merged cross-brain pool with the cross-encoder.
@@ -140,4 +128,33 @@ func cleanNamespaces(ns []string) []string {
 		}
 	}
 	return out
+}
+
+// searchPool runs one cross-brain candidate query in its own read-only
+// transaction and scans the rows. Mirrors recallPool; the SELECT here also
+// returns the namespace each hit came from.
+func (s *Store) searchPool(ctx context.Context, db *sql.DB, query string, args ...any) ([]Recalled, error) {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() //nolint:errcheck // read-only tx: rollback is the normal exit
+	// Same ANN post-filter guard as recall (see hnswEFSearch): the index holds
+	// superseded rows too, so a small candidate list is gutted by the
+	// invalid_at/tier filter. SET LOCAL keeps it scoped to this transaction.
+	_, _ = tx.ExecContext(ctx, "SET LOCAL hnsw.ef_search = "+strconv.Itoa(hnswEFSearch()))
+	rows, err := tx.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Recalled{}
+	for rows.Next() {
+		var r Recalled
+		if err := rows.Scan(&r.ID, &r.Namespace, &r.Content, &r.Network, &r.MemoryType,
+			&r.SourceKind, &r.SourceRef, &r.Importance, &r.ValidAt, &r.Score); err == nil {
+			out = append(out, r)
+		}
+	}
+	return out, rows.Err()
 }

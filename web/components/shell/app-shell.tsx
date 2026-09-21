@@ -17,6 +17,7 @@ import { LanguageSwitcher, ThemeToggle } from "@/components/header-controls"
 import { ErrorState } from "@/components/states"
 import { MahaamWidget, feedbackEnabled, openFeedback } from "@/components/feedback/mahaam-widget"
 import { LiveIndicator } from "@/components/shell/live"
+import { Spotlight } from "@/components/spotlight/spotlight"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { useTranslations } from "@/lib/i18n"
@@ -198,6 +199,7 @@ export function AppShell({
             {start}
           </div>
           <div className="flex items-center gap-1">
+            {me.data ? <Spotlight namespace={brain} /> : null}
             {me.data && feedbackEnabled ? (
               <Button
                 variant="outline"

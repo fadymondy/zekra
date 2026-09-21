@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import { getStored, removeStored, setStored } from "@/lib/storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
 import { ApiError, authApi, type AuthAnswer, type User } from "@/lib/api";
@@ -10,6 +10,7 @@ type AuthContextValue = {
   token: string | null;
   user: User | null;
   signIn(email: string, password: string): Promise<AuthAnswer>;
+  register(email: string, password: string, name: string): Promise<AuthAnswer>;
   finishChallenge(challenge: string, answer: { code?: string; recovery_code?: string }): Promise<AuthAnswer>;
   signOut(): Promise<void>;
 };
@@ -17,8 +18,8 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function saveSession(answer: AuthAnswer | null) {
-  if (!answer) return SecureStore.deleteItemAsync(SESSION_KEY);
-  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify({ token: answer.token, user: answer.user }));
+  if (!answer) return removeStored(SESSION_KEY);
+  await setStored(SESSION_KEY, JSON.stringify({ token: answer.token, user: answer.user }));
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     let alive = true;
     void (async () => {
       try {
-        const raw = await SecureStore.getItemAsync(SESSION_KEY);
+        const raw = await getStored(SESSION_KEY);
         if (!raw) return;
         const saved = JSON.parse(raw) as AuthAnswer;
         if (!saved.token) return;
@@ -65,6 +66,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const signIn = useCallback((email: string, password: string) => authApi.login(email.trim(), password).then(accept), [accept]);
+  const register = useCallback(
+    (email: string, password: string, name: string) => authApi.register(email.trim(), password, name.trim()).then(accept),
+    [accept],
+  );
   const finishChallenge = useCallback(
     (challenge: string, answer: { code?: string; recovery_code?: string }) => authApi.challenge(challenge, answer).then(accept),
     [accept],
@@ -77,7 +82,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     if (current) await authApi.logout(current).catch(() => undefined);
   }, [token]);
 
-  const value = useMemo(() => ({ ready, token, user, signIn, finishChallenge, signOut }), [ready, token, user, signIn, finishChallenge, signOut]);
+  const value = useMemo(
+    () => ({ ready, token, user, signIn, register, finishChallenge, signOut }),
+    [ready, token, user, signIn, register, finishChallenge, signOut],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

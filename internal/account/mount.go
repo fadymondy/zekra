@@ -61,6 +61,7 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 
 	// Outermost first: strip revoked credentials before anything reads them.
 	k.UseMiddleware(
+		CORSMiddleware,
 		s.RevokedSessions,
 		s.MethodsMiddleware(func() []auth.LoginMethod { return methods }),
 		s.RequireSession,

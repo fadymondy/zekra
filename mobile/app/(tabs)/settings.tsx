@@ -1,62 +1,130 @@
 import Constants from "expo-constants";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Globe2, LockKeyhole, Server, UserRound } from "lucide-react-native";
+import { router } from "expo-router";
+import { ChevronRight, Globe2, KeyRound, LockKeyhole, Plug, Server, Share2, Trash2, UserRound } from "lucide-react-native";
+import { Linking, Pressable, Share, StyleSheet, View } from "react-native";
 import type { ReactNode } from "react";
 
-import { Button, Header, Screen } from "@/components/ui";
+import { AppText, Header, PrimaryButton, Row, Screen, SecondaryButton, Segmented } from "@/components/ui";
 import { API_URL } from "@/lib/api";
+import { useI18n, type Locale } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { useBrains } from "@/providers/brains";
-import { usePalette } from "@/theme";
+import { metrics, usePalette, useTheme, type ThemeMode } from "@/theme";
 
-function Row({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  const p = usePalette();
+const MCP_URL = "https://mcp.zekra.dev";
+
+function InfoRow({ icon, label, value, action }: { icon: ReactNode; label: string; value: string; action?: ReactNode }) {
   return (
-    <View style={[styles.row, { borderBottomColor: p.line }]}>
+    <View style={styles.infoRow}>
       {icon}
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={[styles.label, { color: p.muted }]}>{label.toUpperCase()}</Text>
-        <Text selectable numberOfLines={2} style={[styles.value, { color: p.ink }]}>{value}</Text>
+        <AppText variant="micro">{label.toUpperCase()}</AppText>
+        <AppText variant="body" selectable numberOfLines={2}>{value}</AppText>
       </View>
+      {action}
     </View>
+  );
+}
+
+function LinkRow({ icon, label, onPress, tone }: { icon: ReactNode; label: string; onPress: () => void; tone?: "danger" }) {
+  const p = usePalette();
+  return (
+    <Pressable onPress={onPress} style={styles.infoRow} android_ripple={{ color: p.soft }}>
+      {icon}
+      <AppText variant="rowTitle" color={tone === "danger" ? p.danger : undefined} style={{ flex: 1 }}>{label}</AppText>
+      <ChevronRight color={p.muted} size={18} strokeWidth={1.6} />
+    </Pressable>
   );
 }
 
 export default function SettingsScreen() {
   const p = usePalette();
+  const { t, locale, setLocale } = useI18n();
+  const { mode, setMode } = useTheme();
   const { user, signOut } = useAuth();
   const { current } = useBrains();
   const version = Constants.expoConfig?.version || "development";
 
   return (
-    <Screen>
-      <Header title="Settings" eyebrow="Zekra mobile" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.card, { backgroundColor: p.card, borderColor: p.line }]}>
-          <Row icon={<UserRound color={p.action} size={21} />} label="Signed in as" value={user?.email || user?.name || "Zekra user"} />
-          <Row icon={<LockKeyhole color={p.gold} size={21} />} label="Active brain" value={current ? `${current.displayName || current.namespace} (${current.role})` : "None selected"} />
-          <Row icon={<Server color={p.ok} size={21} />} label="API" value={API_URL} />
-          <Row icon={<Globe2 color={p.muted} size={21} />} label="App version" value={version} />
-        </View>
+    <Screen scroll header={<Header title={t("settings.title")} eyebrow={t("app.name")} />}>
+      <View style={{ height: metrics.gap }} />
 
-        <View style={[styles.notice, { backgroundColor: p.soft, borderColor: p.line }]}>
-          <Text style={[styles.noticeTitle, { color: p.ink }]}>Your session stays on this device</Text>
-          <Text style={{ color: p.body, lineHeight: 20 }}>The access token is stored in the iOS Keychain or Android Keystore through Expo SecureStore. Notes are read from and saved directly to your Zekra account.</Text>
-        </View>
+      <Row style={{ gap: 14 }}>
+        <AppText variant="micro">{t("settings.appearance").toUpperCase()}</AppText>
+        <AppText variant="micro">{t("settings.theme").toUpperCase()}</AppText>
+        <Segmented<ThemeMode>
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "system", label: t("settings.themeSystem") },
+            { value: "light", label: t("settings.themeLight") },
+            { value: "dark", label: t("settings.themeDark") },
+          ]}
+        />
+        <AppText variant="micro">{t("settings.language").toUpperCase()}</AppText>
+        <Segmented<Locale>
+          value={locale}
+          onChange={setLocale}
+          options={[{ value: "en", label: "English" }, { value: "ar", label: "العربية" }]}
+        />
+      </Row>
 
-        <Button label="Open web console" tone="quiet" onPress={() => void Linking.openURL(API_URL)} />
-        <Button label="Sign out" tone="danger" onPress={() => void signOut()} />
-      </ScrollView>
+      <View style={{ height: metrics.gap }} />
+
+      <Row style={{ gap: 0, paddingVertical: 0 }}>
+        <InfoRow icon={<UserRound color={p.action} size={20} strokeWidth={1.7} />} label={t("settings.signedInAs")} value={user?.email || user?.name || t("app.name")} />
+        <InfoRow icon={<LockKeyhole color={p.gold} size={20} strokeWidth={1.7} />} label={t("settings.activeBrain")} value={current ? `${current.displayName || current.namespace} (${current.role})` : t("settings.none")} />
+        <InfoRow icon={<Server color={p.ok} size={20} strokeWidth={1.7} />} label={t("settings.api")} value={API_URL} />
+        <InfoRow icon={<Globe2 color={p.muted} size={20} strokeWidth={1.7} />} label={t("settings.version")} value={version} />
+      </Row>
+
+      <View style={{ height: metrics.gap }} />
+
+      <Row style={{ gap: 0, paddingVertical: 0 }}>
+        <LinkRow icon={<UserRound color={p.action} size={20} strokeWidth={1.7} />} label={t("account.profile")} onPress={() => router.push("/account/profile")} />
+        <LinkRow icon={<KeyRound color={p.gold} size={20} strokeWidth={1.7} />} label={t("account.password")} onPress={() => router.push("/account/password")} />
+        <LinkRow icon={<Trash2 color={p.danger} size={20} strokeWidth={1.7} />} label={t("account.delete")} tone="danger" onPress={() => router.push("/account/delete")} />
+      </Row>
+
+      <View style={{ height: metrics.gap }} />
+
+      <Row style={{ gap: 0, paddingVertical: 0 }}>
+        <View style={styles.infoRow}>
+          <Plug color={p.action} size={20} strokeWidth={1.7} />
+          <AppText variant="body" style={{ flex: 1 }}>{t("settings.mcpBody")}</AppText>
+        </View>
+        <InfoRow
+          icon={<Server color={p.muted} size={20} strokeWidth={1.7} />}
+          label={t("settings.mcpUrl")}
+          value={MCP_URL}
+          action={
+            <Pressable onPress={() => void Share.share({ message: MCP_URL }).catch(() => {})} style={[styles.share, { borderColor: p.line, backgroundColor: p.soft }]}>
+              <Share2 color={p.muted} size={16} strokeWidth={1.7} />
+            </Pressable>
+          }
+        />
+        <InfoRow icon={<LockKeyhole color={p.muted} size={20} strokeWidth={1.7} />} label={t("settings.mcpAuth")} value={t("settings.mcpAuthValue")} />
+      </Row>
+
+      <View style={{ height: metrics.gap }} />
+
+      <Row style={{ gap: 0, paddingVertical: 0 }}>
+        <LinkRow icon={<Globe2 color={p.muted} size={20} strokeWidth={1.7} />} label={t("legal.privacy")} onPress={() => router.push({ pathname: "/legal/[doc]", params: { doc: "privacy" } })} />
+        <LinkRow icon={<Globe2 color={p.muted} size={20} strokeWidth={1.7} />} label={t("legal.terms")} onPress={() => router.push({ pathname: "/legal/[doc]", params: { doc: "terms" } })} />
+        <LinkRow icon={<Globe2 color={p.muted} size={20} strokeWidth={1.7} />} label={t("legal.support")} onPress={() => router.push({ pathname: "/legal/[doc]", params: { doc: "support" } })} />
+      </Row>
+
+      <View style={{ height: metrics.gap }} />
+
+      <View style={{ paddingHorizontal: metrics.padX, gap: 12 }}>
+        <SecondaryButton label={t("settings.openConsole")} onPress={() => void Linking.openURL(API_URL)} />
+        <PrimaryButton label={t("auth.signOut")} onPress={() => void signOut()} />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 17, gap: 16, paddingBottom: 40 },
-  card: { borderWidth: 1, borderRadius: 0, overflow: "hidden" },
-  row: { minHeight: 72, paddingHorizontal: 15, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  label: { fontSize: 9, letterSpacing: 1.4, fontWeight: "700" },
-  value: { fontSize: 14, lineHeight: 19 },
-  notice: { borderWidth: 1, borderRadius: 0, padding: 15, gap: 6 },
-  noticeTitle: { fontWeight: "700", fontSize: 15 },
+  infoRow: { minHeight: 62, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 },
+  share: { width: 34, height: 34, borderWidth: 1, borderRadius: metrics.radius.chip, alignItems: "center", justifyContent: "center" },
 });

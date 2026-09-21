@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Zekra - Options</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    body { max-width: 520px; margin: 0 auto; padding-bottom: 28px; }
+    h1 { justify-content: flex-start; }
+  </style>
+</head>
+<body>
+  <h1><img src="icons/mark.svg" alt="" width="22" height="18" /> Zekra - Options</h1>
+
+  <div class="zk-card zk-stack">
+    <div>
+      <label class="zk-label" for="apiBase">API base URL</label>
+      <input id="apiBase" type="url" placeholder="https://app.zekra.dev" />
+    </div>
+    <div>
+      <label class="zk-label" for="agentId">Agent label (X-Agent-Id, not a credential)</label>
+      <input id="agentId" type="text" placeholder="extension" />
+    </div>
+    <button id="saveBtn">Save</button>
+    <div id="status" class="zk-muted"></div>
+  </div>
+
+  <div class="zk-card zk-stack">
+    <span class="zk-label">Account</span>
+    <div id="authState" class="zk-muted"></div>
+    <button id="signInBtn">Connect Zekra account</button>
+    <button id="signOutBtn" class="zk-danger" hidden>Disconnect</button>
+  </div>
+
+  <div class="zk-card zk-stack" id="tokenCard" hidden>
+    <span class="zk-label">Access token</span>
+    <p class="zk-muted">The OAuth access token this grant issued. Use it as a Bearer token against the MCP endpoint. Treat it like a password.</p>
+    <p id="tokenValue" class="zk-token"></p>
+    <div class="zk-row">
+      <button id="revealBtn" class="zk-secondary">Show</button>
+      <button id="copyBtn" class="zk-secondary">Copy</button>
+    </div>
+    <div id="tokenMeta" class="zk-muted"></div>
+  </div>
+
+  <script src="browser-shim.js"></script>
+  <script src="options.js" type="module"></script>
+</body>
+</html>

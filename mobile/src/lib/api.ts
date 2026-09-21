@@ -116,20 +116,27 @@ export type Note = {
 
 export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string };
 export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived">>;
-export type GraphNode = { id: string; name: string; group?: string; type?: string; noteId?: string };
-export type GraphEdge = { source: string; target: string; relation?: string; fact?: string };
-export type GraphTypeCount = { type: string; count: number };
-export type GraphData = {
-  ready: boolean;
-  derived?: boolean;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-  typeCounts?: GraphTypeCount[];
-  relationCounts?: GraphTypeCount[];
-  totalNodes?: number;
-  totalEdges?: number;
-  sampled?: boolean;
+
+// A hit from the hybrid (vector + BM25) recall engine — the same shape the web
+// console reads (web/lib/api.ts Recalled).
+export type Recalled = {
+  id: string;
+  content: string;
+  score: number;
+  network: string;
+  memoryType: string;
+  sourceKind: string;
+  sourceRef: string;
+  importance: number;
+  validAt: string;
+  viaEntity?: string;
+  namespace?: string;
 };
+
+export type AccountProfile = { name?: string; email?: string; avatar?: string; timezone?: string };
+export type DeleteState = { status: "none" | "scheduled" | "cancelled" | "purged"; scheduled_for?: string; requested_at?: string; cancelled_at?: string };
+
+export type Secret = { name: string; namespace: string; kind?: string; hint?: string; updatedAt?: string };
 
 function query(values: Record<string, string | number | boolean | undefined>) {
   const params = Object.entries(values).filter(([, value]) => value !== undefined && value !== "");
@@ -137,7 +144,12 @@ function query(values: Record<string, string | number | boolean | undefined>) {
 }
 
 export const authApi = {
-  login: (email: string, password: string) => request<AuthAnswer>("/api/auth/login", { csrf: true, json: { email, password, locale: "en" } }),
+  login: (email: string, password: string, locale = "en") =>
+    request<AuthAnswer>("/api/auth/login", { csrf: true, json: { email, password, locale } }),
+  register: (email: string, password: string, name: string, locale = "en") =>
+    request<AuthAnswer>("/api/auth/register", { csrf: true, json: { email, password, name, locale } }),
+  forgotPassword: (email: string, locale = "en") =>
+    request<{ status?: string }>("/api/auth/password/forgot", { csrf: true, json: { email, locale } }),
   challenge: (challenge: string, answer: { code?: string; recovery_code?: string }) =>
     request<AuthAnswer>("/api/auth/2fa/challenge", { csrf: true, json: { challenge, ...answer } }),
   me: (token: string) => request<{ user?: User } | User>("/api/auth/me", { token }),
@@ -165,5 +177,24 @@ export const zekraApi = {
     token,
     headers: { "If-Match": `"${note.version}"` },
   }),
-  graph: (token: string, namespace: string, limit = 180) => request<GraphData>(`/api/brain/graph${query({ namespace, limit })}`, { token }),
+  // Cross-brain semantic search. Omitting `namespaces` searches every brain
+  // the caller can read; each hit is tagged with the brain it came from.
+  search: (token: string, query: string, namespaces?: string[], limit = 30) =>
+    request<{ results?: Recalled[] }>("/api/brain/search", { token, json: { query, namespaces, limit } }),
+  secrets: (token: string, namespace: string) =>
+    request<{ secrets?: Secret[] }>(`/api/brain/secrets${query({ namespace })}`, { token }),
+  putSecret: (token: string, namespace: string, name: string, value: string) =>
+    request<{ status?: string }>("/api/brain/secrets", { token, json: { namespace, name, value } }),
+  deleteSecret: (token: string, namespace: string, name: string) =>
+    request<{ status?: string }>("/api/brain/secrets/delete", { token, json: { namespace, name } }),
+  // --- account (internal/account/area_api.go) ---
+  profile: (token: string) => request<AccountProfile>("/api/me/account/profile", { token }),
+  updateProfile: (token: string, body: { name?: string; avatar?: string; timezone?: string }) =>
+    request<AccountProfile>("/api/me/account/profile", { method: "PUT", token, json: body }),
+  // Deletion is password-confirmed and scheduled, not immediate (a session
+  // alone cannot delete an account).
+  deleteAccount: (token: string, password: string) =>
+    request<DeleteState>("/api/me/delete", { token, csrf: true, json: { password } }),
+  deleteState: (token: string) => request<DeleteState>("/api/me/delete", { token }),
+  cancelDelete: (token: string) => request<DeleteState>("/api/me/delete/cancel", { token, csrf: true, json: {} }),
 };

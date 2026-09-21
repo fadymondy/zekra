@@ -419,9 +419,7 @@ export function NoteView({ note }: { note: Note }) {
         ) : null}
       </p>
       {(note.body ?? "").trim() ? (
-        <div className="max-w-[75ch]">
-          <NoteMarkdown text={note.body!} />
-        </div>
+        <NoteMarkdown text={note.body!} />
       ) : (
         <p className="text-sm text-grid-muted">{t("graph.emptyNote")}</p>
       )}

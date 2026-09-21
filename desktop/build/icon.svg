@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="crispEdges">
+  <!--
+    Zekra desktop app icon, derived from the brand mark in web/lib/brand/mark.ts
+    (ZEKRA_MARK -> PRODUCT_MARKS.cabrain in web/app/styles/grid-marks.ts):
+    cells: [3,0] [2,1] [4,1] [1,2] [3,2] [5,2] [2,3] [4,3], body #6D4DE6, accent #C9A227
+    on accent cell [3,0]. Cells are laid out on a 6-wide grid (cols 0-5) and normalised
+    here into a square canvas with dark-ink padding, per the brand's square-corner /
+    5px-cell rule (no rounding, no gradients).
+  -->
+  <rect width="512" height="512" fill="#0b1429"/>
+  <g transform="translate(76 96)">
+    <!-- cell size 60, 6 cols x 4 rows = 360x240, centered in the padded canvas -->
+    <rect x="180" y="0"   width="60" height="60" fill="#c9a227"/>
+    <rect x="120" y="60"  width="60" height="60" fill="#6d4de6"/>
+    <rect x="240" y="60"  width="60" height="60" fill="#6d4de6"/>
+    <rect x="60"  y="120" width="60" height="60" fill="#6d4de6"/>
+    <rect x="180" y="120" width="60" height="60" fill="#6d4de6"/>
+    <rect x="300" y="120" width="60" height="60" fill="#6d4de6"/>
+    <rect x="120" y="180" width="60" height="60" fill="#6d4de6"/>
+    <rect x="240" y="180" width="60" height="60" fill="#6d4de6"/>
+  </g>
+</svg>

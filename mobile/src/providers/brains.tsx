@@ -1,8 +1,8 @@
-import * as SecureStore from "expo-secure-store";
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
 import { zekraApi, type Brain } from "@/lib/api";
+import { getStored, setStored } from "@/lib/storage";
 import { useAuth } from "@/providers/auth";
 
 const BRAIN_KEY = "zekra.mobile.brain.v1";
@@ -31,7 +31,7 @@ export function BrainProvider({ children }: PropsWithChildren) {
   const brains = query.data?.brains ?? [];
 
   useEffect(() => {
-    void SecureStore.getItemAsync(BRAIN_KEY).then((saved) => { if (saved) setNamespace(saved); });
+    void getStored(BRAIN_KEY).then((saved) => { if (saved) setNamespace(saved); });
   }, []);
 
   useEffect(() => {
@@ -39,13 +39,13 @@ export function BrainProvider({ children }: PropsWithChildren) {
     if (!brains.some((brain) => brain.namespace === namespace)) {
       const next = brains[0].namespace;
       setNamespace(next);
-      void SecureStore.setItemAsync(BRAIN_KEY, next);
+      void setStored(BRAIN_KEY, next);
     }
   }, [brains, namespace]);
 
   const select = useCallback(async (next: string) => {
     setNamespace(next);
-    await SecureStore.setItemAsync(BRAIN_KEY, next);
+    await setStored(BRAIN_KEY, next);
   }, []);
 
   const value = useMemo<BrainContextValue>(() => ({

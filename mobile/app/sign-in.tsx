@@ -1,47 +1,84 @@
-import { Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Redirect, router } from "expo-router";
 import { useState } from "react";
 
-import { Button, Field, HatchBand, Screen } from "@/components/ui";
-import { API_URL, ApiError } from "@/lib/api";
+import { AppText, Field, PrimaryButton, Screen, SecondaryButton } from "@/components/ui";
+import { ApiError, authApi } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
-import { usePalette } from "@/theme";
+import { metrics, usePalette } from "@/theme";
 
 type ErrorPayload = { challenge?: string; email?: string };
+type Mode = "signIn" | "register" | "reset";
 
 export default function SignInScreen() {
   const p = usePalette();
-  const { token, signIn, finishChallenge } = useAuth();
+  const { t, locale, isRtl } = useI18n();
+  const { token, signIn, register, finishChallenge } = useAuth();
+  const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [challenge, setChallenge] = useState("");
   const [code, setCode] = useState("");
   const [recovery, setRecovery] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   if (token) return <Redirect href="/(tabs)/notes" />;
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError("");
+    setNotice("");
+  }
 
   async function submit() {
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       if (challenge) {
         await finishChallenge(challenge, recovery ? { recovery_code: code.trim() } : { code: code.trim() });
+      } else if (mode === "reset") {
+        await authApi.forgotPassword(email.trim(), locale);
+        setNotice(t("auth.resetSent"));
+        return;
+      } else if (mode === "register") {
+        await register(email.trim(), password, name.trim());
       } else {
-        await signIn(email, password);
+        await signIn(email.trim(), password);
       }
-      router.replace("/(tabs)/notes");
+      if (mode !== "reset") router.replace("/(tabs)/notes");
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === "2fa_required") {
         const payload = caught.payload as ErrorPayload;
         if (payload?.challenge) { setChallenge(payload.challenge); setCode(""); return; }
       }
-      setError(caught instanceof Error ? caught.message : "Sign in failed");
+      setError(caught instanceof Error ? caught.message : t("auth.failed"));
     } finally {
       setBusy(false);
     }
   }
+
+  const heading = challenge
+    ? t("auth.twoFactor")
+    : mode === "register" ? t("auth.createAccount")
+    : mode === "reset" ? t("auth.resetTitle")
+    : t("auth.welcome");
+
+  const cta = challenge
+    ? t("auth.verify")
+    : mode === "register" ? t("auth.signUp")
+    : mode === "reset" ? t("auth.sendReset")
+    : t("auth.signIn");
+
+  const canSubmit = challenge
+    ? !!code.trim()
+    : mode === "reset" ? !!email.trim()
+    : mode === "register" ? !!email.trim() && !!password && !!name.trim()
+    : !!email.trim() && !!password;
 
   return (
     <Screen>
@@ -57,63 +94,105 @@ export default function SignInScreen() {
               <Text style={[styles.arabic, { color: p.gold }]}>ذكرة</Text>
             </View>
           </View>
-          <HatchBand label="secure access" />
+
           <View style={[styles.statement, { borderColor: p.line }]}>
             <Text style={[styles.statementNumber, { color: p.gold }]}>01</Text>
-            <Text style={[styles.intro, { color: p.body }]}>Your notes, brains, and connected knowledge — carried with you.</Text>
+            <Text style={[styles.intro, { color: p.body, textAlign: isRtl ? "right" : "left" }]}>{t("app.tagline")}</Text>
           </View>
 
           <View style={[styles.card, { backgroundColor: p.card, borderColor: p.line }]}>
             <Text style={[styles.sectionLabel, { color: p.muted }]}>ACCOUNT / AUTHENTICATION</Text>
-            <Text style={[styles.cardTitle, { color: p.ink }]}>{challenge ? "Two-factor check" : "Welcome back"}</Text>
+            <Text style={[styles.cardTitle, { color: p.ink }]}>{heading}</Text>
+
             {challenge ? (
               <>
                 <Field
-                  label={recovery ? "Recovery code" : "Authenticator code"}
+                  label={recovery ? t("auth.recoveryCode") : t("auth.authCode")}
                   value={code}
                   onChangeText={setCode}
                   keyboardType={recovery ? "default" : "number-pad"}
                   autoComplete="one-time-code"
                   autoFocus
                 />
-                <Button label={recovery ? "Use authenticator instead" : "Use a recovery code"} tone="quiet" onPress={() => { setRecovery((value) => !value); setCode(""); }} />
+                <SecondaryButton
+                  label={recovery ? t("auth.useAuthenticator") : t("auth.useRecovery")}
+                  onPress={() => { setRecovery((value) => !value); setCode(""); }}
+                />
               </>
             ) : (
               <>
-                <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-                <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" />
+                {mode === "register" ? (
+                  <Field label={t("auth.name")} value={name} onChangeText={setName} autoComplete="name" />
+                ) : null}
+                <Field
+                  label={t("auth.email")}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                />
+                {mode !== "reset" ? (
+                  <Field
+                    label={t("auth.password")}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoComplete={mode === "register" ? "new-password" : "current-password"}
+                  />
+                ) : null}
               </>
             )}
+
             {error ? <Text style={[styles.error, { color: p.danger }]}>{error}</Text> : null}
-            <Button
-              label={challenge ? "Verify and continue" : "Sign in"}
-              loading={busy}
-              disabled={challenge ? !code.trim() : !email.trim() || !password}
-              onPress={() => void submit()}
-            />
-            {challenge ? <Button label="Start over" tone="quiet" onPress={() => { setChallenge(""); setCode(""); setError(""); }} /> : null}
+            {notice ? <Text style={[styles.error, { color: p.ok }]}>{notice}</Text> : null}
+
+            <PrimaryButton label={cta} loading={busy} disabled={!canSubmit} onPress={() => void submit()} />
+
+            {challenge ? (
+              <SecondaryButton label={t("auth.startOver")} onPress={() => { setChallenge(""); setCode(""); setError(""); }} />
+            ) : (
+              <View style={styles.links}>
+                {mode === "signIn" ? (
+                  <>
+                    <Pressable onPress={() => switchMode("reset")}>
+                      <Text style={[styles.link, { color: p.muted }]}>{t("auth.forgot")}</Text>
+                    </Pressable>
+                    <Pressable onPress={() => switchMode("register")}>
+                      <Text style={[styles.link, { color: p.action }]}>{t("auth.noAccount")}</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Pressable onPress={() => switchMode("signIn")}>
+                    <Text style={[styles.link, { color: p.action }]}>{t("auth.haveAccount")}</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
           </View>
-          <Text onPress={() => void Linking.openURL(`${API_URL}/en/register`)} style={[styles.link, { color: p.action, borderColor: p.line }]}>CREATE AN ACCOUNT →</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 }
 
+const mono = Platform.select({ ios: "Menlo", android: "monospace" });
+
 const styles = StyleSheet.create({
   content: { flexGrow: 1, justifyContent: "center", paddingVertical: 28, paddingBottom: 44 },
-  brand: { marginHorizontal: 16, minHeight: 112, borderWidth: StyleSheet.hairlineWidth, padding: 16, flexDirection: "row", alignItems: "center", gap: 15 },
+  brand: { marginHorizontal: metrics.padX, minHeight: 112, borderWidth: StyleSheet.hairlineWidth, padding: metrics.padX, flexDirection: "row", alignItems: "center", gap: 15 },
   markFrame: { width: 66, height: 66, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   logo: { width: 46, height: 46 },
-  kicker: { fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 8, letterSpacing: 1.5, marginBottom: 5 },
+  kicker: { fontFamily: mono, fontSize: 8, letterSpacing: 1.5, marginBottom: 5 },
   wordmark: { fontSize: 34, fontWeight: "500", letterSpacing: -1 },
   arabic: { fontSize: 12, fontWeight: "700", letterSpacing: 2, marginTop: -2 },
-  statement: { marginHorizontal: 16, minHeight: 72, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 13 },
-  statementNumber: { fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 10, letterSpacing: 1 },
+  statement: { marginHorizontal: metrics.padX, minHeight: 72, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: "row", alignItems: "flex-start", gap: 13 },
+  statementNumber: { fontFamily: mono, fontSize: 10, letterSpacing: 1 },
   intro: { flex: 1, fontSize: 14, lineHeight: 20 },
-  card: { marginHorizontal: 16, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, padding: 17, gap: 14 },
-  sectionLabel: { fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 8, letterSpacing: 1.6 },
+  card: { marginHorizontal: metrics.padX, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, padding: 17, gap: 14 },
+  sectionLabel: { fontFamily: mono, fontSize: 8, letterSpacing: 1.6 },
   cardTitle: { fontSize: 22, fontWeight: "500", marginBottom: 2 },
   error: { fontSize: 13, lineHeight: 18 },
-  link: { marginHorizontal: 16, borderLeftWidth: StyleSheet.hairlineWidth, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, textAlign: "center", fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 10, letterSpacing: 1.1, paddingVertical: 17 },
+  links: { gap: metrics.gap, alignItems: "center", paddingTop: 2 },
+  link: { fontSize: 12, fontWeight: "600", letterSpacing: 0.3 },
 });

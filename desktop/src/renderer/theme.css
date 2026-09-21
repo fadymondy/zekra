@@ -1,0 +1,26 @@
+/* Desktop-only additions on top of web/'s grid design system.
+   Everything else (tokens, fonts, shadcn variables, .grid-* structure) is
+   imported straight from web/app/styles by build/bundle.mjs. */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden; /* the app owns its own scroll regions */
+  font-family: var(--grid-font-sans);
+  background: var(--grid-bg);
+  color: var(--grid-fg);
+}
+
+/* Electron: the whole title bar area is draggable except interactive chrome. */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}

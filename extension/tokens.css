@@ -1,0 +1,211 @@
+/* Zekra extension — the house grid design system, matching the mobile app and
+   the desktop renderer (rails, hatch ground, rows, Lusail type scale).
+   Colours are Zekra's own tokens from web/app/styles/grid-tokens.css. */
+
+:root {
+  --zk-bg: #f0ebe1;
+  --zk-card: #f7f4ea;
+  --zk-soft: #ddd5c4;
+  --zk-line: #c7bea9;
+  --zk-fg: #0e1a3c;
+  --zk-body: #4a4438;
+  --zk-muted: #6e6551;
+  --zk-action: #6d4de6;
+  --zk-on-action: #ffffff;
+  --zk-gold: #c9a227;
+  --zk-ok: #4e9a3e;
+  --zk-danger: #d9455f;
+
+  /* Metrics — same scale as mobile/src/theme.ts, scaled for a 360px popup. */
+  --zk-rail: 12px;
+  --zk-pad-x: 18px;
+  --zk-pad-y: 14px;
+  --zk-gap: 14px;
+  --zk-touch: 40px;
+  --zk-input: 42px;
+  --zk-radius-control: 8px;
+  --zk-radius-chip: 6px;
+
+  --zk-title: 20px;
+  --zk-row-title: 15px;
+  --zk-text: var(--zk-fg);
+  --zk-border: var(--zk-line);
+  --zk-body-size: 14px;
+  --zk-meta: 12px;
+  --zk-micro: 10.5px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --zk-bg: #0b1429;
+    --zk-card: #0e1a3c;
+    --zk-soft: #1a2747;
+    --zk-line: #25355c;
+    --zk-fg: #f0ebe1;
+    --zk-body: #c8d0e4;
+    --zk-muted: #8a97b8;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--zk-bg);
+  color: var(--zk-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--zk-body-size);
+  /* The hatch ground: a 1px soft line every 8px at -45deg, as on mobile. */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--zk-soft) 0,
+    var(--zk-soft) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+/* The two rails, inset from each edge and painted over content. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--zk-line);
+  z-index: 50;
+  pointer-events: none;
+}
+body::before { inset-inline-start: var(--zk-rail); }
+body::after { inset-inline-end: var(--zk-rail); }
+
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: var(--zk-pad-y) var(--zk-pad-x);
+  font-size: var(--zk-row-title);
+  font-weight: 600;
+  background: var(--zk-bg);
+  border-bottom: 1px solid var(--zk-line);
+}
+
+h1 img { display: block; }
+
+/* A full-bleed row: hairline top/bottom on the page ground, so the hatch shows
+   in the gaps between rows. */
+.zk-card {
+  border-top: 1px solid var(--zk-line);
+  border-bottom: 1px solid var(--zk-line);
+  background: var(--zk-bg);
+  padding: var(--zk-pad-y) var(--zk-pad-x);
+  margin: var(--zk-gap) 0;
+}
+
+.zk-stack { display: flex; flex-direction: column; gap: 12px; }
+.zk-row { display: flex; align-items: center; gap: 8px; }
+
+.zk-label {
+  display: block;
+  margin-bottom: 5px;
+  font-family: ui-monospace, monospace;
+  font-size: var(--zk-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--zk-muted);
+}
+
+.zk-muted { color: var(--zk-muted); font-size: var(--zk-meta); margin: 0; }
+.zk-error { color: var(--zk-danger); font-size: var(--zk-meta); }
+.zk-success { color: var(--zk-ok); font-size: var(--zk-meta); }
+.zk-gold { color: var(--zk-gold); }
+
+input,
+textarea,
+select {
+  width: 100%;
+  background: var(--zk-card);
+  border: 1px solid var(--zk-line);
+  color: var(--zk-fg);
+  border-radius: var(--zk-radius-control);
+  padding: 0 11px;
+  height: var(--zk-input);
+  font-family: inherit;
+  font-size: var(--zk-body-size);
+}
+
+textarea { height: auto; padding: 10px 11px; resize: vertical; }
+input[type="checkbox"] { width: auto; height: auto; }
+
+button {
+  width: 100%;
+  min-height: var(--zk-touch);
+  background: var(--zk-action);
+  color: var(--zk-on-action);
+  border: 1px solid var(--zk-action);
+  border-radius: var(--zk-radius-control);
+  font-family: inherit;
+  font-size: var(--zk-body-size);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled { opacity: 0.5; cursor: default; }
+
+.zk-secondary {
+  background: transparent;
+  color: var(--zk-fg);
+  border-color: var(--zk-line);
+}
+
+.zk-danger {
+  background: transparent;
+  color: var(--zk-danger);
+  border-color: var(--zk-danger);
+}
+
+a { color: var(--zk-action); }
+
+/* Popup tabs (Note | Vault) */
+.zk-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--zk-line);
+  background: var(--zk-bg);
+}
+
+.zk-tab {
+  flex: 1;
+  width: auto;
+  min-height: 0;
+  padding: 9px 10px;
+  font-size: var(--zk-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--zk-muted);
+  cursor: pointer;
+}
+
+.zk-tab-active {
+  color: var(--zk-fg);
+  border-bottom-color: var(--zk-action);
+}
+
+/* The access token, shown so the user can see and copy it. */
+.zk-token {
+  font-family: ui-monospace, monospace;
+  font-size: var(--zk-meta);
+  word-break: break-all;
+  background: var(--zk-soft);
+  border: 1px solid var(--zk-line);
+  border-radius: var(--zk-radius-chip);
+  padding: 8px 10px;
+  margin: 0;
+}
