@@ -12,6 +12,7 @@
   "common.confirm": "Confirm",
   "common.search": "Search",
   "common.loading": "Loading…",
+  "common.refresh": "Refresh",
   "common.retry": "Try again",
   "common.copied": "Copied",
   "common.copy": "Copy",
@@ -23,5 +24,12 @@
   "common.working": "Working…",
   "common.never": "Never",
   "common.none": "None",
-  "common.viewAll": "View all"
+  "common.viewAll": "View all",
+  "tree.title": "Explorer",
+  "tree.empty": "No entities in this brain yet.",
+  "tree.expand": "Expand",
+  "tree.collapse": "Collapse",
+  "tree.cycle": "Links back to an ancestor",
+  "tree.deep": "max depth",
+  "tree.noChildren": "No outgoing relations."
 }

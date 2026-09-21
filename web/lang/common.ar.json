@@ -12,6 +12,7 @@
   "common.confirm": "تأكيد",
   "common.search": "بحث",
   "common.loading": "جارٍ التحميل…",
+  "common.refresh": "تحديث",
   "common.retry": "حاول مرة أخرى",
   "common.copied": "تم النسخ",
   "common.copy": "نسخ",
@@ -23,5 +24,12 @@
   "common.working": "جارٍ التنفيذ…",
   "common.never": "أبدًا",
   "common.none": "لا شيء",
-  "common.viewAll": "عرض الكل"
+  "common.viewAll": "عرض الكل",
+  "tree.title": "المستكشف",
+  "tree.empty": "لا توجد كيانات في هذا الدماغ بعد.",
+  "tree.expand": "توسيع",
+  "tree.collapse": "طي",
+  "tree.cycle": "يعود إلى عنصر أعلى",
+  "tree.deep": "أقصى عمق",
+  "tree.noChildren": "لا توجد علاقات صادرة."
 }
