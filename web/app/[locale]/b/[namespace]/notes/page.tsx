@@ -32,6 +32,7 @@ import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { refreshGraph } from "@/lib/graph-edit"
 import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
+import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
 
@@ -137,6 +138,13 @@ export default function NotesPage() {
   const select = (id: string | null) => {
     setSelected(id)
     setUrlParam("id", id)
+    // Feeds the spotlight's RECENT section (MH-219). Recorded here rather than
+    // in the editor so it reflects what the user opened, not what happened to
+    // load — a deep link or a realtime refetch should not count as a visit.
+    if (id) {
+      const n = notes.find((x) => x.id === id)
+      if (n) pushRecent({ id: n.id, namespace: n.namespace, title: n.title })
+    }
   }
 
   const pickCategory = (c: string) => {
@@ -186,6 +194,7 @@ export default function NotesPage() {
             { revalidate: false },
           )
           setSelected((cur) => (cur === n.id ? null : cur))
+          forgetRecent(n.id)
           refreshGraph(n.namespace)
           toast.success(t("notes.deletedToast"))
           return
