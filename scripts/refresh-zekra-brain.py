@@ -97,7 +97,8 @@ def main():
 
     # 2. git build-log
     log = subprocess.run(["git", "-C", REPO, "log", "-n", "500", "--pretty=format:%h%x1f%ai%x1f%s%x1f%b%x1e"],
-                         capture_output=True, text=True).stdout
+                         capture_output=True, text=True,
+                         encoding="utf-8", errors="replace").stdout or ""
     for rec in log.split("\x1e"):
         parts = rec.strip().split("\x1f")
         if len(parts) < 3 or not parts[0].strip():
