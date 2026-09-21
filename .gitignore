@@ -46,3 +46,4 @@ web/vite.preview.local.ts
 # Local dev database
 togo.db
 
+.mahaam-pending.md

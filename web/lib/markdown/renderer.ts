@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { rewriteWikiLinks } from './wikilinks/renderer.ts';
 import type { NoteRef } from './wikilinks/resolver.ts';
 import { CODE_BLOCK_ATTRS, codeBlockExtension } from './code-block.ts';
+import { TABLE_ATTRS, tableExtension } from './table.ts';
 
 let initialized = false;
 
@@ -12,6 +13,7 @@ function ensureInitialized(): void {
   // itself because it also emits the block chrome (title bar, actions menu),
   // and both want renderer.code — registering both would silently drop one.
   marked.use(codeBlockExtension);
+  marked.use(tableExtension);
   marked.setOptions({ gfm: true, breaks: false });
   initialized = true;
 }
@@ -79,6 +81,7 @@ export function renderMarkdown(markdown: string, options: RenderOptions = {}): R
       // Code-block chrome: the title bar, and the hooks the React layer
       // delegates its copy/download/PNG/line-number actions from.
       ...CODE_BLOCK_ATTRS,
+      ...TABLE_ATTRS,
     ],
   });
 
