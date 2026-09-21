@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="en">
+<!-- data-brand selects the palette in web/app/styles/grid-tokens.css. Without it
+     --grid-action falls back to the :root default (#e2661c, fadymondy's orange)
+     and every primary button, focus ring and accent comes out the wrong colour.
+     The web app sets the same attribute in web/app/layout.tsx. -->
+<html lang="en" data-brand="cabrain">
   <head>
     <meta charset="utf-8" />
     <meta

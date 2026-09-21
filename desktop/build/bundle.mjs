@@ -58,15 +58,24 @@ async function bundleCss() {
   const { compile } = await fromWeb("@tailwindcss/node");
   const { Scanner } = await fromWeb("@tailwindcss/oxide");
 
-  // Same import order the web app documents in app/globals.css.
+  // Reuse web/app/globals.css verbatim rather than restating its import order
+  // here. It carries far more than imports: the @theme inline block that maps
+  // --color-primary -> --primary (without it `bg-primary` is never generated
+  // and every shadcn button renders transparent), the @layer base defaults,
+  // and the :lang(ar) rules that keep Arabic out of mono and un-letter-spaced.
+  // Duplicating that list is how the desktop silently drifts from the console.
+  //
+  // Two edits are needed to relocate it: its ./styles imports are relative to
+  // web/app, and its @source roots are the web app's own trees — the desktop
+  // scans its renderer instead, via the Scanner below.
   const webUrl = posix(WEB);
+  const globals = fs
+    .readFileSync(path.join(WEB, "app", "globals.css"), "utf8")
+    .replace(/^\s*@source\s+[^;]+;\s*$/gm, "")
+    .replace(/@import\s+"\.\/styles\//g, `@import "${webUrl}/app/styles/`);
+
   const css = [
-    `@import "${webUrl}/app/styles/grid-fonts.css";`,
-    '@import "tailwindcss" source(none);',
-    `@import "${webUrl}/app/styles/grid-tokens.css";`,
-    `@import "${webUrl}/app/styles/grid.css";`,
-    `@import "${webUrl}/app/styles/grid-tailwind.css";`,
-    "@custom-variant dark (&:where(.dark, .dark *));",
+    globals,
     fs.readFileSync(path.join(DESKTOP, "src", "renderer", "theme.css"), "utf8"),
   ].join("\n");
 
