@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 
 import { renderMarkdown } from "@/lib/markdown"
 import type { NoteRef } from "@/lib/markdown/wikilinks/resolver"
+import { NOTE_THEME_ATTR } from "@/lib/markdown/themes/apply"
 import { useCodeActions } from "./code-actions"
 import { useTableActions } from "./table-actions"
+import { NoteThemeStyle, useNoteTheme } from "./theme-picker"
 
 /*
 A note body, rendered through the markdown pipeline ported from mark-it-down
@@ -35,6 +37,7 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   const bodyRef = useRef<HTMLDivElement>(null)
   const codeMenu = useCodeActions(bodyRef)
   const tableMenu = useTableActions(bodyRef)
+  const { id: themeId } = useNoteTheme()
 
   const html = useMemo(() => {
     if (!mounted) return ""
@@ -55,7 +58,15 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
 
   return (
     <>
-      <div ref={bodyRef} dir="auto" className={PROSE} dangerouslySetInnerHTML={{ __html: html }} />
+      <NoteThemeStyle id={themeId} />
+      <div
+        ref={bodyRef}
+        dir="auto"
+        // The reading theme is scoped to this element, never the app chrome.
+        {...(themeId ? { [NOTE_THEME_ATTR]: themeId } : {})}
+        className={PROSE}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
       {codeMenu}
       {tableMenu}
     </>

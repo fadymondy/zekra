@@ -179,7 +179,20 @@
   border: 1px solid var(--grid-line);
   border-radius: 0.5rem;
   overflow: hidden;
-  background: var(--grid-card);
+  /* --zk-code-bg comes from a reading theme (lib/markdown/themes/apply.ts);
+     without one, fall back to the app's card colour. */
+  background: var(--zk-code-bg, var(--grid-card));
+}
+
+/* A reading theme repaints the note surface only — never the app chrome.
+   Without its own background the palette would be invisible behind the app's,
+   so the themed pane gets one, plus padding so text is not flush to the edge. */
+[data-note-theme] {
+  background: var(--grid-bg);
+  color: var(--grid-fg);
+  padding: 1.25rem;
+  border: 1px solid var(--grid-line);
+  border-radius: 0.5rem;
 }
 .zk-code-bar {
   display: flex;
