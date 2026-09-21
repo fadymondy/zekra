@@ -49,10 +49,28 @@ function toggleLineNumbers(figure: HTMLElement) {
   figure.setAttribute("data-lines", "on")
 }
 
-export function useCodeActions(containerRef: React.RefObject<HTMLElement | null>) {
+export function useCodeActions(
+  containerRef: React.RefObject<HTMLElement | null>,
+  /** The Editor setting: build gutters for every block by default. */
+  lineNumbers = false,
+  /** Changes whenever the body re-renders, so gutters are reapplied. */
+  contentKey?: unknown,
+) {
   const [menu, setMenu] = useState<MenuState>(null)
   const [toast, setToast] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // The setting is global, but toggleLineNumbers is per block and builds the
+  // gutter in JS (the markup carries no per-line elements — see the comment
+  // there). So applying the setting means walking the blocks after each render.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    el.querySelectorAll<HTMLElement>(".zk-code").forEach((figure) => {
+      const on = figure.getAttribute("data-lines") === "on"
+      if (on !== lineNumbers) toggleLineNumbers(figure)
+    })
+  }, [containerRef, lineNumbers, contentKey])
 
   useEffect(() => {
     const el = containerRef.current

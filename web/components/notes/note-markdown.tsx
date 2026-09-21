@@ -5,9 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { renderMarkdown } from "@/lib/markdown"
 import type { NoteRef } from "@/lib/markdown/wikilinks/resolver"
 import { NOTE_THEME_ATTR } from "@/lib/markdown/themes/apply"
+import { readerStyle } from "@/lib/notes/note-settings"
 import { useCodeActions } from "./code-actions"
+import { useNoteSettings } from "./note-settings-panel"
 import { useTableActions } from "./table-actions"
-import { NoteThemeStyle, useNoteTheme } from "./theme-picker"
+import { NoteThemeStyle } from "./theme-picker"
 
 /*
 A note body, rendered through the markdown pipeline ported from mark-it-down
@@ -33,11 +35,8 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  // Code-block actions are delegated from this container (see code-actions).
-  const bodyRef = useRef<HTMLDivElement>(null)
-  const codeMenu = useCodeActions(bodyRef)
-  const tableMenu = useTableActions(bodyRef)
-  const { id: themeId } = useNoteTheme()
+  const { settings } = useNoteSettings()
+  const themeId = settings.theme
 
   const html = useMemo(() => {
     if (!mounted) return ""
@@ -46,6 +45,12 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
     // — a worse outcome than showing the diagram source.
     return renderMarkdown(text ?? "", { extractMermaid: false, notes }).html
   }, [text, notes, mounted])
+
+  // Code-block and table actions are delegated from this container. html is
+  // passed so the line-number gutters are rebuilt whenever the body changes.
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const codeMenu = useCodeActions(bodyRef, settings.lineNumbers, html)
+  const tableMenu = useTableActions(bodyRef)
 
   if (!mounted) {
     // Pre-mount fallback: the source, wrapped, never raw HTML.
@@ -64,6 +69,10 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
         dir="auto"
         // The reading theme is scoped to this element, never the app chrome.
         {...(themeId ? { [NOTE_THEME_ATTR]: themeId } : {})}
+        // Typography settings. maxWidth is omitted entirely at 0, so the
+        // default stays full width (see note-settings.ts).
+        style={readerStyle(settings)}
+        data-line-numbers={settings.lineNumbers ? "on" : undefined}
         className={PROSE}
         dangerouslySetInnerHTML={{ __html: html }}
       />

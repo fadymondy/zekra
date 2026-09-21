@@ -1,7 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
 import { groupedThemes, themeById, themeCss } from "@/lib/markdown/themes/apply"
 import type { ThemeDefinition } from "@/lib/markdown/themes/themes"
 
@@ -13,39 +11,11 @@ Each card previews the palette itself rather than showing a colour chip, so the
 choice is legible without applying it — the bars stand in for a heading, an
 accented line, body text and a muted line.
 
-The selected theme is stored in localStorage and applied by <NoteThemeStyle>,
-which writes one <style> rule. Persisting server-side belongs with the rest of
-the Typography/Editor settings (MH-214); this is deliberately local-only until
-that lands, so a preference survives reloads without inventing an API for it.
+The selection itself lives in lib/notes/note-settings alongside the Typography
+and Editor preferences (MH-214) — this file only renders the choice and emits
+the CSS. It briefly owned its own localStorage key; that key is migrated on
+first load rather than left to strand an existing preference.
 */
-
-const STORAGE_KEY = "zekra.note-theme"
-
-export function useNoteTheme() {
-  const [id, setId] = useState<string | null>(null)
-
-  // Read after mount: localStorage does not exist during SSR, and reading it
-  // in useState's initialiser would make the server and client disagree.
-  useEffect(() => {
-    try {
-      setId(localStorage.getItem(STORAGE_KEY))
-    } catch {
-      // Private mode or blocked storage: no theme, no crash.
-    }
-  }, [])
-
-  const choose = (next: string | null) => {
-    setId(next)
-    try {
-      if (next) localStorage.setItem(STORAGE_KEY, next)
-      else localStorage.removeItem(STORAGE_KEY)
-    } catch {
-      /* non-fatal */
-    }
-  }
-
-  return { id, choose }
-}
 
 /**
  * Emits the theme's variables for the note surface. Scoped to the attribute so
