@@ -10,6 +10,99 @@
 @import "./styles/grid.css";
 @import "./styles/grid-tailwind.css";
 
+/* Syntax highlighting for note code blocks — lib/markdown emits highlight.js
+   token classes.
+
+   These are mapped onto CSS variables rather than importing a prebuilt
+   highlight.js stylesheet. Two reasons: a stylesheet cannot be scoped to
+   .dark at the @import level, so shipping both GitHub themes would just let
+   the later one win in both modes; and MH-213 has to repaint these from the
+   27 ported themes, which is a variable swap here instead of 27 stylesheets.
+   Values are GitHub Light / GitHub Dark.
+
+   The desktop renderer compiles this same file, so it inherits all of it. */
+:root {
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-attr: #0550ae;
+  --hl-type: #953800;
+  --hl-meta: #6e7781;
+  --hl-deletion-bg: #ffebe9;
+  --hl-addition-bg: #dafbe1;
+}
+.dark {
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-attr: #79c0ff;
+  --hl-type: #ffa657;
+  --hl-meta: #8b949e;
+  --hl-deletion-bg: #67060c33;
+  --hl-addition-bg: #0338224d;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag {
+  color: var(--hl-keyword);
+}
+.hljs-string,
+.hljs-regexp {
+  color: var(--hl-string);
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: var(--hl-number);
+}
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--hl-title);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--hl-attr);
+}
+.hljs-type,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-class {
+  color: var(--hl-type);
+}
+.hljs-meta,
+.hljs-meta .hljs-keyword {
+  color: var(--hl-meta);
+}
+.hljs-deletion {
+  background: var(--hl-deletion-bg);
+}
+.hljs-addition {
+  background: var(--hl-addition-bg);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
