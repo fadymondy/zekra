@@ -34,24 +34,40 @@ export function NoteThemeStyle({ id }: { id: string | null }) {
   return null
 }
 
+/** The picker's own strings; the settings panel's labels extend this. */
+export interface ThemeLabels {
+  lightThemes: string
+  darkThemes: string
+  ownPalette: string
+}
+
+const DEFAULT_THEME_LABELS: ThemeLabels = {
+  lightThemes: "Light themes",
+  darkThemes: "Dark themes",
+  ownPalette: "Use Zekra's own palette",
+}
+
 export function ThemePicker({
   value,
   onChange,
+  labels,
 }: {
   value: string | null
   onChange: (id: string | null) => void
+  labels?: Partial<ThemeLabels>
 }) {
   const { light, dark } = groupedThemes()
+  const l = { ...DEFAULT_THEME_LABELS, ...labels }
   return (
     <div className="space-y-6">
-      <Group title="Light themes" themes={light} value={value} onChange={onChange} />
-      <Group title="Dark themes" themes={dark} value={value} onChange={onChange} />
+      <Group title={l.lightThemes} themes={light} value={value} onChange={onChange} />
+      <Group title={l.darkThemes} themes={dark} value={value} onChange={onChange} />
       <button
         type="button"
         onClick={() => onChange(null)}
         className="text-sm text-grid-muted underline underline-offset-4 hover:text-grid-fg"
       >
-        Use Zekra&rsquo;s own palette
+        {l.ownPalette}
       </button>
     </div>
   )

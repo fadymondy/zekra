@@ -311,7 +311,35 @@ function SettingsPanel({ settings, version, email, onSave, onClose }: {
                 web's panel so the two apps share one settings store — a
                 desktop-only copy would drift and would not see a theme picked
                 in the browser. */}
-            <NoteSettingsPanel />
+            <NoteSettingsPanel
+              labels={{
+                typography: t("reading.typography"),
+                typographyHint: t("reading.typographyHint"),
+                fontFamily: t("reading.fontFamily"),
+                fontFamilyHint: t("reading.fontFamilyHint"),
+                fontSize: t("reading.fontSize"),
+                fontSizeHint: t("reading.fontSizeHint"),
+                maxWidth: t("reading.maxWidth"),
+                maxWidthHint: t("reading.maxWidthHint"),
+                fullWidth: t("reading.fullWidth"),
+                editor: t("reading.editor"),
+                editorHint: t("reading.editorHint"),
+                wordWrap: t("reading.wordWrap"),
+                wordWrapHint: t("reading.wordWrapHint"),
+                lineNumbers: t("reading.lineNumbers"),
+                lineNumbersHint: t("reading.lineNumbersHint"),
+                autoSave: t("reading.autoSave"),
+                autoSaveHint: t("reading.autoSaveHint"),
+                autoSaveOff: t("reading.autoSaveOff"),
+                autoSaveBlur: t("reading.autoSaveBlur"),
+                autoSaveInterval: t("reading.autoSaveInterval"),
+                readingTheme: t("reading.theme"),
+                readingThemeHint: t("reading.themeHint"),
+                lightThemes: t("reading.lightThemes"),
+                darkThemes: t("reading.darkThemes"),
+                ownPalette: t("reading.ownPalette"),
+              }}
+            />
 
             <Separator />
             {email ? <p className="text-sm text-grid-muted">{t("settings.signedInAs")} {email}</p> : null}

@@ -23,7 +23,38 @@ export default function ReadingSettingsPage() {
         title={t("account.reading.title")}
         description={t("account.reading.hint")}
       />
-      <NoteSettingsPanel />
+      {/* The panel is shared with the Electron renderer, which has no i18n
+          provider, so it takes its copy as a prop rather than calling
+          useTranslations itself (same treatment as NoteTabs). */}
+      <NoteSettingsPanel
+        labels={{
+          typography: t("account.reading.typography"),
+          typographyHint: t("account.reading.typographyHint"),
+          fontFamily: t("account.reading.fontFamily"),
+          fontFamilyHint: t("account.reading.fontFamilyHint"),
+          fontSize: t("account.reading.fontSize"),
+          fontSizeHint: t("account.reading.fontSizeHint"),
+          maxWidth: t("account.reading.maxWidth"),
+          maxWidthHint: t("account.reading.maxWidthHint"),
+          fullWidth: t("account.reading.fullWidth"),
+          editor: t("account.reading.editor"),
+          editorHint: t("account.reading.editorHint"),
+          wordWrap: t("account.reading.wordWrap"),
+          wordWrapHint: t("account.reading.wordWrapHint"),
+          lineNumbers: t("account.reading.lineNumbers"),
+          lineNumbersHint: t("account.reading.lineNumbersHint"),
+          autoSave: t("account.reading.autoSave"),
+          autoSaveHint: t("account.reading.autoSaveHint"),
+          autoSaveOff: t("account.reading.autoSaveOff"),
+          autoSaveBlur: t("account.reading.autoSaveBlur"),
+          autoSaveInterval: t("account.reading.autoSaveInterval"),
+          readingTheme: t("account.reading.theme"),
+          readingThemeHint: t("account.reading.themeHint"),
+          lightThemes: t("account.reading.lightThemes"),
+          darkThemes: t("account.reading.darkThemes"),
+          ownPalette: t("account.reading.ownPalette"),
+        }}
+      />
     </div>
   )
 }
