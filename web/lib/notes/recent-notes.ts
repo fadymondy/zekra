@@ -12,6 +12,8 @@ export interface RecentNote {
   id: string
   namespace: string
   title: string
+  /** Drives the derived icon (MH-264); absent on entries stored before it. */
+  category?: string
   /** Epoch ms, for ordering. */
   at: number
 }
@@ -32,7 +34,14 @@ export function coerceRecent(raw: unknown): RecentNote[] {
         typeof (r as RecentNote).namespace === "string" &&
         Number.isFinite((r as RecentNote).at),
     )
-    .map((r) => ({ ...r, title: typeof r.title === "string" ? r.title : "" }))
+    .map((r) => ({
+      ...r,
+      title: typeof r.title === "string" ? r.title : "",
+      // Entries stored before categories were carried have none; noteIcon()
+      // falls back for undefined, so drop anything that is not a real string
+      // rather than letting a number or object reach the lookup.
+      category: typeof r.category === "string" && r.category ? r.category : undefined,
+    }))
     .sort((a, b) => b.at - a.at)
     .slice(0, MAX_RECENT)
 }
@@ -50,7 +59,7 @@ export function loadRecent(): RecentNote[] {
  * Record an open. Re-opening a note moves it to the top rather than adding a
  * duplicate, and a renamed note takes its new title.
  */
-export function pushRecent(note: { id: string; namespace: string; title: string }): RecentNote[] {
+export function pushRecent(note: { id: string; namespace: string; title: string; category?: string }): RecentNote[] {
   const next = coerceRecent([
     { ...note, at: Date.now() },
     ...loadRecent().filter((r) => r.id !== note.id),

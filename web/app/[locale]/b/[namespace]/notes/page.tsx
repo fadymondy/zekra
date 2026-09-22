@@ -34,6 +34,7 @@ import { useTranslations } from "@/lib/i18n"
 import { refreshGraph } from "@/lib/graph-edit"
 import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
 import { closeTab, loadTabs, nextSelection, openTab, renameTab, type OpenTab } from "@/lib/notes/open-tabs"
+import { noteIcon } from "@/lib/notes/note-icon"
 import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
@@ -150,8 +151,8 @@ export default function NotesPage() {
         // Feeds the spotlight's RECENT section (MH-219). Recorded here rather
         // than in the editor so it reflects what the user opened, not what
         // happened to load — a deep link or a refetch is not a visit.
-        pushRecent({ id: n.id, namespace: n.namespace, title: n.title })
-        setTabs(openTab(ns, { id: n.id, title: n.title }))
+        pushRecent({ id: n.id, namespace: n.namespace, title: n.title, category: n.category })
+        setTabs(openTab(ns, { id: n.id, title: n.title, category: n.category }))
       }
     }
   }
@@ -431,6 +432,7 @@ function NoteRow({
 }) {
   const { t } = useTranslations()
   const cat = n.category || "note"
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(cat)
   const tags = n.tags ?? []
   const snippet = (n.body ?? "").replace(/[#>*_`]|\[\[|\]\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220)
   return (
@@ -465,8 +467,10 @@ function NoteRow({
           </span>
         ) : null}
         <span className="flex min-w-0 items-center gap-1.5">
+          {/* Icon + colour derived from the category (MH-264), replacing the
+              bare colour square. */}
           <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-grid-body">
-            <span aria-hidden className="size-2 shrink-0" style={{ background: categoryColor(cat) }} />
+            <CategoryIcon aria-hidden className="size-3 shrink-0" style={{ color: categoryTint }} />
             <bdi>{cat}</bdi>
           </span>
           {tags.slice(0, 2).map((x) => (

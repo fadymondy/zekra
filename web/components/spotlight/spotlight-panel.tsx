@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/command"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { brainApi, type Recalled } from "@/lib/api"
+import { noteIcon } from "@/lib/notes/note-icon"
 import { loadRecent, type RecentNote } from "@/lib/notes/recent-notes"
 import { useTranslations } from "@/lib/i18n"
 
@@ -208,7 +209,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
                     router.push(`/${locale}/b/${r.namespace}/notes?id=${encodeURIComponent(r.id)}`)
                   }}
                 >
-                  <StickyNoteIcon />
+                  <RecentIcon r={r} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm" style={{ unicodeBidi: "plaintext" }}>
                       {r.title || t("notes.untitled")}
@@ -284,4 +285,10 @@ function Hint({ keys, label }: { keys: string[]; label: string }) {
       {label}
     </span>
   )
+}
+
+/** A recent note's derived icon (MH-264), falling back for older entries. */
+function RecentIcon({ r }: { r: RecentNote }) {
+  const { Icon, color } = noteIcon(r.category)
+  return <Icon style={{ color }} />
 }

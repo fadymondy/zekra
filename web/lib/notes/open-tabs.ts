@@ -13,6 +13,8 @@ not of the account. Restoring another device's tabs would be surprising.
 export interface OpenTab {
   id: string
   title: string
+  /** Drives the derived icon (MH-264); absent on tabs stored before it existed. */
+  category?: string
 }
 
 const KEY_PREFIX = "zekra.open-tabs:"
@@ -33,7 +35,12 @@ export function coerceTabs(raw: unknown): OpenTab[] {
     const id = (t as OpenTab).id
     if (typeof id !== "string" || !id || seen.has(id)) continue
     seen.add(id)
-    out.push({ id, title: typeof (t as OpenTab).title === "string" ? (t as OpenTab).title : "" })
+    const cat = (t as OpenTab).category
+    out.push({
+      id,
+      title: typeof (t as OpenTab).title === "string" ? (t as OpenTab).title : "",
+      ...(typeof cat === "string" && cat ? { category: cat } : {}),
+    })
     if (out.length >= MAX_TABS) break
   }
   return out

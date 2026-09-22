@@ -1,8 +1,9 @@
 "use client"
 
-import { StickyNoteIcon, XIcon } from "lucide-react"
+import { XIcon } from "lucide-react"
 
 import { useTranslations } from "@/lib/i18n"
+import { noteIcon } from "@/lib/notes/note-icon"
 import type { OpenTab } from "@/lib/notes/open-tabs"
 import { cn } from "@/lib/utils"
 
@@ -40,6 +41,7 @@ export function NoteTabs({
     >
       {tabs.map((tab) => {
         const active = tab.id === activeId
+        const { Icon: TabIcon, color: tint } = noteIcon(tab.category)
         return (
           <div
             key={tab.id}
@@ -67,7 +69,7 @@ export function NoteTabs({
                 : "text-grid-muted hover:bg-grid-bg/50 hover:text-grid-fg",
             )}
           >
-            <StickyNoteIcon className="size-3.5 shrink-0" />
+            <TabIcon className="size-3.5 shrink-0" style={{ color: active ? tint : undefined }} />
             {/* plaintext keeps a Latin title readable inside an RTL strip. */}
             <span className="min-w-0 flex-1 truncate" style={{ unicodeBidi: "plaintext" }}>
               {tab.title || t("notes.untitled")}
