@@ -1,16 +1,48 @@
 {
+  // Typecheck only. esbuild (build/bundle.mjs) does the emitting, and it
+  // strips types WITHOUT checking them — so without this config being correct,
+  // nothing checks the renderer at all.
+  //
+  // This file previously said `"include": ["src/renderer/*.ts"]`, which matches
+  // no .tsx and nothing in a subdirectory. tsc reported "No inputs were found"
+  // and exited 0, so it looked like a passing check while checking nothing.
+  // The options below were also left over from the pre-React renderer
+  // (module: "None", no jsx), which is why widening the include alone is not
+  // enough.
   "compilerOptions": {
-    "module": "None",
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "outDir": "out/renderer",
-    "rootDir": "src/renderer",
-    "sourceMap": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "strict": true,
-    "moduleResolution": "Node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    // @types also lives in the web install; tsc otherwise looks only in this
+    // project's own node_modules/@types, which does not exist.
+    "typeRoots": ["../web/node_modules/@types"],
+    // Two mappings, both mirroring what build/bundle.mjs already does:
+    //   @/*  -> the web app, because the bundler sets `alias: { "@": WEB }`
+    //   *    -> web/node_modules, because desktop has NO node_modules of its
+    //           own and esbuild resolves packages from the web install
+    // Without the second one, react, react-dom and lucide-react all read as
+    // missing and every JSX tag errors.
+    "paths": {
+      "@/*": ["../web/*"],
+      // React ships no types of its own, and the wildcard below would resolve
+      // it to index.js and stop — never consulting @types. Point the typed
+      // packages at their declarations explicitly, before the fallback.
+      "react": ["../web/node_modules/@types/react"],
+      "react/*": ["../web/node_modules/@types/react/*"],
+      "react-dom": ["../web/node_modules/@types/react-dom"],
+      "react-dom/*": ["../web/node_modules/@types/react-dom/*"],
+      "*": ["../web/node_modules/*"]
+    }
   },
-  "include": ["src/renderer/*.ts"]
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"]
 }

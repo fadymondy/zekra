@@ -12,7 +12,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    // Desktop has no node_modules of its own; the type packages live in the
+    // web install, same as for the renderer.
+    "typeRoots": ["../web/node_modules/@types"]
   },
   "include": ["src/main/**/*.ts"]
 }

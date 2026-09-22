@@ -5,13 +5,15 @@
   "description": "Zekra (ذكرة) desktop — a native Electron notes app backed by the Zekra brain/notes REST API.",
   "main": "out/main/main.js",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
-    "build:main": "tsc -p tsconfig.main.json",
-    "build:renderer": "tsc -p tsconfig.renderer.json && node build/copy-renderer-assets.js",
+    "typecheck": "npm run typecheck:renderer",
+    "build:main": "../web/node_modules/.bin/tsc -p tsconfig.main.json",
+    "build:renderer": "node build/bundle.mjs",
     "build": "npm run build:main && npm run build:renderer",
     "dev": "npm run build && electron .",
     "package": "npm run build && electron-builder",
-    "icon": "node build/make-icon-png.js"
+    "icon": "node build/make-icon-png.js",
+    "typecheck:renderer": "../web/node_modules/.bin/tsc --noEmit -p tsconfig.renderer.json",
+    "typecheck:main": "../web/node_modules/.bin/tsc --noEmit -p tsconfig.main.json"
   },
   "dependencies": {
     "electron-store": "^8.2.0"
