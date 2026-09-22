@@ -69,9 +69,13 @@ function Group({
   onChange: (id: string) => void
 }) {
   return (
-    <section>
+    // @container so the grid tracks its CONTAINER, not the viewport. The
+    // viewport breakpoints looked right on web and collapsed every card to
+    // full width inside the desktop settings column, which is narrower than
+    // the sm: breakpoint however wide the window is.
+    <section className="@container">
       <h3 className="mb-2 font-mono text-xs tracking-wider text-grid-muted uppercase">{title}</h3>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @2xl:grid-cols-3 @4xl:grid-cols-4">
         {themes.map((t) => (
           <Card key={t.id} theme={t} selected={value === t.id} onSelect={() => onChange(t.id)} />
         ))}

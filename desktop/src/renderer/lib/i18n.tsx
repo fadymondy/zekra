@@ -41,6 +41,7 @@ const en = {
 
   "notes.title": "Notes",
   "notes.empty": "No notes yet.",
+  "notes.loadingMore": "Loading more…",
   "notes.search": "Search notes",
   "notes.untitled": "Untitled",
   "notes.select": "Select a note, or create a new one.",
@@ -136,6 +137,7 @@ const ar: Record<TKey, string> = {
 
   "notes.title": "الملاحظات",
   "notes.empty": "لا توجد ملاحظات بعد.",
+  "notes.loadingMore": "جارٍ تحميل المزيد…",
   "notes.search": "ابحث في الملاحظات",
   "notes.untitled": "بدون عنوان",
   "notes.select": "اختر ملاحظة، أو أنشئ واحدة جديدة.",

@@ -283,7 +283,10 @@ function SettingsPanel({ settings, version, email, onSave, onClose }: {
 
   return (
     <ScrollArea className="grid-hatch flex-1">
-      <div className="mx-auto max-w-xl p-8">
+      {/* max-w-5xl, not max-w-xl: the reading-theme picker is a responsive
+          grid (sm:3 / lg:4 columns) and a ~576px column is narrower than its
+          first breakpoint, so every theme card stacked full-width. */}
+      <div className="mx-auto max-w-5xl p-8">
         <Card>
           <CardHeader><CardTitle>{t("settings.title")}</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-4">

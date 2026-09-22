@@ -147,9 +147,22 @@ const query = (values: Record<string, string | number | boolean | undefined>) =>
 
 export const zekraApi = {
   brains: (token: string) => request<{ brains: Brain[] }>("/api/brain/mine", { token }),
-  notes: (token: string, namespace: string, o: { q?: string; archived?: boolean; limit?: number } = {}) =>
+  notes: (
+    token: string,
+    namespace: string,
+    o: { q?: string; archived?: boolean; limit?: number; cursor?: string } = {},
+  ) =>
     request<NotePage>(
-      `/api/notes${query({ namespace, q: o.q, archived: o.archived ? 1 : undefined, limit: o.limit ?? 100 })}`,
+      // The response has always carried nextCursor; until now nothing sent one
+      // back, so a brain with more notes than the page size showed a silently
+      // truncated list.
+      `/api/notes${query({
+        namespace,
+        q: o.q,
+        archived: o.archived ? 1 : undefined,
+        limit: o.limit ?? 50,
+        cursor: o.cursor,
+      })}`,
       { token },
     ),
   note: (token: string, id: string) => request<Note>(`/api/notes/${encodeURIComponent(id)}`, { token }),

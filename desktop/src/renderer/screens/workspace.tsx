@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilePlus2, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -50,15 +50,58 @@ export function Workspace({ token, brain, onDirtyChange }: {
   // straight away; pin applies immediately since it is trivially reversible.
   const [pending, setPending] = useState<{ note: Note; action: Exclude<NoteAction, "pin"> } | null>(null);
 
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const load = useCallback(async () => {
     try {
       const page = await zekraApi.notes(token, brain.namespace, { archived: showArchived });
       setNotes(page.notes);
+      setCursor(page.nextCursor);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load notes");
     }
   }, [token, brain.namespace, showArchived]);
+
+  /*
+  Cursor paging. The sidebar previously fetched one page and stopped, so a
+  brain with more notes than the limit showed a truncated list with nothing to
+  say so — worse than an empty one.
+
+  Guarded on loadingMore because the sentinel can intersect repeatedly while a
+  request is still in flight, which would fetch the same cursor several times.
+  */
+  const loadMore = useCallback(async () => {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await zekraApi.notes(token, brain.namespace, { archived: showArchived, cursor });
+      // Append by id rather than concatenating blindly: a note edited between
+      // pages can legitimately appear twice.
+      setNotes((prev) => {
+        const seen = new Set(prev.map((n) => n.id));
+        return [...prev, ...page.notes.filter((n) => !seen.has(n.id))];
+      });
+      setCursor(page.nextCursor);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load more notes");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [token, brain.namespace, showArchived, cursor, loadingMore]);
+
+  // Fetch the next page when the sentinel scrolls into view.
+  const sentinel = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !cursor) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) void loadMore();
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [cursor, loadMore]);
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
@@ -202,6 +245,11 @@ export function Workspace({ token, brain, onDirtyChange }: {
                     />
                   ))
                 )}
+                {cursor ? (
+                  <div ref={sentinel} className="p-3 text-center text-xs text-grid-muted">
+                    {loadingMore ? t("notes.loadingMore") : ""}
+                  </div>
+                ) : null}
               </div>
             </ScrollArea>
           </>

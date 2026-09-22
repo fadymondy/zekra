@@ -138,7 +138,9 @@ export function NoteSettingsPanel() {
         </Row>
       </Panel>
 
-      <Panel title="Reading theme" description="Repaints the note surface only — the app keeps Zekra's palette.">
+      {/* Description corrected when theming moved from the note surface to the
+          whole app — it previously promised the opposite of what now happens. */}
+      <Panel title="Reading theme" description="Repaints the whole app. Pick none to keep Zekra's own palette.">
         <ThemePicker value={settings.theme} onChange={(id) => update({ theme: id })} />
       </Panel>
     </div>
