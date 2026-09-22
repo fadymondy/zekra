@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 import { ZekraMark } from "./components/zekra-mark";
+import { NoteSettingsPanel } from "@/components/notes/note-settings-panel";
 import { I18nProvider, useI18n } from "./lib/i18n";
 import { bridge, type AppSettings, type LocaleId } from "./lib/bridge";
 import { authApi, setApiBaseUrl, zekraApi, type AuthAnswer, type Brain, type User } from "./lib/api";
@@ -306,6 +307,13 @@ function SettingsPanel({ settings, version, email, onSave, onClose }: {
                 ))}
               </div>
             </div>
+
+            <Separator />
+            {/* Reading and editor preferences (MH-213, MH-214), reusing the
+                web's panel so the two apps share one settings store — a
+                desktop-only copy would drift and would not see a theme picked
+                in the browser. */}
+            <NoteSettingsPanel />
 
             <Separator />
             {email ? <p className="text-sm text-grid-muted">{t("settings.signedInAs")} {email}</p> : null}

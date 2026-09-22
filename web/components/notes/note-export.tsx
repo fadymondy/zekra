@@ -10,6 +10,7 @@ import {
   HashIcon,
 } from "lucide-react"
 
+import { ContextMenuItem } from "@/components/ui/context-menu"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { noteToHtml } from "@/lib/notes/export/html"
 import { markdownToTxt } from "@/lib/notes/export/txt"
@@ -171,6 +172,32 @@ export function NoteExportItems({ input }: { input: NoteExportInput }) {
           {item.label}
           {busy === item.format ? <span className="ms-auto text-xs text-grid-muted">…</span> : null}
         </DropdownMenuItem>
+      ))}
+      {error ? <p className="px-2 py-1 text-xs text-grid-danger">{error}</p> : null}
+    </>
+  )
+}
+
+/**
+ * The same actions as ContextMenuItems, for right-click menus (the desktop
+ * note row uses one). Shares useNoteExport with the dropdown variant so the
+ * two surfaces cannot produce different files.
+ */
+export function NoteExportContextItems({ input }: { input: NoteExportInput }) {
+  const { run, busy, error } = useNoteExport(input)
+  return (
+    <>
+      {ITEMS.map((item) => (
+        <ContextMenuItem
+          key={item.format}
+          disabled={busy !== null}
+          closeOnClick={false}
+          onClick={() => run(item.format)}
+        >
+          {item.icon}
+          {item.label}
+          {busy === item.format ? <span className="ms-auto text-xs text-grid-muted">…</span> : null}
+        </ContextMenuItem>
       ))}
       {error ? <p className="px-2 py-1 text-xs text-grid-danger">{error}</p> : null}
     </>

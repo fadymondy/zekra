@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 
+import { NoteExportContextItems } from "@/components/notes/note-export";
 import { useI18n } from "../lib/i18n";
 import type { Note } from "../lib/api";
 
@@ -125,6 +126,10 @@ export function NoteRow({ note, selected, onOpen, onAction }: {
           {note.archived ? <ArchiveRestore /> : <Archive />}
           {note.archived ? t("row.unarchive") : t("row.archive")}
         </ContextMenuItem>
+        <ContextMenuSeparator />
+        {/* Export (MH-212), reusing the web's exporters rather than a second
+            implementation — same markdown/HTML/PDF/DOCX/PNG/text output. */}
+        <NoteExportContextItems input={{ title: note.title, markdown: note.body ?? "" }} />
         <ContextMenuSeparator />
         <ContextMenuItem variant="destructive" onClick={() => onAction("delete")}>
           <Trash2 />
