@@ -21,9 +21,6 @@ Usage:
 import argparse
 import json
 import os
-# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 

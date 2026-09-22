@@ -16,9 +16,6 @@ Design notes
 * Read-only against prod: every query runs inside BEGIN READ ONLY.
 """
 import json, os, subprocess, sys, time
-# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
 import pg8000.native as pg

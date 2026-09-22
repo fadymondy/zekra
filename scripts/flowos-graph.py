@@ -21,9 +21,6 @@ The TYPED graph — entities.entity_type plus directed entity_edges with provena
 scripts/flowos-graph-edges.py, which is the script to run for the graph proper.
 """
 import os
-# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 import pg8000.native as pg
 from collections import defaultdict

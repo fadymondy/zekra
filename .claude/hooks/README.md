@@ -35,7 +35,7 @@ Add to your Claude Code settings (`.claude/settings.json` for this repo, or
 |---|---|---|
 | `ZEKRA_CAPTURE` | *(off)* | must be `1` to capture anything |
 | `ZEKRA_API_URL` | `https://app.zekra.dev` | the running Zekra app (self-hosted: your URL) |
-| `ZEKRA_TOKEN` | none (falls back to `CABRAIN_TOKEN`) | Sent as `X-Zekra-Token`; needs write on the brain |
+| `ZEKRA_TOKEN` | none | Sent as `X-Zekra-Token`; needs write on the brain |
 | `ZEKRA_NAMESPACE` | derived from `cwd` basename | project scope (one grant per project, F5) |
 | `ZEKRA_AGENT_ID` | *(empty = trusted)* | `X-Agent-Id` for grant checks |
 
