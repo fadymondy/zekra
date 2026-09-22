@@ -99,8 +99,10 @@ Tunables worth knowing:
 
 ## Known issues
 
-- Every restart of a build whose DSN points at the Docker-network host `pg` spends
-  90s in `waitForDatabase` before serving (MH-325). Production (DSN on `127.0.0.1`)
-  starts in ~2s.
-- The reranker is the recall bottleneck on this hardware; a smaller multilingual
-  cross-encoder or a GPU would let it run within budget.
+- The reranker is the recall bottleneck on this hardware: `bge-reranker-v2-m3` costs
+  ~4.6s per document on CPU even with 24 cores. Benchmarked alternatives are on
+  MH-376; `mmarco-mMiniLMv2-L12-H384-v1` is ~31× faster and agrees with it for
+  English but not for Arabic queries.
+- The API's startup readiness probe checks `DATABASE_URL` only and stops at once on
+  an authentication error (MH-325). It used to probe a stale `*_DATABASE_URL` alias
+  and wait 90 silent seconds.
