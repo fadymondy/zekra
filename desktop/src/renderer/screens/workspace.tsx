@@ -14,6 +14,7 @@ import { ConfirmDialog } from "../components/confirm-dialog";
 import { Markdown } from "../components/markdown";
 import { NoteTabs } from "@/components/notes/note-tabs";
 import { closeTab, loadTabs, nextSelection, openTab, type OpenTab } from "@/lib/notes/open-tabs";
+import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes";
 import { NoteRow, type NoteAction } from "../components/note-row";
 import { Spotlight } from "../components/spotlight";
 import { useI18n } from "../lib/i18n";
@@ -65,6 +66,8 @@ export function Workspace({ token, brain, onDirtyChange }: {
   function open(note: Note) {
     setSelected(note);
     setTabs(openTab(brain.namespace, { id: note.id, title: note.title, category: note.category }));
+    // Feeds the spotlight's RECENT section (MH-219); shared store with web.
+    pushRecent({ id: note.id, namespace: brain.namespace, title: note.title, category: note.category });
     setTitle(note.title);
     setBody(note.body ?? "");
     setDirty(false);
@@ -109,6 +112,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
       if (action === "delete") {
         await zekraApi.deleteNote(token, note);
         setTabs(closeTab(brain.namespace, note.id));
+        forgetRecent(note.id);
         if (selected?.id === note.id) setSelected(null);
       } else {
         await zekraApi.updateNote(token, note, { archived: !note.archived });

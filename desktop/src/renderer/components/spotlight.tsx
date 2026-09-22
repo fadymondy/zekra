@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/command";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
+import { loadRecent, type RecentNote } from "@/lib/notes/recent-notes";
+import { noteIcon } from "@/lib/notes/note-icon";
 import { useI18n } from "../lib/i18n";
 import { zekraApi, type Brain, type Note, type Recalled } from "../lib/api";
 
@@ -34,6 +36,9 @@ export function Spotlight({ token, brain, notes, onOpenNote, onCreate }: {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Recalled[]>([]);
+  // Scope, as on web (MH-219): narrow to the open brain or search them all.
+  const [scope, setScope] = useState<"brain" | "all">("brain");
+  const [recent, setRecent] = useState<RecentNote[]>([]);
   const [searching, setSearching] = useState(false);
   // Guards against a slower, older response overwriting a newer one.
   const seq = useRef(0);
@@ -56,7 +61,8 @@ export function Spotlight({ token, brain, notes, onOpenNote, onCreate }: {
     const mine = ++seq.current;
     const timer = setTimeout(async () => {
       try {
-        const res = await zekraApi.search(token, q, [brain.namespace], 8);
+        const scoped = scope === "brain" ? [brain.namespace] : undefined;
+        const res = await zekraApi.search(token, q, scoped, 8);
         if (seq.current === mine) setResults(res.results ?? []);
       } catch {
         if (seq.current === mine) setResults([]);
@@ -68,6 +74,10 @@ export function Spotlight({ token, brain, notes, onOpenNote, onCreate }: {
   }, [query, token, brain.namespace]);
 
   // Local title matches answer instantly while the semantic search is in flight.
+  // Read on open, not on mount: notes are opened behind the dialog and a
+  // stale RECENT list is worse than none.
+  useEffect(() => { if (open) setRecent(loadRecent()); }, [open]);
+
   const localHits = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
@@ -105,10 +115,49 @@ export function Spotlight({ token, brain, notes, onOpenNote, onCreate }: {
             or filter them; the action list is filtered by hand instead. */}
         <Command shouldFilter={false}>
           <CommandInput value={query} onValueChange={setQuery} placeholder={t("spotlight.placeholder")} />
+
+          <div className="flex gap-1 border-b border-line px-3 pb-2">
+            {(["brain", "all"] as const).map((s2) => (
+              <button
+                key={s2}
+                type="button"
+                role="radio"
+                aria-checked={scope === s2}
+                onClick={() => setScope(s2)}
+                className={
+                  scope === s2
+                    ? "rounded-md bg-grid-soft px-2.5 py-1 text-xs font-medium text-grid-fg"
+                    : "rounded-md px-2.5 py-1 text-xs text-grid-muted hover:text-grid-fg"
+                }
+              >
+                {s2 === "brain" ? t("spotlight.scopeBrain") : t("spotlight.scopeAll")}
+              </button>
+            ))}
+          </div>
+
           <CommandList>
             <CommandEmpty>
               {searching ? t("spotlight.searching") : query.trim() ? t("spotlight.empty") : t("spotlight.hint")}
             </CommandEmpty>
+
+            {!query.trim() && recent.length > 0 ? (
+              <>
+                <CommandGroup heading={t("spotlight.recent")}>
+                  {recent.map((r) => {
+                    const { Icon, color } = noteIcon(r.category);
+                    return (
+                      <CommandItem key={r.id} value={"recent:" + r.id} onSelect={() => { setOpen(false); onOpenNote(r.id); }}>
+                        <Icon style={{ color }} />
+                        <span className="min-w-0 flex-1 truncate" style={{ unicodeBidi: "plaintext" }}>
+                          {r.title || t("notes.untitled")}
+                        </span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            ) : null}
 
             {localHits.length > 0 ? (
               <>
@@ -155,6 +204,18 @@ export function Spotlight({ token, brain, notes, onOpenNote, onCreate }: {
               </CommandItem>
             </CommandGroup>
           </CommandList>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line px-3 py-2 text-xs text-grid-muted">
+            <span className="flex items-center gap-1.5">
+              <KbdGroup><Kbd>↑</Kbd><Kbd>↓</Kbd></KbdGroup>{t("spotlight.navigate")}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <KbdGroup><Kbd>Enter</Kbd></KbdGroup>{t("spotlight.open")}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <KbdGroup><Kbd>Esc</Kbd></KbdGroup>{t("spotlight.close")}
+            </span>
+          </div>
         </Command>
       </CommandDialog>
     </>
