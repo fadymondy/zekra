@@ -84,5 +84,3 @@ cd web && npm run dev
 
 Configuration comes from `.env` / `togo.yaml` (`ZEKRA_*` variables; legacy `CABRAIN_*` names
 are still honoured). Secrets are never committed.
-
-Zekra was previously called **CaBrain**.

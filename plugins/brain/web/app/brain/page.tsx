@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export default function ZekraPage() {
   const [status, setStatus] = useState("…");
   useEffect(() => {
-    fetch("/api/cabrain/ping").then((r) => r.json()).then((d) => setStatus(d.status)).catch(() => setStatus("error"));
+    fetch("/api/brain/ping").then((r) => r.json()).then((d) => setStatus(d.status)).catch(() => setStatus("error"));
   }, []);
   return (
     <div className="mx-auto max-w-xl p-8">

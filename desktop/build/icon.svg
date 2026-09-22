@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="crispEdges">
   <!--
     Zekra desktop app icon, derived from the brand mark in web/lib/brand/mark.ts
-    (ZEKRA_MARK -> PRODUCT_MARKS.cabrain in web/app/styles/grid-marks.ts):
+    (ZEKRA_MARK -> PRODUCT_MARKS.zekra in web/app/styles/grid-marks.ts):
     cells: [3,0] [2,1] [4,1] [1,2] [3,2] [5,2] [2,3] [4,3], body #6D4DE6, accent #C9A227
     on accent cell [3,0]. Cells are laid out on a 6-wide grid (cols 0-5) and normalised
     here into a square canvas with dark-ink padding, per the brand's square-corner /

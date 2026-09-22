@@ -12,7 +12,7 @@ files:
   - node_modules/**/*
 
 # NOTE: icon.ico / icon.icns are placeholders-in-waiting — only build/icon.svg and a
-# hand-generated build/icon.png (both derived from the real cabrain brand mark, see
+# hand-generated build/icon.png (both derived from the real Zekra brand mark, see
 # web/app/icon.svg / web/lib/brand) currently exist (no ImageMagick/rsvg-convert/sharp
 # in this environment to derive real multi-resolution .ico/.icns). See README.md for
 # the follow-up conversion step before a real packaged Windows/macOS build.

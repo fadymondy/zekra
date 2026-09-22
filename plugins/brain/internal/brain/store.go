@@ -204,7 +204,7 @@ type MemoryInput struct {
 
 // UnmarshalJSON accepts BOTH camelCase and snake_case keys. The struct has no
 // json tags, so Go's case-insensitive matching binds "sourceKind" but silently
-// DROPS "source_kind" — which is what the cabrain-agents client sends, so every
+// DROPS "source_kind" — which is what the zekra-agents client sends, so every
 // memory an agent retained lost its provenance. Normalising here fixes that
 // without breaking the camelCase callers (cmd/zekra-mcp) already in the field.
 func (m *MemoryInput) UnmarshalJSON(b []byte) error {
@@ -455,7 +455,7 @@ type RecallQuery struct {
 	// DEFAULT ON: a JSON body that omits the key gets true (see UnmarshalJSON).
 	// It used to default to false for REST callers while only the internal chat/
 	// agent paths opted in, so POST /api/brain/recall — the endpoint the MCP tools
-	// and cabrain-agents actually use — never touched the graph at all. Send
+	// and zekra-agents actually use — never touched the graph at all. Send
 	// "expandEntity": false to opt out.
 	ExpandEntity  bool    `json:"expandEntity"`
 	MinImportance float64 `json:"minImportance"`

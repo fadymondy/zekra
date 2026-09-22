@@ -34,21 +34,40 @@ import (
 
 // --- encryption ---------------------------------------------------------------
 
-// secretKey resolves the 32-byte AES key. Preference: ZEKRA_SECRETS_KEY (64 hex
-// chars) → derived from AUTH_SECRET → error (fail closed; never store plaintext).
-func secretKey() ([]byte, error) {
+// secretKDFLabel domain-separates the vault key derived from AUTH_SECRET.
+const secretKDFLabel = "zekra-secrets-v1:"
+
+// legacySecretKDFLabel is the label from before the product was renamed. It is a
+// key-derivation input, not a name: every secret stored under a derived key was
+// encrypted with it, so it stays readable (decrypt only) until those rows have
+// been re-encrypted. Deployments with an explicit ZEKRA_SECRETS_KEY never use it.
+const legacySecretKDFLabel = "cabrain-secrets-v1:"
+
+// secretKeys resolves the AES keys: the first encrypts, all of them decrypt.
+// Preference: ZEKRA_SECRETS_KEY (64 hex chars) → derived from AUTH_SECRET →
+// error (fail closed; never store plaintext).
+func secretKeys() ([][]byte, error) {
 	if h := strings.TrimSpace(os.Getenv("ZEKRA_SECRETS_KEY")); h != "" {
 		b, err := hex.DecodeString(h)
 		if err == nil && len(b) == 32 {
-			return b, nil
+			return [][]byte{b}, nil
 		}
 		return nil, errors.New("ZEKRA_SECRETS_KEY must be 64 hex chars (32 bytes)")
 	}
 	if s := strings.TrimSpace(os.Getenv("AUTH_SECRET")); s != "" {
-		sum := sha256.Sum256([]byte("cabrain-secrets-v1:" + s))
-		return sum[:], nil
+		current := sha256.Sum256([]byte(secretKDFLabel + s))
+		legacy := sha256.Sum256([]byte(legacySecretKDFLabel + s))
+		return [][]byte{current[:], legacy[:]}, nil
 	}
 	return nil, errors.New("secrets vault has no key: set ZEKRA_SECRETS_KEY (64 hex) or AUTH_SECRET")
+}
+
+func secretKey() ([]byte, error) {
+	keys, err := secretKeys()
+	if err != nil {
+		return nil, err
+	}
+	return keys[0], nil
 }
 
 // encryptSecret returns nonce||ciphertext (GCM), safe to store as bytea.
@@ -73,27 +92,30 @@ func encryptSecret(plaintext string) ([]byte, error) {
 }
 
 func decryptSecret(enc []byte) (string, error) {
-	key, err := secretKey()
+	keys, err := secretKeys()
 	if err != nil {
 		return "", err
 	}
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
+	// GCM authenticates, so a wrong key fails cleanly rather than yielding
+	// garbage — trying each key in turn is safe.
+	for _, key := range keys {
+		block, err := aes.NewCipher(key)
+		if err != nil {
+			return "", err
+		}
+		gcm, err := cipher.NewGCM(block)
+		if err != nil {
+			return "", err
+		}
+		if len(enc) < gcm.NonceSize() {
+			return "", errors.New("secret ciphertext too short")
+		}
+		nonce, ct := enc[:gcm.NonceSize()], enc[gcm.NonceSize():]
+		if pt, err := gcm.Open(nil, nonce, ct, nil); err == nil {
+			return string(pt), nil
+		}
 	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-	if len(enc) < gcm.NonceSize() {
-		return "", errors.New("secret ciphertext too short")
-	}
-	nonce, ct := enc[:gcm.NonceSize()], enc[gcm.NonceSize():]
-	pt, err := gcm.Open(nil, nonce, ct, nil)
-	if err != nil {
-		return "", errors.New("secret decrypt failed (wrong key?)")
-	}
-	return string(pt), nil
+	return "", errors.New("secret decrypt failed (wrong key?)")
 }
 
 // maskHint returns a non-reversible preview for listings, e.g. "sk-…a1b2" or "••••".

@@ -19,7 +19,7 @@ export const REPO_BRANCH = "main"
 
 /** The Site record's `ai_summary`: the one-paragraph answer for assistants (llms.txt, JSON-LD). */
 export const AI_SUMMARY =
-  "Zekra (formerly CaBrain) is a memory service for AI agents: hybrid vector and keyword recall plus a typed entity graph, reachable from any agent over MCP, so knowledge persists across sessions and projects."
+  "Zekra is a memory service for AI agents: hybrid vector and keyword recall plus a typed entity graph, reachable from any agent over MCP, so knowledge persists across sessions and projects."
 
 export const KEYWORDS = ["Zekra", "AI memory", "agent memory", "MCP server", "knowledge graph", "vector search", "Claude Code", "RAG"]
 

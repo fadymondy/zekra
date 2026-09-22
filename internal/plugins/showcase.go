@@ -1,5 +1,5 @@
 // Code generated for the plugin showcase — blank-imports every installable
-// togo plugin so cabrain exercises the whole ecosystem. Kept out of
+// togo plugin so Zekra exercises the whole ecosystem. Kept out of
 // plugins.gen.go (which `togo install` owns).
 package plugins
 

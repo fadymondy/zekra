@@ -38,7 +38,7 @@ func ensureAuthSecret() {
 	candidates = append(candidates,
 		"/app/data",
 		"/app/web/dist-media",
-		"/var/lib/cabrain",
+		"/var/lib/zekra",
 		"/tmp",
 	)
 	var secretFile string
@@ -46,6 +46,18 @@ func ensureAuthSecret() {
 		if err := os.MkdirAll(d, 0700); err == nil {
 			secretFile = filepath.Join(d, ".auth_secret")
 			break
+		}
+	}
+	// A secret persisted before the product was renamed lives in the old
+	// directory. Losing it would sign every user out and change the vault key
+	// derived from it, so it is still honoured — read-only; nothing new is
+	// written there.
+	const legacySecretFile = "/var/lib/cabrain/.auth_secret"
+	if secretFile == "/var/lib/zekra/.auth_secret" {
+		if _, err := os.Stat(secretFile); os.IsNotExist(err) {
+			if _, err := os.Stat(legacySecretFile); err == nil {
+				secretFile = legacySecretFile
+			}
 		}
 	}
 	if secretFile != "" {

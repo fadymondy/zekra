@@ -30,7 +30,7 @@ notes/auth logic and the theme colors are Zekra's own.
     (bearer-token auth, CSRF-then-login, `/api/brain/mine`, `/api/notes*`) with
     `source: "desktop"` instead of `"mobile"`.
   - `app.ts` — the SPA: sign-in -> brain picker -> notes list + editor, plus Settings.
-- `build/icon.svg` / `build/icon.png` — the real cabrain/Zekra brand mark (see
+- `build/icon.svg` / `build/icon.png` — the real Zekra brand mark (see
   `web/app/icon.svg`), redrawn on the dark-ink ground per the brand's square-corner,
   no-gradient rule.
 

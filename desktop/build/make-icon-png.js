@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generates build/icon.png (and build/icon-256.png) as a hand-rolled PNG, with zero
 // external dependencies (Node's built-in zlib only), reproducing the icon.svg pattern
-// (the cabrain brand cube mark on a dark-ink ground). This exists because no SVG/image
+// (the Zekra brand cube mark on a dark-ink ground). This exists because no SVG/image
 // conversion tool (ImageMagick, rsvg-convert, sharp, Inkscape) is available in this
 // environment. It is a *placeholder* PNG suitable for electron-builder's `icon` field
 // on Linux (which accepts PNG directly); Windows/macOS packaging needs a real .ico/.icns

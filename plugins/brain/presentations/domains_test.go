@@ -53,7 +53,7 @@ func TestRequestHosts(t *testing.T) {
 		}
 	}
 	for h, want := range map[string]bool{
-		"": true, "localhost": true, "127.0.0.1": true, "::1": true, "cabrain": true, "app.zekra.dev": true,
+		"": true, "localhost": true, "127.0.0.1": true, "::1": true, "zekra": true, "app.zekra.dev": true,
 		"zekra.dev": true, "share.builtin.test": true, "console.example.org": true, "other.example.org": true,
 		"deck.acme.com": false, "notzekra.dev": false, "zekra.dev.evil.com": false,
 	} {

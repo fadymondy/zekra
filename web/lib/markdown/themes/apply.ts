@@ -14,7 +14,7 @@ repainted the WHOLE app from the palette. See the `mark-it-down` brain, memory
 ba160c10.
 
 Zekra cannot simply copy that fix. Repainting the whole console would override
-the grid design system and the brand palette that `data-brand="cabrain"`
+the grid design system and the brand palette that `data-brand="zekra"`
 selects — the violet identity, the gold accent, the hatch ground. A Dracula
 console is not Zekra.
 

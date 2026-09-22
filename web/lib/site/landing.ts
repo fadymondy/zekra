@@ -3,7 +3,7 @@ import ar from "@/content/site/landing.ar.json"
 
 /*
 zekra.dev's landing content, one JSON file per language. Exported from fadymondy.com-v2's
-LANDINGS["cabrain.fadymondy.com"] spec by scripts/export-site-landing.mjs, then edited here —
+LANDINGS spec (the entry for this product) by scripts/export-site-landing.mjs, then edited here —
 this repo is now its source of truth. The shape is that spec with each { en, ar } pair
 resolved to one language.
 */

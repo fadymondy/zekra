@@ -49,7 +49,7 @@ func Boot() *app.App {
 
 	k.Router.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = fmt.Fprintf(w, `{"status":"ok","service":"cabrain","togo":%q}`, togoVersion())
+		_, _ = fmt.Fprintf(w, `{"status":"ok","service":"zekra","togo":%q}`, togoVersion())
 	})
 
 	// Resource registry for the admin dashboard — auto-discovers tables from the

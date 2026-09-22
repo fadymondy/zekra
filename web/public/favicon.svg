@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -5 50 50" shape-rendering="crispEdges">
-  <!-- Zekra vault mark (grid-marks.ts · cabrain), normalised to its 5×4 box and centred in a
+  <!-- Zekra vault mark (grid-marks.ts · zekra), normalised to its 5×4 box and centred in a
        square. Tab-size favicons fall under the brand's 5px-cell rule, so the gold dome top is
        dropped and the whole mark takes the body colour: violet on light chrome, ivory on dark. -->
   <style>
