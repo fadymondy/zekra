@@ -5,6 +5,27 @@ and reality-checks made during the build. Newest at top.
 
 ---
 
+## D7 — Notes are not file-backed: no "Reveal in Finder", GitHub sync is its own feature (2026-09-22)
+
+Porting mark-it-down's note context menu (MH-268) surfaced two items that assume a
+file on disk. mark-it-down was file-backed and git-native; a Zekra note is a database
+row with a version counter, a graph node and an embedding.
+
+- **"Reveal in Finder" is dropped.** There is nothing to reveal. It was never
+  implemented, so nothing was removed. The six exporters (MH-212) already cover
+  getting a note out of Zekra, and a menu item that first has to *write* a file in
+  order to reveal it is a worse version of "Export Markdown".
+- **"Push to GitHub now" is a feature, not a menu item** — split to MH-316 (backlog).
+  It needs an auth story, a repo/branch/path mapping, commit authorship, conflict
+  handling against a second version line, and a decision about what a note *becomes*
+  on disk (front-matter, wikilinks, and content-addressed image blobs). None of that
+  exists today.
+
+The general rule this settles: a ported feature that assumes a filesystem does not get
+a filesystem invented for it. It is either re-expressed against the database or dropped.
+
+---
+
 ## D6 — brain owns its schema + queries in Go (togo plugin-schema pattern) (2026-07-16)
 
 Confirmed from the real togo-framework plugins in the module cache: a plugin that needs
