@@ -39,6 +39,9 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/graph/neighbors", sec(s.NeighborsHandler))
 	r.Post("/api/brain/graph/path", sec(s.PathHandler))
 	r.Post("/api/brain/graph/communities", sec(s.CommunitiesHandler))
+	// The tree view's top level: the brain's spine hubs (MH-306).
+	r.Post("/api/brain/graph/roots", sec(s.RootsHandler))
+	r.Get("/api/brain/graph/roots", sec(s.RootsHandler))
 	r.Get("/api/brain/graph/ontology", sec(s.OntologyHandler))
 	r.Post("/api/brain/share", sec(s.Share))
 	r.Get("/api/brain/gaps", sec(s.Gaps))

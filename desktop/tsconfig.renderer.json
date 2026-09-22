@@ -44,5 +44,7 @@
       "*": ["../web/node_modules/*"]
     }
   },
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"]
+  // The web edits Tiptap's Storage type in types/*.d.ts; the renderer mounts the
+  // same editor, so it needs the same ambient declarations.
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "../web/types/**/*.d.ts"]
 }

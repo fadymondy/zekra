@@ -15,12 +15,14 @@ import { Markdown } from "../components/markdown";
 import { NoteTabs } from "@/components/notes/note-tabs";
 import { closeTab, loadTabs, nextSelection, openTab, type OpenTab } from "@/lib/notes/open-tabs";
 import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes";
+import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg";
 import { NoteRow, type NoteAction } from "../components/note-row";
+import { NoteTree } from "../components/note-tree";
 import { Spotlight } from "../components/spotlight";
 import { useI18n } from "../lib/i18n";
 import { zekraApi, type Brain, type Note, type Recalled } from "../lib/api";
 
-type Mode = "notes" | "search";
+type Mode = "notes" | "tree" | "search";
 
 export function Workspace({ token, brain, onDirtyChange }: {
   token: string;
@@ -177,8 +179,10 @@ export function Workspace({ token, brain, onDirtyChange }: {
     }
   }
 
-  async function runSearch() {
-    const q = query.trim();
+  // Takes an explicit term because the tree calls it in the same tick as
+  // setQuery, and state would still hold the previous value.
+  async function runSearch(term?: string) {
+    const q = (term ?? query).trim();
     if (!q) return;
     setSearching(true);
     try {
@@ -209,6 +213,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
           <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className="flex-1">
             <TabsList className="w-full">
               <TabsTrigger value="notes" className="flex-1">{t("notes.title")}</TabsTrigger>
+              <TabsTrigger value="tree" className="flex-1">{t("tree.title")}</TabsTrigger>
               <TabsTrigger value="search" className="flex-1">{t("search.title")}</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -265,6 +270,17 @@ export function Workspace({ token, brain, onDirtyChange }: {
               </div>
             </ScrollArea>
           </>
+        ) : mode === "tree" ? (
+          <ScrollArea className="min-h-0 flex-1">
+            {/* Rooted on the brain's graph spine (MH-306). Selecting a node
+                searches for it: an entity need not be a note, so there may be
+                nothing to open. */}
+            <NoteTree
+              token={token}
+              namespace={brain.namespace}
+              onSelect={(entity) => { setMode("search"); setQuery(entity); void runSearch(entity); }}
+            />
+          </ScrollArea>
         ) : (
           <>
             <div className="flex gap-2 px-3 pb-2">
@@ -359,6 +375,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
             <Tabs defaultValue="preview" className="flex min-h-0 flex-1 flex-col">
               <TabsList>
                 <TabsTrigger value="edit">{t("editor.edit")}</TabsTrigger>
+                <TabsTrigger value="visual">{t("editor.visual")}</TabsTrigger>
                 <TabsTrigger value="preview">{t("editor.preview")}</TabsTrigger>
               </TabsList>
               <TabsContent value="edit" className="min-h-0 flex-1">
@@ -368,6 +385,22 @@ export function Workspace({ token, brain, onDirtyChange }: {
                   placeholder={t("editor.placeholder")}
                   className="h-full min-h-0 resize-none font-mono text-sm"
                 />
+              </TabsContent>
+              <TabsContent value="visual" className="min-h-0 flex-1">
+                <ScrollArea className="h-full">
+                  {/* The web's TipTap editor. Its image upload is injected
+                      because desktop posts cross-origin with a Bearer token;
+                      everything else — the lossy-markdown guard, autosave,
+                      paste-to-upload — is inherited. */}
+                  <NoteEditorWysiwyg
+                    value={body}
+                    namespace={brain.namespace}
+                    editable={brain.canWrite}
+                    onChange={(md) => { setBody(md); setDirty(true); }}
+                    onSave={() => save()}
+                    uploadImage={(file, ns) => zekraApi.uploadImage(token, file, ns)}
+                  />
+                </ScrollArea>
               </TabsContent>
               <TabsContent value="preview" className="min-h-0 flex-1">
                 <ScrollArea className="h-full">

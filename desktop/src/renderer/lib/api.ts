@@ -200,4 +200,47 @@ export const zekraApi = {
     }),
   search: (token: string, q: string, namespaces?: string[], limit = 30) =>
     request<{ results?: Recalled[] }>("/api/brain/search", { token, json: { query: q, namespaces, limit } }),
+
+  /** The tree view's top level: the brain's spine hubs, most-connected first. */
+  graphRoots: (token: string, namespace: string) =>
+    request<{ roots: GraphRoot[]; fallback: boolean }>("/api/brain/graph/roots", { token, json: { namespace } }),
+  /** One node's edges, fetched lazily as the tree is disclosed. */
+  graphNeighbors: (token: string, namespace: string, entity: string) =>
+    request<{ edges: GraphEdgeDto[] }>("/api/brain/graph/neighbors", { token, json: { namespace, entity } }),
+
+  /*
+  Image upload for the visual editor.
+
+  Not routed through request(): that helper JSON-encodes its body, and this is
+  multipart — the boundary must be set by the browser, so Content-Type is
+  deliberately NOT set here. Everything else (Bearer, agent id) matches.
+  */
+  async uploadImage(token: string, file: File | Blob, namespace: string): Promise<{ url: string }> {
+    const form = new FormData();
+    form.append("namespace", namespace);
+    // A pasted Blob has no filename; the server ignores it but multipart wants one.
+    form.append("file", file, file instanceof File ? file.name : "pasted.png");
+    let res: Response;
+    try {
+      res = await fetch(`${apiBase}/api/notes/image`, {
+        method: "POST",
+        headers: { Accept: "application/json", "X-Agent-Id": "zekra-desktop", Authorization: `Bearer ${token}` },
+        body: form,
+        credentials: "include",
+      });
+    } catch (e) {
+      throw new ApiError(0, e instanceof Error ? e.message : "Could not reach Zekra");
+    }
+    const payload = (await res.json().catch(() => undefined)) as { url?: string; message?: string } | undefined;
+    if (!res.ok || !payload?.url) {
+      throw new ApiError(res.status, payload?.message || `Upload failed (${res.status})`);
+    }
+    return { url: payload.url };
+  },
 };
+
+/** One entry in the tree's top level (plugins/brain graph_roots.go). */
+export type GraphRoot = { name: string; type: string; degree: number };
+
+/** The edge shape the shared tree projects (web/lib/graph/tree.ts GraphEdge). */
+export type GraphEdgeDto = { id: string; src: string; dst: string; relation: string };

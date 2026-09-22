@@ -40,6 +40,14 @@ export interface NoteEditorProps {
   namespace: string
   editable?: boolean
   placeholder?: string
+  /**
+   * Override the image upload.
+   *
+   * The default posts same-origin to /api/notes/image with the CSRF cookie.
+   * The Electron renderer mounts this same editor but talks cross-origin with
+   * a Bearer token, so it supplies its own — the same seam EntityTree needed.
+   */
+  uploadImage?: (file: File | Blob, namespace: string) => Promise<{ url: string }>
 }
 
 export function NoteEditorWysiwyg({
@@ -48,6 +56,7 @@ export function NoteEditorWysiwyg({
   onSave,
   namespace,
   editable = true,
+  uploadImage = uploadNoteImage,
 }: NoteEditorProps) {
   const { settings } = useNoteSettings()
   const [uploading, setUploading] = useState(0)
@@ -145,7 +154,7 @@ export function NoteEditorWysiwyg({
       setUploading((n) => n + files.length)
       for (const file of files) {
         try {
-          const { url } = await uploadNoteImage(file, namespace)
+          const { url } = await uploadImage(file, namespace)
           editor.chain().focus().setImage({ src: url, alt: file.name }).run()
         } catch (e) {
           setError(e instanceof ImageUploadError ? e.message : "Image upload failed")
@@ -154,7 +163,7 @@ export function NoteEditorWysiwyg({
         }
       }
     },
-    [editor, namespace],
+    [editor, namespace, uploadImage],
   )
 
   // Paste and drop both go through the same upload path.

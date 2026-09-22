@@ -10,7 +10,7 @@ import { useParams } from "next/navigation"
 import useSWRInfinite from "swr/infinite"
 import { useSWRConfig } from "swr"
 import {
-  AlertTriangleIcon, ArchiveIcon, ArrowDownUpIcon, CheckIcon, ChevronsUpDownIcon, Loader2Icon, PinIcon, PlusIcon, SearchIcon,
+  AlertTriangleIcon, ArchiveIcon, ArrowDownUpIcon, CheckIcon, ChevronsUpDownIcon, Loader2Icon, NetworkIcon, PinIcon, PlusIcon, SearchIcon,
   TagIcon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -21,6 +21,7 @@ import { categoryColor } from "@/components/graph/colors"
 import { NoteEditor } from "@/components/notes/note-editor"
 import { NoteRowActions, type NoteRowAction } from "@/components/notes/note-row-actions"
 import { NoteTabs } from "@/components/notes/note-tabs"
+import { NoteTree } from "@/components/notes/note-tree"
 import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -71,6 +72,8 @@ export default function NotesPage() {
   const [tags, setTags] = useState<string[]>([])
   const [pinnedOnly, setPinnedOnly] = useState(false)
   const [archived, setArchived] = useState(false)
+  // Which pane the list column shows: the note list, or the spine-rooted tree.
+  const [pane, setPane] = useState<"list" | "tree">("list")
   const [sort, setSort] = useState<Sort>("updated")
   const [selected, setSelected] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
@@ -347,6 +350,19 @@ export default function NotesPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* List vs tree (MH-217). The tree is rooted on the brain's
+                  graph spine, so it answers "how is this brain organised"
+                  where the list answers "what changed recently". */}
+              <Button
+                variant="outline"
+                size="sm"
+                aria-pressed={pane === "tree"}
+                onClick={() => setPane((v) => (v === "tree" ? "list" : "tree"))}
+                className={toggleBtn(pane === "tree")}
+              >
+                <NetworkIcon /> {t("tree.title")}
+              </Button>
+
               {filtering || archived || sort !== "updated" ? (
                 <button type="button" onClick={clearFilters} className="ms-auto text-xs text-grid-muted underline underline-offset-4 hover:text-grid-fg">
                   {t("notes.clearFilters")}
@@ -356,7 +372,18 @@ export default function NotesPage() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {list.error ? (
+            {pane === "tree" ? (
+              <NoteTree
+                namespace={ns}
+                onSelect={(entity) => {
+                  // The tree speaks in entity names; the list speaks in note
+                  // ids. Searching the name is the honest bridge — an entity
+                  // need not BE a note, so there may be nothing to select.
+                  setPane("list")
+                  setSearch(entity)
+                }}
+              />
+            ) : list.error ? (
               <ErrorState error={list.error} />
             ) : !pages ? (
               <LoadingRows rows={6} />
