@@ -57,6 +57,10 @@ type Note struct {
 	Body           string     `json:"body,omitempty"`
 	Tags           []string   `json:"tags"`
 	Category       string     `json:"category"`
+	// Appearance overrides (MH-308). Empty means "derive from Category",
+	// which is how every note behaved before these existed.
+	Icon           string     `json:"icon,omitempty"`
+	Color          string     `json:"color,omitempty"`
 	EntityID       string     `json:"entityId,omitempty"`
 	Pinned         bool       `json:"pinned"`
 	Archived       bool       `json:"archived"`
@@ -105,6 +109,9 @@ type NotePatch struct {
 	Pinned   *bool
 	Archived *bool
 	Category *string
+	// Appearance overrides (MH-308); a pointer to "" clears one.
+	Icon     *string
+	Color    *string
 }
 
 // --- chunking (pure) -----------------------------------------------------------
@@ -217,7 +224,7 @@ func validateNote(title, body string) error {
 
 const noteCols = `id::text, namespace, COALESCE(owner_user_id,''), title, body, tags, pinned, archived,
 	source, version, chunk_hashes, indexed_version, COALESCE(index_error,''), created_at, updated_at, deleted_at,
-	category, COALESCE(entity_id::text,''), COALESCE(origin_ref,'')`
+	category, COALESCE(entity_id::text,''), COALESCE(origin_ref,''), COALESCE(icon,''), COALESCE(color,'')`
 
 type rowScanner interface{ Scan(dest ...any) error }
 
@@ -227,7 +234,7 @@ func scanNote(row rowScanner) (*Note, error) {
 	var deleted sql.NullTime
 	if err := row.Scan(&n.ID, &n.Namespace, &n.OwnerUserID, &n.Title, &n.Body, &tags, &n.Pinned, &n.Archived,
 		&n.Source, &n.Version, &hashes, &n.indexedVersion, &n.IndexError, &n.CreatedAt, &n.UpdatedAt, &deleted,
-		&n.Category, &n.EntityID, &n.OriginRef); err != nil {
+		&n.Category, &n.EntityID, &n.OriginRef, &n.Icon, &n.Color); err != nil {
 		return nil, err
 	}
 	n.Tags = []string(tags)
@@ -375,6 +382,14 @@ func (s *Store) UpdateNote(ctx context.Context, id string, expectVersion int, p 
 			}
 			n.Category = c
 		}
+		// Appearance overrides (MH-308). Already validated in the handler; a
+		// pointer to "" is meaningful here and clears the override.
+		if p.Icon != nil {
+			n.Icon = *p.Icon
+		}
+		if p.Color != nil {
+			n.Color = *p.Color
+		}
 		if p.Archived != nil {
 			n.Archived = *p.Archived
 		}
@@ -491,10 +506,11 @@ func (s *Store) mutateNote(ctx context.Context, id string, expectVersion int, by
 	}
 	updated, err := scanNote(tx.QueryRowContext(ctx, `
 		UPDATE notes SET title=$2, body=$3, tags=$4, pinned=$5, archived=$6, source=$7, version=$8,
-		       deleted_at=$9, chunk_hashes=$10, category=$11, updated_at=clock_timestamp()
+		       deleted_at=$9, chunk_hashes=$10, category=$11, icon=$12, color=$13,
+		       updated_at=clock_timestamp()
 		WHERE id=$1 RETURNING `+noteCols,
 		id, next.Title, next.Body, stringArray(next.Tags), next.Pinned, next.Archived, next.Source, next.Version,
-		deletedAt, stringArray(nonNil(hashes)), next.Category))
+		deletedAt, stringArray(nonNil(hashes)), next.Category, next.Icon, next.Color))
 	if err != nil {
 		return nil, err
 	}

@@ -736,3 +736,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS presentation_domains_default_key
 
 ALTER TABLE public.presentation_shares ADD COLUMN IF NOT EXISTS domain_id text
     REFERENCES public.presentation_domains (id) ON DELETE SET NULL;
+
+-- ── Per-note icon and colour override (MH-308) ───────────────────────────────
+-- Both DEFAULT '' meaning "derive from category", which is how every note
+-- behaves today: the renderers map Note.Category onto a curated icon and
+-- colour. These columns only record a deliberate override, so existing notes
+-- keep their derived appearance and nothing has to be backfilled.
+-- Values are validated in the handler against the known icon names and the
+-- fixed colour set rather than by a CHECK, so the vocabulary can grow without
+-- a migration.
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS icon  text NOT NULL DEFAULT '';
+ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT '';

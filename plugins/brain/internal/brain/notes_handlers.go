@@ -192,6 +192,10 @@ type noteBody struct {
 	Pinned    *bool     `json:"pinned"`
 	Archived  *bool     `json:"archived"`
 	Category  *string   `json:"category"`
+	// Appearance overrides (MH-308). Empty string clears the override and
+	// returns the note to its derived icon/colour.
+	Icon      *string   `json:"icon"`
+	Color     *string   `json:"color"`
 	Source    string    `json:"source"`
 	Version   int       `json:"version"`
 }
@@ -200,6 +204,17 @@ func decodeNoteBody(w http.ResponseWriter, r *http.Request) (*noteBody, bool) {
 	var in noteBody
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, noteMaxBody+64<<10)).Decode(&in); err != nil {
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "bad JSON body"))
+		return nil, false
+	}
+	// Reject an unknown icon or colour here rather than storing it: a name the
+	// renderers cannot resolve falls back to the generic mark, so the users
+	// choice would vanish with no error to explain why.
+	if in.Icon != nil && !ValidNoteIcon(*in.Icon) {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "unknown icon: "+*in.Icon))
+		return nil, false
+	}
+	if in.Color != nil && !ValidNoteColor(*in.Color) {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "colour is not in the allowed set: "+*in.Color))
 		return nil, false
 	}
 	return &in, true
@@ -299,6 +314,7 @@ func (s *Service) UpdateNote(w http.ResponseWriter, r *http.Request) {
 	}
 	n, err := s.Store.UpdateNote(r.Context(), chi.URLParam(r, "id"), expect, NotePatch{
 		Title: in.Title, Body: in.Body, Tags: in.Tags, Pinned: in.Pinned, Archived: in.Archived, Category: in.Category,
+		Icon: in.Icon, Color: in.Color,
 	}, s.noteAuthor(r, in.Source))
 	if errors.Is(err, ErrConflict) {
 		s.writeConflict(w, n)
