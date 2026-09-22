@@ -57,7 +57,7 @@ func main() {
 	case "inspect":
 		inspect(ctx, db)
 	case "migrate":
-		// Account tables first (cabrain_auth via search_path; independent of BM25).
+		// Account tables first (zekra_auth via search_path; independent of BM25).
 		must(accountschema.Migrate(ctx, db), "apply account schema")
 		fmt.Println("✓ account schema applied")
 		if err := brain.Migrate(ctx, db); err != nil {
@@ -149,7 +149,7 @@ func bm25Test(ctx context.Context, db *sql.DB) {
 	must(brain.ApplyBM25(ctx, db), "apply bm25")
 	tok := os.Getenv("BRAIN_BM25_TOKENIZER")
 	if tok == "" {
-		tok = "cabrain_bm25_tok"
+		tok = "zekra_ml"
 	}
 	fmt.Printf("using tokenizer %q, index memories_default_bm25\n", tok)
 	const ns = "__bm25_smoke__"

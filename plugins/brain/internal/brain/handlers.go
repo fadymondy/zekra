@@ -22,7 +22,7 @@ func randHex(n int) string {
 
 // HTTP surface for the console. Read endpoints are always safe (defensive
 // queries). Write/recall endpoints return a clear, structured error until the
-// providers (brain-tei) and the live cabrain DB are wired (Blocker B).
+// providers (brain-tei) and the live zekra DB are wired (Blocker B).
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")

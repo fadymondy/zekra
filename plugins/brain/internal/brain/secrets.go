@@ -11,7 +11,7 @@ package brain
 // searchable; the raw value lives only in the vault and is revealed only to a
 // caller with write/admin on that brain. Secrets persist across sessions.
 //
-// Storage lives in the `cabrain_auth` schema (created + isolated for this app),
+// Storage lives in the `zekra_auth` schema (created + isolated for this app),
 // so `secrets` resolves there via search_path and never collides with anything
 // in `public`.
 

@@ -10,7 +10,7 @@
 -- internal/account (best effort), and by `go run ./cmd/migrate` / `zekractl migrate`.
 --
 -- Tables are UNQUALIFIED on purpose: the app runs with
--- search_path=cabrain_auth,public, so they land in cabrain_auth next to `users`
+-- search_path=zekra_auth,public, so they land in zekra_auth next to `users`
 -- (see DEPLOY.md). No foreign keys to users: this file may run before the auth
 -- plugin has created that table on a fresh database.
 

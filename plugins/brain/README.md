@@ -37,4 +37,4 @@ this repo is the split-out, installable plugin. Design lives in the zekra projec
 ## Status
 
 Phase 1: schema + data layer + provider seams in place; `retain`/`recall` execution and `migrate`
-land once the provisioned `cabrain` DB (vchord stack) and the `brain-tei` provider are live.
+land once the provisioned `zekra` DB (vchord stack) and the `brain-tei` provider are live.

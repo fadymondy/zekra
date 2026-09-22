@@ -17,7 +17,7 @@
 SELECT pg_advisory_xact_lock(524308299873);
 
 -- =====================================================================================
--- Source of truth for the schema. Once ToGO is wired, `togo make:plugin cabrain` +
+-- Source of truth for the schema. Once ToGO is wired, `togo make:plugin zekra` +
 -- sqlc/Atlas will own the generated migrations; this file is what they reconcile
 -- against, AND it is the direct-on-Postgres fallback (SPEC §8) if Cognee is dropped.
 --
@@ -47,11 +47,18 @@ CREATE EXTENSION IF NOT EXISTS pg_partman    CASCADE;  -- time partitioning
 -- Consolidation / sleep plane runs as its own login role so it never shares a
 -- connection pool with the latency-critical recall path (N1). Infra already created
 -- this role on the live DB; keep IF NOT EXISTS so the migration is idempotent.
+--
+-- Best-effort: creating a role needs CREATEROLE, which the app role normally does
+-- not have. Nothing in the app connects as this role yet, so a missing privilege
+-- must not fail the whole migration — it did, the first time the role's name
+-- changed and the existing one no longer satisfied IF NOT EXISTS.
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cabrain_sleep') THEN
-    CREATE ROLE cabrain_sleep LOGIN;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'zekra_sleep') THEN
+    CREATE ROLE zekra_sleep LOGIN;
   END IF;
+EXCEPTION WHEN insufficient_privilege THEN
+  RAISE NOTICE 'zekra_sleep not created (needs CREATEROLE); the sleep plane is not wired to it yet';
 END $$;
 -- pg_duckdb, if/when added for telemetry, is enabled per-role here — never globally.
 
@@ -104,7 +111,7 @@ CREATE TABLE IF NOT EXISTS memories (
 CREATE TABLE IF NOT EXISTS memories_default PARTITION OF memories DEFAULT;
 --
 -- pg_partman 5.4.3 monthly rollover + retention (the cold-tier demotion unit, Phase 2)
--- is added later — it needs the `cabrain` role granted on partman's config tables
+-- is added later — it needs the `zekra` role granted on partman's config tables
 -- (part_config / part_config_sub), which only a superuser/the partman installer can do
 -- (INFRA TODO). Then, to split the default into monthly partitions:
 --   SELECT public.create_parent(p_parent_table => 'public.memories',
@@ -153,13 +160,13 @@ CREATE INDEX IF NOT EXISTS memories_ns_domain_type
   WHERE invalid_at IS NULL AND tier = 'hot';
 
 -- [V1] BM25 long-text, Arabic-capable — CONFIRMED API for vchord_bm25 0.3.0 +
--- pg_tokenizer 0.1.1 on the live cabrain DB. Applied by bm25.sql (separate, so a
+-- pg_tokenizer 0.1.1 on the live zekra DB. Applied by bm25.sql (separate, so a
 -- tokenizer-config issue never blocks the core schema), and populated on the retain
--- path (content_bm25 = tokenize(content, 'cabrain_ml')). Shape:
---   SELECT create_tokenizer('cabrain_ml', $$ model = "llmlingua2" $$);  -- see infra/grant-bm25.sql (superuser)
+-- path (content_bm25 = tokenize(content, 'zekra_ml')). Shape:
+--   SELECT create_tokenizer('zekra_ml', $$ model = "llmlingua2" $$);  -- see infra/grant-bm25.sql (superuser)
 --   ALTER TABLE memories ADD COLUMN content_bm25 bm25vector;   -- populated per-write via tokenize()
 --   CREATE INDEX memories_bm25 ON memories USING bm25 (content_bm25 bm25_ops);
--- Recall ranks with:  content_bm25 <&> to_bm25query('memories_bm25', tokenize($q,'cabrain_ml'))
+-- Recall ranks with:  content_bm25 <&> to_bm25query('memories_bm25', tokenize($q,'zekra_ml'))
 -- (lower = better). Verified multilingual/Arabic by infra §5.2. NOT the English tokenizer (N4).
 
 CREATE INDEX IF NOT EXISTS memories_ns
@@ -360,7 +367,7 @@ CREATE INDEX IF NOT EXISTS brain_tokens_agent ON brain_tokens (agent_id);
 -- content is redacted to a `[secret:<name>]` reference so raw values never enter
 -- the vector index or a recall response. Reveal is ACL-gated (write/admin on the
 -- brain). Namespace-scoped like every other brain object. On the live instance this
--- table resolves under the isolated `cabrain_auth` schema via search_path.
+-- table resolves under the isolated `zekra_auth` schema via search_path.
 CREATE TABLE IF NOT EXISTS secrets (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   namespace   text NOT NULL,
@@ -384,15 +391,15 @@ CREATE INDEX IF NOT EXISTS secrets_ns ON secrets (namespace, name);
 -- inside config are redacted on read (see redactDatasourceSecrets).
 --
 -- SCHEMA PLACEMENT: pinned to `public` (same schema as `memories`), NOT bare. On the
--- live instance the app runs with search_path=cabrain_auth,public, and an UNQUALIFIED
--- `CREATE TABLE IF NOT EXISTS datasources` would land in cabrain_auth (first writable
+-- live instance the app runs with search_path=zekra_auth,public, and an UNQUALIFIED
+-- `CREATE TABLE IF NOT EXISTS datasources` would land in zekra_auth (first writable
 -- schema in the path — that is exactly where `secrets` ended up). Worse, if a
 -- public.datasources already exists, an unqualified IF NOT EXISTS still creates a
--- SECOND, empty cabrain_auth.datasources that then SHADOWS public in every unqualified
+-- SECOND, empty zekra_auth.datasources that then SHADOWS public in every unqualified
 -- read (verified empirically). Pinning to public keeps datasources alongside memories
 -- and makes this file idempotent under zekractl migrate regardless of search_path. The
 -- app's own unqualified queries (ListDatasources, …) resolve to public since
--- cabrain_auth has no datasources table.
+-- zekra_auth has no datasources table.
 CREATE TABLE IF NOT EXISTS public.datasources (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   namespace    text NOT NULL,

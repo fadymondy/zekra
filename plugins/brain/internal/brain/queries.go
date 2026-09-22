@@ -8,7 +8,7 @@ import (
 )
 
 // Read-side queries that feed the console. All are defensive: when the brain
-// schema isn't applied yet (e.g. local SQLite smoke-boot, or the cabrain DB not
+// schema isn't applied yet (e.g. local SQLite smoke-boot, or the zekra DB not
 // provisioned — Blocker B), they return zero/empty values with ready=false
 // instead of erroring, so the UI renders its "brain not connected" state.
 
