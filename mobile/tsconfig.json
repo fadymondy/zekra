@@ -20,5 +20,8 @@
     "expo-env.d.ts",
     "../web/lib/notes/note-icon-map.ts",
     "../web/lib/markdown/themes/themes.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts"
   ]
 }
