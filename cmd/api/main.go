@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	feedback "github.com/fadymondy/zekra/internal/mahaamfeedback"
 	"github.com/fadymondy/zekra/internal/server"
@@ -18,6 +19,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // ensureAuthSecret guarantees a >=32-byte AUTH_SECRET before Boot(), so the togo
@@ -172,15 +175,19 @@ func main() {
 	}
 }
 
-// waitForDatabase blocks until the postgres URL in ZEKRA_DATABASE_URL / DATABASE_URL
-// accepts connections. Solves the boot race on Docker Desktop restart: the auth plugin
-// runs ensureSchema() during provider registration, and if pg isn't up yet the provider
+// waitForDatabase blocks until the database the kernel is about to use accepts
+// queries. Solves the boot race on Docker Desktop restart: the auth plugin runs
+// ensureSchema() during provider registration, and if pg isn't up yet the provider
 // silently fails → /api/auth/* stays 404 for the entire container lifetime.
+//
+// It checks DATABASE_URL — the DSN togo.yaml hands the kernel — and nothing else.
+// It used to prefer ZEKRA_DATABASE_URL, which the env compat layer fills from a
+// stack's CABRAIN_DATABASE_URL. On the local stack that alias carried a stale
+// password, so the probe failed authentication for its full 90s on every start
+// while the app itself connected fine a moment later (MH-325). A readiness probe
+// that tests a different connection than the one it guards proves nothing.
 func waitForDatabase() {
-	dsn := os.Getenv("ZEKRA_DATABASE_URL")
-	if dsn == "" {
-		dsn = os.Getenv("DATABASE_URL")
-	}
+	dsn := readinessDSN()
 	if dsn == "" {
 		return
 	}
@@ -203,6 +210,7 @@ func waitForDatabase() {
 	}
 	defer db.Close()
 	db.SetMaxOpenConns(1)
+	var lastErr error
 	for i := 0; i < 90; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		err := db.PingContext(ctx)
@@ -213,9 +221,34 @@ func waitForDatabase() {
 			}
 			return
 		}
+		// Waiting cannot fix a wrong password or a missing database: say so now
+		// instead of stalling the boot for 90 silent seconds.
+		if fatalDBError(err) {
+			fmt.Printf("⚠ database %s refused the connection (%v) — not waiting; check DATABASE_URL\n", hostPort, err)
+			return
+		}
+		if i == 0 {
+			fmt.Printf("… database %s not ready yet (%v); waiting up to 90s\n", hostPort, err)
+		}
+		lastErr = err
 		time.Sleep(1 * time.Second)
 	}
-	fmt.Printf("⚠ database %s TCP-open but not query-ready after 90s\n", hostPort)
+	fmt.Printf("⚠ database %s TCP-open but not query-ready after 90s (last error: %v)\n", hostPort, lastErr)
+}
+
+// readinessDSN is the connection string the kernel will use.
+func readinessDSN() string {
+	return strings.TrimSpace(os.Getenv("DATABASE_URL"))
+}
+
+// fatalDBError reports errors a retry cannot fix: authentication failures
+// (SQLSTATE class 28) and a database that does not exist (3D000).
+func fatalDBError(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return strings.HasPrefix(pgErr.Code, "28") || pgErr.Code == "3D000"
+	}
+	return false
 }
 
 func extractHostPort(dsn string) string {
