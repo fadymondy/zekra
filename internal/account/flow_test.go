@@ -88,6 +88,32 @@ func testService(t *testing.T) (*Service, *mailbox, *auth.Service) {
 			t.Fatalf("schema pass %d (must be idempotent): %v", pass, err)
 		}
 	}
+	/*
+		Make sure `users` has the columns this test writes to.
+
+		These tests stand in for the auth plugin (see the fake handler below),
+		so they must also stand in for its table. `users` belongs to the togo
+		auth plugin, which creates it with CREATE TABLE IF NOT EXISTS — so if
+		anything else got there first with a narrower shape, the real
+		definition is silently skipped and every insert here fails with
+		"column password_hash does not exist". That is exactly what happens
+		when this suite shares a database with the brain module's tests, whose
+		harness creates a three-column `users` stub of its own.
+
+		Additive and idempotent, so it is a no-op against a correct table.
+	*/
+	for _, ddl := range []string{
+		`CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY)`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS email       text`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS roles       text NOT NULL DEFAULT ''`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS permissions text NOT NULL DEFAULT ''`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at  text`,
+	} {
+		if _, err := db.Exec(ddl); err != nil {
+			t.Fatalf("preparing the users stand-in: %v", err)
+		}
+	}
 	svc, ok := auth.FromKernel(k)
 	if !ok {
 		t.Skip("auth plugin not registered")

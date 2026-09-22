@@ -97,7 +97,36 @@ func Migrate(ctx context.Context, db *sql.DB) error {
 	if db == nil {
 		return fmt.Errorf("brain.Migrate: nil db")
 	}
-	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
+	/*
+		Serialise concurrent migrations.
+
+		schemaSQL is a long run of CREATE/ALTER statements. Two of them running
+		at once against the same database take the same catalogue locks in
+		different orders and Postgres kills one with 40P01 (deadlock detected).
+		That is not hypothetical: `go test ./...` runs packages in parallel and
+		several of them migrate, so the suite failed while every package passed
+		alone. The same applies to two app instances booting together.
+
+		A session-level advisory lock costs nothing when uncontended and makes
+		the second caller wait rather than fail. The key is an arbitrary
+		constant; it only has to be stable and unlikely to collide.
+	*/
+	const migrateLockKey = 0x7a656b7261 // "zekra"
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return fmt.Errorf("brain.Migrate: %w", err)
+	}
+	// The lock is held on THIS connection, so the unlock must use it too —
+	// which is why a dedicated conn is taken rather than using the pool.
+	defer func() {
+		_, _ = conn.ExecContext(ctx, `SELECT pg_advisory_unlock($1)`, migrateLockKey)
+		_ = conn.Close()
+	}()
+	if _, err := conn.ExecContext(ctx, `SELECT pg_advisory_lock($1)`, migrateLockKey); err != nil {
+		return fmt.Errorf("brain.Migrate: taking the migration lock: %w", err)
+	}
+
+	if _, err := conn.ExecContext(ctx, schemaSQL); err != nil {
 		return fmt.Errorf("brain.Migrate: applying schema: %w", err)
 	}
 	if err := ApplyBM25(ctx, db); err != nil {
