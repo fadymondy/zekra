@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { NoteExportContextItems } from "@/components/notes/note-export";
+import { noteIcon } from "@/lib/notes/note-icon";
 import { useI18n } from "../lib/i18n";
 import type { Note } from "../lib/api";
 
@@ -35,6 +36,8 @@ export function NoteRow({ note, selected, onOpen, onAction }: {
   onAction: (action: NoteAction) => void;
 }) {
   const { t, isRtl } = useI18n();
+  // Icon + colour derived from the note category (MH-264), shared with web.
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(note.category);
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const start = useRef<{ x: number; id: number } | null>(null);
@@ -104,8 +107,11 @@ export function NoteRow({ note, selected, onOpen, onAction }: {
             >
               {/* plaintext keeps Latin paths LTR (clipping at the end) while
                   Arabic titles still read RTL */}
-              <span className="block max-w-full truncate text-sm font-medium" style={{ unicodeBidi: "plaintext" }}>
-                {note.title || t("notes.untitled")}
+              <span className="flex w-full min-w-0 items-center gap-1.5">
+                <CategoryIcon className="size-3.5 shrink-0" style={{ color: categoryTint }} />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium" style={{ unicodeBidi: "plaintext" }}>
+                  {note.title || t("notes.untitled")}
+                </span>
               </span>
               <span className="block max-w-full truncate text-xs text-grid-muted">
                 {new Date(note.updatedAt).toLocaleString()}

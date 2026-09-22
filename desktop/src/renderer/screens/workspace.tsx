@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { Markdown } from "../components/markdown";
+import { NoteTabs } from "@/components/notes/note-tabs";
+import { closeTab, loadTabs, nextSelection, openTab, type OpenTab } from "@/lib/notes/open-tabs";
 import { NoteRow, type NoteAction } from "../components/note-row";
 import { Spotlight } from "../components/spotlight";
 import { useI18n } from "../lib/i18n";
@@ -30,6 +32,8 @@ export function Workspace({ token, brain, onDirtyChange }: {
   const [showArchived, setShowArchived] = useState(false);
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Note | null>(null);
+  const [tabs, setTabs] = useState<OpenTab[]>([]);
+  useEffect(() => setTabs(loadTabs(brain.namespace)), [brain.namespace]);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -60,6 +64,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
 
   function open(note: Note) {
     setSelected(note);
+    setTabs(openTab(brain.namespace, { id: note.id, title: note.title, category: note.category }));
     setTitle(note.title);
     setBody(note.body ?? "");
     setDirty(false);
@@ -103,6 +108,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
     try {
       if (action === "delete") {
         await zekraApi.deleteNote(token, note);
+        setTabs(closeTab(brain.namespace, note.id));
         if (selected?.id === note.id) setSelected(null);
       } else {
         await zekraApi.updateNote(token, note, { archived: !note.archived });
@@ -239,6 +245,29 @@ export function Workspace({ token, brain, onDirtyChange }: {
 
       {/* Editor */}
       <section className="grid-hatch flex min-w-0 flex-1 flex-col">
+        {/* Open notes as tabs (MH-218), reusing the web's strip and store so
+            desktop and browser agree on what "open" means for a brain. */}
+        <NoteTabs
+          tabs={tabs}
+          activeId={selected?.id ?? null}
+          labels={{ openTabs: t("notes.title"), untitled: t("notes.untitled"), close: t("action.close") }}
+          onSelect={(id) => {
+            // open(), not setSelected: the editor's title and body are
+            // separate state that setSelected alone would leave on the
+            // previous note.
+            const note = notes.find((n) => n.id === id);
+            if (note) open(note);
+          }}
+          onClose={(id) => {
+            setTabs(closeTab(brain.namespace, id));
+            if (selected?.id === id) {
+              const after = nextSelection(tabs, id, selected.id);
+              const note = after ? notes.find((n) => n.id === after) : undefined;
+              if (note) open(note);
+              else setSelected(null);
+            }
+          }}
+        />
         {!selected ? (
           <div className="flex flex-1 items-center justify-center">
             <p className="text-sm text-grid-muted">{t("notes.select")}</p>

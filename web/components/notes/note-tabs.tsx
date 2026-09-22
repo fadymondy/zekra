@@ -2,7 +2,6 @@
 
 import { XIcon } from "lucide-react"
 
-import { useTranslations } from "@/lib/i18n"
 import { noteIcon } from "@/lib/notes/note-icon"
 import type { OpenTab } from "@/lib/notes/open-tabs"
 import { cn } from "@/lib/utils"
@@ -19,24 +18,43 @@ browser — undiscoverable on its own, which is why the × is always visible
 rather than appearing on hover.
 */
 
+export interface NoteTabsLabels {
+  /** aria-label for the strip. */
+  openTabs: string
+  /** Shown for a note with no title. */
+  untitled: string
+  /** aria-label for a tab's close control. */
+  close: string
+}
+
+const FALLBACK_LABELS: NoteTabsLabels = { openTabs: "Open notes", untitled: "Untitled", close: "Close" }
+
 export function NoteTabs({
   tabs,
   activeId,
   onSelect,
   onClose,
+  labels = FALLBACK_LABELS,
 }: {
   tabs: OpenTab[]
   activeId: string | null
   onSelect: (id: string) => void
   onClose: (id: string) => void
+  /**
+   * Passed in rather than read from a hook: the desktop renderer has its own
+   * i18n and never mounts the web I18nProvider, and useTranslations THROWS
+   * without one — which would have crashed the desktop workspace at runtime
+   * while compiling perfectly well.
+   */
+  labels?: NoteTabsLabels
 }) {
-  const { t } = useTranslations()
+  const t = (k: keyof NoteTabsLabels) => labels[k]
   if (tabs.length < 2) return null
 
   return (
     <div
       role="tablist"
-      aria-label={t("notes.openTabs")}
+      aria-label={t("openTabs")}
       className="flex items-stretch gap-px overflow-x-auto border-b border-line bg-grid-soft"
     >
       {tabs.map((tab) => {
@@ -72,11 +90,11 @@ export function NoteTabs({
             <TabIcon className="size-3.5 shrink-0" style={{ color: active ? tint : undefined }} />
             {/* plaintext keeps a Latin title readable inside an RTL strip. */}
             <span className="min-w-0 flex-1 truncate" style={{ unicodeBidi: "plaintext" }}>
-              {tab.title || t("notes.untitled")}
+              {tab.title || t("untitled")}
             </span>
             <button
               type="button"
-              aria-label={t("common.close")}
+              aria-label={t("close")}
               // Without this the click also selects the tab being closed,
               // which briefly flashes it open before it disappears.
               onClick={(e) => {

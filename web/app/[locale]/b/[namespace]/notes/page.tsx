@@ -380,7 +380,13 @@ export default function NotesPage() {
         <section className={cn("min-w-0", !selected && "hidden lg:block")}>
           {/* Tabs (MH-218) sit above the pane and stay put while the note
               below changes; the strip hides itself under two open notes. */}
-          <NoteTabs tabs={tabs} activeId={selected} onSelect={select} onClose={closeTabAt} />
+          <NoteTabs
+            tabs={tabs}
+            activeId={selected}
+            onSelect={select}
+            onClose={closeTabAt}
+            labels={{ openTabs: t("notes.openTabs"), untitled: t("notes.untitled"), close: t("common.close") }}
+          />
           {!selected ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <p className="text-sm text-grid-muted">{t("notes.pickOne")}</p>
