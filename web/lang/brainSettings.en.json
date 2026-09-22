@@ -7,7 +7,6 @@
   "brainSettings.limited": "As an editor you can change the description and colour. The owner manages everything else.",
   "brainSettings.saved": "Settings saved.",
   "brainSettings.discard": "Discard changes",
-
   "brainSettings.general.title": "General",
   "brainSettings.general.hint": "The name, description, icon and colour people see for this brain.",
   "brainSettings.general.displayName": "Display name",
@@ -26,10 +25,8 @@
   "brainSettings.general.noCategory": "None (note)",
   "brainSettings.general.visibility": "Visibility",
   "brainSettings.general.visibilityHint": "A label only. Access is always decided by membership.",
-
   "brainSettings.visibility.private": "Private",
   "brainSettings.visibility.internal": "Internal",
-
   "brainSettings.color.palette": "Colour palette",
   "brainSettings.color.custom": "Custom hex colour",
   "brainSettings.color.customPick": "Pick a custom colour",
@@ -46,7 +43,6 @@
   "brainSettings.color.indigo": "Indigo",
   "brainSettings.color.violet": "Violet",
   "brainSettings.color.pink": "Pink",
-
   "brainSettings.appearance.title": "Appearance",
   "brainSettings.appearance.hint": "The avatar appears in the brain switcher, on brain cards and in the overview. Images are only visible to the brain's members.",
   "brainSettings.appearance.image": "Avatar",
@@ -60,7 +56,6 @@
   "brainSettings.appearance.invalid": "That file is not a PNG, JPEG or WebP image under 2 MB.",
   "brainSettings.appearance.uploaded": "Image updated.",
   "brainSettings.appearance.removed": "Image removed.",
-
   "brainSettings.members.title": "Members",
   "brainSettings.members.hint": "Who can use this brain. Owners manage everything, editors read and write, viewers read.",
   "brainSettings.members.ownerOnly": "Only the brain's owner can see and manage its members.",
@@ -75,11 +70,9 @@
   "brainSettings.members.removed": "Member removed.",
   "brainSettings.members.none": "No members yet.",
   "brainSettings.members.rolesHint": "Editors can also change the brain's description and colour.",
-
   "brainSettings.role.owner": "Owner",
   "brainSettings.role.editor": "Editor",
   "brainSettings.role.viewer": "Viewer",
-
   "brainSettings.danger.title": "Danger zone",
   "brainSettings.danger.hint": "Export a full copy, or delete the brain and everything in it.",
   "brainSettings.danger.export": "Export this brain",
@@ -88,5 +81,26 @@
   "brainSettings.danger.delete": "Delete this brain",
   "brainSettings.danger.deleteHint": "Removes every memory, gap and setting in this brain. This cannot be undone.",
   "brainSettings.danger.typeToConfirm": "To confirm, type the namespace",
-  "brainSettings.danger.deleteButton": "Delete brain"
+  "brainSettings.danger.deleteButton": "Delete brain",
+  "github.title": "GitHub sync",
+  "github.hint": "Publish this brain’s notes to a repository as markdown files. One-way: Zekra stays the source of truth and nothing is read back.",
+  "github.owner": "Owner",
+  "github.repo": "Repository",
+  "github.branch": "Branch",
+  "github.path": "File path",
+  "github.pathHint": "Use {slug} or {id}. Must end in .md.",
+  "github.token": "Access token",
+  "github.tokenHint": "A personal access token with contents write access to the repository. Stored encrypted; never shown again.",
+  "github.tokenStored": "A token is stored",
+  "github.tokenReplace": "Leave blank to keep the stored token, or paste a new one to replace it.",
+  "github.enabled": "Enable pushing",
+  "github.push": "Push now",
+  "github.open": "Open on GitHub",
+  "github.saved": "GitHub sync saved",
+  "github.saveFailed": "Could not save GitHub sync",
+  "github.pushed": "Pushed {files} notes to GitHub",
+  "github.pushedUnchanged": "Already up to date — nothing to commit",
+  "github.pushFailed": "Could not push to GitHub",
+  "github.lastPush": "Last pushed {when}",
+  "github.noAccess": "Only a brain admin can configure GitHub sync."
 }

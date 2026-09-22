@@ -747,3 +747,22 @@ ALTER TABLE public.presentation_shares ADD COLUMN IF NOT EXISTS domain_id text
 -- a migration.
 ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS icon  text NOT NULL DEFAULT '';
 ALTER TABLE public.notes ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT '';
+
+-- ── GitHub note sync (MH-316) ──────────────────────────────────────────────────
+-- Where a brain's notes are exported to. One-way: Zekra is the source of truth
+-- and this is an export target, so there is no remote state mirrored here — only
+-- the last push, for the UI to show. The PAT is NOT here; it lives in `secrets`
+-- under the reserved name `github_token`, encrypted like every other secret.
+CREATE TABLE IF NOT EXISTS public.note_github_sync (
+  namespace     text        PRIMARY KEY,
+  owner         text        NOT NULL,
+  repo          text        NOT NULL,
+  branch        text        NOT NULL DEFAULT 'main',
+  path_template text        NOT NULL DEFAULT 'notes/{slug}.md',
+  enabled       boolean     NOT NULL DEFAULT false,
+  last_push_at  timestamptz,
+  last_commit   text        NOT NULL DEFAULT '',
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  updated_by    text
+);

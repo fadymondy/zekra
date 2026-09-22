@@ -61,6 +61,11 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/chat", sec(s.Chat))
 	// Per-brain secrets vault (reveal/write also do ACL in-handler).
 	r.Get("/api/brain/secrets", sec(s.SecretsList))
+	// GitHub note sync (MH-316). Admin-gated: it publishes a brain's contents.
+	r.Get("/api/brain/notes/github", sec(s.GitHubSyncHandler))
+	r.Put("/api/brain/notes/github", sec(s.SaveGitHubSyncHandler))
+	r.Delete("/api/brain/notes/github", sec(s.DeleteGitHubSyncHandler))
+	r.Post("/api/brain/notes/github/push", sec(s.PushGitHubSyncHandler))
 	r.Post("/api/brain/secrets", sec(s.SecretPut))
 	r.Post("/api/brain/secrets/reveal", sec(s.SecretReveal))
 	r.Post("/api/brain/secrets/delete", sec(s.SecretDelete))

@@ -7,7 +7,6 @@
   "brainSettings.limited": "بصفتك محررًا يمكنك تغيير الوصف واللون. يدير المالك كل ما عدا ذلك.",
   "brainSettings.saved": "تم حفظ الإعدادات.",
   "brainSettings.discard": "تجاهل التغييرات",
-
   "brainSettings.general.title": "عام",
   "brainSettings.general.hint": "الاسم والوصف والأيقونة واللون التي يراها الناس لهذا الدماغ.",
   "brainSettings.general.displayName": "الاسم المعروض",
@@ -26,10 +25,8 @@
   "brainSettings.general.noCategory": "بدون (ملاحظة)",
   "brainSettings.general.visibility": "الظهور",
   "brainSettings.general.visibilityHint": "تسمية فقط. الوصول تحدده العضوية دائمًا.",
-
   "brainSettings.visibility.private": "خاص",
   "brainSettings.visibility.internal": "داخلي",
-
   "brainSettings.color.palette": "لوحة الألوان",
   "brainSettings.color.custom": "لون سداسي مخصص",
   "brainSettings.color.customPick": "اختر لونًا مخصصًا",
@@ -46,7 +43,6 @@
   "brainSettings.color.indigo": "نيلي",
   "brainSettings.color.violet": "بنفسجي",
   "brainSettings.color.pink": "وردي",
-
   "brainSettings.appearance.title": "المظهر",
   "brainSettings.appearance.hint": "تظهر الصورة الرمزية في مبدّل الأدمغة وعلى بطاقات الأدمغة وفي النظرة العامة. الصور مرئية لأعضاء الدماغ فقط.",
   "brainSettings.appearance.image": "الصورة الرمزية",
@@ -60,7 +56,6 @@
   "brainSettings.appearance.invalid": "هذا الملف ليس صورة PNG أو JPEG أو WebP بحجم أقل من 2 ميغابايت.",
   "brainSettings.appearance.uploaded": "تم تحديث الصورة.",
   "brainSettings.appearance.removed": "تمت إزالة الصورة.",
-
   "brainSettings.members.title": "الأعضاء",
   "brainSettings.members.hint": "من يمكنه استخدام هذا الدماغ. المالكون يديرون كل شيء، والمحررون يقرؤون ويكتبون، والمشاهدون يقرؤون.",
   "brainSettings.members.ownerOnly": "مالك الدماغ وحده يمكنه رؤية أعضائه وإدارتهم.",
@@ -75,11 +70,9 @@
   "brainSettings.members.removed": "تمت إزالة العضو.",
   "brainSettings.members.none": "لا يوجد أعضاء بعد.",
   "brainSettings.members.rolesHint": "يمكن للمحررين أيضًا تغيير وصف الدماغ ولونه.",
-
   "brainSettings.role.owner": "مالك",
   "brainSettings.role.editor": "محرر",
   "brainSettings.role.viewer": "مشاهد",
-
   "brainSettings.danger.title": "منطقة الخطر",
   "brainSettings.danger.hint": "صدّر نسخة كاملة، أو احذف الدماغ وكل ما فيه.",
   "brainSettings.danger.export": "تصدير هذا الدماغ",
@@ -88,5 +81,26 @@
   "brainSettings.danger.delete": "حذف هذا الدماغ",
   "brainSettings.danger.deleteHint": "يزيل كل الذكريات والفجوات والإعدادات في هذا الدماغ. لا يمكن التراجع عن ذلك.",
   "brainSettings.danger.typeToConfirm": "للتأكيد، اكتب معرّف النطاق",
-  "brainSettings.danger.deleteButton": "حذف الدماغ"
+  "brainSettings.danger.deleteButton": "حذف الدماغ",
+  "github.title": "مزامنة GitHub",
+  "github.hint": "انشر ملاحظات هذا الدماغ إلى مستودع كملفات Markdown. في اتجاه واحد: تبقى Zekra مصدر الحقيقة ولا يُقرأ شيء من المستودع.",
+  "github.owner": "المالك",
+  "github.repo": "المستودع",
+  "github.branch": "الفرع",
+  "github.path": "مسار الملف",
+  "github.pathHint": "استخدم {slug} أو {id}، ويجب أن ينتهي بـ .md.",
+  "github.token": "رمز الوصول",
+  "github.tokenHint": "رمز وصول شخصي بصلاحية الكتابة على المستودع. يُخزّن مشفّرًا ولا يُعرض مجددًا.",
+  "github.tokenStored": "يوجد رمز مخزّن",
+  "github.tokenReplace": "اتركه فارغًا للإبقاء على الرمز المخزّن، أو الصق رمزًا جديدًا لاستبداله.",
+  "github.enabled": "تفعيل النشر",
+  "github.push": "انشر الآن",
+  "github.open": "افتح على GitHub",
+  "github.saved": "تم حفظ مزامنة GitHub",
+  "github.saveFailed": "تعذّر حفظ مزامنة GitHub",
+  "github.pushed": "تم نشر {files} ملاحظة إلى GitHub",
+  "github.pushedUnchanged": "كل شيء محدّث — لا يوجد ما يُودع",
+  "github.pushFailed": "تعذّر النشر إلى GitHub",
+  "github.lastPush": "آخر نشر {when}",
+  "github.noAccess": "فقط مسؤول الدماغ يمكنه ضبط مزامنة GitHub."
 }

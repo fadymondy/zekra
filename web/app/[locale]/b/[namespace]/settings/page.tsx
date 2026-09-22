@@ -13,6 +13,7 @@ import { useSWRConfig } from "swr"
 
 import { BrainAvatar } from "@/components/brains/brain-cells"
 import { ColorPicker } from "@/components/brains/color-picker"
+import { GitHubSync } from "@/components/brains/github-sync"
 import { toastError } from "@/components/admin/toast-error"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
@@ -99,6 +100,11 @@ export default function BrainSettingsPage() {
           <GeneralSection key={data.profile.updatedAt ?? "new"} ns={ns} profile={data.profile} edit={data.edit} palette={data.palette} />
           <AppearanceSection ns={ns} profile={data.profile} edit={data.edit} />
           <MembersSection ns={ns} edit={data.edit} />
+          {/* GitHub note sync (MH-316). Admin-only server-side; the panel
+              renders its own not-an-admin state. */}
+          <Section id="github-sync" title={t("github.title")} hint={t("github.hint")}>
+            <GitHubSync namespace={ns} canEdit={data.edit === "full"} />
+          </Section>
           <Section id="share-domains" title={t("presentations.domains.title")} hint={t("presentations.domains.hint")}>
             <ShareDomains namespace={ns} canEdit={data.edit === "full"} />
           </Section>
