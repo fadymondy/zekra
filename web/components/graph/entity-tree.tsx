@@ -4,7 +4,6 @@ import { useCallback, useState } from "react"
 import { AlertCircleIcon, ChevronRightIcon, Loader2Icon, RefreshCwIcon, RotateCcwIcon } from "lucide-react"
 
 import { api } from "@/lib/api"
-import { useTranslations } from "@/lib/i18n"
 import {
   blockedReason,
   childrenOf,
@@ -30,12 +29,59 @@ to draw a sidebar, and each level costs a request.
 
 type EdgeCache = Record<string, GraphEdge[]>
 
+/*
+The two seams that make this component mountable outside the web console.
+
+It is shared with the Electron renderer, which talks cross-origin to
+app.zekra.dev with a Bearer token through its own client, and which has no
+next-intl provider — so neither the web's api() nor useTranslations() can be
+imported here. Both are injected, defaulting to the web behaviour so the web
+call site stays a plain <EntityTree namespace roots />.
+*/
+
+/** Fetches one node's outgoing edges. Rejecting surfaces as a per-row retry. */
+export type LoadEdges = (namespace: string, entityId: string) => Promise<GraphEdge[]>
+
+/** The web's loader: same-origin /api with the CSRF token the write guard wants. */
+const defaultLoadEdges: LoadEdges = async (namespace, entity) => {
+  // `json` rather than a hand-built body: the client sets the content type
+  // and attaches the CSRF token the brain's write guard requires.
+  const res = await api<{ edges: GraphEdge[] }>("/api/brain/graph/neighbors", { json: { namespace, entity } })
+  return res.edges ?? []
+}
+
+export interface TreeLabels {
+  title: string
+  empty: string
+  refresh: string
+  expand: string
+  collapse: string
+  cycle: string
+  deep: string
+  retry: string
+  noChildren: string
+}
+
+export const DEFAULT_TREE_LABELS: TreeLabels = {
+  title: "Tree",
+  empty: "Nothing to show yet.",
+  refresh: "Refresh",
+  expand: "Expand",
+  collapse: "Collapse",
+  cycle: "Already shown higher up",
+  deep: "MAX",
+  retry: "Retry",
+  noChildren: "No children.",
+}
+
 export function EntityTree({
   namespace,
   roots,
   activeId,
   onSelect,
   onRefresh,
+  loadEdges = defaultLoadEdges,
+  labels,
 }: {
   namespace: string
   /** Entity ids to show at the top level. */
@@ -43,8 +89,11 @@ export function EntityTree({
   activeId?: string | null
   onSelect?: (entityId: string) => void
   onRefresh?: () => void
+  /** Override the fetch — required outside the web console. */
+  loadEdges?: LoadEdges
+  labels?: Partial<TreeLabels>
 }) {
-  const { t } = useTranslations()
+  const l = { ...DEFAULT_TREE_LABELS, ...labels }
   const [edges, setEdges] = useState<EdgeCache>({})
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState<Record<string, boolean>>({})
@@ -58,12 +107,8 @@ export function EntityTree({
         return rest
       })
       try {
-        // `json` rather than a hand-built body: the client sets the content
-        // type and attaches the CSRF token the brain's write guard requires.
-        const res = await api<{ edges: GraphEdge[] }>("/api/brain/graph/neighbors", {
-          json: { namespace, entity: entityId },
-        })
-        setEdges((s) => ({ ...s, [entityId]: res.edges ?? [] }))
+        const loaded = await loadEdges(namespace, entityId)
+        setEdges((s) => ({ ...s, [entityId]: loaded }))
       } catch (err) {
         // Recorded per node so one unreachable branch does not blank the tree.
         setFailed((s) => ({ ...s, [entityId]: err instanceof Error ? err.message : "failed" }))
@@ -71,7 +116,7 @@ export function EntityTree({
         setLoading((s) => ({ ...s, [entityId]: false }))
       }
     },
-    [namespace],
+    [namespace, loadEdges],
   )
 
   const toggle = useCallback(
@@ -87,18 +132,18 @@ export function EntityTree({
   )
 
   if (roots.length === 0) {
-    return <p className="px-3 py-4 text-sm text-grid-muted">{t("tree.empty")}</p>
+    return <p className="px-3 py-4 text-sm text-grid-muted">{l.empty}</p>
   }
 
   return (
     <div className="flex min-h-0 flex-col">
       <div className="flex items-center justify-between border-b border-line px-3 py-2">
-        <span className="font-mono text-xs tracking-wider text-grid-muted uppercase">{t("tree.title")}</span>
+        <span className="font-mono text-xs tracking-wider text-grid-muted uppercase">{l.title}</span>
         {onRefresh ? (
           <button
             type="button"
             onClick={onRefresh}
-            aria-label={t("common.refresh")}
+            aria-label={l.refresh}
             className="rounded-sm p-1 text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
           >
             <RefreshCwIcon className="size-3.5" />
@@ -118,6 +163,7 @@ export function EntityTree({
             onToggle={toggle}
             onSelect={onSelect}
             onRetry={fetchEdges}
+            labels={l}
           />
         ))}
       </ul>
@@ -135,6 +181,7 @@ function Row({
   onToggle,
   onSelect,
   onRetry,
+  labels,
 }: {
   node: TreeNode
   edges: EdgeCache
@@ -145,8 +192,9 @@ function Row({
   onToggle: (node: TreeNode) => void
   onSelect?: (entityId: string) => void
   onRetry: (entityId: string) => void
+  labels: TreeLabels
 }) {
-  const { t } = useTranslations()
+  const l = labels
   const key = rowKey(node)
   const isOpen = !!open[key]
   const canExpand = expandable(node)
@@ -167,7 +215,7 @@ function Row({
         <button
           type="button"
           onClick={() => canExpand && onToggle(node)}
-          aria-label={isOpen ? t("tree.collapse") : t("tree.expand")}
+          aria-label={isOpen ? l.collapse : l.expand}
           disabled={!canExpand}
           className="shrink-0 rounded-sm p-0.5 disabled:opacity-0"
         >
@@ -190,9 +238,9 @@ function Row({
 
         {/* A blocked row says why rather than just showing a dead chevron. */}
         {blocked === "cycle" ? (
-          <RotateCcwIcon className="size-3 shrink-0 text-grid-muted" aria-label={t("tree.cycle")} />
+          <RotateCcwIcon className="size-3 shrink-0 text-grid-muted" aria-label={l.cycle} />
         ) : blocked === "depth" ? (
-          <span className="shrink-0 font-mono text-[10px] text-grid-muted">{t("tree.deep")}</span>
+          <span className="shrink-0 font-mono text-[10px] text-grid-muted">{l.deep}</span>
         ) : null}
       </div>
 
@@ -204,7 +252,7 @@ function Row({
           <AlertCircleIcon className="size-3" />
           <span className="truncate">{failed[node.id]}</span>
           <button type="button" onClick={() => onRetry(node.id)} className="underline underline-offset-2">
-            {t("common.retry")}
+            {l.retry}
           </button>
         </div>
       ) : null}
@@ -214,7 +262,7 @@ function Row({
           className="py-1 text-xs text-grid-muted"
           style={{ paddingInlineStart: `${1.8 + node.depth * 0.85}rem` }}
         >
-          {t("tree.noChildren")}
+          {l.noChildren}
         </p>
       ) : null}
 
@@ -232,6 +280,7 @@ function Row({
               onToggle={onToggle}
               onSelect={onSelect}
               onRetry={onRetry}
+              labels={l}
             />
           ))}
         </ul>
