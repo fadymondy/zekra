@@ -94,3 +94,29 @@ test("a fenced block containing a pipe table is left as code", () => {
   const block = as(only("```\n| a |\n|---|\n```"), "code");
   assert.deepEqual(block.lines, ["| a |", "|---|"]);
 });
+
+// --- fence info (MH-319 item 1) --------------------------------------------
+
+test("a fence names a language and, optionally, a file", () => {
+  const plain = as(only("```\nx\n```"), "code");
+  assert.deepEqual([plain.lang, plain.label], ["", ""]);
+
+  const lang = as(only("```ts\nx\n```"), "code");
+  assert.deepEqual([lang.lang, lang.label], ["ts", "ts"]);
+
+  const named = as(only("```ts utils/date.ts\nx\n```"), "code");
+  // The filename wins the label; the language still drives future highlighting.
+  assert.deepEqual([named.lang, named.label], ["ts", "utils/date.ts"]);
+});
+
+test("an unknown fence language is a caption, not an error", () => {
+  // Deliberately not validated against a language list: a caption that renders
+  // is better than a block that refuses to.
+  const block = as(only("```not-a-language\nx\n```"), "code");
+  assert.deepEqual([block.lang, block.label], ["not-a-language", "not-a-language"]);
+});
+
+test("fence info is case-folded for the language but not the label", () => {
+  const block = as(only("```TS README.md\nx\n```"), "code");
+  assert.deepEqual([block.lang, block.label], ["ts", "README.md"]);
+});

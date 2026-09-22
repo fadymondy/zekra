@@ -14,7 +14,7 @@ export type Block =
   | { kind: "heading"; level: 1 | 2 | 3; text: string }
   | { kind: "quote"; text: string }
   | { kind: "rule" }
-  | { kind: "code"; lines: string[] }
+  | { kind: "code"; lines: string[]; lang: string; label: string }
   | { kind: "list"; ordered: boolean; items: string[] }
   | { kind: "table"; header: string[]; rows: string[][] }
   | { kind: "paragraph"; text: string };
@@ -31,6 +31,23 @@ Deliberately not ported from web: filter, sort and multi-format export. Those
 are a pointer affordance on a wide screen; here the table only has to be
 readable, and it scrolls sideways rather than squeezing columns.
 */
+/*
+The fence info string: "```ts utils/date.ts" -> language + display label.
+
+The web parses this with highlight.js, which knows aliases and can reject
+nonsense (lib/markdown/code-block.ts). hljs is a web dependency and there is no
+highlighting here yet (MH-319 item 1), so this keeps only the part that is
+presentational: the first token is the language, anything after it is a
+filename. A label is shown verbatim rather than validated — an unknown language
+is a caption, not an error.
+*/
+export function parseFenceInfo(info: string): { lang: string; label: string } {
+  const parts = info.trim().split(/\s+/).filter(Boolean);
+  const lang = (parts[0] ?? "").toLowerCase();
+  const named = parts.slice(1).join(" ");
+  return { lang, label: named || lang || "" };
+}
+
 const TABLE_DELIMITER = /^\s*\|?(\s*:?-+:?\s*\|)*\s*:?-+:?\s*\|?\s*$/;
 
 /** Split one row on unescaped pipes, dropping the optional leading/trailing pair. */
@@ -52,11 +69,12 @@ export function parseBlocks(markdown: string): Block[] {
   while (i < lines.length) {
     const line = lines[i];
     if (line.trim().startsWith("```")) {
+      const { lang, label } = parseFenceInfo(line.trim().slice(3));
       const codeLines: string[] = [];
       i += 1;
       while (i < lines.length && !lines[i].trim().startsWith("```")) { codeLines.push(lines[i]); i += 1; }
       i += 1;
-      blocks.push({ kind: "code", lines: codeLines });
+      blocks.push({ kind: "code", lines: codeLines, lang, label });
       continue;
     }
     // A table is header + delimiter, so it is checked before the paragraph
