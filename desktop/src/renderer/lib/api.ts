@@ -2,6 +2,15 @@
 // bearer session from password login (plus TOTP/recovery 2FA), then plain
 // JSON over HTTPS. The desktop is an external client, so it never relies on
 // the web console's same-origin session cookie.
+//
+// Requests do NOT go out from here. They are handed to the main process
+// (bridge().apiRequest -> src/main/api-proxy.ts), which performs them with
+// Electron's net module. The renderer loads from file:// and so sends
+// `Origin: null`, which the API rejects by design — see MH-269. In the
+// browser preview the bridge falls back to fetch, which is what this file
+// used to do everywhere.
+
+import { bridge } from "./bridge";
 
 export class ApiError extends Error {
   constructor(
@@ -81,12 +90,19 @@ type Options = {
 };
 
 async function issueCsrf(): Promise<string> {
-  const res = await fetch(`${apiBase}/api/auth/csrf`, {
+  const res = await bridge().apiRequest({
+    baseUrl: apiBase,
+    path: "/api/auth/csrf",
+    method: "GET",
     headers: { Accept: "application/json", "X-Agent-Id": "zekra-desktop" },
-    credentials: "include",
   });
-  const body = (await res.json().catch(() => undefined)) as { csrf_token?: string } | undefined;
-  if (!res.ok || !body?.csrf_token) throw new ApiError(res.status, "Could not start a secure sign-in");
+  let body: { csrf_token?: string } | undefined;
+  try {
+    body = JSON.parse(res.body) as { csrf_token?: string };
+  } catch {
+    body = undefined;
+  }
+  if (res.status >= 400 || !body?.csrf_token) throw new ApiError(res.status, "Could not start a secure sign-in");
   return body.csrf_token;
 }
 
@@ -101,19 +117,20 @@ export async function request<T>(path: string, options: Options = {}): Promise<T
   if (options.csrf) headers["X-CSRF-Token"] = await issueCsrf();
   if (options.json !== undefined) headers["Content-Type"] = "application/json";
 
-  let res: Response;
+  let res: { status: number; headers: Record<string, string>; body: string };
   try {
-    res = await fetch(`${apiBase}${path}`, {
+    res = await bridge().apiRequest({
+      baseUrl: apiBase,
+      path,
       method,
       headers,
       body: options.json === undefined ? undefined : JSON.stringify(options.json),
-      credentials: "include",
     });
   } catch (e) {
     throw new ApiError(0, e instanceof Error ? e.message : "Could not reach Zekra");
   }
 
-  const text = await res.text();
+  const text = res.body;
   let payload: unknown;
   if (text) {
     try {
@@ -122,7 +139,8 @@ export async function request<T>(path: string, options: Options = {}): Promise<T
       payload = text;
     }
   }
-  if (!res.ok) {
+  // The proxy reports a status, not a Response, so "ok" is spelled out.
+  if (res.status < 200 || res.status >= 300) {
     const v = (payload ?? {}) as Record<string, unknown>;
     const nested = (v.error ?? {}) as Record<string, unknown>;
     const message = String(
@@ -216,23 +234,35 @@ export const zekraApi = {
   deliberately NOT set here. Everything else (Bearer, agent id) matches.
   */
   async uploadImage(token: string, file: File | Blob, namespace: string): Promise<{ url: string }> {
-    const form = new FormData();
-    form.append("namespace", namespace);
-    // A pasted Blob has no filename; the server ignores it but multipart wants one.
-    form.append("file", file, file instanceof File ? file.name : "pasted.png");
-    let res: Response;
+    // A FormData cannot cross IPC, so the bytes go over and the main process
+    // assembles the multipart body (api-proxy.ts).
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let res: { status: number; body: string };
     try {
-      res = await fetch(`${apiBase}/api/notes/image`, {
+      res = await bridge().apiRequest({
+        baseUrl: apiBase,
+        path: "/api/notes/image",
         method: "POST",
         headers: { Accept: "application/json", "X-Agent-Id": "zekra-desktop", Authorization: `Bearer ${token}` },
-        body: form,
-        credentials: "include",
+        file: {
+          field: "file",
+          // A pasted Blob has no filename; the server ignores it but multipart wants one.
+          filename: file instanceof File ? file.name : "pasted.png",
+          contentType: file.type || "application/octet-stream",
+          bytes,
+          fields: { namespace },
+        },
       });
     } catch (e) {
       throw new ApiError(0, e instanceof Error ? e.message : "Could not reach Zekra");
     }
-    const payload = (await res.json().catch(() => undefined)) as { url?: string; message?: string } | undefined;
-    if (!res.ok || !payload?.url) {
+    let payload: { url?: string; message?: string } | undefined;
+    try {
+      payload = JSON.parse(res.body) as { url?: string; message?: string };
+    } catch {
+      payload = undefined;
+    }
+    if (res.status >= 400 || !payload?.url) {
       throw new ApiError(res.status, payload?.message || `Upload failed (${res.status})`);
     }
     return { url: payload.url };

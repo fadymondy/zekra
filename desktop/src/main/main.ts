@@ -1,15 +1,18 @@
 // Zekra desktop — native Electron app entry point.
 //
-// This is a real client of the Zekra brain/notes REST API (see
-// src/renderer/renderer.ts), not a browser wrapper around app.zekra.dev: the
-// only thing ever loaded into the BrowserWindow is this app's own bundled
-// renderer HTML/JS (out/renderer/index.html). All backend calls go out via
-// `fetch` from the renderer over plain HTTPS/JSON, exactly like
-// mobile/src/lib/api.ts does from React Native.
+// This is a real client of the Zekra brain/notes REST API, not a browser
+// wrapper around app.zekra.dev: the only thing ever loaded into the
+// BrowserWindow is this app's own bundled renderer HTML/JS
+// (out/renderer/index.html).
+//
+// Backend calls are made HERE, not in the renderer — see api-proxy.ts. A
+// file:// renderer sends Origin: null, which the API rejects by design, so a
+// packaged build could otherwise reach nothing (MH-269).
 "use strict";
 
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme, shell } from "electron";
 import * as path from "node:path";
+import { proxyRequest, type ProxyRequest } from "./api-proxy";
 import { APP_NAME, APP_NAME_AR, installMenu } from "./menu";
 import { clearSession, getSettings, patchSettings, type AppSettings } from "./settings-store";
 
@@ -104,6 +107,12 @@ ipcMain.handle("zekra:app:open-external", async (_e, url: string): Promise<void>
     await shell.openExternal(url);
   }
 });
+
+// ---- IPC: backend calls, proxied out of the renderer (MH-269) -------------
+//
+// The renderer runs from file:// and so sends Origin: null, which the API
+// rejects on purpose. net.request runs here, where CORS does not apply.
+ipcMain.handle("zekra:api:request", async (_e, req: ProxyRequest) => proxyRequest(req));
 
 nativeTheme.on("updated", () => {
   for (const win of BrowserWindow.getAllWindows()) {

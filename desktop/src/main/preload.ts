@@ -7,6 +7,7 @@
 "use strict";
 
 import { contextBridge, ipcRenderer } from "electron";
+import type { ProxyRequest, ProxyResponse } from "./api-proxy";
 import type { AppSettings } from "./settings-store";
 
 const api = {
@@ -16,6 +17,7 @@ const api = {
   clearSession: (): Promise<AppSettings> => ipcRenderer.invoke("zekra:settings:clear-session"),
   getVersion: (): Promise<string> => ipcRenderer.invoke("zekra:app:version"),
   openExternal: (url: string): Promise<void> => ipcRenderer.invoke("zekra:app:open-external", url),
+  apiRequest: (req: ProxyRequest): Promise<ProxyResponse> => ipcRenderer.invoke("zekra:api:request", req),
 
   onMenu: (channel: "new-note" | "save-note" | "sign-out" | "settings" | "about", cb: () => void): (() => void) => {
     const wire = `zekra:menu:${channel}`;

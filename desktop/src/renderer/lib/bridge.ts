@@ -23,6 +23,23 @@ export interface AppSettings {
 
 export type MenuChannel = "new-note" | "save-note" | "sign-out" | "settings" | "about";
 
+/** Mirrors src/main/api-proxy.ts — declared, not imported, because the
+ *  renderer must not pull main-process modules into its bundle. */
+export interface ProxyRequest {
+  baseUrl: string;
+  path: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  file?: { field: string; filename: string; contentType: string; bytes: Uint8Array; fields: Record<string, string> };
+}
+
+export interface ProxyResponse {
+  status: number;
+  headers: Record<string, string>;
+  body: string;
+}
+
 export interface ZekraBridge {
   getSettings(): Promise<AppSettings>;
   patchSettings(patch: Partial<AppSettings>): Promise<AppSettings>;
@@ -30,6 +47,7 @@ export interface ZekraBridge {
   getVersion(): Promise<string>;
   openExternal(url: string): Promise<void>;
   onMenu(channel: MenuChannel, cb: () => void): () => void;
+  apiRequest(req: ProxyRequest): Promise<ProxyResponse>;
 }
 
 declare global {
@@ -74,6 +92,32 @@ function previewBridge(): ZekraBridge {
     async getVersion() { return "web-preview"; },
     async openExternal(url) { window.open(url, "_blank", "noopener"); },
     onMenu() { return () => {}; },
+    // In the browser preview there is no main process, so this is a plain
+    // fetch — which is exactly what the renderer used to do everywhere. The
+    // preview has a real origin on the allow-list, so CORS is satisfied.
+    async apiRequest(req) {
+      let body: BodyInit | undefined;
+      const headers = { ...req.headers };
+      if (req.file) {
+        const form = new FormData();
+        for (const [k, v] of Object.entries(req.file.fields)) form.append(k, v);
+        form.append(req.file.field, new Blob([req.file.bytes as BlobPart], { type: req.file.contentType }), req.file.filename);
+        body = form;
+        // Let the browser write the multipart boundary.
+        delete headers["Content-Type"];
+      } else if (req.body !== undefined) {
+        body = req.body;
+      }
+      const res = await fetch(`${req.baseUrl}${req.path}`, {
+        method: req.method,
+        headers,
+        body,
+        credentials: "include",
+      });
+      const out: Record<string, string> = {};
+      res.headers.forEach((v, k) => { out[k] = v; });
+      return { status: res.status, headers: out, body: await res.text() };
+    },
   };
 }
 
