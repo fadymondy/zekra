@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BrainCircuit, Languages, Moon, Settings as SettingsIcon, Sun } from "lucide-react";
+import { Languages, Moon, Settings as SettingsIcon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
+import { BrainAvatar } from "./components/brain-avatar";
 import { ZekraMark } from "./components/zekra-mark";
 import { NoteSettingsPanel } from "@/components/notes/note-settings-panel";
 import { I18nProvider, useI18n } from "./lib/i18n";
@@ -158,7 +159,7 @@ function Shell({ settings, setSettings }: {
   } else if (!token || !user) {
     body = <SignInScreen onSignedIn={signIn} onOpenSettings={() => setShowSettings(true)} />;
   } else if (!activeBrain) {
-    body = <BrainPicker brains={brains} onPick={(ns) => void patch({ activeBrain: ns })} />;
+    body = <BrainPicker brains={brains} token={token} onPick={(ns) => void patch({ activeBrain: ns })} />;
   } else {
     body = <Workspace token={token} brain={activeBrain} />;
   }
@@ -185,7 +186,7 @@ per brain in a second request this app does not make. Those two metrics render
 "—", which is exactly what the web shows before that fetch resolves, so the
 layout is identical rather than approximated.
 */
-function BrainPicker({ brains, onPick }: { brains: Brain[] | null; onPick: (ns: string) => void }) {
+function BrainPicker({ brains, token, onPick }: { brains: Brain[] | null; token: string | null; onPick: (ns: string) => void }) {
   const { t } = useI18n();
   return (
     <div className="grid-hatch flex-1 overflow-y-auto">
@@ -198,7 +199,7 @@ function BrainPicker({ brains, onPick }: { brains: Brain[] | null; onPick: (ns: 
         ) : (
           <div className="grid grid-cols-1 gap-px border-y border-line bg-line sm:grid-cols-2 xl:grid-cols-3">
             {brains.map((brain) => (
-              <BrainCard key={brain.namespace} brain={brain} onPick={() => onPick(brain.namespace)} />
+                <BrainCard key={brain.namespace} brain={brain} token={token} onPick={() => onPick(brain.namespace)} />
             ))}
           </div>
         )}
@@ -207,7 +208,7 @@ function BrainPicker({ brains, onPick }: { brains: Brain[] | null; onPick: (ns: 
   );
 }
 
-function BrainCard({ brain, onPick }: { brain: Brain; onPick: () => void }) {
+function BrainCard({ brain, token, onPick }: { brain: Brain; token: string | null; onPick: () => void }) {
   const { t } = useI18n();
   const name = brain.displayName || brain.namespace;
   const hex = brain.colorHex;
@@ -226,13 +227,7 @@ function BrainCard({ brain, onPick }: { brain: Brain; onPick: () => void }) {
       />
 
       <div className="flex items-start gap-3 p-4">
-        <span
-          aria-hidden
-          className="flex size-11 shrink-0 items-center justify-center rounded-md"
-          style={{ background: hex ? `${hex}22` : "var(--grid-soft)" }}
-        >
-          <BrainCircuit className="size-5" style={{ color: hex || "var(--grid-action)" }} />
-        </span>
+        <BrainAvatar brain={brain} token={token} />
         <div className="min-w-0 flex-1">
           <span className="block truncate text-base font-medium text-grid-fg">{name}</span>
           <div className="mt-1 truncate text-[11px] text-grid-muted">

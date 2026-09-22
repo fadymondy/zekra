@@ -26,6 +26,10 @@ export type Brain = {
   displayName?: string;
   description?: string;
   colorHex?: string;
+  /** An emoji the owner picked, shown in place of the generic glyph. */
+  icon?: string;
+  /** Relative path to the uploaded profile image, if there is one. */
+  imageUrl?: string;
 };
 
 export type Note = {
