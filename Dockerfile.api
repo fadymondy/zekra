@@ -1,0 +1,42 @@
+# Zekra — API image, reusing the console from the previously deployed image.
+#
+# WHY THIS EXISTS, separately from Dockerfile: that file copies `web/dist` from
+# an `npm run build`, which was right when web/ was a Vite SPA the Go binary
+# could serve as static files. web/ is Next.js now — `next build` produces
+# `.next`, the app has middleware and server-rendered routes, and it needs a
+# Node process of its own. So the full-stack image cannot build as written, and
+# serving the NEW console is a separate deployment decision (MH-321).
+#
+# Until that is settled this image ships the new Go binary with the console
+# EXACTLY as already deployed, copied out of the running image. That keeps the
+# API current without taking the console down, which is what building the
+# binary alone would have done — the binary serves nothing at / when WEB_DIST
+# is empty.
+#
+# Build context = repo root (monorepo; the plugins/ replace dirs must be present).
+#
+# PREREQUISITE: internal/db/gen and internal/graph/gen are gitignored (sqlc /
+# gqlgen output), so run `togo generate` in this checkout first or the build
+# fails trying to resolve them as modules.
+#
+#   docker build -f Dockerfile.api --build-arg CONSOLE_FROM=<deployed image> -t cabrain:api-<date> .
+
+ARG CONSOLE_FROM=cabrain:latest
+
+FROM golang:1.26 AS api
+WORKDIR /src
+# The whole monorepo, so require+replace (./plugins/brain, ./plugins/brain-tei) resolve.
+COPY . .
+RUN CGO_ENABLED=0 GOFLAGS=-mod=mod go build -o /out/zekra ./cmd/api
+
+# The console, lifted from the image currently in service rather than rebuilt.
+FROM ${CONSOLE_FROM} AS console
+
+FROM gcr.io/distroless/static-debian12
+WORKDIR /app
+COPY --from=api /out/zekra /app/zekra
+COPY --from=console /app/web/dist /app/web/dist
+ENV ADDR=:8080 WEB_DIST=/app/web/dist
+EXPOSE 8080
+# DATABASE_URL / TEI_* / COGNEE_* / COLD_STORE_* injected at runtime from the stack .env.
+ENTRYPOINT ["/app/zekra"]
