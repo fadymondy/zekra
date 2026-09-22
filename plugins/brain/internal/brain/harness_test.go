@@ -103,6 +103,9 @@ func newFix(t *testing.T) *fix {
 	t.Setenv("ZEKRA_REQUIRE_AUTH", "1") // anonymous callers get nothing (production posture)
 	t.Setenv("ZEKRA_REQUIRE_TOKEN", "")
 	t.Setenv("ZEKRA_NOTES_AUTO_ADOPT", "0") // tests that want it turn it on
+	// A fixed vault key, so tests can exercise the secret store. Without one the
+	// vault fails closed (never plaintext) and any secret write answers 503.
+	t.Setenv("ZEKRA_SECRETS_KEY", strings.Repeat("ab", 32))
 	t.Setenv("ZEKRA_OAUTH_ISSUER", testIssuer)
 	t.Setenv("AUTH_PUBLIC_URL", testIssuer)
 	t.Setenv("APP_URL", "")

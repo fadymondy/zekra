@@ -1,4 +1,21 @@
 -- Zekra data model — SPEC §3
+-- Serialise concurrent applications of this file.
+--
+-- These statements take catalogue locks; two sessions running them at once take
+-- those locks in different orders and Postgres kills one with 40P01 (deadlock
+-- detected). That is not hypothetical - go test runs packages in parallel and
+-- more than one applies this schema, and two app instances booting together do
+-- the same.
+--
+-- The lock lives HERE, not only in brain.Migrate, because not every applier goes
+-- through that function: plugins/brain/presentations reads this file and execs it
+-- directly (it cannot import internal/brain - that would be an import cycle).
+-- Putting it in the file means every applier is covered, including future ones.
+--
+-- _xact_ rather than a session lock: a multi-statement Exec runs as one implicit
+-- transaction, so this releases when the batch ends without needing an unlock.
+SELECT pg_advisory_xact_lock(524308299873);
+
 -- =====================================================================================
 -- Source of truth for the schema. Once ToGO is wired, `togo make:plugin cabrain` +
 -- sqlc/Atlas will own the generated migrations; this file is what they reconcile
