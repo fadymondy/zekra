@@ -37,8 +37,18 @@ func CORSMiddleware(next http.Handler) http.Handler {
 			h := w.Header()
 			h.Set("Access-Control-Allow-Origin", origin)
 			h.Set("Access-Control-Allow-Credentials", "true")
-			h.Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, X-CSRF-Token, X-Agent-Id, X-Zekra-Token")
-			h.Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+			// If-Match / If-None-Match are load-bearing, not optional: the
+			// note routes use optimistic concurrency, and the desktop client
+			// sends If-Match on delete. Omitting them made the preflight fail
+			// and surfaced to the user as "Failed to fetch" — with no HTTP
+			// status to look at, because the request never left the browser.
+			h.Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, If-Match, If-None-Match, X-CSRF-Token, X-Agent-Id, X-Zekra-Token")
+			h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			// ETag has to be exposed explicitly or a cross-origin client cannot
+			// read the version it must send back in If-Match.
+			h.Set("Access-Control-Expose-Headers", "ETag")
+			// Cache the preflight so a delete is not two round trips every time.
+			h.Set("Access-Control-Max-Age", "600")
 			h.Set("Vary", "Origin")
 		}
 		if r.Method == http.MethodOptions {
