@@ -11,11 +11,11 @@
 
 | Thing | State | Consequence |
 |---|---|---|
-| `/home/coder/caBrain` | empty, **not** a git repo | `git init` is step 0.1 |
+| `/home/coder/zekra` | empty, **not** a git repo | `git init` is step 0.1 |
 | `togo` CLI / ToGO framework | **absent everywhere on disk** | **BLOCKER A (still fully open)** — need repo URL or install cmd |
 | §1.5 env vars | **partial — see §0.1 below** | **BLOCKER B clearing** — awaiting finalizer + final `.env` |
 | `INFRA-Zekra.md` | not yet delivered | part of Blocker B |
-| Postgres | **LIVE**: `cabrain` DB + `cabrain_sleep` role on shared `stack-togo-postgres:latest` | reachable **only from inside `stack_stacknet`** — see §0.2 |
+| Postgres | **LIVE**: `zekra` DB + `zekra_sleep` role on shared `stack-togo-postgres:latest` | reachable **only from inside `stack_stacknet`** — see §0.2 |
 | Go 1.x | installed | ready for ToGO/sqlc once Blocker A clears |
 | Docker client | installed, daemon down | infra agent's concern, not ours |
 
@@ -23,8 +23,8 @@
 
 | Component | State | Value / note |
 |---|---|---|
-| Postgres | **LIVE** | `postgresql://cabrain:***@pg:5432/cabrain`; sleep role `cabrain_sleep`; shared PG re-imaged to `stack-togo-postgres:latest` for the extensions |
-| Cold tier | **LIVE (MinIO)** | S3-compatible, bucket `cabrain-cold` — substitutes for R2/GCS; `data-iceberg`/pg_duckdb path unchanged |
+| Postgres | **LIVE** | `postgresql://zekra:***@pg:5432/zekra`; sleep role `zekra_sleep`; shared PG re-imaged to `stack-togo-postgres:latest` for the extensions |
+| Cold tier | **LIVE (MinIO)** | S3-compatible, bucket `zekra-cold` — substitutes for R2/GCS; `data-iceberg`/pg_duckdb path unchanged |
 | TEI embeddings | **downloading model** | `Qwen/Qwen3-Embedding-0.6B` (1024-dim) → confirms `vector(1024)` in schema |
 | TEI reranker | **downloading model** | `BAAI/bge-reranker-v2-m3` |
 | Cognee | **wired, waiting on TEI** | `http://cognee:8000`, token set |
@@ -49,7 +49,7 @@ Until both land, no step past 0.x runs. This plan is ordered so that the moment 
 ## 1. Workstreams by what unblocks them
 
 ### Track 0 — needs nothing (can start the instant you say "go")
-- **0.1** `git init` in `caBrain/`; commit `SPEC.md` + this `PLAN.md`.
+- **0.1** `git init` in `zekra/`; commit `SPEC.md` + this `PLAN.md`.
 - **0.2** Write the **schema DDL** (spec §3) as a reviewable `.sql` file — pure Postgres, engine/infra-independent. Includes the Arabic-tokenizer BM25 index (`tokenizer='multilingual'`, **not** default English), `pg_partman` monthly partitioning, hybrid indexes. This is the contract; ToGO's `make:plugin` will consume/reconcile it.
 - **0.3** Write the **tool contracts** (spec §5.1) as typed request/response schemas: `memory_retain`, `memory_recall`, `memory_recall_archive`, `memory_get`, `memory_forget`, `memory_share`. Engine-agnostic — survives even if we later drop Cognee (§8 fallback).
 - **0.4** Draft the **capture-hook design** (§6): which Claude Code turns become `retain` calls, `<private>` redaction, `source_kind='claude_code'` + `source_ref=<session id>`. Design only; wiring needs a live `retain`.

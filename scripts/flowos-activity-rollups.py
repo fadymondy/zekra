@@ -37,7 +37,7 @@ Credentials come from the environment -- never hard-code them:
 
     export ZEKRA_API=https://zekra.dev
     export ZEKRA_TOKEN=cbt_...
-    export ZEKRA_DSN=postgresql://cabrain:***@host:5432/cabrain
+    export ZEKRA_DSN=postgresql://zekra:***@host:5432/zekra
     python3 scripts/flowos-activity-rollups.py --dry-run
     python3 scripts/flowos-activity-rollups.py
 """
@@ -47,7 +47,7 @@ import argparse
 import datetime as dt
 import json
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
     os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess

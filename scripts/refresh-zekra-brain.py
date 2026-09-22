@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Refresh the `cabrain` dev-knowledge brain from the repo — run after each set of
+"""Refresh the `zekra` dev-knowledge brain from the repo — run after each set of
 changes so future sessions can recall the latest project state.
 
-Ingests (into namespace `cabrain`, deduped by the §4.1 write-decision):
+Ingests (into namespace `zekra`, deduped by the §4.1 write-decision):
   1. every repo markdown doc (SPEC/PLAN/DEPLOY/decisions/rules/CLAUDE.md/...), chunked
   2. the full git commit history (each commit = a build-log entry, with body)
   3. (optional) the Claude project-memory file if $ZEKRA_MEMORY_FILE is set
@@ -11,19 +11,19 @@ Usage:  python3 scripts/refresh-zekra-brain.py
         ZEKRA_API_URL=http://localhost:8080 (default)
 """
 import json, os, re, subprocess, time, urllib.error, urllib.request
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
     os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = os.environ.get("ZEKRA_API_URL", "http://localhost:8080")
-NS = "cabrain"
+NS = "zekra"
 MAXC = 2500
 EXCLUDE_DIRS = {"node_modules", "dist", "worktrees", "scratchpad", ".git"}
 ERRORS = []   # every failed retain, so a broken run can never look like an empty one
 
 def retain(content, ref, meta):
-    body = json.dumps({"namespace": NS, "content": content[:6000], "sourceKind": meta.get("_sk", "cabrain_repo"),
+    body = json.dumps({"namespace": NS, "content": content[:6000], "sourceKind": meta.get("_sk", "zekra_repo"),
                        "sourceRef": ref, "metadata": {k: v for k, v in meta.items() if not k.startswith("_")}}).encode()
     # An explicit User-Agent is REQUIRED, not cosmetic: the hosted brain sits behind
     # Cloudflare, which 403s urllib's default "Python-urllib/3.x". Combined with the
@@ -31,7 +31,7 @@ def retain(content, ref, meta):
     # "docs: 0, commits: 0, history: 0" and looked like a no-op with nothing new to
     # say, while in fact not one write had ever landed.
     req = urllib.request.Request(API + "/api/brain/retain", data=body, headers={
-        "Content-Type": "application/json", "User-Agent": "cabrain-refresh/1.0"})
+        "Content-Type": "application/json", "User-Agent": "zekra-refresh/1.0"})
     tok = os.environ.get("ZEKRA_TOKEN")
     if tok:
         req.add_header("X-Zekra-Token", tok)
@@ -91,7 +91,7 @@ def main():
             cks = chunks(text) or [text]
             for i, ch in enumerate(cks):
                 hdr = f"Zekra repo · {rel}" + (f" (part {i+1}/{len(cks)})" if len(cks) > 1 else "")
-                if retain(hdr + "\n\n" + ch, f"cabrain:{rel}#{i}", {"type": "doc", "path": rel}) != "ERR":
+                if retain(hdr + "\n\n" + ch, f"zekra:{rel}#{i}", {"type": "doc", "path": rel}) != "ERR":
                     n_doc += 1
     print("docs:", n_doc, flush=True)
 
@@ -106,7 +106,7 @@ def main():
         h, date, subj = parts[0], parts[1], parts[2]
         body = parts[3] if len(parts) > 3 else ""
         content = f"Zekra build-log commit {h} ({date[:10]}): {subj}\n{body.strip()[:1800]}"
-        if retain(content, f"cabrain:log:{h}", {"type": "buildlog", "hash": h, "date": date[:10], "_sk": "cabrain_history"}) != "ERR":
+        if retain(content, f"zekra:log:{h}", {"type": "buildlog", "hash": h, "date": date[:10], "_sk": "zekra_history"}) != "ERR":
             n_commit += 1
     print("commits:", n_commit, flush=True)
 
@@ -115,8 +115,8 @@ def main():
     if mem and os.path.exists(mem):
         text = open(mem, encoding="utf-8", errors="replace").read()
         for i, ch in enumerate(chunks(text)):
-            if retain(f"Zekra project history / state (part {i+1})\n\n{ch}", f"cabrain:history:{i}",
-                      {"type": "history", "_sk": "cabrain_history"}) != "ERR":
+            if retain(f"Zekra project history / state (part {i+1})\n\n{ch}", f"zekra:history:{i}",
+                      {"type": "history", "_sk": "zekra_history"}) != "ERR":
                 n_hist += 1
         print("history:", n_hist, flush=True)
 

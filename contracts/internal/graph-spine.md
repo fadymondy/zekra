@@ -97,9 +97,9 @@ put, which is the point.
 | job | what it does | where it runs | cadence |
 |---|---|---|---|
 | `flowos-sync.py` | FlowOS prod → brain memories (HTTPS) | `/opt/flowos-brain-sync`, Proxmox `159.195.203.241` | systemd timer, 1 min |
-| `flowos-analytics.py` + `flowos-activity-rollups.py` | DuckDB analytics plane → rollup memories (HTTPS) | `/opt/cabrain-analytics`, same host | systemd timer, 1 h |
-| `code-index.py` | repomix code/doc chunks (HTTPS) | `/opt/cabrain-code-index`, same host | systemd timer, 30 min |
-| **`graph-sync-run.sh`** | **the graph builders: nodes, edges, repo links, spine, rollup relink** | **the Coder workspace** (`~/.cabrain-graph-sync`) | **supervised loop, 10 min** |
+| `flowos-analytics.py` + `flowos-activity-rollups.py` | DuckDB analytics plane → rollup memories (HTTPS) | `/opt/zekra-analytics`, same host | systemd timer, 1 h |
+| `code-index.py` | repomix code/doc chunks (HTTPS) | `/opt/zekra-code-index`, same host | systemd timer, 30 min |
+| **`graph-sync-run.sh`** | **the graph builders: nodes, edges, repo links, spine, rollup relink** | **the Coder workspace** (`~/.zekra-graph-sync`) | **supervised loop, 10 min** |
 
 ### Why the graph builders are NOT on the Proxmox box
 
@@ -111,7 +111,7 @@ An earlier attempt to move them there hit `password authentication failed for
 user zekra` against `10.10.10.30:5432` and concluded the credentials were
 wrong. They were not — **`10.10.10.30` is the wrong database.** It is Proxmox LXC
 102 `togo-db`, i.e. FlowOS PROD (`onestudio_hub`), which of course has no
-`cabrain` role. The brain lives in the `pg` container on the `stack_stacknet`
+`zekra` role. The brain lives in the `pg` container on the `stack_stacknet`
 docker network inside Docker Desktop on the operator's machine (`172.18.0.22`
 internally, published to the workspace as `host.docker.internal:55432`, egress
 `196.137.11.160`). From the Proxmox host, ports 5432, 55432 and 8080 on that
@@ -126,12 +126,12 @@ The workspace has no systemd and no cron (PID 1 is the coder agent), so the time
 is a `flock`-guarded supervised loop (`graph-sync-loop.sh`). Start it with:
 
 ```bash
-nohup setsid ~/caBrain/scripts/graph-sync-loop.sh >/dev/null 2>&1 &
-cat ~/.cabrain-graph-sync/state.json     # {"lastRun":"...","rc":0}
-tail ~/.cabrain-graph-sync/run.log
+nohup setsid ~/zekra/scripts/graph-sync-loop.sh >/dev/null 2>&1 &
+cat ~/.zekra-graph-sync/state.json     # {"lastRun":"...","rc":0}
+tail ~/.zekra-graph-sync/run.log
 ```
 
-Config (DSNs, token, tunnel target, interval) is `~/.cabrain-graph-sync/env`,
+Config (DSNs, token, tunnel target, interval) is `~/.zekra-graph-sync/env`,
 mode 600. **No secret is in the repo** — the scripts read the environment only.
 
 If the graph ever needs to run somewhere durable and unattended, the real fix is

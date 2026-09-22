@@ -10,7 +10,7 @@
 #
 # The brain Postgres is not reachable from 159.195.203.241 and no credential
 # will make it so. 10.10.10.30 (which an earlier attempt probed and got
-# "password authentication failed for user cabrain" from) is LXC 102 togo-db —
+# "password authentication failed" from, for the app role) is LXC 102 togo-db —
 # that is FlowOS PROD, a different database entirely. The brain lives in the
 # `pg` container on the `stack_stacknet` docker network inside Docker Desktop
 # on the operator's machine, whose egress is 196.137.11.160 and whose 5432 /
@@ -21,11 +21,11 @@
 # an SSH tunnel to the Proxmox box. So the graph refresh runs here, and this
 # script opens its own tunnel rather than depending on one a human left behind.
 #
-# Config lives in ~/.cabrain-graph-sync/env (mode 600). No secret is in this file.
+# Config lives in ~/.zekra-graph-sync/env (mode 600). No secret is in this file.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_DIR="${GRAPH_SYNC_DIR:-$HOME/.cabrain-graph-sync}"
+STATE_DIR="${GRAPH_SYNC_DIR:-$HOME/.zekra-graph-sync}"
 ENV_FILE="$STATE_DIR/env"
 LOG="$STATE_DIR/run.log"
 LOCK="$STATE_DIR/.lock"

@@ -3,7 +3,7 @@ package brain
 /*
 Database-backed test harness for notes, membership, OAuth and /api/mcp.
 
-	TEST_DATABASE_URL='postgres://cabrain:…@localhost:55432/zekra_p1_test?sslmode=disable' \
+	TEST_DATABASE_URL='postgres://zekra:…@localhost:55432/zekra_p1_test?sslmode=disable' \
 	  go test ./plugins/brain/internal/brain
 
 The database needs the vchord/pg_tokenizer/pg_partman extensions (the stack-togo

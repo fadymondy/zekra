@@ -51,7 +51,7 @@ See `.Codex/rules/` for detail.
 
 ## The FlowOS brain (zekra MCP)
 
-The **cabrain** MCP server connects to Zekra's remote Streamable HTTP endpoint at
+The **zekra** MCP server connects to Zekra's remote Streamable HTTP endpoint at
 `https://mcp.zekra.dev` (Codex config: `~/.codex/config.toml`) and exposes this
 project's memory organ. Two
 brains are loaded:
@@ -62,11 +62,11 @@ brains are loaded:
   research, theses, drills). Use for AVO / founder-readiness / KSA-GCC founder-prep
   questions.
 
-- **`cabrain`** — this project's own dev knowledge (repo docs + git history). Use when
+- **`zekra`** — this project's own dev knowledge (repo docs + git history). Use when
   developing/following up on Zekra itself.
 
 Pick the namespace matching the question (`flowos` studio, `avo` founder readiness,
-`cabrain` this project's dev); recall both/all and merge only if genuinely ambiguous.
+`zekra` this project's dev); recall both/all and merge only if genuinely ambiguous.
 Manage brains with the MCP tools `brain_list`, `brain_details`, `memory_edit`,
 `brain_delete`, and knowledge gaps with `memory_gaps` / `memory_resolve_gap`.
 
@@ -83,8 +83,8 @@ about auth gates?".
 
 - Prefer concise/keyword queries (e.g. `"Sentra"`, `"PDPL compliance kit"`).
 - `memory_retain` to store, `memory_get` to fetch by id, `memory_forget` to retire.
-- Needs the app on `:8080` (`bash /home/coder/run-cabrain.sh` if down) + the workspace
-  on `stack_stacknet`.
+- The brain is the hosted instance at `https://app.zekra.dev` (production: LXC 109 on
+  `pve-3x1`, systemd `zekra.service`). If recall fails to connect, check that service.
 
 **Full mandatory ruleset: `.Codex/rules/memory-first.md` (R1–R8).** Also see
 `contracts/internal/flowos-brain.md`.

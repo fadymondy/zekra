@@ -21,7 +21,7 @@ The TYPED graph — entities.entity_type plus directed entity_edges with provena
 scripts/flowos-graph-edges.py, which is the script to run for the graph proper.
 """
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
     os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
@@ -31,7 +31,7 @@ from collections import defaultdict
 NS = os.environ.get("FLOWOS_NAMESPACE", "flowos")
 # Both DSNs come from env; the FlowOS one is vaulted in think-os as `flowos_prod_db`.
 #   FLOWOS_DSN  = postgresql://flowos:***@<tunnel-or-host>:5432/onestudio_hub   (READ ONLY)
-#   ZEKRA_DSN = postgresql://cabrain:***@<host>:5432/cabrain
+#   ZEKRA_DSN = postgresql://zekra:***@<host>:5432/zekra
 def _conn(dsn):
     u = urlparse(dsn)
     return pg.Connection(user=u.username, password=u.password, host=u.hostname,

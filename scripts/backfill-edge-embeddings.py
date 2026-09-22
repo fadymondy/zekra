@@ -26,10 +26,10 @@ Idempotent: only edges with a non-empty fact AND embedding IS NULL are processed
 and the scratch namespace is cleaned out at the end (and on re-run).
 
 Environment:
-  ZEKRA_DSN            postgresql://user:pass@host:port/cabrain      (required)
+  ZEKRA_DSN            postgresql://user:pass@host:port/zekra      (required)
   ZEKRA_NAMESPACE      graph namespace to backfill        (default: flowos)
   TEI_EMBEDDINGS_URL     e.g. http://tei-embed:80           (route A, optional)
-  ZEKRA_API_URL        e.g. https://cabrain.example.com   (route B)
+  ZEKRA_API_URL        e.g. https://zekra.example.com   (route B)
   ZEKRA_TOKEN          cbt_... brain token                (route B)
   EMB_BATCH              rows per DB flush                  (default: 128)
   EMB_WORKERS            parallel HTTP calls for route B    (default: 8)
@@ -37,7 +37,7 @@ Environment:
 Never hard-code credentials here — this file is committed.
 """
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
     os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import sys
@@ -56,7 +56,7 @@ TEI_URL = os.environ.get("TEI_EMBEDDINGS_URL", "").rstrip("/")
 API_URL = os.environ.get("ZEKRA_API_URL", "").rstrip("/")
 TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 # Cloudflare blocks the default python UA, so present a normal one.
-UA = "Mozilla/5.0 (X11; Linux x86_64) cabrain-backfill/1.0"
+UA = "Mozilla/5.0 (X11; Linux x86_64) zekra-backfill/1.0"
 
 
 def brain():

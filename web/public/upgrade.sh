@@ -9,7 +9,7 @@ set -eu
 say()  { printf '\033[1;36m›\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!\033[0m %s\n' "$*" >&2; }
 
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 : "${ZEKRA_URL:=${CABRAIN_URL:-}}"
 : "${ZEKRA_TOKEN:=${CABRAIN_TOKEN:-}}"
 : "${ZEKRA_CLIENT:=${CABRAIN_CLIENT:-}}"

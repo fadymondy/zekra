@@ -266,7 +266,7 @@ instead of a confident wrong number.
 ```bash
 export FLOWOS_DSN='postgresql://…/onestudio_hub'     # read-only; login→person map
 export ZEKRA_TOKEN=cbt_…
-export ZEKRA_DSN='postgresql://cabrain:…/cabrain'
+export ZEKRA_DSN='postgresql://zekra:…/zekra'
 
 python3 scripts/flowos-activity-rollups.py --dry-run   # build + print, write nothing
 python3 scripts/flowos-activity-rollups.py             # retain + wire the graph

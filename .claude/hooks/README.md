@@ -18,7 +18,7 @@ Add to your Claude Code settings (`.claude/settings.json` for this repo, or
   "hooks": {
     "Stop": [
       { "hooks": [ { "type": "command",
-        "command": "python3 /home/coder/caBrain/.claude/hooks/capture-mode.py" } ] }
+        "command": "python3 /home/coder/zekra/.claude/hooks/capture-mode.py" } ] }
     ]
   },
   "env": {

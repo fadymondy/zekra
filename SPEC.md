@@ -120,15 +120,15 @@ contracts (full detail in `contracts/internal/decisions.md` D5). Accepted:
   `host.docker.internal` (Postgres :5432, Redis :6379, NATS :4222); the Zekra app runs as a
   container on Docker net `stack_stacknet`, where infra uses internal names (`pg`, `tei-embed`,
   `cognee`, `ollama`, `minio`).
-- **Cold tier:** MinIO (S3-compatible, bucket `cabrain-cold`) substitutes for R2/GCS — the
+- **Cold tier:** MinIO (S3-compatible, bucket `zekra-cold`) substitutes for R2/GCS — the
   `data-iceberg`/`pg_duckdb` path is unchanged.
 - **Extraction LLM:** Ollama as a stack container (`mistral:7b-instruct` placeholder → `gpt-oss:20b`).
-- **Postgres:** one shared PG re-imaged to give Zekra its extensions, with a dedicated `cabrain`
-  DB + `cabrain_sleep` role.
+- **Postgres:** one shared PG re-imaged to give Zekra its extensions, with a dedicated `zekra`
+  DB + `zekra_sleep` role.
 - **Also live and usable:** **Redis** (L1 cache, §2.1) and **NATS**.
 
 **Status (as of build):** the finalizer had not completed — TEI models still downloading, Cognee
-waiting on TEI, the `cabrain` DB not yet reachable from the workspace (the workspace-reachable
+waiting on TEI, the `zekra` DB not yet reachable from the workspace (the workspace-reachable
 Postgres is a vanilla PG16 without the required extensions). So live `migrate`/`serve` and
 retain/recall **execution** stay gated (Blocker B) until the finalized `.env` + `INFRA-Zekra.md`
 land and the §3 extension checks pass. Schema-static work (build, sqlc, codegen) proceeds regardless.
@@ -201,7 +201,7 @@ CREATE EXTENSION IF NOT EXISTS pg_partman CASCADE;    -- time partitioning
 
 -- Analytics/consolidation plane runs as a separate role so it never shares
 -- a connection with the latency-critical recall path (see N1).
-CREATE ROLE cabrain_sleep LOGIN;
+CREATE ROLE zekra_sleep LOGIN;
 -- If/when pg_duckdb is added for telemetry, enable it per-role here, never globally.
 ```
 
@@ -343,7 +343,7 @@ Cold-tier deep recall ("what did we know a year ago") is a **separate, explicit*
 
 ### 4.3 `reflect` — sleep consolidation (Phase 2, scheduled)
 
-Runs as a `togo-framework/scheduler` job as role `cabrain_sleep`. Never on the recall path.
+Runs as a `togo-framework/scheduler` job as role `zekra_sleep`. Never on the recall path.
 - **Consolidate:** cluster recent episodics per namespace, summarize into `network='fact'`/`memory_type='semantic'` rows + update entity summaries (Cognee `reflect`/`improve`).
 - **Dedup:** merge near-duplicates above a cosine threshold (pattern separation in reverse).
 - **Decay:** lower `importance` over time, weighted so salient memories decay slowest.
@@ -417,7 +417,7 @@ The point of Phase 1 is not a clever demo; it is **memory mass**. Run every sess
 **Gate 1 (must pass):** With capture running on a real project, a fresh Claude Code session starts, calls `memory_recall` for "what did we decide about X", and gets back the actual prior decision *with provenance* — and the session runs past the point where it would previously have compacted, without losing the "why". Measure p95 recall latency < 300 ms.
 
 ### Phase 2 — the sleep loop
-8. Implement `reflect` (§4.3) + reconsolidation (§4.4) as `scheduler` jobs under role `cabrain_sleep`.
+8. Implement `reflect` (§4.3) + reconsolidation (§4.4) as `scheduler` jobs under role `zekra_sleep`.
 9. Add salience computation refinement + decay.
 10. Add cold-tier demotion via `data-iceberg` and `memory_recall_archive`.
 

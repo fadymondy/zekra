@@ -35,7 +35,7 @@ CONFIG — everything from env, no credential ever lives in this file:
     ZEKRA_DSN       optional postgres DSN -> enables graph + prune of stale chunks
     FLOWOS_DSN        optional READ-ONLY FlowOS prod DSN -> REPO_OF venture edges
     GITHUB_TOKEN      optional; falls back to `gh auth token`
-    CODE_INDEX_CACHE  default ~/.cache/cabrain-repos
+    CODE_INDEX_CACHE  default ~/.cache/zekra-repos
     CODE_INDEX_STATE  default $CODE_INDEX_CACHE/state.json
     REPOMIX_CMD       default "npx --yes repomix@latest"
     CODE_MAX_CHUNKS   default 80    (per repo, per run — volume discipline)
@@ -46,7 +46,7 @@ import argparse
 import base64
 import json
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
     os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
@@ -59,7 +59,7 @@ from datetime import datetime, timezone
 API = os.environ.get("ZEKRA_API_URL", "https://zekra.dev").rstrip("/")
 TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 NS = os.environ.get("ZEKRA_NAMESPACE", "flowos")
-CACHE = os.environ.get("CODE_INDEX_CACHE", os.path.expanduser("~/.cache/cabrain-repos"))
+CACHE = os.environ.get("CODE_INDEX_CACHE", os.path.expanduser("~/.cache/zekra-repos"))
 STATE_PATH = os.environ.get("CODE_INDEX_STATE", os.path.join(CACHE, "state.json"))
 DSN = os.environ.get("ZEKRA_DSN", "")
 FLOWOS_DSN = os.environ.get("FLOWOS_DSN", "")
@@ -112,7 +112,7 @@ def log(msg):
 # goes through curl.
 def api(method, path, body=None, timeout=180):
     cmd = ["curl", "-sS", "-X", method, API + path,
-           "-A", "cabrain-code-index/1.0",
+           "-A", "zekra-code-index/1.0",
            "-H", "Content-Type: application/json"]
     if TOKEN:
         cmd += ["-H", "X-Zekra-Token: " + TOKEN]
