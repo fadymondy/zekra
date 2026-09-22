@@ -4,6 +4,7 @@ import { Archive, ArrowLeft, Pin } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 
+import { ImageInsertButton } from "@/components/image-insert";
 import { MarkdownView } from "@/components/markdown-view";
 import { AppText, Field, Header, PrimaryButton, Screen, SecondaryButton, Segmented, StatePanel } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
@@ -100,7 +101,21 @@ export default function NoteScreen() {
               ) : null}
             </View>
             {mode === "edit" || !canWrite ? (
-              <Field value={body} onChangeText={setBody} multiline placeholder={t("note.writePlaceholder")} editable={canWrite} style={styles.body} />
+              <>
+                <Field value={body} onChangeText={setBody} multiline placeholder={t("note.writePlaceholder")} editable={canWrite} style={styles.body} />
+                {canWrite ? (
+                  // Appends rather than inserting at the caret: RN's TextInput
+                  // does not report a caret position we can rely on across
+                  // platforms, and a wrong insertion point would split a line.
+                  <View style={styles.imageRow}>
+                    <ImageInsertButton
+                      token={token!}
+                      namespace={note.data.namespace}
+                      onInsert={(markdown) => setBody((current) => current + markdown)}
+                    />
+                  </View>
+                ) : null}
+              </>
             ) : (
               <Pressable onPress={() => canWrite && setMode("edit")} style={[styles.preview, { borderColor: p.line, backgroundColor: p.card }]}>
                 <MarkdownView text={body} palette={p} />
@@ -156,6 +171,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.4 },
   bodyHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 7, gap: metrics.gap },
   tabsWrap: { width: 170 },
+  imageRow: { flexDirection: "row", marginTop: 8 },
   body: { minHeight: 270, fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }), fontSize: 14, lineHeight: 21 },
   preview: { minHeight: 270, borderWidth: 1, padding: 13 },
   typeRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },

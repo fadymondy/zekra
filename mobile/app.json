@@ -29,10 +29,21 @@
           "imageWidth": 150,
           "resizeMode": "contain",
           "backgroundColor": "#f0ebe1",
-          "dark": { "backgroundColor": "#081024" }
+          "dark": {
+            "backgroundColor": "#081024"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Zekra needs access to your photos so you can add images to a note.",
+          "cameraPermission": false
         }
       ]
     ],
-    "experiments": { "typedRoutes": true }
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

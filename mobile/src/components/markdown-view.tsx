@@ -1,7 +1,13 @@
-import { Linking, ScrollView, StyleSheet, Text, View, type TextStyle } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { Check, Copy } from "lucide-react-native";
+import { useState } from "react";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View, type TextStyle } from "react-native";
 
+import { highlight, tokenColor } from "./code-highlight";
 import { parseBlocks } from "./markdown-blocks";
 import { readingTheme, useReading } from "@/lib/reading-settings";
+import { useI18n } from "@/lib/i18n";
+import type { ThemePalette } from "@shared/markdown/themes/themes";
 import type { Palette } from "@/theme";
 
 // A small, dependency-free markdown renderer for React Native. Zekra notes
@@ -77,11 +83,83 @@ function useReadingStyle(base: Palette) {
         action: theme.palette.link,
       }
     : base;
-  return { palette, size: reading.fontSize };
+  // The theme palette is handed on as well as merged: the highlighter buckets
+  // token colours from it, and the merged Palette has lost `accent`.
+  return { palette, size: reading.fontSize, themePalette: theme?.palette ?? null };
+}
+
+/**
+ * A fenced block: title bar, syntax highlighting and copy (MH-319).
+ *
+ * Its own component because it holds state — the copy confirmation — and a
+ * hook cannot live inside the switch that renders the other block kinds.
+ */
+function CodeBlock({
+  lines,
+  lang,
+  label,
+  palette,
+  themePalette,
+  size,
+  copyLabel,
+}: {
+  lines: string[];
+  lang: string;
+  label: string;
+  palette: Palette;
+  themePalette: ThemePalette | null;
+  size: number;
+  copyLabel: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const code = lines.join("\n");
+  const tokens = themePalette ? highlight(code, lang) : [{ text: code, scope: "" }];
+
+  async function copy() {
+    await Clipboard.setStringAsync(code);
+    setCopied(true);
+    // Revert the tick rather than leaving it: the button is a control, not a
+    // status, and a permanent tick reads as "this block is copied".
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <View style={[styles.code, { borderColor: palette.line, backgroundColor: palette.soft }]}>
+      <View style={[styles.codeBar, { borderColor: palette.line }]}>
+        <View style={styles.lights}>
+          <View style={[styles.light, { backgroundColor: palette.danger }]} />
+          <View style={[styles.light, { backgroundColor: palette.gold }]} />
+          <View style={[styles.light, { backgroundColor: palette.ok }]} />
+        </View>
+        <Text numberOfLines={1} style={{ flex: 1, color: palette.muted, fontFamily: "monospace", fontSize: size - 5 }}>
+          {label}
+        </Text>
+        <Pressable onPress={() => void copy()} accessibilityLabel={copyLabel} hitSlop={8}>
+          {copied ? <Check color={palette.ok} size={14} /> : <Copy color={palette.muted} size={14} />}
+        </Pressable>
+      </View>
+      {/* Horizontal scroll rather than wrapping: a wrapped line of code reads
+          as two statements. */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.codeBody}>
+        <Text style={{ fontFamily: "monospace", fontSize: size - 4, color: palette.ink }}>
+          {tokens.map((token, i) => (
+            <Text
+              key={i}
+              style={themePalette ? { color: tokenColor(token.scope, themePalette, palette.ink) } : undefined}
+            >
+              {token.text}
+            </Text>
+          ))}
+        </Text>
+      </ScrollView>
+    </View>
+  );
 }
 
 export function MarkdownView({ text, palette: base }: { text: string; palette: Palette }) {
-  const { palette, size } = useReadingStyle(base);
+  const { palette, size, themePalette } = useReadingStyle(base);
+  const { t } = useI18n();
+  const copyLabel = t("code.copy");
   const blocks = parseBlocks(text);
   if (!blocks.length) return <Text style={{ color: palette.muted }}>Nothing written yet.</Text>;
   return (
@@ -102,9 +180,16 @@ export function MarkdownView({ text, palette: base }: { text: string; palette: P
             return <View key={index} style={[styles.rule, { backgroundColor: palette.line }]} />;
           case "code":
             return (
-              <View key={index} style={[styles.code, { borderColor: palette.line, backgroundColor: palette.soft }]}>
-                <Text style={{ fontFamily: "monospace", fontSize: size - 4, color: palette.ink }}>{block.lines.join("\n")}</Text>
-              </View>
+              <CodeBlock
+                key={index}
+                lines={block.lines}
+                lang={block.lang}
+                label={block.label}
+                palette={palette}
+                themePalette={themePalette}
+                size={size}
+                copyLabel={copyLabel}
+              />
             );
           case "list":
             return (

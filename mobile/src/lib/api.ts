@@ -201,3 +201,46 @@ export const zekraApi = {
   deleteState: (token: string) => request<DeleteState>("/api/me/delete", { token }),
   cancelDelete: (token: string) => request<DeleteState>("/api/me/delete/cancel", { token, csrf: true, json: {} }),
 };
+
+/*
+Image upload for notes (MH-319 item 3).
+
+Not routed through request(): that helper JSON-encodes its body, and this is
+multipart. Content-Type is deliberately NOT set — React Native's fetch writes
+the boundary itself, and setting it by hand produces a body the server cannot
+parse.
+
+React Native's FormData takes a {uri, name, type} descriptor rather than a
+Blob; the native layer streams the file from disk, so a large photo never has
+to be read into JS memory.
+*/
+export type UploadedImage = { url: string };
+
+export async function uploadNoteImage(
+  token: string,
+  namespace: string,
+  file: { uri: string; name: string; type: string },
+): Promise<UploadedImage> {
+  const form = new FormData();
+  form.append("namespace", namespace);
+  // The cast is RN's: its FormData accepts this descriptor, the DOM lib's type
+  // does not describe it.
+  form.append("file", file as unknown as Blob);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/api/notes/image`, {
+      method: "POST",
+      headers: { Accept: "application/json", "X-Agent-Id": "zekra-mobile", Authorization: `Bearer ${token}` },
+      body: form,
+      credentials: "include",
+    });
+  } catch (error) {
+    throw new ApiError(0, error instanceof Error ? error.message : "Could not reach Zekra");
+  }
+  const payload = (await response.json().catch(() => undefined)) as { url?: string; message?: string } | undefined;
+  if (!response.ok || !payload?.url) {
+    throw new ApiError(response.status, payload?.message || `Upload failed (${response.status})`);
+  }
+  return { url: payload.url };
+}

@@ -58,6 +58,9 @@ const en = {
   "notes.chooseBrain": "Choose a brain",
   "notes.chooseBrainBody": "Open Brains to select a knowledge space.",
 
+  "note.insertImage": "Image",
+  "note.imageFailed": "Could not add that image",
+  "code.copy": "Copy code",
   "row.appearance": "Icon & colour",
   "row.appearanceIcon": "Icon",
   "row.appearanceColor": "Colour",
@@ -228,6 +231,9 @@ const ar: Record<Key, string> = {
   "notes.chooseBrain": "اختر دماغًا",
   "notes.chooseBrainBody": "افتح الأدمغة لاختيار مساحة معرفية.",
 
+  "note.insertImage": "صورة",
+  "note.imageFailed": "تعذّر إضافة الصورة",
+  "code.copy": "نسخ الشيفرة",
   "row.appearance": "الأيقونة واللون",
 
   "row.appearanceIcon": "الأيقونة",
