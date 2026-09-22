@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/providers/auth";
 import { BrainProvider } from "@/providers/brains";
+import { ReadingProvider } from "@/providers/reading";
 import { ThemeProvider, useTheme } from "@/theme";
 
 // Hold the native splash until the stored session has been restored, so the
@@ -62,7 +63,9 @@ export default function RootLayout() {
           <I18nProvider>
             <AuthProvider>
               <BrainProvider>
-                <Shell />
+                <ReadingProvider>
+                  <Shell />
+                </ReadingProvider>
               </BrainProvider>
             </AuthProvider>
           </I18nProvider>

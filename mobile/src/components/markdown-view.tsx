@@ -1,5 +1,6 @@
 import { Linking, StyleSheet, Text, View, type TextStyle } from "react-native";
 
+import { readingTheme, useReading } from "@/lib/reading-settings";
 import type { Palette } from "@/theme";
 
 // A small, dependency-free markdown renderer for React Native. Zekra notes
@@ -95,7 +96,39 @@ function parseBlocks(markdown: string): Block[] {
   return blocks;
 }
 
-export function MarkdownView({ text, palette }: { text: string; palette: Palette }) {
+/*
+Apply the reading preferences (MH-266).
+
+The reading theme's palette is the web's ThemePalette — bg/fg/border/link and
+so on — which does not line up field-for-field with the mobile Palette, so the
+five that DO have a counterpart are mapped and the rest of the app palette is
+kept. The alternative, a second full palette per theme for RN, is 27 more
+tables to keep in sync for colours nothing reads.
+
+Sizes are derived from one setting rather than stored per element: a reader who
+wants larger body text wants proportionally larger headings, and storing six
+numbers would let them drift into an unreadable combination.
+*/
+function useReadingStyle(base: Palette) {
+  const { reading } = useReading();
+  const theme = readingTheme(reading.theme);
+  const palette: Palette = theme
+    ? {
+        ...base,
+        bg: theme.palette.bg,
+        ink: theme.palette.fg,
+        body: theme.palette.fg,
+        muted: theme.palette.fgMuted,
+        line: theme.palette.border,
+        soft: theme.palette.codeBg,
+        action: theme.palette.link,
+      }
+    : base;
+  return { palette, size: reading.fontSize };
+}
+
+export function MarkdownView({ text, palette: base }: { text: string; palette: Palette }) {
+  const { palette, size } = useReadingStyle(base);
   const blocks = parseBlocks(text);
   if (!blocks.length) return <Text style={{ color: palette.muted }}>Nothing written yet.</Text>;
   return (
@@ -103,7 +136,7 @@ export function MarkdownView({ text, palette }: { text: string; palette: Palette
       {blocks.map((block, index) => {
         switch (block.kind) {
           case "heading": {
-            const sizes = { 1: 20, 2: 17, 3: 15 } as const;
+            const sizes = { 1: size + 4, 2: size + 1, 3: size - 1 } as const;
             return <Text key={index} style={{ color: palette.ink, fontSize: sizes[block.level], fontWeight: "700" }}><Inline line={block.text} palette={palette} /></Text>;
           }
           case "quote":
@@ -117,7 +150,7 @@ export function MarkdownView({ text, palette }: { text: string; palette: Palette
           case "code":
             return (
               <View key={index} style={[styles.code, { borderColor: palette.line, backgroundColor: palette.soft }]}>
-                <Text style={{ fontFamily: "monospace", fontSize: 12, color: palette.ink }}>{block.lines.join("\n")}</Text>
+                <Text style={{ fontFamily: "monospace", fontSize: size - 4, color: palette.ink }}>{block.lines.join("\n")}</Text>
               </View>
             );
           case "list":
@@ -126,14 +159,14 @@ export function MarkdownView({ text, palette }: { text: string; palette: Palette
                 {block.items.map((item, i) => (
                   <View key={i} style={styles.listRow}>
                     <Text style={{ color: palette.muted, width: 20 }}>{block.ordered ? `${i + 1}.` : "•"}</Text>
-                    <View style={{ flex: 1 }}><Text style={{ color: palette.body }}><Inline line={item} palette={palette} /></Text></View>
+                    <View style={{ flex: 1 }}><Text style={{ color: palette.body, fontSize: size }}><Inline line={item} palette={palette} /></Text></View>
                   </View>
                 ))}
               </View>
             );
           case "paragraph":
           default:
-            return <Text key={index} style={{ color: palette.body, lineHeight: 21 }}><Inline line={block.text} palette={palette} /></Text>;
+            return <Text key={index} style={{ color: palette.body, fontSize: size, lineHeight: Math.round(size * 1.45) }}><Inline line={block.text} palette={palette} /></Text>;
         }
       })}
     </View>

@@ -1,6 +1,6 @@
 import { Archive, ArchiveRestore, AlertTriangle, Pin, PinOff, Sparkles, Trash2 } from "lucide-react-native";
 import { useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Pressable, Share, StyleSheet, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 
@@ -68,11 +68,34 @@ export function NoteRow({ note, onOpen, onAction, onAppearance }: {
     ]);
   }
 
+  /*
+  Export, mobile-shaped (MH-266). The six web exporters are DOM-bound — PDF,
+  PNG and DOCX all need a document — so what crosses is the markdown itself,
+  handed to the OS share sheet. That is the platform-native way to get a note
+  into another app, and it needs no new dependency: expo-sharing and
+  expo-file-system are not installed, and Share is already used elsewhere.
+  */
+  async function share() {
+    close();
+    const body = note.body || "";
+    try {
+      await Share.share({
+        title: note.title || t("common.untitled"),
+        message: note.title ? `# ${note.title}\n\n${body}` : body,
+      });
+    } catch {
+      // A dismissed share sheet also rejects on some platforms, so this only
+      // reports; there is nothing to retry.
+      Alert.alert(t("note.shareFailed"));
+    }
+  }
+
   function openMenu() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(note.title || t("common.untitled"), undefined, [
       { text: note.pinned ? t("row.unpin") : t("row.pin"), onPress: () => onAction("pin") },
       ...(onAppearance ? [{ text: t("row.appearance"), onPress: () => setAppearance(true) }] : []),
+      { text: t("row.share"), onPress: () => void share() },
       { text: note.archived ? t("row.unarchive") : t("row.archive"), onPress: confirmArchive },
       { text: t("common.delete"), style: "destructive", onPress: confirmDelete },
       { text: t("common.cancel"), style: "cancel" },

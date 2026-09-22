@@ -4,6 +4,7 @@ import { ChevronRight, Globe2, KeyRound, LockKeyhole, Plug, Server, Share2, Tras
 import { Linking, Pressable, Share, StyleSheet, View } from "react-native";
 import type { ReactNode } from "react";
 
+import { ReadingSettingsPanel } from "@/components/reading-settings";
 import { AppText, Header, PrimaryButton, Row, Screen, SecondaryButton, Segmented } from "@/components/ui";
 import { API_URL } from "@/lib/api";
 import { useI18n, type Locale } from "@/lib/i18n";
@@ -68,6 +69,11 @@ export default function SettingsScreen() {
           options={[{ value: "en", label: "English" }, { value: "ar", label: "العربية" }]}
         />
       </Row>
+
+      <View style={{ height: metrics.gap }} />
+
+      {/* Reading preferences (MH-266), sharing the 27 theme palettes with web. */}
+      <ReadingSettingsPanel />
 
       <View style={{ height: metrics.gap }} />
 
