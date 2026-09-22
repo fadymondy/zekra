@@ -232,6 +232,19 @@ export default function NotesPage() {
     [list, onSaved, t],
   )
 
+  /** Save an icon/colour override (MH-308). Empty strings clear it. */
+  const setAppearance = useCallback(
+    async (n: Note, patch: { icon?: string; color?: string }) => {
+      try {
+        const updated = await notesApi.update(n.id, n.version, { ...n, body: n.body ?? "", ...patch })
+        onSaved(updated)
+      } catch (err) {
+        toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
+      }
+    },
+    [onSaved, t],
+  )
+
   const newButton = (
     <Button onClick={create} disabled={creating}>
       <PlusIcon />
@@ -361,7 +374,15 @@ export default function NotesPage() {
             ) : (
               <ol className="divide-y divide-line" aria-label={t("nav.notes")}>
                 {notes.map((n) => (
-                  <NoteRow key={n.id} n={n} active={selected === n.id} onSelect={() => select(n.id)} timeAgo={timeAgo} onAction={(a) => void rowAction(n, a)} />
+                  <NoteRow
+                    key={n.id}
+                    n={n}
+                    active={selected === n.id}
+                    onSelect={() => select(n.id)}
+                    timeAgo={timeAgo}
+                    onAction={(a) => void rowAction(n, a)}
+                    onAppearance={(patch) => void setAppearance(n, patch)}
+                  />
                 ))}
               </ol>
             )}
@@ -429,21 +450,32 @@ function NoteRow({
   onSelect,
   timeAgo,
   onAction,
+  onAppearance,
 }: {
   n: Note
   active: boolean
   onSelect: () => void
   timeAgo: (v: string) => string
   onAction: (action: NoteRowAction) => void
+  onAppearance: (patch: { icon?: string; color?: string }) => void
 }) {
   const { t } = useTranslations()
   const cat = n.category || "note"
-  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(cat)
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon({ category: cat, icon: n.icon, color: n.color })
   const tags = n.tags ?? []
   const snippet = (n.body ?? "").replace(/[#>*_`]|\[\[|\]\]/g, "").replace(/\s+/g, " ").trim().slice(0, 220)
   return (
     <li>
-      <NoteRowActions pinned={n.pinned} archived={n.archived} title={n.title} onAction={onAction}>
+      <NoteRowActions
+        pinned={n.pinned}
+        archived={n.archived}
+        title={n.title}
+        icon={n.icon}
+        color={n.color}
+        category={cat}
+        onAction={onAction}
+        onAppearance={onAppearance}
+      >
       <button
         type="button"
         onClick={onSelect}

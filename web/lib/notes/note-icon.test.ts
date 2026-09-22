@@ -77,3 +77,47 @@ describe("curated vs derived", () => {
     assert.notEqual(venture, person)
   })
 })
+
+describe("per-note overrides (MH-308)", () => {
+  test("an icon override wins over the category", () => {
+    const derived = noteIcon({ category: "venture" })
+    const overridden = noteIcon({ category: "venture", icon: "Bug" })
+    assert.notEqual(overridden.Icon, derived.Icon)
+    assert.equal(overridden.Icon, noteIcon({ category: "issue" }).Icon)
+  })
+
+  test("a colour override wins over the category", () => {
+    assert.equal(noteIcon({ category: "venture", color: "#6d4de6" }).color, "#6d4de6")
+  })
+
+  // The server stores "" for "no override"; treating that as a choice would
+  // leave a cleared note with no icon at all.
+  test("an empty override falls back to derived, not to blank", () => {
+    const derived = noteIcon({ category: "venture" })
+    const cleared = noteIcon({ category: "venture", icon: "", color: "" })
+    assert.equal(cleared.Icon, derived.Icon)
+    assert.equal(cleared.color, derived.color)
+  })
+
+  test("whitespace is not a choice either", () => {
+    assert.equal(noteIcon({ category: "venture", icon: "   " }).Icon, noteIcon({ category: "venture" }).Icon)
+  })
+
+  // A note written by a newer client, or via the API, can carry a name this
+  // build cannot render.
+  test("an unknown icon override degrades to the derived icon", () => {
+    const got = noteIcon({ category: "venture", icon: "SomeFutureIcon" })
+    assert.equal(got.Icon, noteIcon({ category: "venture" }).Icon)
+  })
+
+  test("icon and colour override independently", () => {
+    const got = noteIcon({ category: "venture", color: "#4e9a3e" })
+    assert.equal(got.Icon, noteIcon({ category: "venture" }).Icon, "icon should still derive")
+    assert.equal(got.color, "#4e9a3e")
+  })
+
+  test("a bare category string still works, so old call sites are unaffected", () => {
+    assert.equal(noteIcon("venture").Icon, noteIcon({ category: "venture" }).Icon)
+    assert.ok(noteIcon(null).Icon)
+  })
+})

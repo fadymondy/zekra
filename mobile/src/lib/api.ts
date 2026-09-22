@@ -101,6 +101,9 @@ export type Note = {
   body?: string;
   tags: string[];
   category?: string;
+  /** Appearance overrides (MH-308); "" or absent means derive from category. */
+  icon?: string;
+  color?: string;
   entityId?: string;
   pinned: boolean;
   archived: boolean;
@@ -115,7 +118,7 @@ export type Note = {
 };
 
 export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string };
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived">>;
+export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
 
 // A hit from the hybrid (vector + BM25) recall engine — the same shape the web
 // console reads (web/lib/api.ts Recalled).

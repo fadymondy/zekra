@@ -51,6 +51,7 @@ const en = {
   "notes.deleteConfirm": "Delete this note?",
   "notes.deleteBody": "Zekra keeps its version history, but the note disappears from your active list.",
 
+  "row.appearance": "Icon & colour",
   "row.pin": "Pin",
   "row.unpin": "Unpin",
   "row.archive": "Archive",
@@ -146,6 +147,8 @@ const ar: Record<TKey, string> = {
   "notes.archived": "مؤرشفة",
   "notes.deleteConfirm": "حذف هذه الملاحظة؟",
   "notes.deleteBody": "تحتفظ ذكرة بسجل الإصدارات، لكن الملاحظة ستختفي من قائمتك النشطة.",
+
+  "row.appearance": "الأيقونة واللون",
 
   "row.pin": "تثبيت",
   "row.unpin": "إلغاء التثبيت",

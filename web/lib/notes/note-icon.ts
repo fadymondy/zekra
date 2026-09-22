@@ -37,7 +37,15 @@ import {
 } from "lucide-react"
 
 import { categoryColor } from "../../components/graph/colors.ts"
-import { categoryIconSpec, categoryKey, FALLBACK_ICON, isCuratedCategory } from "./note-icon-map.ts"
+import {
+  categoryIconSpec,
+  categoryKey,
+  FALLBACK_ICON,
+  isCuratedCategory,
+  resolveColorOverride,
+  resolveIconName,
+  type NoteAppearance,
+} from "./note-icon-map.ts"
 
 export { isCuratedCategory }
 
@@ -66,10 +74,20 @@ const COMPONENTS: Record<string, LucideIcon> = {
   Calendar: CalendarIcon,
 }
 
-export function noteIcon(category: string | null | undefined): NoteIcon {
-  const spec = categoryIconSpec(category)
-  if (spec) return { Icon: COMPONENTS[spec.icon] ?? FileTextIcon, color: spec.color }
-  // Unknown type: generic mark, but keep the hashed colour so distinct
-  // categories still read as distinct.
-  return { Icon: COMPONENTS[FALLBACK_ICON], color: categoryColor(categoryKey(category)) }
+/**
+ * Accepts either a bare category or a note carrying overrides (MH-308).
+ * Passing a string keeps every existing call site working.
+ */
+export function noteIcon(input: string | null | undefined | NoteAppearance): NoteIcon {
+  const note: NoteAppearance = typeof input === "string" || input == null ? { category: input } : input
+
+  const iconName = resolveIconName(note)
+  const spec = categoryIconSpec(note.category)
+  const derivedColor = spec ? spec.color : categoryColor(categoryKey(note.category))
+
+  return {
+    Icon: COMPONENTS[iconName] ?? FileTextIcon,
+    // The override wins when set; clearing it returns the derived colour.
+    color: resolveColorOverride(note) ?? derivedColor,
+  }
 }

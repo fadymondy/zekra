@@ -17,6 +17,9 @@ export type Note = {
   tags: string[]
   /** The note's graph category (its entity type); "note" by default. */
   category?: string
+  /** Appearance overrides (MH-308); "" or absent means derive from category. */
+  icon?: string
+  color?: string
   /** The note's node in the brain graph. */
   entityId?: string
   pinned: boolean
@@ -50,7 +53,7 @@ export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string 
 
 export type NoteListQuery = { namespace: string; q?: string; tag?: string; category?: string; archived?: boolean; limit?: number; cursor?: string }
 
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived">>
+export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>
 
 /** A 409 from PUT/DELETE: the note moved on; `current` is the server copy. */
 export class NoteConflict extends Error {

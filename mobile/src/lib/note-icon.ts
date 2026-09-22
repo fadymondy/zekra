@@ -17,7 +17,14 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 
-import { categoryIconSpec, categoryKey, FALLBACK_ICON } from "@shared/notes/note-icon-map";
+import {
+  categoryIconSpec,
+  categoryKey,
+  FALLBACK_ICON,
+  resolveColorOverride,
+  resolveIconName,
+  type NoteAppearance,
+} from "@shared/notes/note-icon-map";
 
 /*
 The React Native binding of the shared category map.
@@ -73,12 +80,20 @@ function hashedHue(name: string): string {
  *   from the theme module, whose light/dark tables are private and whose hook
  *   cannot be called outside a component.
  */
-export function noteIcon(category: string | null | undefined, mutedColor: string): NoteIcon {
-  const spec = categoryIconSpec(category);
-  if (spec) {
-    // The one CSS variable in the shared map; everything else is a literal.
-    const color = spec.color.startsWith("var(") ? mutedColor : spec.color;
-    return { Icon: COMPONENTS[spec.icon] ?? FileText, color };
-  }
-  return { Icon: COMPONENTS[FALLBACK_ICON], color: hashedHue(categoryKey(category)) };
+export function noteIcon(
+  input: string | null | undefined | NoteAppearance,
+  mutedColor: string,
+): NoteIcon {
+  const note: NoteAppearance = typeof input === "string" || input == null ? { category: input } : input;
+
+  const Icon = COMPONENTS[resolveIconName(note)] ?? FileText;
+  const spec = categoryIconSpec(note.category);
+  // The one CSS variable in the shared map; everything else is a literal.
+  const derived = spec
+    ? spec.color.startsWith("var(")
+      ? mutedColor
+      : spec.color
+    : hashedHue(categoryKey(note.category));
+
+  return { Icon, color: resolveColorOverride(note) ?? derived };
 }

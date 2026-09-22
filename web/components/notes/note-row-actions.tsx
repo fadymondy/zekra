@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArchiveIcon, ArchiveRestoreIcon, PinIcon, PinOffIcon, Trash2Icon } from "lucide-react"
+import { ArchiveIcon, ArchiveRestoreIcon, PaletteIcon, PinIcon, PinOffIcon, Trash2Icon } from "lucide-react"
 
 import {
   AlertDialog,
@@ -18,9 +18,13 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { useTranslations } from "@/lib/i18n"
+import { NoteAppearancePicker, type AppearancePatch } from "./note-appearance-picker"
 import { useSwipe } from "./use-swipe"
 
 /*
@@ -39,13 +43,22 @@ export function NoteRowActions({
   pinned,
   archived,
   title,
+  icon,
+  color,
+  category,
   onAction,
+  onAppearance,
   children,
 }: {
   pinned: boolean
   archived: boolean
   title: string
+  icon?: string
+  color?: string
+  category?: string | null
   onAction: (action: NoteRowAction) => void
+  /** Omit to hide the appearance submenu. */
+  onAppearance?: (patch: AppearancePatch) => void
   children: React.ReactNode
 }) {
   const { t, isRtl } = useTranslations()
@@ -83,6 +96,20 @@ export function NoteRowActions({
             {archived ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
             {archived ? t("notes.unarchive") : t("notes.archive")}
           </ContextMenuItem>
+          <ContextMenuSeparator />
+          {/* Appearance override (MH-308). A submenu rather than inline items:
+              the swatch grids are too wide for a menu row. */}
+          {onAppearance ? (
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>
+                <PaletteIcon />
+                {t("notes.appearance")}
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="p-0">
+                <NoteAppearancePicker icon={icon} color={color} category={category} onChange={onAppearance} />
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          ) : null}
           <ContextMenuSeparator />
           <ContextMenuItem variant="destructive" onClick={() => setConfirm("delete")}>
             <Trash2Icon />

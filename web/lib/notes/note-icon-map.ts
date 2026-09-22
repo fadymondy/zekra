@@ -71,3 +71,41 @@ export function categoryIconSpec(category: string | null | undefined): CategoryI
 export function isCuratedCategory(category: string | null | undefined): boolean {
   return categoryKey(category) in CATEGORY_ICONS
 }
+
+/*
+Resolve a note's appearance, override first.
+
+The server stores icon/color as "" when there is no override (MH-308), so an
+empty string must fall through to the derived value rather than being treated
+as a choice — a note whose override was cleared has to go back to looking like
+its category, not lose its icon entirely.
+*/
+export interface NoteAppearance {
+  /** Icon override, or "" to derive. */
+  icon?: string
+  /** Colour override, or "" to derive. */
+  color?: string
+  category?: string | null
+}
+
+/** The icon name to render: the override when set and known, else derived. */
+export function resolveIconName(note: NoteAppearance): string {
+  const override = (note.icon ?? "").trim()
+  // An unknown override is ignored rather than rendered as a blank: the server
+  // validates, but a note written by an older client or a direct API call can
+  // still carry something this build does not know.
+  if (override && CATEGORY_ICON_NAMES.has(override)) return override
+  return categoryIconSpec(note.category)?.icon ?? FALLBACK_ICON
+}
+
+/** The colour override, if any. Callers supply their own derived fallback. */
+export function resolveColorOverride(note: NoteAppearance): string | undefined {
+  const override = (note.color ?? "").trim()
+  return override || undefined
+}
+
+/** Every icon name this build can render, for validating an override. */
+export const CATEGORY_ICON_NAMES: ReadonlySet<string> = new Set([
+  ...Object.values(CATEGORY_ICONS).map((s) => s.icon),
+  FALLBACK_ICON,
+])

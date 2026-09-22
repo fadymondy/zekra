@@ -1,15 +1,19 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Archive, ArchiveRestore, Pin, PinOff, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Palette, Pin, PinOff, Trash2 } from "lucide-react";
 
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 
+import { NoteAppearancePicker, type AppearancePatch } from "@/components/notes/note-appearance-picker";
 import { NoteExportContextItems } from "@/components/notes/note-export";
 import { noteIcon } from "@/lib/notes/note-icon";
 import { useI18n } from "../lib/i18n";
@@ -29,15 +33,16 @@ export type NoteAction = "pin" | "archive" | "delete";
  * Archive and delete are destructive, so they ask the caller to confirm rather
  * than firing directly; pin is trivially reversible and applies immediately.
  */
-export function NoteRow({ note, selected, onOpen, onAction }: {
+export function NoteRow({ note, selected, onOpen, onAction, onAppearance }: {
   note: Note;
   selected: boolean;
   onOpen: () => void;
   onAction: (action: NoteAction) => void;
+  onAppearance?: (patch: AppearancePatch) => void;
 }) {
   const { t, isRtl } = useI18n();
   // Icon + colour derived from the note category (MH-264), shared with web.
-  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(note.category);
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon({ category: note.category, icon: note.icon, color: note.color });
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const start = useRef<{ x: number; id: number } | null>(null);
@@ -132,6 +137,19 @@ export function NoteRow({ note, selected, onOpen, onAction }: {
           {note.archived ? <ArchiveRestore /> : <Archive />}
           {note.archived ? t("row.unarchive") : t("row.archive")}
         </ContextMenuItem>
+        {/* Icon/colour override (MH-308), reusing the web picker so the choices
+            stay identical to what the server validates. */}
+        {onAppearance ? (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <Palette />
+              {t("row.appearance")}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <NoteAppearancePicker icon={note.icon} color={note.color} category={note.category} onChange={onAppearance} />
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        ) : null}
         <ContextMenuSeparator />
         {/* Export (MH-212), reusing the web's exporters rather than a second
             implementation — same markdown/HTML/PDF/DOCX/PNG/text output. */}

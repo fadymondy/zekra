@@ -58,6 +58,10 @@ const en = {
   "notes.chooseBrain": "Choose a brain",
   "notes.chooseBrainBody": "Open Brains to select a knowledge space.",
 
+  "row.appearance": "Icon & colour",
+  "row.appearanceIcon": "Icon",
+  "row.appearanceColor": "Colour",
+  "row.appearanceReset": "Reset",
   "row.pin": "Pin",
   "row.unpin": "Unpin",
   "row.archive": "Archive",
@@ -215,6 +219,14 @@ const ar: Record<Key, string> = {
   "notes.loadingMore": "جارٍ تحميل المزيد",
   "notes.chooseBrain": "اختر دماغًا",
   "notes.chooseBrainBody": "افتح الأدمغة لاختيار مساحة معرفية.",
+
+  "row.appearance": "الأيقونة واللون",
+
+  "row.appearanceIcon": "الأيقونة",
+
+  "row.appearanceColor": "اللون",
+
+  "row.appearanceReset": "إعادة تعيين",
 
   "row.pin": "تثبيت",
   "row.unpin": "إلغاء التثبيت",

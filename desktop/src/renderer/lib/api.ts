@@ -39,6 +39,9 @@ export type Note = {
   body?: string;
   tags: string[];
   category?: string;
+  /** Appearance overrides (MH-308); "" means derive from category. */
+  icon?: string;
+  color?: string;
   pinned: boolean;
   archived: boolean;
   indexed: boolean;
@@ -49,7 +52,7 @@ export type Note = {
 };
 
 export type NotePage = { notes: Note[]; nextCursor?: string };
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived">>;
+export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
 
 export type Recalled = {
   id: string;

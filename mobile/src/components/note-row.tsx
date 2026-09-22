@@ -1,9 +1,10 @@
 import { Archive, ArchiveRestore, AlertTriangle, Pin, PinOff, Sparkles, Trash2 } from "lucide-react-native";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 
+import { NoteAppearanceSheet, type AppearancePatch } from "@/components/note-appearance-sheet";
 import { AppText, Row } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import type { Note } from "@/lib/api";
@@ -30,15 +31,20 @@ function relativeTime(value: string) {
  * immediately. The confirmations live here so every entry point (swipe, long
  * press) goes through the same prompt.
  */
-export function NoteRow({ note, onOpen, onAction }: {
+export function NoteRow({ note, onOpen, onAction, onAppearance }: {
   note: Note;
   onOpen: () => void;
   onAction: (action: NoteAction) => void;
+  onAppearance?: (patch: AppearancePatch) => void;
 }) {
   const p = usePalette();
-  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(note.category, p.muted);
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(
+    { category: note.category, icon: note.icon, color: note.color },
+    p.muted,
+  );
   const { t, isRtl } = useI18n();
   const swipe = useRef<Swipeable>(null);
+  const [appearance, setAppearance] = useState(false);
 
   const close = () => swipe.current?.close();
 
@@ -66,6 +72,7 @@ export function NoteRow({ note, onOpen, onAction }: {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(note.title || t("common.untitled"), undefined, [
       { text: note.pinned ? t("row.unpin") : t("row.pin"), onPress: () => onAction("pin") },
+      ...(onAppearance ? [{ text: t("row.appearance"), onPress: () => setAppearance(true) }] : []),
       { text: note.archived ? t("row.unarchive") : t("row.archive"), onPress: confirmArchive },
       { text: t("common.delete"), style: "destructive", onPress: confirmDelete },
       { text: t("common.cancel"), style: "cancel" },
@@ -128,6 +135,16 @@ export function NoteRow({ note, onOpen, onAction }: {
           </View>
         </Row>
       </Pressable>
+      {onAppearance ? (
+        <NoteAppearanceSheet
+          visible={appearance}
+          icon={note.icon}
+          color={note.color}
+          category={note.category}
+          onChange={(patch) => { setAppearance(false); onAppearance(patch); }}
+          onClose={() => setAppearance(false)}
+        />
+      ) : null}
     </Swipeable>
   );
 }

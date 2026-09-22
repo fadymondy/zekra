@@ -21,6 +21,7 @@
   "notes.preview": "معاينة",
   "notes.visual": "مرئي",
   "notes.openTabs": "الملاحظات المفتوحة",
+  "notes.appearance": "الأيقونة واللون",
   "notes.nothingToPreview": "لا يوجد ما يُعاين.",
   "notes.tagsPlaceholder": "أضف وسمًا واضغط Enter",
   "notes.removeTag": "إزالة الوسم {tag}",

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 
 import { BrainPicker } from "@/components/brain-picker";
+import type { AppearancePatch } from "@/components/note-appearance-sheet";
 import { NoteRow, type NoteAction } from "@/components/note-row";
 import { Header, IconButton, Screen, StatePanel } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
@@ -40,6 +41,12 @@ export default function NotesScreen() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ["notes"] }); },
   });
 
+  // MH-308: the icon/colour override is a plain note patch; "" clears it.
+  const appearance = useMutation({
+    mutationFn: ({ note, patch }: { note: Note; patch: AppearancePatch }) => zekraApi.updateNote(token!, note, patch),
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ["notes"] }); },
+  });
+
   const create = useMutation({
     mutationFn: () => zekraApi.createNote(token!, namespace),
     onSuccess: (note) => {
@@ -54,6 +61,7 @@ export default function NotesScreen() {
       note={item}
       onOpen={() => router.push({ pathname: "/note/[id]", params: { id: item.id } })}
       onAction={(action) => act.mutate({ note: item, action })}
+      onAppearance={current?.canWrite ? (patch) => appearance.mutate({ note: item, patch }) : undefined}
     />
   );
 

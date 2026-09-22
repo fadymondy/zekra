@@ -142,6 +142,17 @@ export function Workspace({ token, brain, onDirtyChange }: {
     await load();
   }
 
+  // MH-308: the icon/colour override is a plain note patch; "" clears it.
+  async function setAppearance(note: Note, patch: { icon?: string; color?: string }) {
+    try {
+      const saved = await zekraApi.updateNote(token, note, patch);
+      if (selected?.id === note.id) setSelected(saved);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Action failed");
+    }
+  }
+
   async function runAction(note: Note, action: NoteAction) {
     if (action === "pin") { await togglePin(note); return; }
     setPending({ note, action });
@@ -242,6 +253,7 @@ export function Workspace({ token, brain, onDirtyChange }: {
                       selected={selected?.id === note.id}
                       onOpen={() => open(note)}
                       onAction={(action) => void runAction(note, action)}
+                      onAppearance={brain.canWrite ? (patch) => void setAppearance(note, patch) : undefined}
                     />
                   ))
                 )}
