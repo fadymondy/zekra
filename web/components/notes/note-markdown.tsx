@@ -4,12 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 
 import { renderMarkdown } from "@/lib/markdown"
 import type { NoteRef } from "@/lib/markdown/wikilinks/resolver"
-import { NOTE_THEME_ATTR } from "@/lib/markdown/themes/apply"
 import { readerStyle } from "@/lib/notes/note-settings"
 import { useCodeActions } from "./code-actions"
 import { useNoteSettings } from "./note-settings-panel"
 import { useTableActions } from "./table-actions"
-import { NoteThemeStyle } from "./theme-picker"
 
 /*
 A note body, rendered through the markdown pipeline ported from mark-it-down
@@ -36,7 +34,6 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   useEffect(() => setMounted(true), [])
 
   const { settings } = useNoteSettings()
-  const themeId = settings.theme
 
   const html = useMemo(() => {
     if (!mounted) return ""
@@ -63,12 +60,9 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
 
   return (
     <>
-      <NoteThemeStyle id={themeId} />
       <div
         ref={bodyRef}
         dir="auto"
-        // The reading theme is scoped to this element, never the app chrome.
-        {...(themeId ? { [NOTE_THEME_ATTR]: themeId } : {})}
         // Typography settings. maxWidth is omitted entirely at 0, so the
         // default stays full width (see note-settings.ts).
         style={readerStyle(settings)}

@@ -29,6 +29,31 @@ The variables below are the same ones the markdown CSS already consumes
 
 export const NOTE_THEME_ATTR = 'data-note-theme'
 
+/**
+ * Apply a theme to the WHOLE app, or clear it.
+ *
+ * Written as inline custom properties on documentElement because that is the
+ * only thing that reliably beats both the light and dark token scales, which
+ * are themselves defined on :root and .dark. A stylesheet rule would lose to
+ * `.dark` on specificity for every variable the dark scale also sets.
+ *
+ * This is the same shape as mark-it-down's own fix for the regression where
+ * themes only repainted the reading pane (brain memory ba160c10).
+ */
+export function applyThemeToDocument(theme: ThemeDefinition | undefined): void {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  // Clear previous inline values first: switching between two themes that set
+  // different subsets would otherwise leave the earlier one's leftovers.
+  for (const key of Object.keys(themeVars(THEMES[0]))) root.style.removeProperty(key)
+  if (!theme) {
+    root.removeAttribute(NOTE_THEME_ATTR)
+    return
+  }
+  for (const [key, value] of Object.entries(themeVars(theme))) root.style.setProperty(key, value)
+  root.setAttribute(NOTE_THEME_ATTR, theme.id)
+}
+
 /** Every variable a theme may set on the note surface. */
 export function themeVars(theme: ThemeDefinition): Record<string, string> {
   const p = theme.palette

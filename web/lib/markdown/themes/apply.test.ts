@@ -56,16 +56,18 @@ describe("theme variables", () => {
 })
 
 describe("scoping", () => {
-  // The whole point of the scope decision: a reading theme must never repaint
-  // the app chrome, or it overrides the Zekra brand palette.
-  test("css is scoped to the note-theme selector, never :root or html", () => {
-    const css = themeCss(themeById("monokai")!, '[data-note-theme="monokai"]')
-    assert.ok(css.startsWith('[data-note-theme="monokai"]{'))
-    // Check the SELECTOR, not the declarations: --grid-body is a variable
-    // name, and matching it as a `body` selector is a false positive.
-    const selector = css.slice(0, css.indexOf("{"))
-    assert.doesNotMatch(selector, /:root|\bhtml\b|\bbody\b/)
-    // And exactly one rule, so nothing can escape the scope.
+  /*
+  SCOPE CHANGED. This suite previously asserted the opposite: that a theme was
+  confined to [data-note-theme] and could never touch the app chrome. That was
+  my call, made to protect the brand palette; the product decision is that a
+  reading theme repaints the WHOLE app, so the test now pins that instead.
+  Leaving the old assertion would have made the intended behaviour look like a
+  regression.
+  */
+  test("themeCss can still emit a scoped rule for a standalone export", () => {
+    // Still used by the HTML exporter, which writes a self-contained file.
+    const css = themeCss(themeById("monokai")!, ":root")
+    assert.ok(css.startsWith(":root{"))
     assert.equal(css.split("{").length - 1, 1)
   })
 

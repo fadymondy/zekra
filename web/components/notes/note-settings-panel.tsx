@@ -9,8 +9,10 @@ import {
   MAX_WIDTH_RANGE,
   type AutoSave,
   type NoteSettings,
-  loadSettings,
-  saveSettings,
+  getSettings,
+  setSettings,
+  subscribeSettings,
+  watchExternalSettings,
 } from "@/lib/notes/note-settings"
 import { ThemePicker } from "./theme-picker"
 
@@ -24,18 +26,30 @@ default — see below).
 */
 
 export function useNoteSettings() {
-  const [settings, setSettings] = useState<NoteSettings>(DEFAULT_SETTINGS)
+  const [settings, setLocal] = useState<NoteSettings>(DEFAULT_SETTINGS)
 
-  // Load after mount: localStorage does not exist during SSR, and seeding
-  // useState from it would desync the server and first client render.
-  useEffect(() => setSettings(loadSettings()), [])
+  /*
+  Subscribe rather than hold private state. Every caller previously owned an
+  isolated useState, so the settings panel wrote to storage and the note
+  surface never heard about it — a theme or font change did nothing until a
+  reload. Reported as "it's not even reflected in the UI".
+
+  Reading after mount also keeps SSR honest: localStorage does not exist on the
+  server, and seeding useState from it would desync the first client render.
+  */
+  useEffect(() => {
+    setLocal(getSettings())
+    const unsubscribe = subscribeSettings(setLocal)
+    const unwatch = watchExternalSettings()
+    return () => {
+      unsubscribe()
+      unwatch()
+    }
+  }, [])
 
   const update = useCallback((patch: Partial<NoteSettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...patch }
-      saveSettings(next)
-      return next
-    })
+    // Patch the STORE, not local state, so every other reader is told.
+    setSettings({ ...getSettings(), ...patch })
   }, [])
 
   return { settings, update }

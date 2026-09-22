@@ -1,6 +1,8 @@
 "use client"
 
-import { groupedThemes, themeById, themeCss } from "@/lib/markdown/themes/apply"
+import { useEffect } from "react"
+
+import { applyThemeToDocument, groupedThemes, themeById } from "@/lib/markdown/themes/apply"
 import type { ThemeDefinition } from "@/lib/markdown/themes/themes"
 
 /*
@@ -18,13 +20,18 @@ first load rather than left to strand an existing preference.
 */
 
 /**
- * Emits the theme's variables for the note surface. Scoped to the attribute so
- * it can never leak into the app chrome — see the scope note in apply.ts.
+ * Applies the chosen theme to the WHOLE app.
+ *
+ * It was originally scoped to the note surface to protect Zekra's brand
+ * palette, but the product call is that a reading theme repaints everything —
+ * so this writes the variables onto documentElement instead. Rendering
+ * nothing: the effect is the entire point.
  */
 export function NoteThemeStyle({ id }: { id: string | null }) {
-  const theme = themeById(id)
-  if (!theme) return null
-  return <style>{themeCss(theme, `[data-note-theme="${theme.id}"]`)}</style>
+  useEffect(() => {
+    applyThemeToDocument(themeById(id))
+  }, [id])
+  return null
 }
 
 export function ThemePicker({

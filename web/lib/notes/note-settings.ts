@@ -121,3 +121,53 @@ export function readerStyle(s: NoteSettings): Record<string, string> {
   if (s.maxWidth > 0) style.maxWidth = `${s.maxWidth}px`
   return style
 }
+
+/*
+A subscription, because settings are read in one place and written in another.
+
+Without this, each useNoteSettings() call owned an isolated useState: the
+settings panel wrote to localStorage and the note surface never heard about it,
+so picking a theme or a font size changed nothing on screen until a reload.
+That was reported as "it's not even reflected in the UI".
+
+Deliberately a module-level store rather than React context: the note surface
+and the settings panel are not guaranteed to share a provider (the desktop app
+mounts them in completely separate trees), and a context they both had to be
+wrapped in would be one more thing to forget.
+*/
+
+type Listener = (s: NoteSettings) => void
+const listeners = new Set<Listener>()
+let current: NoteSettings | null = null
+
+/** The live settings, loaded once and then kept in memory. */
+export function getSettings(): NoteSettings {
+  if (!current) current = loadSettings()
+  return current
+}
+
+export function setSettings(next: NoteSettings): void {
+  current = next
+  saveSettings(next)
+  for (const fn of listeners) fn(next)
+}
+
+export function subscribeSettings(fn: Listener): () => void {
+  listeners.add(fn)
+  return () => void listeners.delete(fn)
+}
+
+/**
+ * Another tab changed them. Storage events do not fire in the tab that wrote,
+ * so this only ever brings in someone else's change.
+ */
+export function watchExternalSettings(): () => void {
+  if (typeof window === "undefined") return () => {}
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== KEY) return
+    current = loadSettings()
+    for (const fn of listeners) fn(current)
+  }
+  window.addEventListener("storage", onStorage)
+  return () => window.removeEventListener("storage", onStorage)
+}

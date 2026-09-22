@@ -11,10 +11,10 @@ Nothing is stored per note, so there is no migration and no way for the icon to
 drift from the note's actual type. A per-note override could be layered on top
 later without changing any of this.
 
-Colour falls through to categoryColor()'s hashed hue for uncurated categories,
-which is what the app already used and is stable per name. Curated entries
-exist so the types people actually see every day are recognisable rather than
-arbitrary.
+The MAPPING lives in note-icon-map.ts (data only, no imports) so mobile can
+share it; this file is only the web binding of icon names to lucide-react
+components. React Native needs lucide-react-native, which is why the split
+exists.
 */
 
 import {
@@ -37,6 +37,9 @@ import {
 } from "lucide-react"
 
 import { categoryColor } from "../../components/graph/colors.ts"
+import { categoryIconSpec, categoryKey, FALLBACK_ICON, isCuratedCategory } from "./note-icon-map.ts"
+
+export { isCuratedCategory }
 
 export interface NoteIcon {
   Icon: LucideIcon
@@ -44,57 +47,29 @@ export interface NoteIcon {
   color: string
 }
 
-/**
- * Curated types, chosen from the entity vocabulary the brains actually use
- * (ventures, people, agents, issues, posts, roadmaps, releases, goals,
- * learnings). Colours are picked to stay legible on both the light parchment
- * and the dark navy card — mid-lightness, moderate chroma.
- */
-const BY_CATEGORY: Record<string, NoteIcon> = {
-  note: { Icon: StickyNoteIcon, color: "var(--grid-muted)" },
-  doc: { Icon: FileTextIcon, color: "#519aba" },
-  document: { Icon: FileTextIcon, color: "#519aba" },
-
-  venture: { Icon: RocketIcon, color: "#e2661c" },
-  portfolio: { Icon: BriefcaseIcon, color: "#b0742a" },
-  person: { Icon: UsersIcon, color: "#3d7cae" },
-  people: { Icon: UsersIcon, color: "#3d7cae" },
-  agent: { Icon: BrainIcon, color: "#6d4de6" },
-
-  issue: { Icon: BugIcon, color: "#d9455f" },
-  bug: { Icon: BugIcon, color: "#d9455f" },
-  task: { Icon: CircleCheckIcon, color: "#4e9a3e" },
-  goal: { Icon: TargetIcon, color: "#c9a227" },
-  roadmap: { Icon: FlagIcon, color: "#8250df" },
-  release: { Icon: RocketIcon, color: "#0891a0" },
-
-  learning: { Icon: GraduationCapIcon, color: "#2f9e8f" },
-  decision: { Icon: LightbulbIcon, color: "#c9a227" },
-  research: { Icon: BookOpenIcon, color: "#7e63c4" },
-  post: { Icon: MegaphoneIcon, color: "#d9455f" },
-  meeting: { Icon: CalendarIcon, color: "#6e7781" },
-}
-
-/** Normalise so "Venture", "ventures" and "venture" agree. */
-function key(category: string | null | undefined): string {
-  const c = (category ?? "").trim().toLowerCase()
-  if (!c) return "note"
-  // Naive de-pluralisation: the vocabulary is open, and "issues" vs "issue"
-  // showing two different icons looks like a bug rather than a distinction.
-  if (c.endsWith("s") && BY_CATEGORY[c.slice(0, -1)]) return c.slice(0, -1)
-  return c
+/** Icon name (as used in note-icon-map) -> the lucide-react component. */
+const COMPONENTS: Record<string, LucideIcon> = {
+  StickyNote: StickyNoteIcon,
+  FileText: FileTextIcon,
+  Rocket: RocketIcon,
+  Briefcase: BriefcaseIcon,
+  Users: UsersIcon,
+  Brain: BrainIcon,
+  Bug: BugIcon,
+  CircleCheck: CircleCheckIcon,
+  Target: TargetIcon,
+  Flag: FlagIcon,
+  GraduationCap: GraduationCapIcon,
+  Lightbulb: LightbulbIcon,
+  BookOpen: BookOpenIcon,
+  Megaphone: MegaphoneIcon,
+  Calendar: CalendarIcon,
 }
 
 export function noteIcon(category: string | null | undefined): NoteIcon {
-  const k = key(category)
-  const hit = BY_CATEGORY[k]
-  if (hit) return hit
+  const spec = categoryIconSpec(category)
+  if (spec) return { Icon: COMPONENTS[spec.icon] ?? FileTextIcon, color: spec.color }
   // Unknown type: generic mark, but keep the hashed colour so distinct
   // categories still read as distinct.
-  return { Icon: FileTextIcon, color: categoryColor(k) }
-}
-
-/** True when the category has a curated entry rather than a hashed fallback. */
-export function isCuratedCategory(category: string | null | undefined): boolean {
-  return key(category) in BY_CATEGORY
+  return { Icon: COMPONENTS[FALLBACK_ICON], color: categoryColor(categoryKey(category)) }
 }

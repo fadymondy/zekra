@@ -7,6 +7,7 @@ import * as Haptics from "expo-haptics";
 import { AppText, Row } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import type { Note } from "@/lib/api";
+import { noteIcon } from "@/lib/note-icon";
 import { metrics, usePalette } from "@/theme";
 
 export type NoteAction = "pin" | "archive" | "delete";
@@ -35,6 +36,7 @@ export function NoteRow({ note, onOpen, onAction }: {
   onAction: (action: NoteAction) => void;
 }) {
   const p = usePalette();
+  const { Icon: CategoryIcon, color: categoryTint } = noteIcon(note.category, p.muted);
   const { t, isRtl } = useI18n();
   const swipe = useRef<Swipeable>(null);
 
@@ -113,7 +115,9 @@ export function NoteRow({ note, onOpen, onAction }: {
           </View>
           {snippet ? <AppText variant="body" numberOfLines={2}>{snippet}</AppText> : null}
           <View style={styles.meta}>
-            <View style={[styles.dot, { backgroundColor: p.action }]} />
+            {/* Icon + colour derived from the category (MH-264), sharing the
+                map with web so a venture looks like a venture everywhere. */}
+            <CategoryIcon color={categoryTint} size={13} strokeWidth={1.8} />
             <AppText variant="micro">{(note.category || "note").toUpperCase()}</AppText>
             {note.archived ? <AppText variant="micro">· {t("note.archived").toUpperCase()}</AppText> : null}
             {note.tags.slice(0, 2).map((tag) => (

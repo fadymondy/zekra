@@ -21,6 +21,8 @@ import { Spotlight } from "@/components/spotlight/spotlight"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { useTranslations } from "@/lib/i18n"
+import { useNoteSettings } from "@/components/notes/note-settings-panel"
+import { NoteThemeStyle } from "@/components/notes/theme-picker"
 import { useRequireAuth } from "@/lib/use-require-auth"
 import { RealtimeProvider } from "@/lib/realtime"
 import { cn } from "@/lib/utils"
@@ -165,6 +167,10 @@ export function AppShell({
 
   return (
     <RealtimeProvider>
+    {/* The reading theme repaints the whole app, so it is applied here rather
+        than inside the note pane — otherwise it would only take effect on
+        pages that happen to render a note. */}
+    <AppThemeEffect />
     <div className="grid-shell" data-collapsed={sidebar.collapsed ? "true" : undefined}>
       <aside className="grid-shell-nav sticky top-0 hidden h-dvh flex-col overflow-y-auto md:flex">
         <div className={cn("flex h-14 shrink-0 items-center border-b border-line", sidebar.collapsed ? "justify-center px-0" : "px-4")}>
@@ -235,4 +241,11 @@ export function AppShell({
     </div>
     </RealtimeProvider>
   )
+}
+
+
+/** Applies the saved reading theme to the document, app-wide. */
+function AppThemeEffect() {
+  const { settings } = useNoteSettings()
+  return <NoteThemeStyle id={settings.theme} />
 }
