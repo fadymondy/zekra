@@ -11,7 +11,10 @@ that production does not use.
 Cloudflare ─► Nginx Proxy Manager (LXC 100, npm.3x1.io)
                  ├─ app.zekra.dev   ─► 10.10.10.109:3020  (console)  + /api,/events,/graphql ─► :8080
                  ├─ mcp.zekra.dev   ─► 10.10.10.109:8080/api/mcp
-                 └─ zekra.dev       ─► public site
+                 └─ zekra.dev       ─► public site (fadymondy.com-v2, 10.10.10.101:8083)
+                                       + /api,/events,/graphql,/install.sh,/upgrade.sh,/.well-known ─► 10.10.10.109:8080
+                                       (the same API as app.zekra.dev, so the short `zekra.dev/install.sh`
+                                       keeps working for the CLI — do not remove these routes)
 LXC 109 "zekra" (10.10.10.109)
   zekra.service      Go API          /opt/zekra/zekra-api        env /etc/zekra/zekra.env   :8080
   zekra-web.service  Next console    /opt/zekra-web (standalone)  docker node:24-bookworm-slim :3020
