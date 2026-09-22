@@ -170,38 +170,103 @@ function Shell({ settings, setSettings }: {
   );
 }
 
+/*
+The brain picker, matching the web console's grid (MH-267).
+
+Structure copied from web/components/brains/brain-cells.tsx: a hairline grid
+(gap-px over bg-line, so the rules between cards are the background showing
+through rather than borders that double up), each card carrying a coloured top
+rule from the brain's own colour, an avatar, the name, `namespace · role`, the
+description, and a three-metric row.
+
+Desktop's brain payload has no recalls or type counts — the web fetches those
+per brain in a second request this app does not make. Those two metrics render
+"—", which is exactly what the web shows before that fetch resolves, so the
+layout is identical rather than approximated.
+*/
 function BrainPicker({ brains, onPick }: { brains: Brain[] | null; onPick: (ns: string) => void }) {
   const { t } = useI18n();
   return (
-    <div className="grid-hatch flex flex-1 items-center justify-center p-8">
-      <div className="w-full max-w-3xl">
+    <div className="grid-hatch flex-1 overflow-y-auto">
+      <div className="mx-auto w-full max-w-5xl px-6 py-8">
         <h2 className="mb-4 text-xl font-medium">{t("brains.title")}</h2>
         {!brains ? (
           <p className="text-sm text-grid-muted">{t("brains.loading")}</p>
         ) : brains.length === 0 ? (
           <p className="text-sm text-grid-muted">{t("brains.empty")}</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+          <div className="grid grid-cols-1 gap-px border-y border-line bg-line sm:grid-cols-2 xl:grid-cols-3">
             {brains.map((brain) => (
-              <Card key={brain.namespace} className="cursor-pointer transition-colors hover:border-grid-action">
-                <button type="button" className="w-full text-start" onClick={() => onPick(brain.namespace)}>
-                  <CardHeader>
-                    <BrainCircuit className="size-5 text-grid-action" />
-                    <CardTitle className="truncate text-base">{brain.displayName || brain.namespace}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="grid-micro text-grid-muted">{brain.namespace} · {brain.role}</p>
-                    <p className="mt-1 text-xs text-grid-muted">
-                      {brain.memories.toLocaleString()} {t("brains.memories")}
-                    </p>
-                  </CardContent>
-                </button>
-              </Card>
+              <BrainCard key={brain.namespace} brain={brain} onPick={() => onPick(brain.namespace)} />
             ))}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function BrainCard({ brain, onPick }: { brain: Brain; onPick: () => void }) {
+  const { t } = useI18n();
+  const name = brain.displayName || brain.namespace;
+  const hex = brain.colorHex;
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      aria-label={name}
+      className="group relative flex flex-col bg-grid-card text-start transition-colors hover:bg-grid-soft focus-visible:bg-grid-soft focus-visible:outline-none"
+    >
+      {/* The brain's colour as a top rule; brightens on hover like the web. */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-0.5 bg-transparent opacity-60 transition-[background-color,opacity] group-hover:opacity-100"
+        style={hex ? { backgroundColor: hex } : undefined}
+      />
+
+      <div className="flex items-start gap-3 p-4">
+        <span
+          aria-hidden
+          className="flex size-11 shrink-0 items-center justify-center rounded-md"
+          style={{ background: hex ? `${hex}22` : "var(--grid-soft)" }}
+        >
+          <BrainCircuit className="size-5" style={{ color: hex || "var(--grid-action)" }} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-base font-medium text-grid-fg">{name}</span>
+          <div className="mt-1 truncate text-[11px] text-grid-muted">
+            {/* plaintext keeps a Latin namespace readable in the Arabic UI. */}
+            {name !== brain.namespace ? (
+              <>
+                <span className="font-mono" style={{ unicodeBidi: "plaintext" }}>
+                  {brain.namespace}
+                </span>{" "}
+                ·{" "}
+              </>
+            ) : null}
+            {brain.role}
+          </div>
+          {brain.description ? (
+            <p className="mt-2 line-clamp-2 text-xs text-grid-muted">{brain.description}</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-auto grid grid-cols-3 divide-x divide-line border-t border-line rtl:divide-x-reverse">
+        <Metric value={brain.memories.toLocaleString()} label={t("brains.memories")} />
+        <Metric value="—" label={t("brains.metric.recalls")} />
+        <Metric value="—" label={t("brains.metric.types")} />
+      </div>
+    </button>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <span className="px-3 py-2">
+      <span className="block text-sm text-grid-fg tabular-nums">{value}</span>
+      <span className="block text-[10px] tracking-wide text-grid-muted uppercase">{label}</span>
+    </span>
   );
 }
 

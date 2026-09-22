@@ -35,6 +35,8 @@ const en = {
   "brains.title": "Choose a brain",
   "brains.empty": "No brains yet.",
   "brains.memories": "memories",
+  "brains.metric.recalls": "recalls",
+  "brains.metric.types": "types",
   "brains.loading": "Loading brains",
 
   "notes.title": "Notes",
@@ -122,6 +124,8 @@ const ar: Record<TKey, string> = {
   "brains.title": "اختر دماغًا",
   "brains.empty": "لا توجد أدمغة بعد.",
   "brains.memories": "ذكرى",
+  "brains.metric.recalls": "استرجاع",
+  "brains.metric.types": "أنواع",
   "brains.loading": "جارٍ تحميل الأدمغة",
 
   "notes.title": "الملاحظات",
