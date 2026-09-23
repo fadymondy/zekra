@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { BrainAvatar } from "../components/brain-avatar";
+import { ZekraMark } from "../components/zekra-mark";
 import { IconButton, PaneResizer } from "../components/chrome";
 import { exportBrain } from "../features/brains/brains-data";
 import { useI18n, type TKey } from "../lib/i18n";
@@ -39,7 +40,7 @@ import { useRouter, type BrainList, type BrainTab } from "./router";
 import { useSession } from "./session";
 import { Slot } from "./slots";
 import { toast } from "./toast";
-import { useWindowControls } from "./toolbar";
+import { controlsAtStart, controlsPadding, useWindowControls } from "./toolbar";
 import { bridge } from "../lib/bridge";
 
 /*
@@ -251,22 +252,31 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
     });
   }
 
-  // macOS: the traffic lights live in this header (LTR: physical left edge).
-  const lights = platform === "darwin" && controls.side === "left" && !isRtl ? controls.inset : 0;
+  // macOS: the traffic lights sit in this header row when they are on the
+  // sidebar's side (left in English, right in an Arabic launch).
+  const lights = platform === "darwin" && controlsAtStart(controls, isRtl);
 
   return (
     <Sidebar side="left" collapsible="offcanvas" className="app-chrome" aria-label={t("sb.label")}>
       <SidebarHeader
         className="nav-header app-drag flex-row items-center gap-1 p-0 ps-3 pe-2"
-        style={lights ? { paddingLeft: lights } : undefined}
+        style={lights ? controlsPadding(controls) : undefined}
       >
-        {platform === "linux" ? <span className="min-w-0 flex-1 truncate text-ui font-bold">{t("app.name")}</span> : <div className="flex-1" />}
+        <div className="flex-1" />
         {platform !== "win32" ? (
           <IconButton label={t("sb.toggle")} shortcut={platform === "darwin" ? "⌥⌘S" : "Ctrl+Alt+S"} onClick={toggleSidebar}>
             <PanelLeft className="rtl:-scale-x-100" />
           </IconButton>
         ) : null}
       </SidebarHeader>
+      {/* The Zekra lockup on its own row under the window controls (Health
+          Debug's layout); Windows shows it in the title bar instead. */}
+      {platform !== "win32" ? (
+        <div className="nav-brand app-drag flex shrink-0 items-center gap-2 px-4 pt-0.5 pb-1.5">
+          <ZekraMark size={20} className="shrink-0" />
+          <span className="truncate text-[15px] font-semibold">{t("app.name")}</span>
+        </div>
+      ) : null}
 
       <SidebarContent className="gap-0 pb-2">
         {openBrain ? (

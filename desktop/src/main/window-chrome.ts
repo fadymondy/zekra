@@ -20,6 +20,7 @@ import { nativeTheme, type BrowserWindowConstructorOptions } from "electron";
 import * as os from "node:os";
 
 import type { AppInfo } from "../shared/ipc";
+import { nativeRtl } from "./app-language";
 
 export type Platform = "darwin" | "win32" | "linux";
 
@@ -53,7 +54,8 @@ export function windowBackgroundFor(platform: Platform = currentPlatform()): str
 }
 
 export function windowControlsFor(platform: Platform = currentPlatform()): AppInfo["windowControls"] {
-  if (platform === "darwin") return { side: "left", inset: MAC_TRAFFIC_LIGHT_INSET };
+  // AppKit mirrors the traffic lights to the top-right in an RTL (Arabic) launch.
+  if (platform === "darwin") return { side: nativeRtl() ? "right" : "left", inset: MAC_TRAFFIC_LIGHT_INSET };
   if (platform === "win32") return { side: "right", inset: WIN_CAPTION_WIDTH };
   return { side: "right", inset: 0 };
 }

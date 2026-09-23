@@ -21,7 +21,7 @@ import { pushRecentNote } from "../lib/recent";
 import { useCommand } from "../shell/commands";
 import { useSession } from "../shell/session";
 import { StatusBar } from "../shell/status-bar";
-import { useWindowControls, useWindowState } from "../shell/toolbar";
+import { controlsPadding, useWindowControls, useWindowState } from "../shell/toolbar";
 
 /*
 A note in its own document window — src/main/native-ui.ts:
@@ -107,8 +107,6 @@ export function NoteWindow({ ns: initialNs, id: initialId }: { ns: string | null
   useCommand("note:delete", run("delete"));
   useCommand("open-in-new-window", () => undefined);
 
-  const lights = platform === "darwin" && controls.side === "left" ? controls.inset : 0;
-  const captions = platform === "win32" && controls.side === "right" ? controls.inset : 0;
   const picking = isNew && !tab.id;
 
   return (
@@ -117,7 +115,7 @@ export function NoteWindow({ ns: initialNs, id: initialId }: { ns: string | null
       <ReadingTheme />
       <header
         className="toolbar app-drag app-chrome relative flex shrink-0 items-center gap-2 px-3"
-        style={{ height: "var(--titlebar-h)", paddingLeft: lights || undefined, paddingRight: captions || undefined }}
+        style={{ height: "var(--titlebar-h)", ...controlsPadding(controls) }}
       >
         <div className={win.focused ? "flex min-w-0 flex-1 items-center gap-2" : "flex min-w-0 flex-1 items-center gap-2 opacity-60"}>
           {platform === "win32" ? <ZekraMark size={16} className="shrink-0" /> : null}

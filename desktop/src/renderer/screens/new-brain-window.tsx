@@ -6,7 +6,7 @@ import { bridge } from "../lib/bridge";
 import { useI18n } from "../lib/i18n";
 import { usePlatform } from "../lib/platform";
 import { useSession } from "../shell/session";
-import { useWindowControls } from "../shell/toolbar";
+import { controlsPadding, useWindowControls } from "../shell/toolbar";
 
 /*
 The New Brain window (src/main/app-windows.ts showNewBrainWindow) — File ▸ New
@@ -40,14 +40,12 @@ export function NewBrainWindow() {
     void bridge().closeWindow();
   }
 
-  const lights = platform === "darwin" && controls.side === "left" ? controls.inset : 0;
-  const captions = platform === "win32" && controls.side === "right" ? controls.inset : 0;
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
       <header
         className="app-drag app-chrome flex shrink-0 items-center gap-2.5 px-6"
-        style={{ height: "calc(var(--titlebar-h) + 12px)", paddingLeft: lights || undefined, paddingRight: captions || undefined }}
+        style={{ height: "calc(var(--titlebar-h) + 12px)", ...controlsPadding(controls) }}
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
           <BrainCircuit className="size-[18px]" strokeWidth={1.75} />

@@ -328,7 +328,11 @@ export function installDesktopServices(opts: { showMainWindow: () => void; appNa
     event.preventDefault();
     flushed = true;
     const timeout = new Promise((r) => setTimeout(r, 1_500));
-    void Promise.race([eng.stop(), timeout]).finally(() => app.quit());
+    // exit, not quit: a second app.quit() from inside a cancelled will-quit is
+    // dropped by Electron, leaving a windowless process (and a pending
+    // relaunch — language switch, update — that never fires). Every window
+    // is closed and every before-quit handler has run by now.
+    void Promise.race([eng.stop(), timeout]).finally(() => app.exit(0));
   });
 }
 

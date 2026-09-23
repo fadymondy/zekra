@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, Ellipsis, Menu as MenuIcon, PanelLeft, Search } from "lucide-react";
 
@@ -58,6 +58,19 @@ export function useWindowControls(): AppInfo["windowControls"] {
   const win = useWindowState();
   if (p.platform === "darwin" && win.fullscreen) return { side: "left", inset: 0 };
   return p.windowControls;
+}
+
+/** Padding that keeps content clear of the window controls, on whichever
+ *  physical side they sit (macOS lights go right in an Arabic launch). */
+export function controlsPadding(c: AppInfo["windowControls"]): CSSProperties {
+  if (!c.inset) return {};
+  return c.side === "left" ? { paddingLeft: c.inset } : { paddingRight: c.inset };
+}
+
+/** True when the window controls sit on the layout's start edge (the
+ *  sidebar's side): left in LTR, right in RTL. */
+export function controlsAtStart(c: AppInfo["windowControls"], isRtl: boolean): boolean {
+  return c.side === (isRtl ? "right" : "left");
 }
 
 /** @deprecated use useWindowControls — kept for existing callers. */
@@ -248,13 +261,14 @@ export function Toolbar({ sidebar = true, search = true }: { sidebar?: boolean; 
     );
   }
 
-  // macOS: the unified toolbar. Physical inset: the lights never mirror.
-  const lightsHere = controls.side === "left" && controls.inset > 0 && (isRtl || !open || !sidebar);
+  // macOS: the unified toolbar. The lights live in the sidebar when it is open
+  // on their side; otherwise the toolbar keeps clear of them.
+  const lightsHere = controls.inset > 0 && (!controlsAtStart(controls, isRtl) || !open || !sidebar);
   return (
     <header
       className="toolbar app-drag app-chrome relative flex shrink-0 items-center gap-1 px-2.5"
       data-blurred={!win.focused}
-      style={lightsHere ? { paddingLeft: controls.inset } : undefined}
+      style={lightsHere ? controlsPadding(controls) : undefined}
     >
       <div className={cn("flex min-w-0 flex-1 items-center gap-1 transition-opacity", !win.focused && "opacity-60")}>
         {sidebar && !open ? (

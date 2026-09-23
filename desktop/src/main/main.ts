@@ -24,6 +24,7 @@ import * as path from "node:path";
 import { IPC, type AppSettings, type WindowStateEvent } from "../shared/ipc";
 import { handleArgv, installEarlyOpenHandlers, registerProtocol } from "./deep-links";
 import { installAppActivity } from "./app-activity"; // MH-450 app lock
+import { ensureNativeLanguageAtLaunch, nativeLanguageChanged } from "./app-language";
 import { applyThemeSource, registerIpc } from "./ipc-handlers";
 import { APP_NAME, APP_NAME_AR, installMenu } from "./menu";
 import { setMenuLocale } from "./menu-strings";
@@ -120,6 +121,9 @@ let hiddenLaunch = false;
 
 function onReady(): void {
   migrateSettings();
+  // macOS menus take their direction (RTL for Arabic) from the app language
+  // at launch — relaunch now, before any window, if it doesn't match.
+  if (ensureNativeLanguageAtLaunch(getSettings().locale)) return;
   // An unattended update install relaunches hidden if no window was open.
   hiddenLaunch = consumeHiddenRelaunch() || startHidden();
   const settings = getSettings();
@@ -183,6 +187,7 @@ function onSettingsChanged(next: AppSettings, patch: Partial<AppSettings>): void
     installMenu();
     rebuildTrayMenu();
     retitleAppWindows();
+    nativeLanguageChanged(next.locale); // relaunches on macOS: menus take the new direction
   }
   if (patch.theme) {
     applyThemeSource(next.theme);
