@@ -71,13 +71,18 @@ function runSignIn(apiBase) {
   signInStarted = Date.now();
   // The popup reads this to say "finish in the Zekra window" if reopened.
   chrome.storage.session.set({ signInPending: signInStarted, signInError: "" });
+  badge("…", "#6d4de6");
   const flight = keepAliveWhile(signIn(apiBase))
     .then(() => {
-      // The popup closed when the sign-in window opened: bring it back.
+      // The popup closed when the sign-in window opened, and Chrome usually
+      // refuses to reopen it without a click — so say it worked where the
+      // user is looking: the toolbar badge, then the popup if Chrome allows.
+      badge("OK", "#4e9a3e", 6000);
       Promise.resolve().then(() => chrome.action.openPopup()).catch(() => {});
       return { ok: true };
     })
     .catch((e) => {
+      badge("!", "#d9455f", 8000);
       chrome.storage.session.set({ signInError: errMessage(e) });
       return { ok: false, error: errMessage(e) };
     })
