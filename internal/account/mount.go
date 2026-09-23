@@ -58,6 +58,8 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 		names = append(names, m.Name)
 	}
 	log.Info("accounts: sign-in providers", "enabled", strings.Join(names, ","))
+	// Web + native availability, for the mobile app's sign-in buttons.
+	k.Router.Get("/api/auth/providers", providersHandler(configuredProviders()))
 
 	// Outermost first: strip revoked credentials before anything reads them.
 	k.UseMiddleware(

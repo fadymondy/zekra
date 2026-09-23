@@ -27,9 +27,16 @@ calls and dropped.
 
 	GET  /api/auth/github?redirect=/path            web — start (?link=1 to connect)
 	GET  /api/auth/github?app=1&return=<scheme>://…  app — start (auth session in a system browser)
+	     [&code_challenge=<S256>&code_challenge_method=S256]
 	GET  /api/auth/github/callback                  GitHub sends the browser back here
-	POST /api/auth/github/exchange {code}           app — one-time code -> {token, user}
-	POST /api/me/identities/github {code}           app link — redeem a one-time link code
+	POST /api/auth/github/exchange {code, code_verifier?}  app — one-time code -> {token, user}
+	POST /api/me/identities/github {code, code_verifier?}  app link — redeem a one-time link code
+
+The app's one-time code travels in a custom-scheme redirect, which another app
+on the device could register too (Android). So the app may bind the code to
+itself with PKCE (RFC 7636, S256 only): a challenge on start, the verifier on
+redemption. A code minted with a challenge is refused without the matching
+verifier; one minted without a challenge redeems as before.
 
 Env (fadymondy's names; aliases accepted):
 	OAUTH_GITHUB_CLIENT_ID     | GITHUB_CLIENT_ID
@@ -77,8 +84,8 @@ func (c githubConfig) ready() bool { return c.clientID != "" && c.clientSecret !
 type githubAuth struct {
 	s                            *Service
 	cfg                          githubConfig
-	codes                        *codeStore[auth.Identity]
-	linkCodes                    *codeStore[ssoIdentity]
+	codes                        *codeStore[appGrant[auth.Identity]]
+	linkCodes                    *codeStore[appGrant[ssoIdentity]]
 	tokenURL, emailsURL, userURL string
 }
 
@@ -91,8 +98,8 @@ func (s *Service) mountGitHub(router chi.Router) *auth.LoginMethod {
 	}
 	g := &githubAuth{
 		s: s, cfg: cfg,
-		codes:     newCodeStore[auth.Identity](githubCodeTTL),
-		linkCodes: newCodeStore[ssoIdentity](githubCodeTTL),
+		codes:     newCodeStore[appGrant[auth.Identity]](githubCodeTTL),
+		linkCodes: newCodeStore[appGrant[ssoIdentity]](githubCodeTTL),
 		tokenURL:  githubTokenURL, emailsURL: githubEmailsURL, userURL: githubUserURL,
 	}
 	router.Get("/api/auth/github", g.start)
@@ -105,12 +112,9 @@ func (s *Service) mountGitHub(router chi.Router) *auth.LoginMethod {
 func (g *githubAuth) start(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ret := safeReturnPath(q.Get("redirect"))
-	app := ""
-	if q.Get("app") == "1" {
-		if app = g.safeAppReturn(q.Get("return")); app == "" {
-			writeJSONErr(w, http.StatusBadRequest, "invalid app return target")
-			return
-		}
+	app, challenge, ok := appStartParams(w, q, g.cfg.appScheme)
+	if !ok {
+		return
 	}
 	link := q.Get("link") == "1"
 	params := url.Values{}
@@ -120,6 +124,10 @@ func (g *githubAuth) start(w http.ResponseWriter, r *http.Request) {
 	if app != "" {
 		params.Set("app", "1")
 		params.Set("return", app)
+		if challenge != "" {
+			params.Set("code_challenge", challenge)
+			params.Set("code_challenge_method", "S256")
+		}
 	}
 	if link {
 		params.Set("link", "1")
@@ -136,7 +144,8 @@ func (g *githubAuth) start(w http.ResponseWriter, r *http.Request) {
 		setLinkCookie(w, "", g.secure())
 	}
 	b64 := base64.RawURLEncoding.EncodeToString
-	http.SetCookie(w, g.flowCookie(state+"."+verifier+"."+b64([]byte(ret))+"."+b64([]byte(app)), int(githubFlowTTL.Seconds())))
+	// A challenge is base64url, so it never contains the "." separator.
+	http.SetCookie(w, g.flowCookie(state+"."+verifier+"."+b64([]byte(ret))+"."+b64([]byte(app))+"."+challenge, int(githubFlowTTL.Seconds())))
 	sum := sha256.Sum256([]byte(verifier))
 	authQ := url.Values{
 		"client_id":             {g.cfg.clientID},
@@ -151,12 +160,16 @@ func (g *githubAuth) start(w http.ResponseWriter, r *http.Request) {
 
 func (g *githubAuth) callback(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	var state, verifier, ret, app string
+	var state, verifier, ret, app, challenge string
 	if c, err := r.Cookie(githubFlowCookie); err == nil {
-		if p := strings.Split(c.Value, "."); len(p) == 4 {
+		// 5 parts; 4 from a flow started before app PKCE existed.
+		if p := strings.Split(c.Value, "."); len(p) == 4 || len(p) == 5 {
 			state, verifier = p[0], p[1]
 			ret = safeReturnPath(unb64(p[2]))
 			app = g.safeAppReturn(unb64(p[3]))
+			if len(p) == 5 && validChallenge(p[4]) {
+				challenge = p[4]
+			}
 		}
 	}
 	http.SetCookie(w, g.flowCookie("", -1))
@@ -208,7 +221,7 @@ func (g *githubAuth) callback(w http.ResponseWriter, r *http.Request) {
 				fail("state")
 				return
 			}
-			http.Redirect(w, r, withQueryParam(app, "code", g.linkCodes.put(pid)), http.StatusFound)
+			http.Redirect(w, r, withQueryParam(app, "code", g.linkCodes.put(appGrant[ssoIdentity]{V: pid, Challenge: challenge})), http.StatusFound)
 			return
 		}
 		g.s.finishWebLink(w, r, link, pid, ret, true, http.StatusFound)
@@ -235,7 +248,7 @@ func (g *githubAuth) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if app != "" {
-		http.Redirect(w, r, withQueryParam(app, "code", g.codes.put(*id)), http.StatusFound)
+		http.Redirect(w, r, withQueryParam(app, "code", g.codes.put(appGrant[auth.Identity]{V: *id, Challenge: challenge})), http.StatusFound)
 		return
 	}
 	if _, err := g.s.Auth.IssueSession(w, *id); err != nil {
@@ -348,7 +361,8 @@ func (g *githubAuth) flowCookie(value string, maxAge int) *http.Cookie {
 
 func (g *githubAuth) exchangeCode(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Code string `json:"code"`
+		Code     string `json:"code"`
+		Verifier string `json:"code_verifier"`
 	}
 	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10)).Decode(&body) != nil || body.Code == "" {
 		writeJSONErr(w, http.StatusBadRequest, "code required")
@@ -358,12 +372,12 @@ func (g *githubAuth) exchangeCode(w http.ResponseWriter, r *http.Request) {
 		writeJSONErr(w, http.StatusTooManyRequests, "too many requests")
 		return
 	}
-	id := g.codes.take(body.Code)
-	if id == nil {
+	grant := g.codes.take(body.Code)
+	if grant == nil || !grant.redeemableWith(body.Verifier) {
 		writeJSONErr(w, http.StatusUnauthorized, "invalid or expired code")
 		return
 	}
-	g.s.nativeAnswer(w, id, nil)
+	g.s.nativeAnswer(w, &grant.V, nil)
 }
 
 func (g *githubAuth) linkExchange(w http.ResponseWriter, r *http.Request) {
@@ -371,23 +385,29 @@ func (g *githubAuth) linkExchange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		Code string `json:"code"`
+		Code     string `json:"code"`
+		Verifier string `json:"code_verifier"`
 	}
 	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10)).Decode(&body) != nil || body.Code == "" {
 		writeJSONErr(w, http.StatusBadRequest, "code required")
 		return
 	}
-	pid := g.linkCodes.take(body.Code)
-	if pid == nil {
+	grant := g.linkCodes.take(body.Code)
+	if grant == nil || !grant.redeemableWith(body.Verifier) {
 		writeJSONErr(w, http.StatusUnauthorized, "invalid or expired code")
 		return
 	}
-	g.s.linkForRequest(w, r, *pid)
+	g.s.linkForRequest(w, r, grant.V)
 }
 
 // safeAppReturn accepts only the app's own scheme (zekra://…).
-func (g *githubAuth) safeAppReturn(p string) string {
-	if p == "" || len(p) > 256 || !strings.HasPrefix(p, g.cfg.appScheme+"://") {
+func (g *githubAuth) safeAppReturn(p string) string { return safeAppReturn(g.cfg.appScheme, p) }
+
+// safeAppReturn is the app-return allow-list the GitHub and Google app flows
+// share: an absolute URL on the app's own custom scheme, no userinfo, no
+// control characters or backslashes, at most 256 bytes. "" means refused.
+func safeAppReturn(scheme, p string) string {
+	if scheme == "" || p == "" || len(p) > 256 || !strings.HasPrefix(p, scheme+"://") {
 		return ""
 	}
 	for _, c := range p {
@@ -395,10 +415,64 @@ func (g *githubAuth) safeAppReturn(p string) string {
 			return ""
 		}
 	}
-	if u, err := url.Parse(p); err != nil || u.Scheme != g.cfg.appScheme || u.User != nil {
+	if u, err := url.Parse(p); err != nil || u.Scheme != scheme || u.User != nil {
 		return ""
 	}
 	return p
+}
+
+// appStartParams reads an app-mode start (?app=1&return=…[&code_challenge=…&
+// code_challenge_method=S256]). ok=false means it already answered 400. For a
+// browser start (no app=1) it returns "", "", true.
+func appStartParams(w http.ResponseWriter, q url.Values, scheme string) (app, challenge string, ok bool) {
+	if q.Get("app") != "1" {
+		return "", "", true
+	}
+	if app = safeAppReturn(scheme, q.Get("return")); app == "" {
+		writeJSONErr(w, http.StatusBadRequest, "invalid app return target")
+		return "", "", false
+	}
+	if c := q.Get("code_challenge"); c != "" {
+		if q.Get("code_challenge_method") != "S256" || !validChallenge(c) {
+			writeJSONErr(w, http.StatusBadRequest, "invalid code_challenge (S256 only)")
+			return "", "", false
+		}
+		challenge = c
+	}
+	return app, challenge, true
+}
+
+// appGrant is what an app's one-time code stands for, and the PKCE challenge
+// (S256, base64url) the app bound it to, if any.
+type appGrant[T any] struct {
+	V         T
+	Challenge string
+}
+
+// redeemableWith: a code bound to a challenge needs the verifier that hashes to
+// it; an unbound code needs nothing more. The code is spent either way (take).
+func (a appGrant[T]) redeemableWith(verifier string) bool {
+	if a.Challenge == "" {
+		return true
+	}
+	if verifier == "" || len(verifier) < 43 || len(verifier) > 128 {
+		return false
+	}
+	sum := sha256.Sum256([]byte(verifier))
+	return constantEq(base64.RawURLEncoding.EncodeToString(sum[:]), a.Challenge)
+}
+
+// validChallenge: an S256 challenge is the 43-character base64url of a SHA-256.
+func validChallenge(c string) bool {
+	if len(c) != 43 {
+		return false
+	}
+	for _, r := range c {
+		if !(r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-' || r == '_') {
+			return false
+		}
+	}
+	return true
 }
 
 // codeStore: random, single-use, short-lived codes -> a value. Sign-in and link

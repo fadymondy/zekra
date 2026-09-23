@@ -349,7 +349,8 @@ People's accounts live under `/api/auth/*` (sign-in), `/api/me/*` (the signed-in
 | Sign-in by emailed code | `POST /api/auth/code/request` `{email}`, `POST /api/auth/code/verify` `{email, code}` |
 | Two-factor | `POST /api/auth/2fa/challenge`; `GET /api/me/2fa`; `POST /api/me/2fa/enroll`, `/confirm`, `/disable`, `/recovery` |
 | Single sign-on | `GET /api/auth/google`, `GET /api/auth/github`, `GET /api/auth/apple` (each only when configured) |
-| Linked accounts | `GET /api/me/identities`, `DELETE /api/me/identities/{ref}` |
+| App sign-in | `GET /api/auth/providers` (`{providers: [{name, web, app, native}]}`); browser flow in an auth session: `GET /api/auth/google?app=1&return=zekra://auth/google&code_challenge=…&code_challenge_method=S256` then `POST /api/auth/google/exchange` `{code, code_verifier}`, and the same for `github`; native sheets: `POST /api/auth/google/token` `{id_token}`, `POST /api/auth/apple/token` `{identity_token, nonce, full_name?}` — each answers like `/api/auth/login` |
+| Linked accounts | `GET /api/me/identities`, `DELETE /api/me/identities/{ref}`; from the app: `POST /api/me/identities/google` `{id_token}` or `{code, code_verifier}`, `POST /api/me/identities/github` `{code, code_verifier}` (codes from the `&link=1` app flow) |
 | Profile and preferences | `GET` and `PUT /api/me/account/profile`, `GET` and `PUT /api/me/account/notifications` |
 | Data export | `GET` and `POST /api/me/account/export`, `GET /api/me/account/export/download` |
 | Account deletion | `GET` and `POST /api/me/delete`, `POST /api/me/delete/cancel` |

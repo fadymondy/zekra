@@ -25,7 +25,7 @@ Sign in with Apple (ported from fadymondy's internal/server/apple.go).
 
 	GET  /api/auth/apple            web — start (state + nonce, response_mode=form_post)
 	POST /api/auth/apple/callback   Apple POSTs the form here
-	POST /api/auth/apple/token      native identity token {identity_token, nonce?, full_name?} -> {token, user}
+	POST /api/auth/apple/token      native identity token {identity_token, nonce, full_name?} -> {token, user}
 	POST /api/me/identities/apple   native link {identity_token, nonce}
 
 Apple's form_post is a cross-site POST, so the flow cookie is SameSite=None;
@@ -218,7 +218,8 @@ func (a *appleAuth) callback(w http.ResponseWriter, r *http.Request) {
 		fail("apple")
 		return
 	}
-	claims, err := a.keys.verifyApple(r.Context(), rawID, []string{a.cfg.servicesID}, nonce)
+	// Web: the nonce is the server's own (from the flow cookie) and went to Apple raw.
+	claims, err := a.keys.verifyApple(r.Context(), rawID, []string{a.cfg.servicesID}, nonce, nonceRaw)
 	if err != nil {
 		fail("apple")
 		return
@@ -298,21 +299,24 @@ func (a *appleAuth) flowCookie(value string, maxAge int) *http.Cookie {
 	}
 }
 
+// nativeToken signs in with an identity token from the app's Apple sheet. The
+// nonce is required and must hash to the token's claim (see nonceSHA256), so a
+// token lifted from one sign-in cannot be replayed.
 func (a *appleAuth) nativeToken(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		IdentityToken string `json:"identity_token"`
 		Nonce         string `json:"nonce"`
 		FullName      string `json:"full_name"`
 	}
-	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 16<<10)).Decode(&body) != nil || body.IdentityToken == "" {
-		writeJSONErr(w, http.StatusBadRequest, "identity_token required")
+	if json.NewDecoder(http.MaxBytesReader(w, r.Body, 16<<10)).Decode(&body) != nil || body.IdentityToken == "" || body.Nonce == "" {
+		writeJSONErr(w, http.StatusBadRequest, "identity_token and nonce required")
 		return
 	}
 	if !oauthLimit.allow("apple:" + clientIP(r)) {
 		writeJSONErr(w, http.StatusTooManyRequests, "too many requests")
 		return
 	}
-	claims, err := a.keys.verifyApple(r.Context(), body.IdentityToken, a.cfg.nativeAudiences(), body.Nonce)
+	claims, err := a.keys.verifyApple(r.Context(), body.IdentityToken, a.cfg.nativeAudiences(), body.Nonce, nonceSHA256)
 	if err != nil {
 		writeJSONErr(w, http.StatusUnauthorized, "invalid apple token")
 		return
@@ -338,7 +342,7 @@ func (a *appleAuth) linkNative(w http.ResponseWriter, r *http.Request) {
 		writeJSONErr(w, http.StatusBadRequest, "identity_token and nonce required")
 		return
 	}
-	claims, err := a.keys.verifyApple(r.Context(), body.IdentityToken, a.cfg.nativeAudiences(), body.Nonce)
+	claims, err := a.keys.verifyApple(r.Context(), body.IdentityToken, a.cfg.nativeAudiences(), body.Nonce, nonceSHA256)
 	if err != nil {
 		writeJSONErr(w, http.StatusUnauthorized, "invalid apple token")
 		return
@@ -382,11 +386,28 @@ type appleClaims struct {
 	jwt.RegisteredClaims
 }
 
+// nonceMode says how the token's nonce claim relates to the nonce presented.
+type nonceMode int
+
+const (
+	// nonceRaw: the web flow. The nonce is the server's own, kept in the flow
+	// cookie, and was sent to Apple as is.
+	nonceRaw nonceMode = iota
+	// nonceSHA256: native sign-in and link. The app sent Apple the SHA-256 (hex)
+	// of a random value and gives the server the value itself. Only the hash is
+	// accepted: the claim is readable by anyone holding the token, so accepting
+	// it raw would let a lifted token be replayed with its own claim as the nonce.
+	nonceSHA256
+)
+
 // verifyApple checks signature (RS256, Apple's JWKS), issuer, expiry, audience,
-// nonce (raw or its SHA-256 hex) and a verified email.
-func (k *jwks) verifyApple(ctx context.Context, raw string, audiences []string, nonce string) (*appleClaims, error) {
+// the nonce (required; compared as mode says) and a verified email.
+func (k *jwks) verifyApple(ctx context.Context, raw string, audiences []string, nonce string, mode nonceMode) (*appleClaims, error) {
 	if len(audiences) == 0 {
 		return nil, errors.New("no audiences configured")
+	}
+	if nonce == "" {
+		return nil, errors.New("nonce required")
 	}
 	var c appleClaims
 	_, err := jwt.ParseWithClaims(raw, &c, func(t *jwt.Token) (any, error) {
@@ -400,11 +421,13 @@ func (k *jwks) verifyApple(ctx context.Context, raw string, audiences []string, 
 	if !audienceOK(c.Audience, audiences) {
 		return nil, errors.New("wrong audience")
 	}
-	if nonce != "" {
+	want := nonce
+	if mode == nonceSHA256 {
 		sum := sha256.Sum256([]byte(nonce))
-		if !constantEq(c.Nonce, nonce) && !constantEq(c.Nonce, hex.EncodeToString(sum[:])) {
-			return nil, errors.New("nonce mismatch")
-		}
+		want = hex.EncodeToString(sum[:])
+	}
+	if !constantEq(c.Nonce, want) {
+		return nil, errors.New("nonce mismatch")
 	}
 	if c.Email == "" || !boolish(c.EmailVerified) {
 		return nil, errors.New("email not verified")
