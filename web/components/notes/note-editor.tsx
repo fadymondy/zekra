@@ -1,23 +1,26 @@
 "use client"
 
-// One note's editor: a clean header (editable title + category), a meta line, an overflow menu
-// (pin, archive, versions, view in graph, delete), compact tags, and a Preview / Edit body. Existing
-// notes open rendered; new ones open in Edit. Autosaves ~800ms after the last change with
-// optimistic concurrency (`version` in the PUT body); a 409 shows the "changed elsewhere" banner
-// with keep-mine / use-theirs. Typing `[[` in the body opens a node picker that inserts [[Title]].
-// Also embedded in the graph inspector (`embedded`: no Links section, tighter padding).
+// One note's editor, in the desktop app's shape (desktop/src/renderer/features/editor/
+// note-editor.tsx): one scrolling page, as in Apple Notes — the note's icon tile (click for icon &
+// colour), the title and a one-line description inline, category and tags, then the live WYSIWYG
+// body. The markdown source (with the `[[` node picker) is a secondary view from the overflow menu,
+// which also holds pin, archive, versions, graph, export and delete. Autosaves ~800ms after the
+// last change with optimistic concurrency (`version` in the PUT body); a 409 shows the "changed
+// elsewhere" banner with keep-mine / use-theirs. Also embedded in the graph inspector (`embedded`:
+// no Links section, tighter padding).
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react"
 import Link from "next/link"
 import {
-  AlertTriangleIcon, ArchiveIcon, ArchiveRestoreIcon, ArrowLeftIcon, EllipsisIcon, HistoryIcon, NetworkIcon, PinIcon,
-  PinOffIcon, PlusIcon, Trash2Icon, XIcon,
+  AlertTriangleIcon, ArchiveIcon, ArchiveRestoreIcon, ArrowLeftIcon, Code2Icon, EllipsisIcon, HashIcon, HistoryIcon, NetworkIcon,
+  PinIcon, PinOffIcon, PlusIcon, Trash2Icon, XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { EntityResults } from "@/components/graph/entity-picker"
 import { NoteLinksSection } from "@/components/notes/note-links"
-import { NoteMarkdown } from "@/components/notes/note-markdown"
+import { NoteAppearancePicker } from "@/components/notes/note-appearance-picker"
+import { NoteTile } from "@/components/notes/note-list-row"
 import { NoteExportItems } from "@/components/notes/note-export"
 import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg"
 import { TagCombobox } from "@/components/notes/tag-combobox"
@@ -29,8 +32,8 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { ApiError } from "@/lib/api"
 import { refreshGraph, type Entity } from "@/lib/graph-edit"
@@ -38,19 +41,34 @@ import { useTranslations } from "@/lib/i18n"
 import { NoteConflict, notesApi, useNoteVersions, type Note } from "@/lib/notes"
 import { cn } from "@/lib/utils"
 
-type Draft = { title: string; body: string; tags: string[]; category: string; pinned: boolean; archived: boolean }
+type Draft = {
+  title: string
+  description: string
+  body: string
+  tags: string[]
+  category: string
+  icon: string
+  color: string
+  pinned: boolean
+  archived: boolean
+}
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error"
 
 const toDraft = (n: Note): Draft => ({
   title: n.title,
+  description: n.description ?? "",
   body: n.body ?? "",
   tags: n.tags ?? [],
   category: n.category || "note",
+  icon: n.icon ?? "",
+  color: n.color ?? "",
   pinned: n.pinned,
   archived: n.archived,
 })
 
 const DEBOUNCE_MS = 800
+/** The server's cap on a note's description (notes_handlers.go). */
+const DESCRIPTION_MAX = 280
 
 /** A link that opens the brain overview focused on this note's graph node. */
 export function graphHref(locale: string, note: Pick<Note, "namespace" | "id" | "entityId">) {
@@ -82,9 +100,20 @@ export function NoteEditor({
   const [server, setServer] = useState<Note>(note)
   const [state, setState] = useState<SaveState>("idle")
   const [conflict, setConflict] = useState<Note | null>(null)
-  const [tab, setTab] = useState<string>(
-    () => initialMode ?? (!(note.body ?? "").trim() && !note.title.trim() ? "write" : "preview"),
-  )
+  // The markdown source replaces the live body when asked for (overflow menu).
+  const [source, setSource] = useState(false)
+  const titleRef = useRef<HTMLTextAreaElement | null>(null)
+  const descRef = useRef<HTMLTextAreaElement | null>(null)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+  // A new (empty) note starts in its title, as in Notes.
+  useEffect(() => {
+    if (initialMode === "write" || (!note.title.trim() && !(note.body ?? "").trim())) titleRef.current?.focus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const focusBody = () => {
+    const pm = bodyRef.current?.querySelector(".ProseMirror") as HTMLElement | null
+    pm?.focus()
+  }
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   // The rendered preview, captured by PNG export (MH-212).
@@ -240,34 +269,119 @@ export function NoteEditor({
   const toggleTag = (tag: string) =>
     edit({ tags: draft.tags.includes(tag) ? draft.tags.filter((x) => x !== tag) : [...draft.tags, tag] }, true)
 
-  const px = embedded ? "px-4" : "px-6"
+  const px = embedded ? "px-4" : "px-6 xl:px-10"
 
   return (
     <div className="flex min-w-0 flex-col">
-      {/* Header: back (mobile), title, category, overflow */}
-      <div className={cn("flex flex-col gap-2 border-b border-line py-4", px)}>
-        <div className="flex items-start gap-2">
+      {conflict ? (
+        <div role="alert" className={cn("flex flex-wrap items-center gap-3 border-b border-line bg-amber-500/10 py-3 text-sm", px)}>
+          <AlertTriangleIcon className="size-4 shrink-0 text-amber-500" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-grid-fg">{t("notes.conflictTitle")}</p>
+            <p className="text-grid-muted">{t("notes.conflictBody")}</p>
+          </div>
+          <Button size="sm" onClick={keepMine}>
+            {t("notes.keepMine")}
+          </Button>
+          <Button size="sm" variant="outline" onClick={takeTheirs}>
+            {t("notes.useTheirs")}
+          </Button>
+        </div>
+      ) : null}
+
+      {!server.indexed && server.indexError ? (
+        <p className={cn("flex items-start gap-2 border-b border-line py-2 text-xs text-grid-warn", px)}>
+          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" />
+          {t("notes.indexFailed", { error: server.indexError })}
+        </p>
+      ) : null}
+
+      {/* Header: icon tile · title + description · overflow; then category, tags, status. */}
+      <div className={cn(embedded ? "pt-4 pb-2" : "pt-7 pb-3", px)}>
+        <div className="flex items-start gap-3">
           {onBack ? (
-            <Button variant="ghost" size="icon-sm" className="mt-0.5 lg:hidden" onClick={onBack} aria-label={t("notes.back")}>
+            <Button variant="ghost" size="icon-sm" className="mt-1 lg:hidden" onClick={onBack} aria-label={t("notes.back")}>
               <ArrowLeftIcon className="rtl:-scale-x-100" />
             </Button>
           ) : null}
-          <input
-            dir="auto"
-            value={draft.title}
-            onChange={(e) => edit({ title: e.target.value })}
-            placeholder={t("notes.titlePlaceholder")}
-            aria-label={t("notes.titlePlaceholder")}
-            className={cn(
-              "min-w-0 flex-1 bg-transparent font-medium text-grid-fg outline-none placeholder:text-grid-muted",
-              embedded ? "text-lg" : "text-2xl",
-            )}
-          />
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={t("notes.changeIcon")}
+                  title={t("notes.changeIcon")}
+                  className="mt-0.5 shrink-0 rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-grid-action/50"
+                />
+              }
+            >
+              <NoteTile
+                note={{ category: draft.category, icon: draft.icon, color: draft.color }}
+                className={cn("rounded-lg", embedded ? "size-8" : "size-9")}
+                iconClassName="size-[18px]"
+              />
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-3">
+              <NoteAppearancePicker
+                icon={draft.icon}
+                color={draft.color}
+                category={draft.category}
+                onChange={(patch) =>
+                  edit({ ...(patch.icon !== undefined ? { icon: patch.icon } : {}), ...(patch.color !== undefined ? { color: patch.color } : {}) }, true)
+                }
+              />
+            </PopoverContent>
+          </Popover>
+
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <textarea
+              ref={titleRef}
+              rows={1}
+              dir="auto"
+              value={draft.title}
+              onChange={(e) => edit({ title: e.target.value.replace(/\n/g, " ") })}
+              onKeyDown={(e) => {
+                const el = e.currentTarget
+                if (e.key === "Enter" || (e.key === "ArrowDown" && el.selectionStart === el.value.length)) {
+                  e.preventDefault()
+                  descRef.current?.focus()
+                }
+              }}
+              placeholder={t("notes.titlePlaceholder")}
+              aria-label={t("notes.titlePlaceholder")}
+              className={cn(
+                "field-sizing-content w-full resize-none bg-transparent leading-tight font-bold tracking-[-0.01em] text-grid-fg outline-none placeholder:text-grid-muted/50 rtl:tracking-normal",
+                embedded ? "text-xl" : "text-[26px]",
+              )}
+            />
+            <textarea
+              ref={descRef}
+              rows={1}
+              dir="auto"
+              value={draft.description}
+              maxLength={DESCRIPTION_MAX}
+              onChange={(e) => edit({ description: e.target.value.replace(/\n/g, " ") })}
+              onKeyDown={(e) => {
+                const el = e.currentTarget
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  focusBody()
+                } else if ((e.key === "Backspace" && !el.value) || (e.key === "ArrowUp" && el.selectionStart === 0 && el.selectionEnd === 0)) {
+                  e.preventDefault()
+                  titleRef.current?.focus()
+                }
+              }}
+              placeholder={t("notes.descriptionPlaceholder")}
+              aria-label={t("notes.descriptionLabel")}
+              className="field-sizing-content max-h-[3lh] w-full resize-none overflow-y-auto bg-transparent text-[15px] leading-snug text-grid-muted outline-none placeholder:text-grid-muted/50"
+            />
+          </div>
+
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("common.actions")} />}>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="mt-1" aria-label={t("common.actions")} />}>
               <EllipsisIcon />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-48">
+            <DropdownMenuContent align="end" className="min-w-52">
               <DropdownMenuItem onClick={() => edit({ pinned: !draft.pinned }, true)}>
                 {draft.pinned ? <PinOffIcon /> : <PinIcon />}
                 {draft.pinned ? t("notes.unpin") : t("notes.pin")}
@@ -275,6 +389,11 @@ export function NoteEditor({
               <DropdownMenuItem onClick={() => edit({ archived: !draft.archived }, true)}>
                 {draft.archived ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
                 {draft.archived ? t("notes.unarchive") : t("notes.archive")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setSource((v) => !v)}>
+                <Code2Icon />
+                {source ? t("notes.sourceDone") : t("notes.sourceEdit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVersionsOpen(true)}>
                 <HistoryIcon />
@@ -304,113 +423,66 @@ export function NoteEditor({
           </DropdownMenu>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <CategoryPicker namespace={note.namespace} value={draft.category} onChange={(c) => edit({ category: c }, true)} />
-          {/* Tags: inline chips + the combobox of existing tags */}
-          <div className="flex min-w-0 flex-wrap items-center gap-1">
-            {draft.tags.map((tag) => (
-              <span key={tag} className="grid-chip inline-flex items-center gap-1">
-                <bdi>{tag}</bdi>
-                <button
-                  type="button"
-                  aria-label={t("notes.removeTag", { tag })}
-                  onClick={() => toggleTag(tag)}
-                  className="text-grid-muted hover:text-grid-fg"
-                >
-                  <XIcon className="size-3" />
-                </button>
-              </span>
-            ))}
-            <TagCombobox
-              namespace={note.namespace}
-              selected={draft.tags}
-              onToggle={toggleTag}
-              allowCreate
-              trigger={
-                <Button variant="ghost" size="xs" className="text-grid-muted">
-                  <PlusIcon /> {t("notes.addTag")}
-                </Button>
-              }
-            />
-          </div>
+        <div className={cn("mt-2.5 flex flex-wrap items-center gap-1.5", !embedded && "ps-12")}>
+          <CategoryPicker
+            namespace={note.namespace}
+            value={draft.category}
+            onChange={(c) => edit({ category: c }, true)}
+            className="h-6 w-auto min-w-0 gap-1 rounded-md border-transparent bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] px-1.5 text-[13px] shadow-none"
+          />
+          {draft.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex h-6 items-center gap-0.5 rounded-md bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] ps-1.5 pe-1 text-[13px] text-grid-fg/80"
+            >
+              <HashIcon className="size-3 text-grid-muted" />
+              <bdi>{tag}</bdi>
+              <button
+                type="button"
+                aria-label={t("notes.removeTag", { tag })}
+                onClick={() => toggleTag(tag)}
+                className="rounded-sm p-px text-grid-muted hover:text-grid-fg"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </span>
+          ))}
+          <TagCombobox
+            namespace={note.namespace}
+            selected={draft.tags}
+            onToggle={toggleTag}
+            allowCreate
+            trigger={
+              <Button variant="ghost" size="xs" className="h-6 text-[13px] text-grid-muted">
+                <PlusIcon /> {draft.tags.length ? null : t("notes.addTag")}
+              </Button>
+            }
+          />
+          <span className="ms-auto flex items-center gap-1.5 text-[12.5px] text-grid-muted">
+            {draft.pinned ? <PinIcon className="size-3" aria-label={t("notes.pinned")} /> : null}
+            {draft.archived ? <ArchiveIcon className="size-3" aria-label={t("notes.archived")} /> : null}
+            <span className={cn(state === "error" && "text-grid-danger-text")} aria-live="polite">
+              {status}
+            </span>
+            <span aria-hidden>·</span>
+            <span title={`${formatDate(server.updatedAt, { dateStyle: "medium", timeStyle: "short" })} · ${t("notes.created", { when: timeAgo(server.createdAt) })}`}>
+              {t("notes.version", { n: server.version })}
+            </span>
+          </span>
         </div>
-
-        <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-grid-muted">
-          <span className={cn(state === "error" && "text-grid-danger-text")} aria-live="polite">
-            {status}
-          </span>
-          <span aria-hidden>·</span>
-          <span title={formatDate(server.updatedAt, { dateStyle: "medium", timeStyle: "short" })}>
-            {t("notes.updated", { when: timeAgo(server.updatedAt) })}
-          </span>
-          <span aria-hidden>·</span>
-          <span title={formatDate(server.createdAt, { dateStyle: "medium", timeStyle: "short" })}>
-            {t("notes.created", { when: timeAgo(server.createdAt) })}
-          </span>
-          <span aria-hidden>·</span>
-          <span>{t("notes.version", { n: server.version })}</span>
-          {server.source ? (
-            <>
-              <span aria-hidden>·</span>
-              <bdi className="font-mono">{server.source}</bdi>
-            </>
-          ) : null}
-          {draft.pinned ? (
-            <>
-              <span aria-hidden>·</span>
-              <PinIcon className="size-3 text-grid-action" aria-label={t("notes.pinned")} />
-            </>
-          ) : null}
-          {draft.archived ? (
-            <>
-              <span aria-hidden>·</span>
-              <span>{t("notes.archived")}</span>
-            </>
-          ) : null}
-        </p>
       </div>
 
-      {conflict ? (
-        <div role="alert" className={cn("flex flex-wrap items-center gap-3 border-b border-line bg-amber-500/10 py-3 text-sm", px)}>
-          <AlertTriangleIcon className="size-4 shrink-0 text-amber-500" />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-grid-fg">{t("notes.conflictTitle")}</p>
-            <p className="text-grid-muted">{t("notes.conflictBody")}</p>
+      {source ? (
+        // The markdown source: a secondary view in place of the live body.
+        <div className="flex flex-col">
+          <div className={cn("flex items-center gap-2 border-y border-line bg-[color-mix(in_oklab,var(--grid-fg)_4%,transparent)] py-1 text-xs text-grid-muted", px)}>
+            <Code2Icon className="size-3.5" />
+            <span className="flex-1">{t("notes.sourceTitle")}</span>
+            <Button size="xs" variant="ghost" onClick={() => setSource(false)}>
+              {t("notes.sourceDone")}
+            </Button>
           </div>
-          <Button size="sm" onClick={keepMine}>
-            {t("notes.keepMine")}
-          </Button>
-          <Button size="sm" variant="outline" onClick={takeTheirs}>
-            {t("notes.useTheirs")}
-          </Button>
-        </div>
-      ) : null}
-
-      {!server.indexed && server.indexError ? (
-        <p className={cn("flex items-start gap-2 border-b border-line py-2 text-xs text-grid-warn", px)}>
-          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" />
-          {t("notes.indexFailed", { error: server.indexError })}
-        </p>
-      ) : null}
-
-      <div className={cn("py-4", px)}>
-        <Tabs value={tab} onValueChange={(v) => setTab(String(v))}>
-          <TabsList variant="line">
-            <TabsTrigger value="preview">{t("notes.preview")}</TabsTrigger>
-            <TabsTrigger value="write">{t("notes.edit")}</TabsTrigger>
-            {/* Visual editing (MH-215) sits alongside the markdown textarea
-                rather than replacing it: the textarea carries the [[wiki-link]]
-                picker, which the WYSIWYG surface has no equivalent for. */}
-            <TabsTrigger value="visual">{t("notes.visual")}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="visual">
-            <NoteEditorWysiwyg
-              namespace={note.namespace}
-              value={draft.body}
-              onChange={(body) => edit({ body })}
-            />
-          </TabsContent>
-          <TabsContent value="write">
+          <div className={cn("py-4", px)}>
             <BodyEditor
               namespace={note.namespace}
               value={draft.body}
@@ -418,23 +490,20 @@ export function NoteEditor({
               minHeight={embedded ? "min-h-[40vh]" : "min-h-[55vh]"}
             />
             <p className="mt-1.5 text-[12.5px] text-grid-muted">{t("notes.wikilinkHint")}</p>
-          </TabsContent>
-          <TabsContent value="preview" className={embedded ? "py-2" : "min-h-[40vh] py-3"}>
-            {draft.body.trim() ? (
-              <div ref={previewRef}>
-                <NoteMarkdown text={draft.body} />
-              </div>
-            ) : (
-              <p className="text-sm text-grid-muted">
-                {t("notes.nothingToPreview")}{" "}
-                <button type="button" className="underline underline-offset-4" onClick={() => setTab("write")}>
-                  {t("notes.startWriting")}
-                </button>
-              </p>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+        </div>
+      ) : (
+        // One page: the live body right under the header, as in Notes.
+        <div
+          ref={(el) => {
+            bodyRef.current = el
+            previewRef.current = el
+          }}
+          className={cn("pt-1", embedded ? "pb-6" : "min-h-[55vh] pb-24", px)}
+        >
+          <NoteEditorWysiwyg bare namespace={note.namespace} value={draft.body} onChange={(body) => edit({ body })} />
+        </div>
+      )}
 
       {!embedded ? <NoteLinksSection note={server} onOpenNote={(id) => onOpenNote?.(id)} /> : null}
 

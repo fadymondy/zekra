@@ -5,6 +5,7 @@ import { EditorContent, useEditor } from "@tiptap/react"
 
 import { editorExtensions } from "./editor-extensions"
 import { findLossyConstructs } from "./lossy-markdown"
+import { cn } from "@/lib/utils"
 import { useNoteSettings } from "./note-settings-panel"
 import { readerStyle } from "@/lib/notes/note-settings"
 import { ImageUploadError, imageFilesFrom, uploadNoteImage } from "@/lib/notes/upload-image"
@@ -48,6 +49,9 @@ export interface NoteEditorProps {
    * a Bearer token, so it supplies its own — the same seam EntityTree needed.
    */
   uploadImage?: (file: File | Blob, namespace: string) => Promise<{ url: string }>
+  /** No frame: the body flows on the page under the title, as in Notes
+   *  (the notes editor); the framed box is for forms and panels. */
+  bare?: boolean
 }
 
 export function NoteEditorWysiwyg({
@@ -57,6 +61,7 @@ export function NoteEditorWysiwyg({
   namespace,
   editable = true,
   uploadImage = uploadNoteImage,
+  bare = false,
 }: NoteEditorProps) {
   const { settings } = useNoteSettings()
   const [uploading, setUploading] = useState(0)
@@ -229,7 +234,7 @@ export function NoteEditorWysiwyg({
       <EditorContent
         editor={editor}
         style={readerStyle(settings)}
-        className={EDITOR_PROSE}
+        className={cn(EDITOR_PROSE, bare ? EDITOR_BARE : EDITOR_FRAME)}
         data-word-wrap={settings.wordWrap ? "on" : "off"}
       />
       {uploading > 0 ? (
@@ -248,10 +253,11 @@ switching between them is not jarring, but it is not the same stylesheet: the
 reader's rules target the ported renderer's markup (figure.zk-code and the
 interactive table), which TipTap does not produce.
 */
+const EDITOR_FRAME = "min-h-40 rounded-md border border-line bg-grid-bg p-4 focus-within:border-grid-action focus-within:outline-none [&_.ProseMirror]:min-h-32"
+const EDITOR_BARE = "[&_.ProseMirror]:min-h-[50vh]"
 const EDITOR_PROSE = [
-  "min-h-40 rounded-md border border-line bg-grid-bg p-4 leading-relaxed text-grid-fg",
-  "focus-within:border-grid-action focus-within:outline-none",
-  "[&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-32",
+  "leading-relaxed text-grid-fg",
+  "[&_.ProseMirror]:outline-none",
   "[&_h1]:text-xl [&_h1]:font-medium [&_h1]:mt-4 [&_h1]:mb-2",
   "[&_h2]:text-lg [&_h2]:font-medium [&_h2]:mt-4 [&_h2]:mb-2",
   "[&_h3]:font-medium [&_h3]:mt-3",
