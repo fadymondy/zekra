@@ -14,11 +14,16 @@ import (
 //
 // Scoped per caller: every event carries the brain it is about, and a
 // subscriber only receives events for brains it can read. Admins get everything;
-// events that name no brain go to admins only.
+// events that name no brain go to admins only. User-scoped events (publishUser:
+// the notification center, MH-360) go to that user's own streams only — never
+// to admins, never to anyone else.
 
 type subscriber struct {
 	ch    chan string
 	allow func(ns string) bool // nil = everything (admin)
+	// userID is the signed-in user behind the stream ("" for tokens/agents):
+	// the address of user-scoped events (publishUser, notifications.go).
+	userID string
 }
 
 type hub struct {
@@ -59,8 +64,39 @@ func (h *hub) publish(event string, payload map[string]any) {
 	}
 }
 
+// publishUser sends an event to userID's own streams only (non-blocking, like
+// publish). No namespace filter applies: the event is about the user, not a brain.
+func (h *hub) publishUser(userID, event string, payload map[string]any) {
+	if h == nil || userID == "" {
+		return
+	}
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	payload["ts"] = time.Now().UTC().Format(time.RFC3339)
+	b, _ := json.Marshal(payload)
+	msg := "event: " + event + "\ndata: " + string(b) + "\n\n"
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for sub := range h.subs {
+		if sub.userID != userID {
+			continue
+		}
+		select {
+		case sub.ch <- msg:
+		default:
+		}
+	}
+}
+
 func (h *hub) subscribe(allow func(string) bool) *subscriber {
-	sub := &subscriber{ch: make(chan string, 32), allow: allow}
+	return h.subscribeAs(allow, "")
+}
+
+// subscribeAs is subscribe for a stream that also receives userID's own
+// events (publishUser). userID "" receives none.
+func (h *hub) subscribeAs(allow func(string) bool, userID string) *subscriber {
+	sub := &subscriber{ch: make(chan string, 32), allow: allow, userID: userID}
 	h.mu.Lock()
 	h.subs[sub] = struct{}{}
 	h.mu.Unlock()
@@ -118,7 +154,11 @@ func (s *Service) Events(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no")
 
-	sub := s.hub.subscribe(allow)
+	userID := ""
+	if c.session && c.principal == nil {
+		userID = c.userID // user-scoped events (the notification center, MH-360)
+	}
+	sub := s.hub.subscribeAs(allow, userID)
 	defer s.hub.unsubscribe(sub)
 
 	fmt.Fprint(w, ": connected\n\n")

@@ -44,7 +44,7 @@ export function useLabel() {
 export function Monogram({ id }: { id: string }) {
   const ch = id.replace(/[^\p{L}\p{N}]/gu, "").charAt(0) || "?"
   return (
-    <span aria-hidden className="inline-flex size-5 shrink-0 items-center justify-center bg-grid-soft font-mono text-[10px] font-medium uppercase text-grid-fg">
+    <span aria-hidden className="inline-flex size-5 shrink-0 items-center justify-center bg-grid-soft font-mono text-[12px] font-medium uppercase text-grid-fg">
       {ch}
     </span>
   )
@@ -66,11 +66,11 @@ export function ActivityRow({ a, showNamespace = false, showAgent = true }: { a:
       {showAgent ? (
         <Ltr className="min-w-0 truncate text-xs text-grid-muted">{a.agentId || t("activity.anonymous")}</Ltr>
       ) : null}
-      <span className="ms-auto text-[11px] text-grid-muted">
+      <span className="ms-auto text-[12.5px] text-grid-muted">
         {a.latencyMs ? t("activity.latency", { ms: formatNumber(a.latencyMs) }) : ""}
       </span>
       <ToneTag tone={toneFor(a.outcome)}>{label("activity.outcome", a.outcome)}</ToneTag>
-      <time dateTime={a.ts} title={formatDate(a.ts, { dateStyle: "medium", timeStyle: "medium" })} className="min-w-[5.5rem] text-end text-[11px] text-grid-muted">
+      <time dateTime={a.ts} title={formatDate(a.ts, { dateStyle: "medium", timeStyle: "medium" })} className="min-w-[5.5rem] text-end text-[12.5px] text-grid-muted">
         {a.ts ? formatDate(a.ts, { timeStyle: "medium" }) : ""}
       </time>
     </li>

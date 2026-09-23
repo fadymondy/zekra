@@ -1,11 +1,25 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { I18nManager, Platform } from "react-native";
 
+import { FEATURE_DICTS, type FeatureKey } from "@/i18n/features";
 import { getStored, setStored } from "@/lib/storage";
+import { setUiFontLocale } from "@/theme";
 
 // Zekra ships bilingual everywhere (mirroring web/lib/i18n.tsx). The Arabic
 // product name is ذكرة — never ذكرى.
 export type Locale = "en" | "ar";
+
+/** Every language the app ships, in switcher order. Adding a language is one
+ *  entry here plus its dictionaries — every language switcher (a list, never
+ *  a toggle) picks it up. A language names itself; `english` is the subtitle. */
+export const LANGUAGES: readonly { code: Locale; name: string; english: string; rtl: boolean }[] = [
+  { code: "en", name: "English", english: "English", rtl: false },
+  { code: "ar", name: "العربية", english: "Arabic", rtl: true },
+];
+
+export function languageName(code: Locale): string {
+  return LANGUAGES.find((l) => l.code === code)?.name ?? code;
+}
 
 const en = {
   "app.name": "Zekra",
@@ -47,6 +61,21 @@ const en = {
   "auth.startOver": "Start over",
   "auth.secureAccess": "secure access",
   "auth.failed": "Sign in failed",
+  "auth.intro": "Your brains, notes and connected knowledge — recalled on your phone.",
+  "auth.invalid": "That email and password don't match.",
+  "auth.offline": "You're offline. Check your connection and try again.",
+  "auth.showPassword": "Show password",
+  "auth.hidePassword": "Hide password",
+  "auth.noAccountPrompt": "No account yet?",
+  "auth.createOne": "Create one",
+  "auth.haveAccountPrompt": "Already have an account?",
+  "auth.signInLink": "Sign in",
+  "auth.resetIntro": "Type your email and we'll send you a link to set a new password.",
+  "auth.backToSignIn": "Remembered it? Back to sign in",
+  "auth.twoFactorIntro": "Enter the six-digit code from your authenticator app.",
+  "auth.recoveryIntro": "Enter one of the recovery codes you saved when you turned on two-factor.",
+  "auth.strengthHint": "At least eight characters, with a number.",
+  "auth.step": "STEP {n} / {total}",
 
   "notes.title": "Notes",
   "notes.searchPlaceholder": "Filter by title, text, and tags",
@@ -112,6 +141,13 @@ const en = {
   "search.results": "results",
   "search.searching": "Searching",
   "search.failed": "Search failed",
+  "search.thisBrain": "This brain",
+  "search.resultsLabel": "Results",
+  "search.clear": "Clear",
+  "search.go": "Search",
+  "search.score": "Score",
+  "search.openNote": "Open note",
+  "search.hint": "Search reads meaning, not just keywords — ask the way you would ask a colleague.",
 
   "brains.title": "Brains",
   "brains.empty": "No brains yet",
@@ -148,12 +184,22 @@ const en = {
   "account.deleteScheduledBody": "Your account is scheduled for deletion. You can still cancel it below.",
   "account.cancelDelete": "Cancel deletion",
   "account.currentPassword": "Your password",
+  "account.email": "Email",
+  "account.sentTo": "The link goes to",
+  "account.deleteWhat": "What happens",
+  "account.deleteScheduledFor": "Scheduled for",
+  "account.deleteFailed": "Could not schedule the deletion",
+  "account.cancelFailed": "Could not cancel the deletion",
+  "account.saveFailed": "Could not save your profile",
+  "account.linkFailed": "Could not send the link",
 
   "legal.privacy": "Privacy policy",
   "legal.terms": "Terms of service",
   "legal.support": "Support",
   "legal.openInBrowser": "Open in browser",
   "legal.supportBody": "Questions, bug reports, or data requests — we answer from the address below.",
+  "legal.intro": "Published on zekra.dev and kept in step with the App Store and Google Play listings.",
+  "legal.email": "Email support",
   "settings.title": "Settings",
   "settings.appearance": "Appearance",
   "settings.theme": "Theme",
@@ -176,6 +222,9 @@ const en = {
   "settings.openConsole": "Open web console",
   "settings.sessionNote": "Your session stays on this device",
   "settings.sessionBody": "The access token is stored in the iOS Keychain or Android Keystore through Expo SecureStore.",
+  "settings.legal": "Legal",
+  "settings.connect": "Connect an agent",
+  "settings.copy": "Copy",
 } as const;
 
 type Key = keyof typeof en;
@@ -220,6 +269,21 @@ const ar: Record<Key, string> = {
   "auth.startOver": "البدء من جديد",
   "auth.secureAccess": "دخول آمن",
   "auth.failed": "فشل تسجيل الدخول",
+  "auth.intro": "أدمغتك وملاحظاتك ومعرفتك المترابطة — تسترجعها من هاتفك.",
+  "auth.invalid": "البريد الإلكتروني وكلمة المرور غير متطابقين.",
+  "auth.offline": "أنت غير متصل. تحقّق من اتصالك وأعد المحاولة.",
+  "auth.showPassword": "إظهار كلمة المرور",
+  "auth.hidePassword": "إخفاء كلمة المرور",
+  "auth.noAccountPrompt": "ليس لديك حساب؟",
+  "auth.createOne": "أنشئ واحدًا",
+  "auth.haveAccountPrompt": "لديك حساب بالفعل؟",
+  "auth.signInLink": "سجّل الدخول",
+  "auth.resetIntro": "اكتب بريدك وسنرسل إليك رابطًا لتعيين كلمة مرور جديدة.",
+  "auth.backToSignIn": "تذكّرت كلمة المرور؟ عُد للدخول",
+  "auth.twoFactorIntro": "اكتب الرمز المكوّن من ستّ خانات الظاهر في تطبيق المصادقة.",
+  "auth.recoveryIntro": "اكتب أحد رموز الاسترداد التي حفظتها عند تفعيل التحقق بخطوتين.",
+  "auth.strengthHint": "ثمانية أحرف على الأقل، ورقم واحد.",
+  "auth.step": "STEP {n} / {total}",
 
   "notes.title": "الملاحظات",
   "notes.searchPlaceholder": "تصفية بالعنوان والنص والوسوم",
@@ -289,6 +353,13 @@ const ar: Record<Key, string> = {
   "search.results": "نتيجة",
   "search.searching": "جارٍ البحث",
   "search.failed": "فشل البحث",
+  "search.thisBrain": "هذا الدماغ",
+  "search.resultsLabel": "النتائج",
+  "search.clear": "مسح",
+  "search.go": "ابحث",
+  "search.score": "الدرجة",
+  "search.openNote": "فتح الملاحظة",
+  "search.hint": "البحث يقرأ المعنى لا الكلمات فقط — اسأل كما تسأل زميلًا.",
 
   "brains.title": "الأدمغة",
   "brains.empty": "لا توجد أدمغة بعد",
@@ -325,12 +396,22 @@ const ar: Record<Key, string> = {
   "account.deleteScheduledBody": "حسابك مجدول للحذف. لا يزال بإمكانك الإلغاء أدناه.",
   "account.cancelDelete": "إلغاء الحذف",
   "account.currentPassword": "كلمة المرور",
+  "account.email": "البريد الإلكتروني",
+  "account.sentTo": "يُرسل الرابط إلى",
+  "account.deleteWhat": "ماذا يحدث",
+  "account.deleteScheduledFor": "موعد الحذف",
+  "account.deleteFailed": "تعذّرت جدولة الحذف",
+  "account.cancelFailed": "تعذّر إلغاء الحذف",
+  "account.saveFailed": "تعذّر حفظ ملفك الشخصي",
+  "account.linkFailed": "تعذّر إرسال الرابط",
 
   "legal.privacy": "سياسة الخصوصية",
   "legal.terms": "شروط الخدمة",
   "legal.support": "الدعم",
   "legal.openInBrowser": "فتح في المتصفح",
   "legal.supportBody": "أسئلة أو بلاغات أو طلبات بيانات — نجيب من العنوان أدناه.",
+  "legal.intro": "منشورة على zekra.dev ومتوافقة مع صفحتَي التطبيق في App Store وGoogle Play.",
+  "legal.email": "راسل الدعم",
   "settings.title": "الإعدادات",
   "settings.appearance": "المظهر",
   "settings.theme": "السمة",
@@ -353,22 +434,48 @@ const ar: Record<Key, string> = {
   "settings.openConsole": "فتح لوحة الويب",
   "settings.sessionNote": "جلستك تبقى على هذا الجهاز",
   "settings.sessionBody": "يُخزَّن رمز الوصول في سلسلة مفاتيح iOS أو مخزن مفاتيح Android عبر Expo SecureStore.",
+  "settings.legal": "قانوني",
+  "settings.connect": "اربط وكيلًا",
+  "settings.copy": "نسخ",
 };
 
-const DICTS: Record<Locale, Record<string, string>> = { en, ar };
+// Feature dictionaries (src/i18n/features/*) merge over the base one.
+const DICTS: Record<Locale, Record<string, string>> = {
+  en: Object.assign({}, en, ...FEATURE_DICTS.map((d) => d.en)),
+  ar: Object.assign({}, ar, ...FEATURE_DICTS.map((d) => d.ar)),
+};
+
+export type TKey = Key | FeatureKey;
+export type TVars = Record<string, string | number>;
+
+/** Look up a string and fill `{name}` placeholders. */
+export function translate(locale: Locale, key: TKey, vars?: TVars): string {
+  const raw = DICTS[locale][key] ?? DICTS.en[key] ?? key;
+  return vars ? raw.replace(/\{(\w+)\}/g, (m, name: string) => (name in vars ? String(vars[name]) : m)) : raw;
+}
+
+/** Native layout direction. The root view also sets `direction`, so the UI
+ *  flips at once; this keeps I18nManager (swipe gestures, stack slide
+ *  direction, native alerts) in step from the next launch on. */
+function applyNativeDirection(locale: Locale) {
+  if (Platform.OS === "web") return;
+  const rtl = locale === "ar";
+  I18nManager.allowRTL(rtl);
+  if (I18nManager.isRTL !== rtl) I18nManager.forceRTL(rtl);
+}
 const STORE_KEY = "zekra.locale";
 
 type I18nValue = {
   locale: Locale;
   isRtl: boolean;
-  t: (key: Key) => string;
+  t: (key: TKey, vars?: TVars) => string;
   setLocale: (locale: Locale) => void;
 };
 
 const I18nContext = createContext<I18nValue>({
   locale: "en",
   isRtl: false,
-  t: (key) => en[key],
+  t: (key, vars) => translate("en", key, vars),
   setLocale: () => {},
 });
 
@@ -379,7 +486,10 @@ export function I18nProvider({ children }: PropsWithChildren) {
     void (async () => {
       try {
         const saved = await getStored(STORE_KEY);
-        if (saved === "ar" || saved === "en") setLocaleState(saved);
+        if (saved === "ar" || saved === "en") {
+          setLocaleState(saved);
+          applyNativeDirection(saved);
+        }
       } catch {}
     })();
   }, []);
@@ -395,17 +505,17 @@ export function I18nProvider({ children }: PropsWithChildren) {
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
-    // Yoga reads I18nManager for native-side mirroring. Every Zekra screen also
-    // sets `direction` on its own root, so the UI flips immediately without the
-    // full app reload that forceRTL would otherwise require.
-    I18nManager.allowRTL(true);
+    applyNativeDirection(next);
     void setStored(STORE_KEY, next);
   }, []);
+
+  // The UI face follows the language (Inter / Lusail); set before children render.
+  setUiFontLocale(locale);
 
   const value = useMemo<I18nValue>(() => ({
     locale,
     isRtl: locale === "ar",
-    t: (key: Key) => DICTS[locale][key] ?? en[key],
+    t: (key: TKey, vars?: TVars) => translate(locale, key, vars),
     setLocale,
   }), [locale, setLocale]);
 

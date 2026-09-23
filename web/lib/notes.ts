@@ -13,6 +13,8 @@ export type Note = {
   namespace: string
   ownerUserId?: string
   title: string
+  /** A one-line summary under the title; "" or absent means none. */
+  description?: string
   body?: string
   tags: string[]
   /** The note's graph category (its entity type); "note" by default. */
@@ -53,7 +55,7 @@ export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string 
 
 export type NoteListQuery = { namespace: string; q?: string; tag?: string; category?: string; archived?: boolean; limit?: number; cursor?: string }
 
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>
+export type NotePatch = Partial<Pick<Note, "title" | "description" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>
 
 /** A 409 from PUT/DELETE: the note moved on; `current` is the server copy. */
 export class NoteConflict extends Error {

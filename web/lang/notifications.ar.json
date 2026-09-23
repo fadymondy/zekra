@@ -1,0 +1,13 @@
+{
+  "notifications.bell": "الإشعارات",
+  "notifications.bellUnread": "الإشعارات، {count} غير مقروءة",
+  "notifications.title": "الإشعارات",
+  "notifications.markAllRead": "تعليم الكل كمقروء",
+  "notifications.delete": "حذف الإشعار",
+  "notifications.loadMore": "تحميل المزيد",
+  "notifications.empty": "لا جديد لديك",
+  "notifications.emptyHint": "عند مشاركة دماغ معك أو فتح أحدهم عرضًا شاركته في ذكرة، سيظهر ذلك هنا.",
+  "notifications.error": "تعذّر تحميل الإشعارات.",
+  "notifications.failed": "تعذّر تحديث الإشعارات. حاول مجددًا.",
+  "notifications.unread": "غير مقروء"
+}

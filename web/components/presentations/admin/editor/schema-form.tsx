@@ -515,7 +515,7 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
         {header()}
         <div className="grid grid-cols-3 gap-1">
           {list.map((v, i) => (
-            <label key={i} className="grid gap-0.5 text-[10px] text-muted-foreground">
+            <label key={i} className="grid gap-0.5 text-[12px] text-muted-foreground">
               <span className="truncate">{labels?.[i] ?? i + 1}</span>
               <Input type="number" dir="ltr" step="any" className="h-7 px-1.5 text-xs" value={typeof v === "number" ? v : ""} onChange={(e) => setList(list.map((x, k) => (k === i ? Number(e.target.value) || 0 : x)))} />
             </label>

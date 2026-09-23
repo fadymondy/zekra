@@ -82,6 +82,15 @@ func TestToolTranslation(t *testing.T) {
 			func(b *fakeBackend) bool { return b.query.Get("archived") == "1" && b.query.Get("limit") == "5" }},
 		{"note_create", map[string]any{"namespace": "a", "title": "t", "category": "meeting"}, "POST", "/api/notes",
 			func(b *fakeBackend) bool { return b.body["category"] == "meeting" }},
+		{"note_create", map[string]any{"namespace": "a", "title": "t", "description": "sum"}, "POST", "/api/notes",
+			func(b *fakeBackend) bool { return b.body["description"] == "sum" }},
+		{"note_update", map[string]any{"id": "abc", "description": ""}, "PUT", "/api/notes/abc",
+			func(b *fakeBackend) bool {
+				d, ok := b.body["description"]
+				return ok && d == "" && b.body["title"] == nil
+			}},
+		{"note_update", map[string]any{"id": "abc", "title": "x"}, "PUT", "/api/notes/abc",
+			func(b *fakeBackend) bool { return b.body["description"] == nil }},
 		{"note_related", map[string]any{"id": "n1"}, "GET", "/api/notes/n1/related", nil},
 		{"notes_graph_ontology", map[string]any{"namespace": "a"}, "GET", "/api/brain/ontology",
 			func(b *fakeBackend) bool { return b.query.Get("namespace") == "a" }},

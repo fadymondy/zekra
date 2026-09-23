@@ -117,7 +117,7 @@ export function TagCombobox({
                       {on ? <CheckIcon className="size-3" /> : null}
                     </span>
                     <bdi className="min-w-0 flex-1 truncate text-grid-fg">{x.tag}</bdi>
-                    {x.count ? <span className="shrink-0 text-[10px] text-grid-muted">{formatNumber(x.count)}</span> : null}
+                    {x.count ? <span className="shrink-0 text-[12px] text-grid-muted">{formatNumber(x.count)}</span> : null}
                   </button>
                 </li>
               )

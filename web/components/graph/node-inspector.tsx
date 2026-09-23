@@ -319,7 +319,7 @@ export function NodeInspector({
             <NeighborList neighbors={neighbors} palette={palette} onFocus={(id) => onFocus(id)} />
           )}
           {entityId && detail ? <PropertiesEditor namespace={namespace} entity={detail} /> : null}
-          {readOnly ? <p className="text-[11px] text-grid-muted">{t("graph.readOnly")}</p> : null}
+          {readOnly ? <p className="text-[12.5px] text-grid-muted">{t("graph.readOnly")}</p> : null}
         </div>
       </div>
 
@@ -406,7 +406,7 @@ export function NoteView({ note }: { note: Note }) {
           ))}
         </div>
       ) : null}
-      <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-grid-muted">
+      <p className="flex flex-wrap items-center gap-x-1.5 text-[12.5px] text-grid-muted">
         {note.pinned ? <PinIcon className="size-3 text-grid-action" aria-label={t("notes.pinned")} /> : null}
         <span>{t("notes.updated", { when: timeAgo(note.updatedAt) })}</span>
         <span aria-hidden>·</span>
@@ -472,7 +472,7 @@ function NeighborList({
                 <span className="min-w-0 flex-1 truncate text-xs text-grid-fg" dir="auto">
                   {n.name}
                 </span>
-                <span className="shrink-0 text-[10px] text-grid-muted">{n.group}</span>
+                <span className="shrink-0 text-[12px] text-grid-muted">{n.group}</span>
               </button>
             </li>
           ))}
@@ -541,7 +541,7 @@ function PropertiesEditor({ namespace, entity }: { namespace: string; entity: En
         <dl className="divide-y divide-line border-y border-line">
           {rows.map(([k, v]) => (
             <div key={k} className="flex items-center gap-2 py-1">
-              <dt className="w-1/3 shrink-0 truncate font-mono text-[11px] text-grid-muted" dir="ltr" title={k}>
+              <dt className="w-1/3 shrink-0 truncate font-mono text-[12.5px] text-grid-muted" dir="ltr" title={k}>
                 {k}
               </dt>
               <dd className="min-w-0 flex-1">
@@ -629,13 +629,13 @@ export function NodeHoverCard({ node, x, y }: { node: GraphNode; x: number; y: n
           {note.data?.title || node.name}
         </span>
       </div>
-      <p className="mb-1 text-[10px] uppercase tracking-wider text-grid-muted">{note.data?.category || node.type || node.group}</p>
+      <p className="mb-1 text-[12px] uppercase tracking-wider text-grid-muted">{note.data?.category || node.type || node.group}</p>
       {node.noteId ? (
         <p dir="auto" className="line-clamp-2 text-grid-body">
           {note.isLoading ? t("common.loading") : lines || t("graph.emptyNote")}
         </p>
       ) : null}
-      <p className="mt-1.5 text-[10px] text-grid-muted">{t("graph.hoverHint")}</p>
+      <p className="mt-1.5 text-[12px] text-grid-muted">{t("graph.hoverHint")}</p>
     </div>
   )
 }

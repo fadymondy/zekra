@@ -7,8 +7,16 @@ import { useAuth } from "@/providers/auth";
 
 const BRAIN_KEY = "zekra.mobile.brain.v1";
 
+/**
+ * The caller's brains (GET /api/brain/mine) and the LAST BRAIN OPENED.
+ * There is no brain filter any more (MH-365): `current` / `select` track the
+ * brain most recently opened (app/brain/[ns].tsx calls `select` on open), which
+ * Search offers as its "this brain" scope. Until one is opened — or when the
+ * stored one is gone — it falls back to the first brain.
+ */
 type BrainContextValue = {
   brains: Brain[];
+  /** The last brain opened. */
   current: Brain | null;
   namespace: string;
   loading: boolean;

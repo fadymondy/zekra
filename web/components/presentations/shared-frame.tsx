@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { ThemeToggle } from "@/components/header-controls"
+import { dirForLocale, LOCALE_NAMES, LOCALES } from "@/lib/i18n-locale"
 
 /*
 The slim bar above a shared document (FM-342): the mark (never the wordmark),
-who it was prepared for, the other language when the document has it,
+who it was prepared for, the other languages the document has,
 downloads that exist for this kind, and the theme switch. Nothing links to
 the rest of the owner's documents.
 */
@@ -32,7 +33,6 @@ export function SharedFrame({
   /** Extra path after the token (an embedded page: /embed/{id}). */
   suffix?: string
 }) {
-  const other = locale === "ar" ? "en" : "ar"
   return (
     <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b bg-background/85 px-3 py-2 backdrop-blur sm:px-5">
       <div className="flex min-w-0 items-center gap-3">
@@ -52,12 +52,13 @@ export function SharedFrame({
         </div>
       </div>
       <nav className="flex items-center gap-1" aria-label={t("presentations.shared.actions")}>
-        {locales.includes(other) ? (
-          <Button variant="ghost" size="sm" nativeButton={false} render={<a href={`/${other}/p/${token}${suffix}`} hrefLang={other} lang={other} />}>
+        {/* Every other language this presentation exists in — a list, not a toggle. */}
+        {LOCALES.filter((l) => l !== locale && locales.includes(l)).map((l) => (
+          <Button key={l} variant="ghost" size="sm" nativeButton={false} render={<a href={`/${l}/p/${token}${suffix}`} hrefLang={l} lang={l} dir={dirForLocale(l)} />}>
             <LanguagesIcon />
-            {other === "ar" ? "العربية" : "English"}
+            {LOCALE_NAMES[l]}
           </Button>
-        ) : null}
+        ))}
         {formats.map((f) => (
           <Button key={f} variant="outline" size="sm" nativeButton={false} render={<a href={`/${locale}/p/${token}/download/${f}`} download />}>
             <DownloadIcon />

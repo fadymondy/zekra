@@ -48,8 +48,27 @@ function errorParts(data: unknown, fallback: string) {
   };
 }
 
+/** One finished API call, for the "Report a problem" diagnostics (src/features/mahaam). Method,
+ *  path and status only — never headers, bodies or the token. */
+export type ApiResult = { method: string; path: string; status: number | null; ms: number; error?: string };
+const apiListeners = new Set<(result: ApiResult) => void>();
+
+export function onApiResult(listener: (result: ApiResult) => void): () => void {
+  apiListeners.add(listener);
+  return () => void apiListeners.delete(listener);
+}
+
+function emitApiResult(result: ApiResult) {
+  apiListeners.forEach((l) => {
+    try {
+      l(result);
+    } catch {}
+  });
+}
+
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method ?? (options.json === undefined ? "GET" : "POST");
+  const started = Date.now();
   const headers: Record<string, string> = { Accept: "application/json", "X-Agent-Id": "zekra-mobile", ...options.headers };
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
   if (options.csrf) headers["X-CSRF-Token"] = await issueCSRF();
@@ -64,8 +83,10 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       credentials: "include",
     });
   } catch (error) {
+    emitApiResult({ method, path, status: null, ms: Date.now() - started, error: error instanceof Error ? error.message : "network error" });
     throw new ApiError(0, error instanceof Error ? error.message : "Could not reach Zekra");
   }
+  emitApiResult({ method, path, status: response.status, ms: Date.now() - started });
   const text = await response.text();
   let payload: unknown = undefined;
   if (text) {
@@ -98,6 +119,8 @@ export type Note = {
   id: string;
   namespace: string;
   title: string;
+  /** Short summary shown under the title and in lists; absent on older servers (treat as ""). Max 500. */
+  description?: string;
   body?: string;
   tags: string[];
   category?: string;
@@ -118,7 +141,7 @@ export type Note = {
 };
 
 export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string };
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
+export type NotePatch = Partial<Pick<Note, "title" | "description" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
 
 // A hit from the hybrid (vector + BM25) recall engine — the same shape the web
 // console reads (web/lib/api.ts Recalled).
@@ -155,6 +178,16 @@ export const authApi = {
     request<{ status?: string }>("/api/auth/password/forgot", { csrf: true, json: { email, locale } }),
   challenge: (challenge: string, answer: { code?: string; recovery_code?: string }) =>
     request<AuthAnswer>("/api/auth/2fa/challenge", { csrf: true, json: { challenge, ...answer } }),
+  // Social sign-in (internal/account/oauth_*.go). Each answers exactly what
+  // login answers — {token, user}, or a 401 2fa_required challenge.
+  providers: () => request<unknown>("/api/auth/providers"),
+  methods: () => request<unknown>("/api/auth/methods"),
+  google: (idToken: string) => request<AuthAnswer>("/api/auth/google/token", { json: { id_token: idToken } }),
+  apple: (body: { identity_token: string; nonce: string; full_name?: string }) =>
+    request<AuthAnswer>("/api/auth/apple/token", { json: body }),
+  /** Trade an auth session's one-time code (GitHub / Google app flow). */
+  socialExchange: (provider: "github" | "google", code: string, verifier: string) =>
+    request<AuthAnswer>(`/api/auth/${provider}/exchange`, { json: { code, code_verifier: verifier } }),
   me: (token: string) => request<{ user?: User } | User>("/api/auth/me", { token }),
   logout: (token: string) => request<{ status: string }>("/api/auth/logout", { token, json: {} }),
 };
@@ -168,7 +201,7 @@ export const zekraApi = {
   note: (token: string, id: string) => request<Note>(`/api/notes/${encodeURIComponent(id)}`, { token }),
   createNote: (token: string, namespace: string, patch: NotePatch = {}) => request<Note>("/api/notes", {
     token,
-    json: { namespace, title: patch.title ?? "", body: patch.body ?? "", tags: patch.tags ?? [], category: patch.category ?? "note", pinned: patch.pinned ?? false, source: "mobile" },
+    json: { namespace, title: patch.title ?? "", ...(patch.description ? { description: patch.description } : {}), body: patch.body ?? "", tags: patch.tags ?? [], category: patch.category ?? "note", pinned: patch.pinned ?? false, source: "mobile" },
   }),
   updateNote: (token: string, note: Note, patch: NotePatch) => request<Note>(`/api/notes/${encodeURIComponent(note.id)}`, {
     method: "PUT",

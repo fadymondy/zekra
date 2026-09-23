@@ -1,22 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="crispEdges">
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <!--
-    Zekra desktop app icon, derived from the brand mark in web/lib/brand/mark.ts
-    (ZEKRA_MARK -> PRODUCT_MARKS.zekra in web/app/styles/grid-marks.ts):
-    cells: [3,0] [2,1] [4,1] [1,2] [3,2] [5,2] [2,3] [4,3], body #6D4DE6, accent #C9A227
-    on accent cell [3,0]. Cells are laid out on a 6-wide grid (cols 0-5) and normalised
-    here into a square canvas with dark-ink padding, per the brand's square-corner /
-    5px-cell rule (no rounding, no gradients).
+    Zekra macOS app icon — source for build/icon.icns (npm run icons).
+
+    macOS Big Sur+ icon grid: a 824x824 rounded square centred in the 1024
+    canvas (100px margin carries the drop shadow), corner radius ~185.
+    Ground: navy #0B1429 with a faint top sheen and a hairline rim, in the
+    spirit of the iOS Icon Composer bundle (mobile/assets/zekra.icon) whose
+    dark appearance is the same navy.
+
+    Mark: the Zekra cube lattice from mobile/assets/zekra.icon/Assets
+    (dome.svg = the gold #C9A227 cell, body.svg = seven violet #6D4DE6 cells),
+    scaled 824/1024 into the rounded square so it keeps the iOS proportion
+    (~58% of the tile). Cells stay square-cornered per the brand; each gets a
+    glass-like top highlight and a soft contact shadow.
   -->
-  <rect width="512" height="512" fill="#0b1429"/>
-  <g transform="translate(76 96)">
-    <!-- cell size 60, 6 cols x 4 rows = 360x240, centered in the padded canvas -->
-    <rect x="180" y="0"   width="60" height="60" fill="#c9a227"/>
-    <rect x="120" y="60"  width="60" height="60" fill="#6d4de6"/>
-    <rect x="240" y="60"  width="60" height="60" fill="#6d4de6"/>
-    <rect x="60"  y="120" width="60" height="60" fill="#6d4de6"/>
-    <rect x="180" y="120" width="60" height="60" fill="#6d4de6"/>
-    <rect x="300" y="120" width="60" height="60" fill="#6d4de6"/>
-    <rect x="120" y="180" width="60" height="60" fill="#6d4de6"/>
-    <rect x="240" y="180" width="60" height="60" fill="#6d4de6"/>
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16244D"/>
+      <stop offset="0.55" stop-color="#0E1A3C"/>
+      <stop offset="1" stop-color="#0B1429"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.5" cy="0" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="tileShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="cellShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.40"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#tileShadow)">
+    <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#ground)"/>
+  </g>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#sheen)"/>
+  <rect x="101" y="101" width="822" height="822" rx="184" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="2"/>
+
+  <g transform="translate(100 100) scale(0.8046875)">
+    <g filter="url(#cellShadow)">
+      <rect x="452.61" y="274.43" width="118.78" height="118.78" fill="#C9A227"/>
+      <rect x="333.82" y="393.22" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="571.39" y="393.22" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="215.04" y="512.00" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="452.61" y="512.00" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="690.18" y="512.00" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="333.82" y="630.78" width="118.78" height="118.78" fill="#6D4DE6"/>
+      <rect x="571.39" y="630.78" width="118.78" height="118.78" fill="#6D4DE6"/>
+    </g>
+    <g fill="url(#glass)" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="2.5">
+      <rect x="452.61" y="274.43" width="118.78" height="118.78"/>
+      <rect x="333.82" y="393.22" width="118.78" height="118.78"/>
+      <rect x="571.39" y="393.22" width="118.78" height="118.78"/>
+      <rect x="215.04" y="512.00" width="118.78" height="118.78"/>
+      <rect x="452.61" y="512.00" width="118.78" height="118.78"/>
+      <rect x="690.18" y="512.00" width="118.78" height="118.78"/>
+      <rect x="333.82" y="630.78" width="118.78" height="118.78"/>
+      <rect x="571.39" y="630.78" width="118.78" height="118.78"/>
+    </g>
   </g>
 </svg>

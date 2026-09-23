@@ -28,7 +28,7 @@ export function MarkdownAnswer({ text, onCite }: { text: string; onCite: (n: num
                   type="button"
                   onClick={() => onCite(n)}
                   title={t("chat.sourceN", { n })}
-                  className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center border border-line bg-grid-soft px-1 align-baseline font-mono text-[11px] font-medium text-grid-action hover:border-grid-action"
+                  className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center border border-line bg-grid-soft px-1 align-baseline font-mono text-[12.5px] font-medium text-grid-action hover:border-grid-action"
                 >
                   {n}
                 </button>

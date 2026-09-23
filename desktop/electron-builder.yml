@@ -1,42 +1,166 @@
-appId: dev.zekra.desktop
+# Zekra for macOS — electron-builder config.
+#
+#   npm run pack          unpacked .app in dist/mac-universal (fast, signed)
+#   npm run dist          dmg + zip (universal), signed; notarised when the
+#                         notarisation env vars below are present
+#   npm run dist:publish  same, uploaded to GitHub Releases (GH_TOKEN)
+#
+# Signing: there are TWO identical-named "Developer ID Application: Fady Nasef
+# (JW9HJH86GC)" certificates in the login keychain (both valid, both with a
+# private key, same expiry 2027-02-01). Signing by NAME is ambiguous for
+# codesign, so the identity is pinned by SHA-1 below (the other one is
+# D3DA7066B6C287DBBE9E43FCE0E483EF7F2C4DC3). On a machine without that
+# certificate electron-builder logs "skipped macOS code signing" and
+# continues. mac.identity wins over CSC_NAME; override per build with
+# `-c.mac.identity=<sha1>`, or `-c.mac.identity=null` to build unsigned.
+#
+# Notarisation (off unless credentials are in the environment — local builds
+# never fail on it). Either:
+#   APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID=JW9HJH86GC
+# or an App Store Connect API key:
+#   APPLE_API_KEY (path to .p8) + APPLE_API_KEY_ID + APPLE_API_ISSUER
+# or a notarytool keychain profile (simplest locally):
+#   xcrun notarytool store-credentials zekra-notary --apple-id … --team-id JW9HJH86GC
+#   APPLE_KEYCHAIN_PROFILE=zekra-notary npm run dist
+# electron-builder notarises (and staples) automatically when one of these is
+# set, and logs "skipped macOS notarization" otherwise.
+
+appId: com.fadymondy.zekra.desktop
 productName: Zekra
-copyright: Copyright © Zekra (ذكرة)
+copyright: Copyright © 2026 Fady Mondy — Zekra (ذكرة)
 
 directories:
   output: dist
   buildResources: build
 
+# Ship only the UI languages the app has (Electron locale .pak + .lproj; the
+# .lproj set also decides which languages macOS offers native menus/panels in).
+electronLanguages:
+  - en
+  - ar
+
 files:
   - out/**/*
+  - "!out/**/*.map"
   - package.json
-  - node_modules/**/*
 
-# NOTE: icon.ico / icon.icns are placeholders-in-waiting — only build/icon.svg and a
-# hand-generated build/icon.png (both derived from the real Zekra brand mark, see
-# web/app/icon.svg / web/lib/brand) currently exist (no ImageMagick/rsvg-convert/sharp
-# in this environment to derive real multi-resolution .ico/.icns). See README.md for
-# the follow-up conversion step before a real packaged Windows/macOS build.
-win:
+# Registered with Launch Services: zekra:// links (social sign-in returns).
+protocols:
+  - name: Zekra
+    schemes:
+      - zekra
+
+# Markdown files open in Zekra (main.ts open-file -> renderer "open-file").
+# role/rank: macOS; mimeType: Linux (.desktop MimeType); icon: Windows (NSIS
+# registers the ProgID with it).
+fileAssociations:
+  - ext: md
+    name: Markdown Document
+    description: Markdown document
+    role: Editor
+    rank: Alternate
+    mimeType: text/markdown
+    icon: build/icon.ico
+  - ext: markdown
+    name: Markdown Document
+    role: Editor
+    rank: Alternate
+    mimeType: text/markdown
+    icon: build/icon.ico
+  - ext: mdx
+    name: MDX Document
+    role: Editor
+    rank: Alternate
+    mimeType: text/mdx
+    icon: build/icon.ico
+
+mac:
+  category: public.app-category.productivity
+  icon: build/icon.icns
+  identity: 5697A4668C164256E390AC317BBF76ADC5D1892A
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  darkModeSupport: true
+  minimumSystemVersion: "11.0"
+  extendInfo:
+    NSHumanReadableCopyright: Copyright © 2026 Fady Mondy
+    # Touch ID (systemPreferences.promptTouchID) — shown in the system prompt.
+    NSFaceIDUsageDescription: Zekra uses Touch ID to unlock the app and reveal vault secrets.
+    # Apple Notes import + Quick Capture "From browser" (AppleScript) — shown
+    # in the Automation prompt.
+    NSAppleEventsUsageDescription: Zekra reads your Apple Notes only when you import them into a brain, and the address of your browser's current tab only when you capture it with Quick Capture.
   target:
-    - nsis
-    - portable
+    - target: dmg
+      arch: universal
+    - target: zip
+      arch: universal
+
+dmg:
+  title: Zekra ${version}
+  icon: build/icon.icns
+
+# ─── Windows ────────────────────────────────────────────────────────────────
+#   npx electron-builder --win        NSIS installer (x64 + arm64) + portable zip
+# The NSIS shortcut carries AppUserModelID = appId, which main.ts also sets
+# (app.setAppUserModelId) — required for toast notifications, their action
+# buttons (toastXml, os-integration.ts) and the Jump List tasks. zekra://
+# (protocols above) and .md/.markdown/.mdx (fileAssociations) are registered
+# by the installer. Code signing: set CSC_LINK / CSC_KEY_PASSWORD (or
+# WIN_CSC_LINK) for an Authenticode certificate; unsigned otherwise.
+win:
   icon: build/icon.ico
+  executableName: Zekra
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
 
 nsis:
   oneClick: false
+  perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  shortcutName: Zekra
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  deleteAppDataOnUninstall: false
 
-mac:
-  target:
-    - dmg
-  icon: build/icon.icns
-  category: public.app-category.productivity
-
+# ─── Linux ──────────────────────────────────────────────────────────────────
+#   npx electron-builder --linux      AppImage + .deb (x64 + arm64)
+# build/icons/NxN.png is installed into the hicolor theme; the .desktop entry
+# registers zekra:// (x-scheme-handler) and Markdown (MimeType). The login
+# item is an XDG autostart entry written at runtime (os-integration.ts).
 linux:
+  icon: build/icons
+  executableName: zekra-desktop
+  category: Office
+  synopsis: Memory for you and your AI agents
+  description: Zekra (ذكرة) — a native client of the Zekra brain and notes API.
+  maintainer: Fady Mondy <info@3x1.io>
+  vendor: Fady Mondy
+  mimeTypes:
+    - x-scheme-handler/zekra
+    - text/markdown
+  desktop:
+    Name: Zekra
+    StartupWMClass: Zekra
+    Keywords: notes;markdown;memory;brain;ai;
   target:
-    - AppImage
-    - deb
-  icon: build/icon.png
-  category: Utility
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+
+deb:
+  depends: ["libnotify4", "libxtst6", "libnss3", "libsecret-1-0"]
+
+# electron-updater reads the feed from app-update.yml, generated from this.
+publish:
+  - provider: github
+    owner: fadymondy
+    repo: zekra
+    releaseType: release

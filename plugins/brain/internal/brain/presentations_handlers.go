@@ -767,6 +767,9 @@ func (s *Service) PublicPresentation(w http.ResponseWriter, r *http.Request) {
 		writePresErr(w, err)
 		return
 	}
+	if ev != "" {
+		s.notifyPresentationEvent(r, chi.URLParam(r, "token"), ev) // MH-360/373: first view/download → owner, inbox + push (notifications.go); async
+	}
 	writeJSON(w, http.StatusOK, out)
 }
 

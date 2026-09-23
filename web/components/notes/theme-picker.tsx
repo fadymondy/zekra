@@ -129,7 +129,7 @@ function Card({
       <span className="flex items-center justify-between gap-2 border-t border-line bg-grid-card px-2 py-1.5">
         <span className="truncate text-xs text-grid-fg">{theme.label}</span>
         <span
-          className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] tracking-wide uppercase"
+          className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] tracking-wide uppercase"
           style={{ background: p.link, color: p.bg }}
         >
           {theme.kind}

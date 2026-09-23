@@ -82,5 +82,22 @@
   "notes.related": "ذات صلة",
   "notes.noRelated": "لا يوجد ما يتصل بها بعد.",
   "notes.wikilinkHint": "اكتب [[ لربط ملاحظة أو عقدة أخرى.",
-  "notes.wikilinkPick": "ربط بـ…"
+  "notes.wikilinkPick": "ربط بـ…",
+  "notes.grp.pinned": "المثبتة",
+  "notes.grp.today": "اليوم",
+  "notes.grp.yesterday": "أمس",
+  "notes.grp.week": "آخر ٧ أيام",
+  "notes.grp.month": "آخر ٣٠ يومًا",
+  "notes.grp.earlier": "أقدم",
+  "notes.view.all": "الكل",
+  "notes.view.pinned": "المثبتة",
+  "notes.view.archived": "المؤرشفة",
+  "notes.filters": "تصفية حسب الفئة والوسوم",
+  "notes.descriptionPlaceholder": "أضف وصفًا",
+  "notes.descriptionLabel": "الوصف",
+  "notes.changeIcon": "تغيير الأيقونة واللون",
+  "notes.sourceEdit": "تحرير مصدر ماركداون",
+  "notes.sourceTitle": "مصدر ماركداون",
+  "notes.sourceDone": "تم",
+  "notes.sort": "الترتيب"
 }

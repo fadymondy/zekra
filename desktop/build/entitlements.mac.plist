@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Hardened-runtime entitlements for Zekra (Developer ID, outside the Mac App
+  Store). Started from Mark It Down's build/entitlements.mac.plist; dropped
+  what Zekra does not need:
+    - cs.disable-library-validation: MID loads an unsigned better-sqlite3 .node;
+      Zekra ships no native modules.
+    - cs.allow-unsafe-dyld-environment-variables: not needed.
+  Used for both the app and its helpers (entitlementsInherit).
+-->
+<plist version="1.0">
+<dict>
+  <!-- V8 JIT under the hardened runtime. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <!-- Electron/V8 allocate executable memory. -->
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <!-- The Zekra API, GitHub release feed (auto-update). -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- Open Markdown… / exports via the save panel. -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <!-- File ▸ Import from ▸ Apple Notes drives Notes.app over AppleScript.
+       Under the hardened runtime macOS refuses Apple Events (-1743) without
+       this, and never shows the Automation prompt. -->
+  <key>com.apple.security.automation.apple-events</key>
+  <true/>
+</dict>
+</plist>

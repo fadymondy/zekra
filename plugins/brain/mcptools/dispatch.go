@@ -229,11 +229,11 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	// --- notes -----------------------------------------------------------------
 	case "note_create":
 		post("/api/notes", map[string]any{
-			"namespace": args["namespace"], "title": args["title"], "body": args["body"],
+			"namespace": args["namespace"], "title": args["title"], "description": args["description"], "body": args["body"],
 			"tags": args["tags"], "pinned": args["pinned"], "category": args["category"], "source": "agent"})
 	case "note_update":
 		put(note(""), map[string]any{
-			"title": args["title"], "body": args["body"], "tags": args["tags"],
+			"title": args["title"], "description": args["description"], "body": args["body"], "tags": args["tags"],
 			"pinned": args["pinned"], "archived": args["archived"], "version": args["version"], "category": args["category"],
 			"source": "agent"})
 	case "note_append":

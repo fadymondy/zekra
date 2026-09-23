@@ -1,14 +1,16 @@
 import { Redirect } from "expo-router";
+import { View } from "react-native";
 
-import { StatePanel } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
+import { usePalette } from "@/theme";
 
+// Launch route. While the session is being restored the animated splash
+// (src/features/splash, mounted over everything by app/_layout.tsx) covers
+// this, so it only paints the ground; then it hands off to Brains — the home —
+// or to sign-in.
 export default function Index() {
   const { ready, token } = useAuth();
-  const { t } = useI18n();
-  // The native splash covers this until `ready` flips (see app/_layout.tsx);
-  // this is just the fallback if it is hidden early.
-  if (!ready) return <StatePanel loading title={t("app.name")} body={t("common.loading")} />;
-  return <Redirect href={token ? "/(tabs)/notes" : "/sign-in"} />;
+  const p = usePalette();
+  if (!ready) return <View style={{ flex: 1, backgroundColor: p.bg }} />;
+  return <Redirect href={token ? "/brains" : "/sign-in"} />;
 }

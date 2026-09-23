@@ -50,12 +50,12 @@ export function NoteTree({
 
   if (loading) {
     return (
-      <p className="flex items-center gap-2 px-3 py-4 text-sm text-grid-muted">
+      <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
         <Loader2 className="size-3.5 animate-spin" />
       </p>
     );
   }
-  if (error) return <p className="px-3 py-4 text-sm text-grid-danger">{error}</p>;
+  if (error) return <p className="px-3 py-4 text-sm text-destructive">{error}</p>;
 
   return (
     <EntityTree

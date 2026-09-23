@@ -1,68 +1,34 @@
-import { useEffect, useState } from "react";
-import { BrainCircuit } from "lucide-react";
+import { brainHex, monogram } from "@mobile/features/brains/brains-core";
 
-import { getApiBaseUrl, type Brain } from "../lib/api";
+import { useAuthedImage } from "../lib/authed-image";
 
 /*
 A brain's avatar: its uploaded image if it has one, else its emoji icon, else
-a tinted glyph.
+a two-letter mono monogram on the brain's colour — the web's BrainAvatar.
 
-WHY THIS IS NOT JUST AN <img src>. The serve route
-(/api/brain/profile/image/{ns}/{kind}) is members-only and authenticates the
-session — the web console can point an <img> at it because the cookie rides
-along automatically. Desktop is an external client holding a Bearer token, and
-a browser will not attach an Authorization header to an image request, so the
-same markup would fetch a 403 and render a broken image.
+The serve route (/api/brain/profile/image/{ns}/{kind}) is members-only and
+wants the bearer token, which an <img src> cannot send — and a file:// page's
+own fetch is rejected by the API (Origin: null). useAuthedImage fetches the
+bytes through the main process and returns an object URL.
 
-So the bytes are fetched with the token and handed to the <img> as an object
-URL, which is revoked when the component unmounts or the brain changes.
+`token` only gates the fetch (signed out: no request); the main process
+attaches the stored token itself.
 */
+export type AvatarBrain = {
+  namespace: string;
+  colorHex?: string;
+  color?: string;
+  icon?: string;
+  imageUrl?: string;
+};
+
 export function BrainAvatar({ brain, token, size = 44 }: {
-  brain: Brain;
+  brain: AvatarBrain;
   token: string | null;
   size?: number;
 }) {
-  const [src, setSrc] = useState<string | null>(null);
-  const hex = brain.colorHex;
-
-  useEffect(() => {
-    const path = brain.imageUrl;
-    if (!path || !token) {
-      setSrc(null);
-      return;
-    }
-    let url: string | null = null;
-    let alive = true;
-
-    void (async () => {
-      try {
-        const res = await fetch(`${getApiBaseUrl()}${path}`, {
-          headers: { Authorization: `Bearer ${token}`, "X-Agent-Id": "zekra-desktop" },
-          credentials: "include",
-        });
-        if (!res.ok) return;
-        const blob = await res.blob();
-        if (!alive) return;
-        url = URL.createObjectURL(blob);
-        setSrc(url);
-      } catch {
-        // A missing avatar is not worth surfacing; the fallback below is fine.
-      }
-    })();
-
-    return () => {
-      alive = false;
-      // Revoke on unmount or when the brain changes, or every list render
-      // leaks one blob for the lifetime of the window.
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [brain.imageUrl, token]);
-
-  const box = {
-    width: size,
-    height: size,
-    background: hex ? `${hex}22` : "var(--grid-soft)",
-  } as const;
+  const src = useAuthedImage(token ? brain.imageUrl : null);
+  const hex = brainHex(brain);
 
   if (src) {
     return (
@@ -76,12 +42,27 @@ export function BrainAvatar({ brain, token, size = 44 }: {
   }
 
   return (
-    <span aria-hidden className="flex shrink-0 items-center justify-center rounded-md" style={box}>
+    <span
+      aria-hidden
+      className="flex shrink-0 items-center justify-center rounded-md border"
+      style={{
+        width: size,
+        height: size,
+        background: hex ? `${hex}22` : "var(--grid-soft)",
+        borderColor: hex ? `${hex}55` : "var(--grid-line)",
+      }}
+    >
       {brain.icon ? (
         // The owner's emoji, scaled to the box rather than the text size.
         <span style={{ fontSize: Math.round(size * 0.5), lineHeight: 1 }}>{brain.icon}</span>
       ) : (
-        <BrainCircuit style={{ width: size * 0.45, height: size * 0.45, color: hex || "var(--grid-action)" }} />
+        <span
+          className="font-mono font-medium"
+          dir="ltr"
+          style={{ fontSize: Math.max(9, Math.round(size * 0.34)), color: hex || "var(--grid-action)", letterSpacing: "0.02em" }}
+        >
+          {monogram(brain.namespace)}
+        </span>
       )}
     </span>
   );

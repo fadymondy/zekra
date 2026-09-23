@@ -155,7 +155,7 @@ export default function BrainsPage() {
           <Link href={`/${locale}/admin/users`} className="text-grid-fg underline underline-offset-4">
             {t("brains.adminLink")}
           </Link>
-          <span className="ms-auto hidden items-center gap-4 text-[11px] sm:flex">
+          <span className="ms-auto hidden items-center gap-4 text-[12.5px] sm:flex">
             <span>{t("brains.footer.nodes", { count: v(s?.entities) })}</span>
             <span>{t("brains.footer.sessions", { count: v(s?.sessions24h) })}</span>
           </span>

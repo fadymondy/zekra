@@ -82,5 +82,22 @@
   "notes.related": "Related",
   "notes.noRelated": "Nothing related yet.",
   "notes.wikilinkHint": "Type [[ to link another note or node.",
-  "notes.wikilinkPick": "Link to…"
+  "notes.wikilinkPick": "Link to…",
+  "notes.grp.pinned": "Pinned",
+  "notes.grp.today": "Today",
+  "notes.grp.yesterday": "Yesterday",
+  "notes.grp.week": "Previous 7 Days",
+  "notes.grp.month": "Previous 30 Days",
+  "notes.grp.earlier": "Earlier",
+  "notes.view.all": "All",
+  "notes.view.pinned": "Pinned",
+  "notes.view.archived": "Archived",
+  "notes.filters": "Filter by category and tags",
+  "notes.descriptionPlaceholder": "Add a description",
+  "notes.descriptionLabel": "Description",
+  "notes.changeIcon": "Change icon and colour",
+  "notes.sourceEdit": "Edit markdown source",
+  "notes.sourceTitle": "Markdown source",
+  "notes.sourceDone": "Done",
+  "notes.sort": "Sort"
 }

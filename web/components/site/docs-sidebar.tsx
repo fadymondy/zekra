@@ -166,7 +166,7 @@ function Section({
         className={cn(
           "flex cursor-pointer list-none items-center gap-1.5 py-1.5 select-none [&::-webkit-details-marker]:hidden",
           top
-            ? "font-mono text-[11px] tracking-wider uppercase"
+            ? "font-mono text-[12.5px] tracking-wider uppercase"
             : "ps-3 pe-2 text-sm font-medium",
           holdsActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
         )}
@@ -179,7 +179,7 @@ function Section({
         />
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {total > COLLAPSE_OVER ? (
-          <span className="font-mono text-[10px] font-normal text-muted-foreground tabular-nums">
+          <span className="font-mono text-[12px] font-normal text-muted-foreground tabular-nums">
             {total}
           </span>
         ) : null}

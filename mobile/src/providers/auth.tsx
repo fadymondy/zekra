@@ -1,7 +1,35 @@
+import { unregisterPush } from "@/features/push/push";
+import { appleCredential } from "@/features/social/apple";
+import { browserGrant } from "@/features/social/browser-flow";
+import { googleIdToken } from "@/features/social/google";
+import type { GoogleVia, SocialProvider } from "@/features/social/social-core";
 import { getStored, removeStored, setStored } from "@/lib/storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
 import { ApiError, authApi, type AuthAnswer, type User } from "@/lib/api";
+
+/** The provider's sheet, then the API — or null when the user closed the sheet. */
+async function socialAnswer(provider: SocialProvider, googleVia: GoogleVia): Promise<AuthAnswer | null> {
+  switch (provider) {
+    case "google": {
+      if (googleVia === "native") {
+        const idToken = await googleIdToken();
+        return idToken ? authApi.google(idToken) : null;
+      }
+      const grant = await browserGrant("google");
+      return grant ? authApi.socialExchange("google", grant.code, grant.verifier) : null;
+    }
+    case "apple": {
+      const cred = await appleCredential();
+      if (!cred) return null;
+      return authApi.apple({ identity_token: cred.identityToken, nonce: cred.nonce, full_name: cred.fullName || undefined });
+    }
+    case "github": {
+      const grant = await browserGrant("github");
+      return grant ? authApi.socialExchange("github", grant.code, grant.verifier) : null;
+    }
+  }
+}
 
 const SESSION_KEY = "zekra.mobile.session.v1";
 
@@ -12,6 +40,14 @@ type AuthContextValue = {
   signIn(email: string, password: string): Promise<AuthAnswer>;
   register(email: string, password: string, name: string): Promise<AuthAnswer>;
   finishChallenge(challenge: string, answer: { code?: string; recovery_code?: string }): Promise<AuthAnswer>;
+  /** Google / Apple / GitHub. Resolves null when the user closed the provider's
+   *  sheet (not an error); throws ApiError or SocialSignInError otherwise —
+   *  including a 401 2fa_required challenge, finished with finishChallenge like a
+   *  password sign-in. `googleVia` picks Google's browser flow (default) or its
+   *  native SDK (useSocialProviders decides). */
+  signInWith(provider: SocialProvider, googleVia?: GoogleVia): Promise<AuthAnswer | null>;
+  /** Adopt a session obtained elsewhere (a browser sign-in finished after a cold start). */
+  acceptSession(answer: AuthAnswer): Promise<AuthAnswer>;
   signOut(): Promise<void>;
 };
 
@@ -74,8 +110,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
     (challenge: string, answer: { code?: string; recovery_code?: string }) => authApi.challenge(challenge, answer).then(accept),
     [accept],
   );
+  const signInWith = useCallback(
+    async (provider: SocialProvider, googleVia: GoogleVia = "browser") => {
+      const answer = await socialAnswer(provider, googleVia);
+      return answer ? accept(answer) : null;
+    },
+    [accept],
+  );
   const signOut = useCallback(async () => {
     const current = token;
+    // Detach this device from the account while the session can still
+    // authenticate the call, so a signed-out phone stops receiving pushes.
+    if (current) await unregisterPush(current);
     setToken(null);
     setUser(null);
     await saveSession(null);
@@ -83,8 +129,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [token]);
 
   const value = useMemo(
-    () => ({ ready, token, user, signIn, register, finishChallenge, signOut }),
-    [ready, token, user, signIn, register, finishChallenge, signOut],
+    () => ({ ready, token, user, signIn, register, finishChallenge, signInWith, acceptSession: accept, signOut }),
+    [ready, token, user, signIn, register, finishChallenge, signInWith, accept, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

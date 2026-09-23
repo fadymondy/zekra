@@ -614,7 +614,7 @@ export function SpiderGraphView({
           onFit={recenter}
           fitLabel={t("graph.fitReheat")}
         />
-        <div className="pointer-events-none absolute bottom-3 end-3 z-20 hidden border border-line bg-grid-card px-2 py-1 text-[10px] text-grid-muted sm:block">
+        <div className="pointer-events-none absolute bottom-3 end-3 z-20 hidden border border-line bg-grid-card px-2 py-1 text-[12px] text-grid-muted sm:block">
           {t("graph.spiderHelp")}
         </div>
       </div>

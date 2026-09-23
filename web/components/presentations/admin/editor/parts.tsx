@@ -155,7 +155,7 @@ export function Gallery({
                 >
                   <TemplateThumb kind={kind} item={item} dir={dir} locale={locale} />
                   <span className="px-1 text-xs font-medium">{t(`presentations.type.${type}`)}</span>
-                  {why ? <span className="px-1 text-[10px] text-muted-foreground">{why}</span> : null}
+                  {why ? <span className="px-1 text-[12px] text-muted-foreground">{why}</span> : null}
                 </button>
               )
             })}

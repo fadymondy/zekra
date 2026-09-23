@@ -124,7 +124,7 @@ export function DocsReader({
             <nav className="grid grid-cols-2 border-t border-line">
               {prev ? (
                 <Link href={docHref(locale, prev.slug)} className="flex flex-col gap-1 border-e border-line p-4 hover:bg-muted/40">
-                  <span className="font-mono text-[11px] text-muted-foreground uppercase">{t.previous}</span>
+                  <span className="font-mono text-[12.5px] text-muted-foreground uppercase">{t.previous}</span>
                   <span className="truncate text-sm" lang="en" dir="ltr">
                     {prev.title}
                   </span>
@@ -134,7 +134,7 @@ export function DocsReader({
               )}
               {next ? (
                 <Link href={docHref(locale, next.slug)} className="flex flex-col items-end gap-1 p-4 text-end hover:bg-muted/40">
-                  <span className="font-mono text-[11px] text-muted-foreground uppercase">{t.next}</span>
+                  <span className="font-mono text-[12.5px] text-muted-foreground uppercase">{t.next}</span>
                   <span className="truncate text-sm" lang="en" dir="ltr">
                     {next.title}
                   </span>
@@ -148,7 +148,7 @@ export function DocsReader({
           <aside className="border-s border-line max-xl:hidden">
             {toc.length > 0 ? (
               <div className="sticky top-(--header-height) max-h-[calc(100svh-var(--header-height))] overflow-x-hidden overflow-y-auto p-4">
-                <p className="font-mono text-[11px] tracking-wider text-muted-foreground uppercase">{t.onThisPage}</p>
+                <p className="font-mono text-[12.5px] tracking-wider text-muted-foreground uppercase">{t.onThisPage}</p>
                 <ul lang="en" dir="ltr" className="mt-3 flex flex-col border-s border-line text-sm">
                   {toc.map((h) => (
                     <li key={h.id}>

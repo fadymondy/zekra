@@ -4,11 +4,21 @@
 // fonts as the web console (web/components/ui, web/app/styles/grid-*), so the
 // desktop app cannot drift from the web design system.
 //
-// npm cannot install anything in this environment, so nothing is added to
-// desktop/package.json: React, the shadcn deps and the Tailwind toolchain are
-// all resolved out of web/node_modules, and esbuild is borrowed from
-// web-legacy/node_modules. That is why this is a hand-rolled script rather than
-// a normal bundler config.
+// React, the shadcn deps and the Tailwind toolchain are resolved out of
+// web/node_modules (the renderer shares the web's component tree, so it must
+// share its package versions too). esbuild is the desktop's own devDependency.
+//
+// Outputs:
+//   out/renderer/{index.html,app.js,app.css,fonts/}  the renderer
+//   out/renderer/{capture.html,capture.js}           the Quick Capture panel
+//   out/main/preload.js                              the bundled preload
+//   out/assets/trayTemplate*.png                     menubar icon
+//
+// Aliases (mirrored in tsconfig.renderer.json "paths"):
+//   @/        -> ../web          shadcn components, web lib
+//   @mobile/  -> ../mobile/src   shared pure-TS modules (i18n dictionaries)
+// Files under mobile/src use "@/" for THEIR OWN root, so an import of "@/…"
+// from a mobile file is resolved against mobile/src, not web (plugin below).
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
@@ -18,21 +28,33 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP = path.resolve(HERE, "..");
 const REPO = path.resolve(DESKTOP, "..");
 const WEB = path.join(REPO, "web");
+const MOBILE_SRC = path.join(REPO, "mobile", "src");
 const OUT = path.join(DESKTOP, "out", "renderer");
 
 const webRequire = createRequire(path.join(WEB, "package.json"));
-const legacyRequire = createRequire(path.join(REPO, "web-legacy", "package.json"));
+const desktopRequire = createRequire(path.join(DESKTOP, "package.json"));
+const esbuild = desktopRequire("esbuild");
 const fromWeb = (id) => import(pathToFileURL(webRequire.resolve(id)).href);
 
 const posix = (p) => p.split(path.sep).join("/");
 
 /* ------------------------------------------------------------------ JS */
 
-async function bundleJs({ dev }) {
-  const esbuild = legacyRequire("esbuild");
+/** "@/x" imported FROM a mobile/src file means mobile/src/x. */
+const mobileSelfAlias = {
+  name: "mobile-self-alias",
+  setup(build) {
+    build.onResolve({ filter: /^@\// }, async (args) => {
+      if (!args.importer.startsWith(MOBILE_SRC + path.sep)) return undefined;
+      return build.resolve("./" + args.path.slice(2), { resolveDir: MOBILE_SRC, kind: args.kind });
+    });
+  },
+};
+
+async function bundleJs({ dev, entry = "main.tsx", outfile = "app.js" }) {
   await esbuild.build({
-    entryPoints: [path.join(DESKTOP, "src", "renderer", "main.tsx")],
-    outfile: path.join(OUT, "app.js"),
+    entryPoints: [path.join(DESKTOP, "src", "renderer", entry)],
+    outfile: path.join(OUT, outfile),
     bundle: true,
     format: "iife",
     platform: "browser",
@@ -43,7 +65,8 @@ async function bundleJs({ dev }) {
     sourcemap: dev,
     // shadcn components import "@/lib/utils" and "@/components/ui/*" — point
     // that alias at the web app so they resolve to the real components.
-    alias: { "@": WEB },
+    alias: { "@": WEB, "@mobile": MOBILE_SRC },
+    plugins: [mobileSelfAlias],
     // Everything (react, base-ui, cva, lucide…) lives in web/node_modules.
     nodePaths: [path.join(WEB, "node_modules")],
     define: { "process.env.NODE_ENV": JSON.stringify(dev ? "development" : "production") },
@@ -77,6 +100,9 @@ async function bundleCss() {
   const css = [
     globals,
     fs.readFileSync(path.join(DESKTOP, "src", "renderer", "theme.css"), "utf8"),
+    // MH-450 presentations: the web viewers' series palette + page styles
+    // (the web imports it from the /p/[token] page, which the desktop has not).
+    fs.readFileSync(path.join(WEB, "components", "presentations", "presentations.css"), "utf8"),
   ].join("\n");
 
   const compiler = await compile(css, { base: WEB, onDependency: () => {} });
@@ -86,7 +112,12 @@ async function bundleCss() {
   const scanner = new Scanner({
     sources: [
       { base: path.join(DESKTOP, "src", "renderer"), pattern: "**/*.{ts,tsx,css}", negated: false },
+      { base: path.join(WEB, "components", "notes"), pattern: "**/*.tsx", negated: false },
       { base: path.join(WEB, "components", "ui"), pattern: "**/*.tsx", negated: false },
+      // MH-450 presentations: the web viewers the Presentations tab renders
+      // (deck/report/page + scenes; not admin/, the web-only editor).
+      { base: path.join(WEB, "components", "presentations"), pattern: "*.tsx", negated: false },
+      { base: path.join(WEB, "components", "presentations", "scenes"), pattern: "*.tsx", negated: false },
       { base: path.join(WEB, "lib"), pattern: "**/*.ts", negated: false },
     ],
   });
@@ -106,19 +137,94 @@ async function bundleCss() {
   return out.length;
 }
 
+/* -------------------------------------------------------------- preload */
+
+// A sandboxed preload may only require("electron") and a few builtins, so the
+// shared IPC contract has to be inlined rather than required at runtime.
+async function bundlePreload({ dev }) {
+  await esbuild.build({
+    entryPoints: [path.join(DESKTOP, "src", "main", "preload.ts")],
+    outfile: path.join(DESKTOP, "out", "main", "preload.js"),
+    bundle: true,
+    format: "cjs",
+    platform: "node",
+    target: ["node20"],
+    external: ["electron"],
+    sourcemap: dev ? "inline" : false,
+    logLevel: "warning",
+  });
+}
+
 /* --------------------------------------------------------------- assets */
 
-function copyStatic() {
+/** The CSP lives in src/shared/csp.ts; evaluate it rather than restate it. */
+async function loadCsp() {
+  const src = fs.readFileSync(path.join(DESKTOP, "src", "shared", "csp.ts"), "utf8");
+  const { code } = await esbuild.transform(src, { loader: "ts", format: "esm" });
+  const mod = await import("data:text/javascript;base64," + Buffer.from(code).toString("base64"));
+  return mod.CSP;
+}
+
+async function copyStatic() {
   fs.mkdirSync(OUT, { recursive: true });
-  fs.copyFileSync(path.join(DESKTOP, "src", "renderer", "index.html"), path.join(OUT, "index.html"));
+  const html = fs
+    .readFileSync(path.join(DESKTOP, "src", "renderer", "index.html"), "utf8")
+    .replace(`content="%CSP%"`, `content="${await loadCsp()}"`);
+  fs.writeFileSync(path.join(OUT, "index.html"), html);
+  // Quick Capture panel (src/main/quick-capture.ts): same CSP, shares app.css.
+  const captureHtml = fs
+    .readFileSync(path.join(DESKTOP, "src", "renderer", "capture", "capture.html"), "utf8")
+    .replace(`content="%CSP%"`, `content="${await loadCsp()}"`);
+  fs.writeFileSync(path.join(OUT, "capture.html"), captureHtml);
+
+  // Menubar icon (generated by build/make-icons.mjs, committed in build/).
+  const assets = path.join(DESKTOP, "out", "assets");
+  fs.mkdirSync(assets, { recursive: true });
+  // icon.png: the Linux About panel / window icon (os-integration.ts).
+  // icon.ico / tray.png: the Windows / Linux tray icon (tray.ts) — the black
+  // macOS template glyph would vanish on a dark taskbar.
+  for (const f of ["trayTemplate.png", "trayTemplate@2x.png", "icon.png", "icon.ico"]) {
+    const from = path.join(DESKTOP, "build", f);
+    if (fs.existsSync(from)) fs.copyFileSync(from, path.join(assets, f));
+  }
+  const trayPng = path.join(DESKTOP, "build", "icons", "24x24.png");
+  if (fs.existsSync(trayPng)) fs.copyFileSync(trayPng, path.join(assets, "tray.png"));
+}
+
+/* --------------------------------------------------------------- vendor */
+
+// MH-450 markdown extras (src/renderer/features/markdown-extras): KaTeX and
+// Mermaid are LAZY — copied here as their prebuilt browser builds and loaded
+// with a <script> tag the first time a document needs them, so neither sits
+// in app.js (mermaid alone is ~3 MB). Both are desktop devDependencies.
+function copyVendor() {
+  const vendor = path.join(OUT, "vendor");
+  const nm = path.join(DESKTOP, "node_modules");
+  const copy = (from, to) => {
+    if (!fs.existsSync(from)) return console.warn(`[bundle] vendor asset missing: ${from}`);
+    fs.mkdirSync(path.dirname(to), { recursive: true });
+    fs.cpSync(from, to, { recursive: true });
+  };
+  copy(path.join(nm, "katex", "dist", "katex.min.js"), path.join(vendor, "katex", "katex.min.js"));
+  copy(path.join(nm, "katex", "dist", "katex.min.css"), path.join(vendor, "katex", "katex.min.css"));
+  const fonts = path.join(nm, "katex", "dist", "fonts");
+  if (fs.existsSync(fonts)) {
+    for (const f of fs.readdirSync(fonts)) {
+      if (f.endsWith(".woff2")) copy(path.join(fonts, f), path.join(vendor, "katex", "fonts", f));
+    }
+  }
+  copy(path.join(nm, "mermaid", "dist", "mermaid.min.js"), path.join(vendor, "mermaid", "mermaid.min.js"));
 }
 
 /* ----------------------------------------------------------------- run */
 
 const dev = process.argv.includes("--dev");
 fs.mkdirSync(OUT, { recursive: true });
-copyStatic();
+await copyStatic();
+copyVendor(); // MH-450 markdown extras (lazy KaTeX + Mermaid)
+await bundlePreload({ dev });
 await bundleJs({ dev });
+await bundleJs({ dev, entry: "capture/capture.tsx", outfile: "capture.js" }); // Quick Capture panel
 const cssBytes = await bundleCss();
 const jsBytes = fs.statSync(path.join(OUT, "app.js")).size;
 console.log(`renderer built -> out/renderer  (js ${(jsBytes / 1024).toFixed(0)} KB, css ${(cssBytes / 1024).toFixed(0)} KB)`);

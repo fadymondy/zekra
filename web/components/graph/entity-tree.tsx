@@ -240,7 +240,7 @@ function Row({
         {blocked === "cycle" ? (
           <RotateCcwIcon className="size-3 shrink-0 text-grid-muted" aria-label={l.cycle} />
         ) : blocked === "depth" ? (
-          <span className="shrink-0 font-mono text-[10px] text-grid-muted">{l.deep}</span>
+          <span className="shrink-0 font-mono text-[12px] text-grid-muted">{l.deep}</span>
         ) : null}
       </div>
 

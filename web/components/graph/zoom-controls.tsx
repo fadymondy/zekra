@@ -35,7 +35,7 @@ export function ZoomControls({
           <Maximize2Icon className="size-4" />
         </button>
       </div>
-      <div className="absolute bottom-3 start-14 z-20 border border-line bg-grid-card px-2 py-1 text-[11px] text-grid-muted">
+      <div className="absolute bottom-3 start-14 z-20 border border-line bg-grid-card px-2 py-1 text-[12.5px] text-grid-muted">
         {formatNumber(zoomPct / 100, { style: "percent" })}
       </div>
     </>

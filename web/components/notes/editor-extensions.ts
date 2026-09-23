@@ -1,3 +1,4 @@
+import { Extension } from "@tiptap/core"
 import Image from "@tiptap/extension-image"
 import Link from "@tiptap/extension-link"
 // TipTap 3 ships TableKit, which bundles Table + Row + Header + Cell. The
@@ -6,8 +7,72 @@ import Link from "@tiptap/extension-link"
 import { TableKit } from "@tiptap/extension-table"
 import { TaskItem } from "@tiptap/extension-task-item"
 import { TaskList } from "@tiptap/extension-task-list"
+import { Plugin, PluginKey } from "@tiptap/pm/state"
+import { Decoration, DecorationSet } from "@tiptap/pm/view"
+import type { Node as PmNode } from "@tiptap/pm/model"
 import StarterKit from "@tiptap/starter-kit"
 import { Markdown } from "tiptap-markdown"
+
+/*
+Per-block text direction: every block reads in the direction of its OWN text,
+so an English paragraph in an Arabic note (or UI) starts at the left with its
+punctuation where it belongs, and an Arabic one starts at the right.
+
+Done with node DECORATIONS (dir="auto" on the rendered element), not with a
+schema attribute (addGlobalAttributes): an attribute would be part of the
+document, and tiptap-markdown's HTML fallback (a table it cannot write as a
+pipe table, a raw HTML block) would then serialise `dir="auto"` into the
+author's markdown. Decorations exist only in the view — nothing reaches the
+saved note. Lists and tables get it too, so a list's markers and a table's
+column order follow its content; code blocks stay left-to-right.
+*/
+const AUTO_DIR_BLOCKS = new Set([
+  "paragraph",
+  "heading",
+  "blockquote",
+  "bulletList",
+  "orderedList",
+  "listItem",
+  "taskList",
+  "taskItem",
+  "table",
+  "tableCell",
+  "tableHeader",
+])
+
+function directionDecorations(doc: PmNode): DecorationSet {
+  const decos: Decoration[] = []
+  doc.descendants((node, pos) => {
+    const name = node.type.name
+    if (name === "codeBlock") {
+      decos.push(Decoration.node(pos, pos + node.nodeSize, { dir: "ltr" }))
+      return false
+    }
+    if (AUTO_DIR_BLOCKS.has(name)) decos.push(Decoration.node(pos, pos + node.nodeSize, { dir: "auto" }))
+    // Inline content has no blocks below it.
+    return !node.isTextblock
+  })
+  return DecorationSet.create(doc, decos)
+}
+
+export const BlockDirection = Extension.create({
+  name: "blockDirection",
+  addProseMirrorPlugins() {
+    const key = new PluginKey<DecorationSet>("blockDirection")
+    return [
+      new Plugin<DecorationSet>({
+        key,
+        state: {
+          init: (_config, state) => directionDecorations(state.doc),
+          apply: (tr, old) => (tr.docChanged ? directionDecorations(tr.doc) : old),
+        },
+        props: {
+          decorations: (state) => key.getState(state),
+        },
+      }),
+    ]
+  },
+})
 
 /*
 The editor schema, shared by the component and the round-trip test — so the
@@ -31,5 +96,7 @@ export function editorExtensions() {
     // html: true keeps raw HTML as-is where the schema cannot model it, which
     // is better than dropping it outright.
     Markdown.configure({ html: true, linkify: false, breaks: false, transformPastedText: true }),
+    // View-only: never part of the document, so never in the markdown.
+    BlockDirection,
   ]
 }

@@ -1,8 +1,7 @@
 import Link from "next/link"
-import { LanguagesIcon } from "lucide-react"
 
 import { CubeMark } from "@/components/brand/cube-mark"
-import { ThemeToggle } from "@/components/header-controls"
+import { LanguageSwitcher, ThemeToggle } from "@/components/header-controls"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { DOCS_HREF, type Landing } from "@/lib/site/landing"
 
@@ -11,8 +10,8 @@ zekra.dev's header: mark, wordmark, nav and the switchers. Ported from fadymondy
 components/product/product-header.tsx and shared by the landing and the docs.
 
 `anchorBase` prefixes in-page anchors: "" on the landing, "/{locale}" on the docs, so #features
-still reaches the section it names. `path` is the locale-less current path, for the language
-link. It is a plain link, not a dropdown, so a crawler can follow it to the other language.
+still reaches the section it names. Languages are a list (LanguageSwitcher, driven by
+LOCALES) — more are coming; the footer repeats them as plain links so crawlers can follow.
 */
 export function SiteHeader({
   spec,
@@ -27,7 +26,6 @@ export function SiteHeader({
   anchorBase?: string
   maxWidth?: string
 }) {
-  const other = locale === "ar" ? "en" : "ar"
   const href = (value: string) =>
     value === DOCS_HREF ? `/${locale}/docs` : value.startsWith("#") ? `${anchorBase}${value}` : value
 
@@ -58,16 +56,7 @@ export function SiteHeader({
         <nav className="flex items-center gap-5 max-sm:hidden">{links}</nav>
 
         <div className="ms-auto flex items-center gap-1">
-          <a
-            href={`/${other}${path}`}
-            hrefLang={other}
-            lang={other}
-            aria-label={other === "ar" ? "العربية" : "English"}
-            title={other === "ar" ? "العربية" : "English"}
-            className="inline-flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <LanguagesIcon className="size-4" />
-          </a>
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>

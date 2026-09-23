@@ -2,26 +2,48 @@
   "name": "zekra-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Zekra (ذكرة) desktop — a native Electron notes app backed by the Zekra brain/notes REST API.",
+  "description": "Zekra (ذكرة) for macOS — a native Electron client of the Zekra brain/notes API.",
   "main": "out/main/main.js",
   "scripts": {
-    "typecheck": "npm run typecheck:renderer",
-    "build:main": "../web/node_modules/.bin/tsc -p tsconfig.main.json",
+    "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "node build/bundle.mjs",
     "build": "npm run build:main && npm run build:renderer",
-    "dev": "npm run build && electron .",
-    "package": "npm run build && electron-builder",
-    "icon": "node build/make-icon-png.js",
-    "typecheck:renderer": "../web/node_modules/.bin/tsc --noEmit -p tsconfig.renderer.json",
-    "typecheck:main": "../web/node_modules/.bin/tsc --noEmit -p tsconfig.main.json"
+    "build:dev": "npm run build:main && node build/bundle.mjs --dev",
+    "dev": "npm run build:dev && electron .",
+    "start": "electron .",
+    "typecheck": "npm run typecheck:main && npm run typecheck:renderer",
+    "typecheck:main": "tsc --noEmit -p tsconfig.main.json",
+    "typecheck:renderer": "tsc --noEmit -p tsconfig.renderer.json",
+    "test": "tsc -p tsconfig.main.json && node --test test/*.test.cjs",
+    "icons": "node build/make-icons.mjs",
+    "pack": "npm run build && electron-builder --mac --dir",
+    "dist": "npm run build && electron-builder --mac",
+    "dist:publish": "npm run build && electron-builder --mac --publish always",
+    "dist:publish:win": "npm run build && electron-builder --win --publish always",
+    "dist:publish:linux": "npm run build && electron-builder --linux --publish always",
+    "dist:publish:all": "npm run build && electron-builder --mac --win --linux --publish always"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.9"
   },
   "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@types/node": "^20.14.0",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
+    "esbuild": "^0.25.12",
+    "katex": "^0.16.47",
+    "mermaid": "^11.17.2",
     "typescript": "^5.6.3"
+  },
+  "author": {
+    "name": "Fady Mondy",
+    "email": "info@3x1.io"
+  },
+  "homepage": "https://zekra.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fadymondy/zekra.git"
   }
 }

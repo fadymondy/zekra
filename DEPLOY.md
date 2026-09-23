@@ -106,3 +106,58 @@ Tunables worth knowing:
 - The API's startup readiness probe checks `DATABASE_URL` only and stops at once on
   an authentication error (MH-325). It used to probe a stale `*_DATABASE_URL` alias
   and wait 90 silent seconds.
+
+## Mobile app sign-in providers
+
+- **Mobile app sign-in.** `GET /api/auth/providers` tells the app which buttons to show
+  (`{providers: [{name, web, app, native}]}`: `app` = the server's browser flow run in an auth
+  session, `native` = the provider's own sheet); each path answers like `/api/auth/login`
+  (`{token, user}`). Provider sign-ins do not ask for the TOTP code — the provider carries its
+  own second factor, on the web and in the app alike. A server without `/api/auth/providers`
+  (older builds) gets the GitHub button only.
+  - Google (default, `app`) — the app runs the web flow in an auth session
+    (`/api/auth/google?app=1&return=zekra://auth/google&code_challenge=…`) and trades the
+    one-time code at `POST /api/auth/google/exchange {code, code_verifier}`. It needs only the
+    web client (`OAUTH_GOOGLE_CLIENT_ID/SECRET`) and the callback URL above — no iOS/Android
+    OAuth client, no Google SDK config. The return must use `GOOGLE_APP_SCHEME` (default
+    `zekra`); the code lives 2 minutes, works once, and is PKCE-bound to the app.
+  - Google (optional upgrade, `native`) — `POST /api/auth/google/token {id_token}`, verified
+    against Google's JWKS. The app uses the native Google sheet instead of the browser only when
+    its build has the SDK config: the ID token's audience is the **web** client id, so the app's
+    `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` must be `OAUTH_GOOGLE_CLIENT_ID` (or be listed in
+    `OAUTH_GOOGLE_AUDIENCES`, comma-separated — add the iOS and Android client ids there too).
+    In Google Cloud create an iOS OAuth client (bundle `com.fadymondy.zekra`) and an Android one
+    (package `com.fadymondy.zekra` + the SHA-1 of every signing key: debug, upload, Play app
+    signing). App build env: `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`,
+    `GOOGLE_IOS_URL_SCHEME` (the reversed iOS client id; without it the SDK is left out and the
+    app uses the browser flow).
+  - Apple — `POST /api/auth/apple/token {identity_token, nonce, full_name?}`, on only when
+    `APPLE_BUNDLE_IDS=com.fadymondy.zekra` (the token's audience; the key/Services ID above are
+    for the web flow only). The nonce is required and must SHA-256 to the token's claim. Enable
+    the **Sign in with Apple** capability on the App ID `com.fadymondy.zekra` and regenerate its
+    profiles (the app ships the entitlement). The iOS app shows the button only when the server
+    reports `apple.native`.
+  - GitHub — the app runs the web flow in an auth session
+    (`/api/auth/github?app=1&return=zekra://auth/github&code_challenge=…`), so it needs only the
+    web credentials and callback URL above. The return must use `GITHUB_APP_SCHEME` (default
+    `zekra`); the one-time code lives 2 minutes, works once, and is PKCE-bound to the app —
+    `POST /api/auth/github/exchange {code, code_verifier}`.
+  - App-flow failures come back as `zekra://auth/<provider>?error=` `cancelled`, `state`,
+    `email` (GitHub), `closed`, `disabled` or `failed`.
+
+## Mobile push notifications (FCM, MH-373)
+
+The brain plugin sends push notifications to the mobile app through FCM HTTP v1: when
+a brain is shared with a user, and the first time a customer opens a presentation link.
+Devices register through `POST /api/me/device_tokens`; tokens FCM reports dead are pruned.
+With no credentials set, push is a no-op and says so once in the log.
+
+| Env | Example | Notes |
+|---|---|---|
+| `FCM_SERVICE_ACCOUNT_JSON` | raw JSON or base64 | Firebase service-account key (Project settings → Service accounts) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `/run/secrets/fcm.json` | path alternative, used only when the var above is unset |
+| `FCM_PROJECT_ID` | `zekra-mobile` | optional; defaults to the key's `project_id` |
+| `FCM_DRY_RUN` | `1` | optional; FCM validates but delivers nothing |
+
+The `device_tokens` and `push_once` tables are in the brain plugin's `schema.sql` — run
+`zekractl migrate` after deploying. App-side setup: `docs/mobile-release.md`.

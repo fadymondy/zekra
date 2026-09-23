@@ -1,0 +1,209 @@
+# Codemagic CI for the Zekra mobile app (mobile/, Expo + React Native) — MH-373.
+#
+# Lives at the repository root because Codemagic only reads codemagic.yaml from
+# there; every workflow runs inside mobile/ through `working_directory`. The
+# release runbook (Firebase, signing, store listing): docs/mobile-release.md.
+#
+# android/ and ios/ are generated (gitignored), so each build runs
+# `expo prebuild` from app.json + app.config.js — the same source local builds use.
+#
+# Nothing secret is in this file. Signing keys, the App Store Connect key and the
+# Firebase config files live in Codemagic (team integrations / env groups) and
+# are referenced by name only:
+#
+#   zekra_app_env          EXPO_PUBLIC_ZEKRA_API_URL (production API, never localhost)
+#                          GOOGLE_SERVICES_JSON       base64 of secrets/google-services.json
+#                          GOOGLE_SERVICE_INFO_PLIST  base64 of secrets/GoogleService-Info.plist
+#                          PATCH_IOS_PRODUCTION_KEY, PATCH_IOS_STAGING_KEY,
+#                          PATCH_ANDROID_PRODUCTION_KEY, PATCH_ANDROID_STAGING_KEY
+#                                                     Codemagic Patch deployment keys (public ids,
+#                                                     baked into store binaries by app.config.js)
+#   zekra_patch            CODEMAGIC_PATCH_SERVER_URL (https://patch.fadymondy.com)
+#                          CODEMAGIC_PATCH_TOKEN      cmpatch API token (release rights)
+#                          CODEMAGIC_PATCH_PRIVATE_KEY base64 of the release-signing private key
+#                                                     (its public half is mobile/patch-public-key.pem)
+#   zekra_android_keystore CM_KEYSTORE (base64 .jks), CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
+#   zekra_google_play      GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (once Play API upload is enabled)
+#   integration zekra_asc  App Store Connect API key (Team → Integrations), team JW9HJH86GC
+#
+# Builds are manual (store builds cost money): start them from Codemagic or its API.
+
+definitions:
+  # Unused on purpose (builds are manual); kept for when releases go automatic.
+  mobile-trigger: &mobile_trigger
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "mobile-v*"
+          include: true
+      cancel_previous_builds: true
+  email: &email
+    email:
+      recipients:
+        - info@3x1.io
+      notify:
+        success: true
+        failure: true
+  install: &install
+    name: Install dependencies
+    script: npm ci
+  stamp: &stamp
+    name: Stamp the build number
+    # Codemagic's BUILD_NUMBER rises by one per build of a workflow — exactly the
+    # "higher than the last upload" property both stores require.
+    script: node scripts/set-build-number.js "$BUILD_NUMBER"
+  firebase: &firebase
+    name: Firebase config
+    # app.config.js wires each platform's Firebase only when its file exists, so a
+    # missing variable yields a build without push/Crashlytics/Analytics, not a failure.
+    script: |
+      mkdir -p secrets
+      if [ -n "$GOOGLE_SERVICES_JSON" ]; then echo "$GOOGLE_SERVICES_JSON" | base64 --decode > secrets/google-services.json; fi
+      if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > secrets/GoogleService-Info.plist; fi
+      ls -la secrets
+
+workflows:
+  android-release:
+    name: Android — Play internal track (draft)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    working_directory: mobile
+    environment:
+      groups:
+        - zekra_app_env
+        - zekra_android_keystore
+        # - zekra_google_play   # add together with the google_play publisher below
+      node: 22
+      java: 17
+    scripts:
+      - *install
+      - name: Upload keystore
+        # Decoded outside the repo; CM_KEYSTORE_PATH reaches Gradle through CM_ENV,
+        # and plugins/with-release-signing.js signs the release with it.
+        script: |
+          echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/zekra-upload.jks"
+          echo "CM_KEYSTORE_PATH=$CM_BUILD_DIR/zekra-upload.jks" >> "$CM_ENV"
+      - *stamp
+      - *firebase
+      - name: Generate the native project
+        script: npx expo prebuild --platform android --non-interactive --clean
+      - name: Build the release bundle
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
+    publishing:
+      <<: *email
+      # Play accepts API uploads only after the FIRST .aab of com.fadymondy.zekra
+      # was uploaded by hand in the Play Console — the artifact above is that
+      # upload. Then enable (and add zekra_google_play to environment.groups):
+      # google_play:
+      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      #   track: internal
+      #   submit_as_draft: true
+
+  ios-release:
+    name: iOS — TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    working_directory: mobile
+    integrations:
+      # App Store Connect API key of team JW9HJH86GC, added in Codemagic
+      # (Team → Integrations) under this name. It signs, fetches profiles, uploads.
+      app_store_connect: zekra_asc
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.fadymondy.zekra
+      groups:
+        - zekra_app_env
+      vars:
+        APPLE_TEAM_ID: JW9HJH86GC
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - *install
+      - *stamp
+      - *firebase
+      - name: Generate the native project
+        # --no-install: prebuild only WARNS when its own `pod install` fails and
+        # still exits 0. CocoaPods runs in its own step so a failure stops here.
+        script: npx expo prebuild --platform ios --non-interactive --no-install --clean
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install --repo-update
+      - name: Apply the signing profiles
+        script: xcode-project use-profiles --project ios/*.xcodeproj
+      - name: Build the IPA
+        # The workspace/scheme is whatever prebuild generated; found, not assumed.
+        script: |
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "workspace: $WORKSPACE  scheme: $SCHEME"
+          xcode-project build-ipa --workspace "$WORKSPACE" --scheme "$SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      <<: *email
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  # OTA update — a new JS bundle for the store binaries already out, through
+  # the self-hosted Codemagic Patch server (same stack as fadymondy.com/mobile).
+  # Ships to every installed binary whose version equals app.json expo.version
+  # (--target-binary-version); a native change needs a store build instead.
+  # Mark a release mandatory on the Patch server (or add --mandatory below)
+  # to make the app install it at once behind its full-screen loader.
+  # Setup (Patch apps, deployment keys, signing key): mobile/README.md →
+  # "OTA updates (Codemagic Patch)".
+  ota-release:
+    name: OTA update — Codemagic Patch (iOS + Android)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    working_directory: mobile
+    environment:
+      groups:
+        - zekra_app_env
+        - zekra_patch
+      node: 22
+      vars:
+        PATCH_DEPLOYMENT: Production
+        PATCH_APP_IOS: zekra
+        PATCH_APP_ANDROID: zekra-android
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+          npm install -g @codemagic/patch-cli
+      - name: Signing key
+        script: echo "$CODEMAGIC_PATCH_PRIVATE_KEY" | base64 --decode > "$CM_BUILD_DIR/patch-private-key.pem"
+      - *firebase
+      - name: Generate the native projects
+        # android/ and ios/ are generated (gitignored). release-react fingerprints
+        # the native project and fails without it. Same inputs as the store
+        # builds (zekra_app_env: Firebase, PATCH_* keys), so the fingerprint
+        # matches theirs. --no-install: CocoaPods is not needed for it.
+        script: npx expo prebuild --non-interactive --no-install
+      - name: Release iOS
+        script: |
+          cmpatch release-react --server-url "$CODEMAGIC_PATCH_SERVER_URL" --token "$CODEMAGIC_PATCH_TOKEN" \
+            --app "$PATCH_APP_IOS" --platform ios --deployment "$PATCH_DEPLOYMENT" \
+            --target-binary-version "$(node -p "require('./app.json').expo.version")" --bundler expo \
+            --private-key-path "$CM_BUILD_DIR/patch-private-key.pem" \
+            --release-notes "$(git log -1 --format=%s)" --no-duplicate-release-error --non-interactive --yes
+      - name: Release Android
+        script: |
+          cmpatch release-react --server-url "$CODEMAGIC_PATCH_SERVER_URL" --token "$CODEMAGIC_PATCH_TOKEN" \
+            --app "$PATCH_APP_ANDROID" --platform android --deployment "$PATCH_DEPLOYMENT" \
+            --target-binary-version "$(node -p "require('./app.json').expo.version")" --bundler expo \
+            --private-key-path "$CM_BUILD_DIR/patch-private-key.pem" \
+            --release-notes "$(git log -1 --format=%s)" --no-duplicate-release-error --non-interactive --yes
+    publishing:
+      <<: *email

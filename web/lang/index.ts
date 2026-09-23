@@ -32,7 +32,8 @@ import graphEn from "./graph.en.json"
 import graphAr from "./graph.ar.json"
 import adminEn from "./admin.en.json"
 import adminAr from "./admin.ar.json"
-import oauthEn from "./oauth.en.json"
+
+import oauthEn from "./oauth.en.json"
 import oauthAr from "./oauth.ar.json"
 import brainSettingsEn from "./brainSettings.en.json"
 import brainSettingsAr from "./brainSettings.ar.json"
@@ -44,6 +45,8 @@ import appsEn from "./apps.en.json"
 import appsAr from "./apps.ar.json"
 import presentationsEn from "./presentations.en.json"
 import presentationsAr from "./presentations.ar.json"
+import notificationsEn from "./notifications.en.json"
+import notificationsAr from "./notifications.ar.json"
 
 type Dict = Record<string, string>
 export const EN: Dict = {
@@ -53,6 +56,7 @@ export const EN: Dict = {
   ...notesEn,
   ...appsEn,
   ...presentationsEn,
+  ...notificationsEn,
   ...commonEn,
   ...shellEn,
   ...authEn,
@@ -77,6 +81,7 @@ export const AR: Dict = {
   ...notesAr,
   ...appsAr,
   ...presentationsAr,
+  ...notificationsAr,
   ...commonAr,
   ...shellAr,
   ...authAr,
