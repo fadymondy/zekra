@@ -143,7 +143,7 @@ export function NoteSheet({ note, brain, open, onClose, onOpenNote, actions }: {
         {canWrite ? (
           <>
             <SheetItem
-              icon={icon(note.pinned ? PinOff : Pin, p.gold)}
+              icon={icon(note.pinned ? PinOff : Pin, p.action)}
               label={note.pinned ? t("notes.x.unpin") : t("notes.x.pin")}
               onPress={() => { onClose(); void actions.togglePin(note); }}
             />
@@ -229,7 +229,7 @@ export function NoteSheet({ note, brain, open, onClose, onOpenNote, actions }: {
             </ScrollView>
           </View>
           {current ? (
-            <Chip label={t("notes.x.current").toUpperCase()} tone="gold" />
+            <Chip label={t("notes.x.current")} tone="action" />
           ) : canWrite ? (
             <PrimaryButton
               label={t("notes.x.restore")}
@@ -315,7 +315,7 @@ function AppearancePicker({ note, onPick }: { note: Note; onPick: (patch: { icon
               accessibilityLabel={name}
               accessibilityState={{ selected: on }}
               onPress={() => onPick({ icon: name })}
-              style={[styles.cell, { borderColor: on ? p.gold : p.line, backgroundColor: on ? `${p.gold}1A` : p.bg }]}
+              style={[styles.cell, { borderColor: on ? p.action : p.line, backgroundColor: on ? `${p.action}1A` : p.bg }]}
             >
               <Icon size={19} color={resolved.color} strokeWidth={1.8} />
             </Pressable>
@@ -333,7 +333,7 @@ function AppearancePicker({ note, onPick }: { note: Note; onPick: (patch: { icon
               accessibilityLabel={hex}
               accessibilityState={{ selected: on }}
               onPress={() => onPick({ color: hex })}
-              style={[styles.cell, { borderColor: on ? p.gold : p.line, borderWidth: on ? 2 : 1, backgroundColor: p.bg }]}
+              style={[styles.cell, { borderColor: on ? p.action : p.line, borderWidth: on ? 2 : 1, backgroundColor: p.bg }]}
             >
               <View style={[styles.swatch, { backgroundColor: hex }]}>
                 {on ? <Check size={14} color="#ffffff" strokeWidth={2.4} /> : null}
@@ -393,7 +393,7 @@ function VersionList({ note, open, onPick }: { note: Note; open: boolean; onPick
           key={v.version}
           label={`${t("notes.x.version", { n: v.version })} · ${v.title || t("notes.x.untitled")}`}
           detail={[formatStamp(v.createdAt, locale), v.authorAgent || v.source, v.deleted ? t("notes.x.deletedTag") : ""].filter(Boolean).join(" · ")}
-          trailing={v.version === note.version ? <Chip label={t("notes.x.current").toUpperCase()} tone="gold" /> : <ForwardChevron />}
+          trailing={v.version === note.version ? <Chip label={t("notes.x.current")} tone="action" /> : <ForwardChevron />}
           onPress={() => onPick(v)}
         />
       ))}

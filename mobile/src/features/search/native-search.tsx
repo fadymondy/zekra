@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import type { SearchBarCommands } from "react-native-screens";
 
-import { HatchFill, Rails } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useBrains } from "@/providers/brains";
 import { fonts, metrics, useTheme } from "@/theme";
@@ -103,7 +102,7 @@ export function NativeSearchScreen() {
       headerLargeStyle: { backgroundColor: p.bg },
       headerShadowVisible: false,
       headerLargeTitleShadowVisible: false,
-      headerTintColor: p.gold,
+      headerTintColor: p.action,
       headerTitleStyle: { fontFamily: fonts.semibold, color: p.ink },
       headerLargeTitleStyle: { fontFamily: fonts.semibold, color: p.ink },
       contentStyle: { backgroundColor: p.bg },
@@ -113,7 +112,7 @@ export function NativeSearchScreen() {
       headerSearchBarOptions: {
         ref: bar,
         placeholder: t("search.placeholder"),
-        tintColor: p.gold,
+        tintColor: p.action,
         textColor: p.ink,
         autoCapitalize: "none" as const,
         hideNavigationBar: false,
@@ -144,8 +143,7 @@ export function NativeSearchScreen() {
         style={{ flex: 1, backgroundColor: p.bg, direction: "ltr" }}
         contentContainerStyle={{ flexGrow: 1, direction: isRtl ? "rtl" : "ltr" }}
       >
-        <HatchFill />
-        <View style={{ gap: metrics.gap, paddingTop: metrics.gap, paddingBottom: metrics.gap + 8 }}>
+        <View style={{ gap: metrics.gap, paddingTop: 8, paddingBottom: metrics.gap + 8 }}>
           {scopeBrain ? <ScopeChip brain={scopeBrain} onClear={() => setScopeNs(undefined)} /> : null}
           {query ? (
             <SearchResults search={search} onOpenNote={openNote} />
@@ -161,7 +159,6 @@ export function NativeSearchScreen() {
             />
           )}
         </View>
-        <Rails />
       </ScrollView>
     </>
   );

@@ -40,7 +40,7 @@ export default function PasswordScreen() {
       <Row>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Tile size={42}>
-            <KeyRound size={20} color={p.gold} strokeWidth={1.6} />
+            <KeyRound size={20} color={p.action} strokeWidth={1.6} />
           </Tile>
           <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 28, color: p.body }}>{t("account.passwordBody")}</AppText>
         </View>

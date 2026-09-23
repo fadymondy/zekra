@@ -22,6 +22,7 @@ import {
   type PendingFlow,
 } from "../features/social/social";
 import { useI18n } from "../lib/i18n";
+import { bridge } from "../lib/bridge";
 import { ApiError, authApi, getApiBaseUrl, type AuthAnswer } from "../lib/api";
 import { useOsEvent } from "../shell/os-events";
 
@@ -210,7 +211,7 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
             {t("auth.resetSent")}
           </p>
         ) : null}
-        <Button type="submit" disabled={busy || !email.trim()}>
+        <Button type="submit" className="h-10 shadow-sm" disabled={busy || !email.trim()}>
           {busy ? t("auth.sending") : t("auth.sendReset")}
         </Button>
         <Button
@@ -306,20 +307,16 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" className="h-10 shadow-sm" disabled={busy}>
             {busy ? t("action.signingIn") : challenge ? t("action.verify") : t("action.signIn")}
           </Button>
         </form>
 
         {!challenge && providers.length ? (
           <div className="mt-5 flex flex-col gap-2">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              {t("social.or")}
-              <span className="h-px flex-1 bg-border" />
-            </div>
+            <div role="separator" className="mb-2 h-px bg-border/70" />
             {providers.map((p) => (
-              <Button key={p} type="button" variant="outline" disabled={busy} onClick={() => void startProvider(p)}>
+              <Button key={p} type="button" variant="outline" className="h-10 bg-pane-raised" disabled={busy} onClick={() => void startProvider(p)}>
                 {p === "github" ? <GitHubMark /> : <GoogleMark />}
                 {t(p === "github" ? "social.github" : "social.google")}
               </Button>
@@ -333,28 +330,40 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
   return (
     <div className="app-chrome flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-8">
       <WindowTitleOnly title={t("app.name")} />
-      <div className="flex w-[340px] flex-col">
+      {/* Health Debug's sign-in: the bare mark, a title and one line, the
+          form, a hairline, the providers, then "No account?". */}
+      <div className="flex w-[360px] flex-col">
         <div className="mb-7 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-16 items-center justify-center rounded-[18px] bg-pane-raised shadow-sm ring-1 ring-border">
-            <ZekraMark size={34} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[22px] font-bold tracking-[-0.01em] text-foreground rtl:tracking-normal">{t("app.name")}</h1>
-            <p className="text-ui text-muted-foreground">{t("app.tagline")}</p>
+          <ZekraMark size={36} />
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-[22px] font-semibold tracking-[-0.01em] text-foreground rtl:tracking-normal">
+              {challenge ? t("auth.twoFactor") : mode === "forgot" ? t("auth.resetTitle") : t("action.signIn")}
+            </h1>
+            <p className="text-ui text-muted-foreground">
+              {challenge ? t("auth.twoFactorIntro") : mode === "forgot" ? t("auth.resetIntro") : t("app.tagline")}
+            </p>
           </div>
         </div>
 
         {body}
 
-        <div className="mt-8 flex items-center justify-between gap-3 border-t border-border/60 pt-3 text-ui-sm text-muted-foreground">
+        {!challenge && mode !== "forgot" ? (
+          <button
+            type="button"
+            className="mx-auto mt-6 text-ui text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            onClick={() => void bridge().openExternal(`${getApiBaseUrl().replace(/\/+$/, "")}/${locale}/register`)}
+          >
+            {t("auth.noAccountPrompt")} <span className="font-medium text-foreground">{t("auth.createOne")}</span>
+          </button>
+        ) : null}
+
+        <div className="mt-8 flex items-center justify-center gap-2 text-ui-sm text-muted-foreground/80">
           <button type="button" className="shrink-0 hover:text-foreground" onClick={onOpenSettings}>
             {t("settings.title")}…
           </button>
-          <span className="truncate">
-            {t("auth.connecting")}{" "}
-            <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
-              {getApiBaseUrl().replace(/^https?:\/\//, "")}
-            </span>
+          <span aria-hidden>·</span>
+          <span className="truncate" dir="ltr" style={{ unicodeBidi: "isolate" }}>
+            {getApiBaseUrl().replace(/^https?:\/\//, "")}
           </span>
         </div>
       </div>

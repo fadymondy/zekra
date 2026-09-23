@@ -158,7 +158,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
                           pressed && { backgroundColor: p.soft },
                         ]}
                       >
-                        <Icon size={18} color={on ? p.gold : p.muted} strokeWidth={1.6} />
+                        <Icon size={18} color={on ? p.action : p.muted} strokeWidth={1.6} />
                         <AppText numberOfLines={1} style={{ flex: 1, fontFamily: fonts.regular, fontSize: 15.5, color: on ? p.ink : p.body }}>
                           {n.title || t("common.untitled")}
                         </AppText>
@@ -187,7 +187,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
                 key={k}
                 label={f.kind(k)}
                 selected={form.kinds.includes(k)}
-                icon={<KindIcon kind={k} size={16} color={form.kinds.includes(k) ? p.gold : p.muted} />}
+                icon={<KindIcon kind={k} size={16} color={form.kinds.includes(k) ? p.action : p.muted} />}
                 onPress={() => set({ kinds: toggleKind(form.kinds, k) })}
                 style={{ flexGrow: 1, paddingHorizontal: 12 }}
               />

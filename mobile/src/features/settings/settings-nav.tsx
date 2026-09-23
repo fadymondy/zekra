@@ -55,15 +55,15 @@ function SectionStrip({ current }: { current?: SettingsSection }) {
               paddingHorizontal: 11,
               borderRadius: metrics.radius.chip,
               borderWidth: 1,
-              borderColor: on ? p.gold : p.line,
-              backgroundColor: on ? `${p.gold}1A` : pressed ? p.soft : p.card,
+              borderColor: on ? p.action : p.line,
+              backgroundColor: on ? `${p.action}1A` : pressed ? p.soft : p.card,
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
             })}
           >
-            <s.Icon size={14} color={on ? p.gold : p.muted} strokeWidth={1.6} />
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: on ? p.gold : p.muted }}>{t(s.label)}</AppText>
+            <s.Icon size={14} color={on ? p.action : p.muted} strokeWidth={1.6} />
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: on ? p.action : p.muted }}>{t(s.label)}</AppText>
           </Pressable>
         );
       })}
@@ -96,14 +96,14 @@ export function SettingsItem({ Icon, label, onPress, last, tone, trailing, detai
   label: string;
   onPress?: () => void;
   last?: boolean;
-  tone?: "gold" | "danger";
+  tone?: "accent" | "danger";
   trailing?: ReactNode;
   detail?: string;
   /** Machine text (URL, host, version): mono, left-to-right. */
   mono?: boolean;
 }) {
   const p = usePalette();
-  const iconColor = tone === "danger" ? p.danger : tone === "gold" ? p.gold : p.muted;
+  const iconColor = tone === "danger" ? p.danger : tone === "accent" ? p.action : p.muted;
   return (
     <ListItem
       last={last}
@@ -116,13 +116,13 @@ export function SettingsItem({ Icon, label, onPress, last, tone, trailing, detai
       }
       trailing={trailing ?? (onPress ? <ForwardChevron size={17} /> : undefined)}
     >
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 23, color: tone === "danger" ? p.danger : p.ink }}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 16, lineHeight: 22, color: tone === "danger" ? p.danger : p.ink }}>{label}</AppText>
       {detail ? (
         <AppText
           numberOfLines={mono ? 1 : 2}
           style={mono
             ? { fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 19, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }
-            : { fontFamily: fonts.light, fontSize: 13.5, lineHeight: 21, color: p.muted }}
+            : { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: p.muted }}
         >
           {detail}
         </AppText>

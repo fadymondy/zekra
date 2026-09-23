@@ -6,12 +6,12 @@ import ReanimatedSwipeable, { type SwipeableMethods } from "react-native-gesture
 import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, type SharedValue } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-import { Meta, Tile } from "@/components/kit";
-import { AppText, Row } from "@/components/ui";
+import { Tile } from "@/components/kit";
+import { AppText, Cell } from "@/components/ui";
 import type { Note } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { noteIcon } from "@/lib/note-icon";
-import { fonts, useTheme } from "@/theme";
+import { fonts, metrics, useTheme } from "@/theme";
 
 import { formatAgo } from "./format";
 import { edgeFromTravel, edgeOf, fullSwipeArmed, physicalOrder, rowPreview, type Edge, type Physical } from "./notes-core";
@@ -80,8 +80,14 @@ function ActionPanel({ physical, actions, translation, rowWidth, onArm, close }:
   );
 }
 
+const TILE = 32;
+/** Dividers start under the text, past the tile. */
+const TEXT_INSET = metrics.padX + TILE + 12;
+
 /**
- * A note in the brain's list.
+ * A note in the brain's list — the desktop's list row as a grouped-list cell:
+ * the note's tinted tile; its title with the time at the end; one line of
+ * preview. `first` / `last` place it in its date group's card.
  *   tap        -> open
  *   long press -> the action sheet (onMenu), with a haptic
  *   swipe      -> real buttons: Pin at the start edge; Archive and Delete at
@@ -89,8 +95,10 @@ function ActionPanel({ physical, actions, translation, rowWidth, onArm, close }:
  * Swipe is off for read-only brains. Archive/Delete confirm in the handlers
  * (useNoteActions), so every entry point shares one prompt.
  */
-export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen, onMenu, onPin, onArchive, onDelete }: {
+export const NoteRow = memo(function NoteRow({ note, first, last, canWrite, registry, onOpen, onMenu, onPin, onArchive, onDelete }: {
   note: Note;
+  first: boolean;
+  last: boolean;
   canWrite: boolean;
   registry: OpenRowRegistry;
   onOpen: (note: Note) => void;
@@ -124,7 +132,7 @@ export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen,
         key: "archive",
         label: note.archived ? t("notes.x.unarchive") : t("notes.x.archive"),
         Icon: note.archived ? ArchiveRestore : Archive,
-        ground: p.soft,
+        ground: p.selected,
         ink: p.ink,
         run: () => onArchive(note),
       },
@@ -175,6 +183,7 @@ export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen,
   };
 
   return (
+    <Cell first={first} last={last} dividerInset={TEXT_INSET}>
     <ReanimatedSwipeable
       ref={swipe}
       enabled={canWrite}
@@ -203,7 +212,8 @@ export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen,
         onPress={() => onOpen(note)}
         onLongPress={() => onMenu(note)}
         delayLongPress={350}
-        android_ripple={{ color: p.soft }}
+        android_ripple={{ color: p.selected }}
+        style={({ pressed }) => [styles.line, { backgroundColor: pressed ? p.selected : p.raised }]}
         accessibilityRole="button"
         accessibilityLabel={title}
         accessibilityActions={[
@@ -219,46 +229,42 @@ export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen,
         ]}
         onAccessibilityAction={onAccessibilityAction}
       >
-        <Row>
-          <View style={styles.line}>
-            {/* hsl() colours (uncurated categories) cannot take the hex alpha
-                suffix Tile's tint uses, so only hex colours tint the tile. */}
-            <Tile size={38} tint={color.startsWith("#") ? color : undefined}>
-              <Icon size={18} color={color} strokeWidth={1.8} />
-            </Tile>
-            <View style={styles.text}>
-              <View style={styles.titleLine}>
-                {note.pinned ? <Pin size={13} color={p.gold} fill={p.gold} accessibilityLabel={t("notes.x.pinnedLabel")} /> : null}
-                <AppText variant="rowTitle" numberOfLines={1} style={styles.title}>{title}</AppText>
-                {!note.indexed ? (
-                  note.indexError ? (
-                    <AlertTriangle size={14} color={p.danger} accessibilityLabel={t("notes.x.indexFailed")} />
-                  ) : (
-                    <Sparkles size={14} color={p.gold} accessibilityLabel={t("notes.x.indexing")} />
-                  )
-                ) : null}
-              </View>
-              {preview ? <AppText variant="body" numberOfLines={2}>{preview}</AppText> : null}
-              <Meta
-                items={[
-                  formatAgo(note.updatedAt, t, locale),
-                  note.archived && t("notes.x.archivedLabel").toUpperCase(),
-                  ...note.tags.slice(0, 3).map((tag) => `#${tag}`),
-                ]}
-              />
-            </View>
+        {/* hsl() colours (uncurated categories) cannot take the hex alpha
+            suffix Tile's tint uses, so only hex colours tint the tile. */}
+        <Tile size={TILE} radius={8} tint={color.startsWith("#") ? color : undefined}>
+          <Icon size={16} color={color} strokeWidth={1.8} />
+        </Tile>
+        <View style={styles.text}>
+          <View style={styles.titleLine}>
+            {note.pinned ? <Pin size={12} color={p.muted} fill={p.muted} accessibilityLabel={t("notes.x.pinnedLabel")} /> : null}
+            <AppText numberOfLines={1} style={[styles.title, { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: p.ink }]}>{title}</AppText>
+            {!note.indexed ? (
+              note.indexError ? (
+                <AlertTriangle size={13} color={p.danger} accessibilityLabel={t("notes.x.indexFailed")} />
+              ) : (
+                <Sparkles size={13} color={p.gold} accessibilityLabel={t("notes.x.indexing")} />
+              )
+            ) : null}
+            <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: p.muted }}>
+              {note.archived ? `${t("notes.x.archivedLabel")} · ` : ""}
+              {formatAgo(note.updatedAt, t, locale)}
+            </AppText>
           </View>
-        </Row>
+          {preview ? (
+            <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: p.muted }}>{preview}</AppText>
+          ) : null}
+        </View>
       </Pressable>
     </ReanimatedSwipeable>
+    </Cell>
   );
 });
 
 const styles = StyleSheet.create({
   panel: { flexDirection: "row", direction: "ltr" },
   action: { flex: 1, alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 6 },
-  line: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  text: { flex: 1, gap: 4 },
-  titleLine: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 20 },
-  title: { flexShrink: 1 },
+  line: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: metrics.padX, paddingVertical: 10, minHeight: 60 },
+  text: { flex: 1, gap: 2 },
+  titleLine: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 22 },
+  title: { flex: 1 },
 });

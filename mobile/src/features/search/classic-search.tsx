@@ -58,8 +58,8 @@ export function ClassicSearchScreen() {
   const band = (
     <View style={[styles.band, { borderBottomColor: p.line, backgroundColor: p.bg }]}>
       <View style={styles.queryRow}>
-        <View style={[styles.query, { borderColor: focused ? p.gold : p.line, backgroundColor: p.card }]}>
-          <SearchIcon size={19} color={focused ? p.gold : p.muted} strokeWidth={1.6} />
+        <View style={[styles.query, { borderColor: focused ? p.action : p.line, backgroundColor: p.card }]}>
+          <SearchIcon size={19} color={focused ? p.action : p.muted} strokeWidth={1.6} />
           <TextInput
             ref={field}
             value={input}
@@ -73,8 +73,8 @@ export function ClassicSearchScreen() {
             onBlur={() => setFocused(false)}
             placeholder={t("search.placeholder")}
             placeholderTextColor={p.muted}
-            selectionColor={p.gold}
-            cursorColor={p.gold}
+            selectionColor={p.action}
+            cursorColor={p.action}
             returnKeyType="search"
             accessibilityLabel={t("search.placeholder")}
             style={{ flex: 1, minHeight: 44, fontFamily: fonts.regular, fontSize: 16.5, color: p.ink, writingDirection: isRtl ? "rtl" : "ltr" }}

@@ -62,7 +62,7 @@ export default function DeleteAccountScreen() {
           <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("account.deleteScheduledBody")}</AppText>
           <View style={{ gap: 4 }}>
             <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{t("account.deleteScheduledFor")}</AppText>
-            <AppText style={{ fontFamily: fonts.mono, fontSize: 14.5, lineHeight: 22, color: p.gold, writingDirection: "ltr", alignSelf: "flex-start" }}>{when(state.data?.scheduled_for)}</AppText>
+            <AppText style={{ fontFamily: fonts.mono, fontSize: 14.5, lineHeight: 22, color: p.action, writingDirection: "ltr", alignSelf: "flex-start" }}>{when(state.data?.scheduled_for)}</AppText>
           </View>
           {error ? <ErrorLine text={error} /> : null}
           <SecondaryButton

@@ -41,7 +41,7 @@ export default function LegalScreen() {
                 onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
                 leading={
                   <Tile size={34}>
-                    <Mail size={17} color={p.gold} strokeWidth={1.6} />
+                    <Mail size={17} color={p.action} strokeWidth={1.6} />
                   </Tile>
                 }
                 trailing={<ForwardChevron size={17} />}

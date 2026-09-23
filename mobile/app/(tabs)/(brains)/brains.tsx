@@ -7,19 +7,18 @@ import { AwaitNote, ErrorLine, FilterStrip, TextButton } from "@/components/kit"
 import { AppText, Field, Header, IconButton, PrimaryButton, Row, Screen } from "@/components/ui";
 import { NotificationBell } from "@/features/notify";
 import { BrainActionsSheet } from "@/features/brains/brain-actions-sheet";
-import { BrainCard, BrainCardSkeleton } from "@/features/brains/brain-card";
+import { BrainRow, BrainRowSkeleton } from "@/features/brains/brain-card";
 import { useBrainList, useBrainStats } from "@/features/brains/brain-data";
-import { filterSort, type BrainListItem, type Sort } from "@/features/brains/brains-core";
+import { filterSort, formatCount, type BrainListItem, type Sort } from "@/features/brains/brains-core";
 import { NewBrainSheet } from "@/features/brains/new-brain-sheet";
-import { StatsStrip } from "@/features/brains/stats-strip";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { useI18n } from "@/lib/i18n";
 import { fonts, metrics, usePalette } from "@/theme";
 
-// Brains is home (MH-365): the web console's /brains page in the mobile house
-// style — the fleet stats strip, a client-side search, a sort strip, and one
-// full-bleed card per brain. Tap opens the brain; long-press (or ⋯) opens its
-// actions. Notes, presentations and the vault live inside a brain.
+// Brains is home (MH-365), in the desktop's shape (desktop/src/renderer/
+// routes/brains.tsx): the fleet counts under the title, a search field, sort
+// pills, and one grouped list of brains. Tap opens a brain; long-press opens
+// its actions. Notes, presentations and the vault live inside a brain.
 export default function BrainsScreen() {
   const p = usePalette();
   const { t, locale } = useI18n();
@@ -48,10 +47,15 @@ export default function BrainsScreen() {
     <PrimaryButton label={t("brains.new.button")} icon={<Plus size={18} color={p.onAction} strokeWidth={1.8} />} onPress={() => setCreating(true)} />
   );
 
+  const subtitle = stats.data
+    ? `${formatCount(stats.data.brains)} ${t("brains.stat.brains")} · ${formatCount(stats.data.memories)} ${t("brains.stat.memories")}`
+    : list.loading
+      ? undefined
+      : `${formatCount(list.brains.length)} ${t("brains.stat.brains")}`;
+
   const top = (
-    <View style={{ gap: metrics.gap, paddingTop: metrics.gap }}>
-      <StatsStrip stats={stats.data} fallbackBrains={list.loading ? undefined : list.brains.length} loading={list.loading && !stats.data} />
-      <Row style={{ paddingBottom: 4 }}>
+    <View style={{ gap: metrics.gap, paddingTop: 4 }}>
+      <View style={{ paddingHorizontal: metrics.inset }}>
         <Field
           value={term}
           onChangeText={setTerm}
@@ -79,31 +83,31 @@ export default function BrainsScreen() {
             { value: "memories", label: t("brains.sort.memories") },
           ]}
         />
-      </Row>
+      </View>
       {list.error && !list.brains.length ? (
         <Row>
           <ErrorLine text={(list.error as { status?: number }).status === 0 ? t("brains.error.network") : list.error.message || t("brains.failed")} />
           <TextButton label={t("kit.retry")} onPress={() => void onRefresh()} />
         </Row>
       ) : list.loading ? (
-        <>
-          <BrainCardSkeleton />
-          <BrainCardSkeleton />
-          <BrainCardSkeleton />
-        </>
+        <View>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <BrainRowSkeleton key={i} first={i === 0} last={i === 4} />
+          ))}
+        </View>
       ) : list.brains.length === 0 ? (
         <Row style={{ alignItems: "center", paddingVertical: 28, gap: 14 }}>
-          <View style={{ width: 64, height: 64, borderRadius: 14, borderWidth: 1, borderColor: p.line, backgroundColor: p.card, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: p.field, alignItems: "center", justifyContent: "center" }}>
             <ZekraMark size={40} />
           </View>
           <AppText style={{ fontFamily: fonts.semibold, fontSize: 18, lineHeight: 28, color: p.ink, textAlign: "center" }}>{t("brains.emptyTitle")}</AppText>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.muted, textAlign: "center" }}>{t("brains.emptyLead")}</AppText>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 23, color: p.muted, textAlign: "center" }}>{t("brains.emptyLead")}</AppText>
           <View style={{ alignSelf: "stretch" }}>{newButton}</View>
         </Row>
       ) : shown.length === 0 ? (
         <Row>
           <AwaitNote text={t("brains.emptySearch")} />
-          <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 24, color: p.muted }}>{t("brains.emptySearchBody")}</AppText>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, color: p.muted }}>{t("brains.emptySearchBody")}</AppText>
         </Row>
       ) : null}
     </View>
@@ -114,7 +118,7 @@ export default function BrainsScreen() {
       header={
         <Header
           title={t("brains.title")}
-          count={list.loading ? undefined : list.brains.length}
+          subtitle={subtitle}
           actions={
             <>
               <NotificationBell />
@@ -129,24 +133,21 @@ export default function BrainsScreen() {
       <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         data={list.loading ? [] : shown}
         keyExtractor={(b) => b.namespace}
-        renderItem={({ item }) => <BrainCard brain={item} onOpen={onOpen} onMenu={onMenu} />}
+        renderItem={({ item, index }) => (
+          <BrainRow brain={item} first={index === 0} last={index === shown.length - 1} onOpen={onOpen} onMenu={onMenu} />
+        )}
         ListHeaderComponent={top}
-        ListHeaderComponentStyle={{ marginBottom: shown.length && !list.loading ? metrics.gap : 0 }}
-        ItemSeparatorComponent={Gap}
+        ListHeaderComponentStyle={{ marginBottom: shown.length && !list.loading ? 12 : 0 }}
         contentContainerStyle={{ paddingBottom: metrics.gap * 2 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         initialNumToRender={6}
         windowSize={7}
-        refreshControl={<RefreshControl refreshing={pulling} onRefresh={() => void onRefresh()} tintColor={p.gold} colors={[p.gold]} progressBackgroundColor={p.card} />}
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={() => void onRefresh()} tintColor={p.muted} colors={[p.action]} progressBackgroundColor={p.raised} />}
       />
 
       <NewBrainSheet open={creating} onClose={() => setCreating(false)} onCreated={onOpen} />
       <BrainActionsSheet brain={menu} onClose={() => setMenu(null)} />
     </Screen>
   );
-}
-
-function Gap() {
-  return <View style={{ height: metrics.gap }} />;
 }

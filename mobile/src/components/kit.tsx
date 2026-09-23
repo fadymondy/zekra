@@ -14,9 +14,9 @@ import { useI18n } from "@/lib/i18n";
 import { isLiquidGlass } from "@/lib/platform";
 import { fonts, metrics, usePalette } from "@/theme";
 
-// Building blocks ported from fadymondy.com/mobile/src/components/{blocks,
-// admin-kit,content-state}.tsx (SCREENS.md §1.6–§1.16), on Zekra's palette:
-// violet `action` where that app uses orange, gold for selection and focus.
+// Building blocks in the desktop app's native language (see ui.tsx): grouped
+// surfaces, the accent's tint for selection and focus, the UI face for labels
+// and meta (mono only for code).
 
 // ─── Direction ──────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ export function ForwardChevron({ size = 18, color }: { size?: number; color?: st
 
 // ─── Headers ────────────────────────────────────────────────────────────────
 
-/** Header for pushed screens (§1.6): back at the start edge · title (+ mono
+/** Header for pushed screens: back at the start edge · title (+ a muted
  *  subtitle) · optional trailing actions at the end edge.
  *
  *  iOS 26+ (isLiquidGlass): the back and trailing buttons are Liquid Glass
@@ -58,15 +58,15 @@ export function StackHeader({ title, subtitle, trailing, onBack, leading }: {
   const { Back } = useChevrons();
   const glass = isLiquidGlass();
   return (
-    <View style={[styles.stackHeader, { borderBottomColor: p.line, backgroundColor: p.bg }, glass && { borderBottomWidth: 0 }]}>
+    <View style={[styles.stackHeader, { backgroundColor: p.bg }]}>
       <IconButton label={t("kit.back")} onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/brains")))}>
-        <Back size={20} color={p.muted} strokeWidth={1.6} />
+        <Back size={22} color={p.ink} strokeWidth={1.8} />
       </IconButton>
       {leading}
       <View style={{ flex: 1, gap: 2 }}>
         <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, color: p.ink }}>{title}</AppText>
         {subtitle ? (
-          <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12, letterSpacing: 0.6, color: p.muted, writingDirection: "ltr" }}>
+          <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: p.muted }}>
             {subtitle}
           </AppText>
         ) : null}
@@ -78,7 +78,7 @@ export function StackHeader({ title, subtitle, trailing, onBack, leading }: {
 
 // ─── Rows and tiles ─────────────────────────────────────────────────────────
 
-/** A list item inside a Row: 56 min height, `soft` divider except on the last. */
+/** A list item inside a Row: 52 min height, a hairline divider except on the last. */
 export function ListItem({ leading, children, trailing, last, onPress, onLongPress, alignTop, padV = 14 }: {
   leading?: ReactNode;
   children: ReactNode;
@@ -91,7 +91,7 @@ export function ListItem({ leading, children, trailing, last, onPress, onLongPre
 }) {
   const p = usePalette();
   const body = (
-    <View style={[styles.item, { paddingVertical: padV, alignItems: alignTop ? "flex-start" : "center" }, !last && { borderBottomWidth: 1, borderBottomColor: p.soft }]}>
+    <View style={[styles.item, { paddingVertical: padV, alignItems: alignTop ? "flex-start" : "center" }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.hairline }]}>
       {leading}
       <View style={{ flex: 1, gap: 3 }}>{children}</View>
       {trailing}
@@ -99,13 +99,13 @@ export function ListItem({ leading, children, trailing, last, onPress, onLongPre
   );
   if (!onPress && !onLongPress) return body;
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={350} android_ripple={{ color: p.soft }}>
+    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={350} android_ripple={{ color: p.selected }} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       {body}
     </Pressable>
   );
 }
 
-/** Square icon tile (§1.11). `tint` colours border and ground (10%). */
+/** Rounded icon tile (the desktop's note tile): a soft fill, or `tint`'s wash. */
 export function Tile({ size = 38, radius = 8, ground = "card", children, gold, tint }: {
   size?: number;
   radius?: number;
@@ -122,9 +122,7 @@ export function Tile({ size = 38, radius = 8, ground = "card", children, gold, t
         width: size,
         height: size,
         borderRadius: radius,
-        borderWidth: 1,
-        borderColor: accent ?? p.line,
-        backgroundColor: accent ? `${accent}1A` : p[ground],
+        backgroundColor: accent ? `${accent}24` : ground === "bg" ? p.field : p.field,
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
@@ -137,21 +135,20 @@ export function Tile({ size = 38, radius = 8, ground = "card", children, gold, t
 
 export type ChipTone = "ok" | "warn" | "danger" | "muted" | "gold" | "action";
 
-/** Small status chip: mono label on a 10% tint of its tone. */
+/** Small status chip: its tone's label on a wash of the tone. */
 export function Chip({ label, tone = "muted" }: { label: string; tone?: ChipTone }) {
   const p = usePalette();
   const { isRtl } = useI18n();
   const color = tone === "muted" ? p.muted : p[tone];
-  // JetBrains Mono has no Arabic; Arabic labels use Lusail, never letter-spaced.
-  const face = isRtl ? { fontFamily: fonts.medium, fontSize: 13 } : { fontFamily: fonts.mono, fontSize: 12, letterSpacing: 0.2 };
+  const face = { fontFamily: fonts.medium, fontSize: isRtl ? 13 : 12.5 };
   return (
-    <View style={[styles.chip, { borderColor: `${color}66`, backgroundColor: `${color}14` }]}>
+    <View style={[styles.chip, { backgroundColor: `${color}1F` }]}>
       <AppText style={[face, { color }]}>{label}</AppText>
     </View>
   );
 }
 
-/** Segmented filter strip (§1.11): gold when selected. Scrolls if it overflows. */
+/** Filter pills: the chosen one in the accent's tint (desktop's selected row). */
 export function FilterStrip<T extends string>({ options, value, onChange, inset = true }: {
   options: { value: T; label: string; count?: number }[];
   value: T;
@@ -160,7 +157,7 @@ export function FilterStrip<T extends string>({ options, value, onChange, inset 
 }) {
   const p = usePalette();
   return (
-    <View style={[styles.strip, inset && { paddingHorizontal: metrics.padX }]}>
+    <View style={[styles.strip, inset && { paddingHorizontal: metrics.inset }]}>
       {options.map((o) => {
         const on = o.value === value;
         return (
@@ -169,11 +166,11 @@ export function FilterStrip<T extends string>({ options, value, onChange, inset 
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             onPress={() => onChange(o.value)}
-            style={[styles.filter, { borderColor: on ? p.gold : p.line, backgroundColor: on ? `${p.gold}1A` : p.card }]}
+            style={({ pressed }) => [styles.filter, { backgroundColor: on ? p.tint : pressed ? p.selected : p.field }]}
           >
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, color: on ? p.gold : p.muted }}>{o.label}</AppText>
+            <AppText style={{ fontFamily: on ? fonts.semibold : fonts.medium, fontSize: 14.5, color: on ? p.ink : p.muted }}>{o.label}</AppText>
             {o.count !== undefined ? (
-              <AppText style={{ fontFamily: fonts.mono, fontSize: 12, color: on ? p.gold : p.muted }}>{o.count}</AppText>
+              <AppText style={{ fontFamily: fonts.regular, fontSize: 13, color: p.muted }}>{o.count}</AppText>
             ) : null}
           </Pressable>
         );
@@ -182,18 +179,13 @@ export function FilterStrip<T extends string>({ options, value, onChange, inset 
   );
 }
 
-/** "Awaiting content" note: 7px gold square + muted line. */
+/** An empty / waiting note: one muted line. */
 export function AwaitNote({ text }: { text: string }) {
   const p = usePalette();
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-      <View style={{ width: 7, height: 7, backgroundColor: p.gold }} />
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: p.muted, flexShrink: 1 }}>{text}</AppText>
-    </View>
-  );
+  return <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: p.muted }}>{text}</AppText>;
 }
 
-/** Mono meta items separated by 3px dots. */
+/** Muted meta items separated by small dots. */
 export function Meta({ items }: { items: (string | false | null | undefined)[] }) {
   const p = usePalette();
   const shown = items.filter(Boolean) as string[];
@@ -201,8 +193,8 @@ export function Meta({ items }: { items: (string | false | null | undefined)[] }
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
       {shown.map((m, i) => (
         <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          {i > 0 && <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: p.line }} />}
-          <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.muted }}>{m}</AppText>
+          {i > 0 && <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: p.muted, opacity: 0.6 }} />}
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 13, color: p.muted }}>{m}</AppText>
         </View>
       ))}
     </View>
@@ -211,10 +203,10 @@ export function Meta({ items }: { items: (string | false | null | undefined)[] }
 
 export function TextButton({ label, onPress, muted, tone }: { label: string; onPress?: () => void; muted?: boolean; tone?: "danger" | "action" }) {
   const p = usePalette();
-  const color = tone ? p[tone] : muted ? p.muted : p.gold;
+  const color = tone ? p[tone] : muted ? p.muted : p.action;
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={{ minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 }}>
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 15, color }}>{label}</AppText>
+      <AppText style={{ fontFamily: fonts.medium, fontSize: 15.5, color }}>{label}</AppText>
     </Pressable>
   );
 }
@@ -224,10 +216,10 @@ export function ErrorLine({ text }: { text: string }) {
   return <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: p.danger }}>{text}</AppText>;
 }
 
-/** Grey skeleton bar (§1.15). */
+/** Skeleton bar. */
 export function Bar({ width, height = 11 }: { width: `${number}%` | number; height?: number }) {
   const p = usePalette();
-  return <View style={{ width, height, borderRadius: 3, backgroundColor: p.soft }} />;
+  return <View style={{ width, height, borderRadius: 4, backgroundColor: p.field }} />;
 }
 
 // ─── Query states ───────────────────────────────────────────────────────────
@@ -241,7 +233,7 @@ export function useQueryRefresh(...queries: Pick<UseQueryResult, "refetch">[]) {
     await Promise.all(queries.map((q) => q.refetch()));
     setPulling(false);
   };
-  return <RefreshControl refreshing={pulling} onRefresh={onRefresh} tintColor={p.gold} colors={[p.gold]} progressBackgroundColor={p.card} />;
+  return <RefreshControl refreshing={pulling} onRefresh={onRefresh} tintColor={p.muted} colors={[p.action]} progressBackgroundColor={p.raised} />;
 }
 
 /**
@@ -351,15 +343,15 @@ export function BottomSheet({ open, onClose, title, subtitle, children, maxHeigh
         <Animated.View
           style={[
             styles.sheet,
-            { backgroundColor: p.card, borderColor: p.line, maxHeight: height * maxHeight, paddingBottom: Math.max(insets.bottom, 12) },
+            { backgroundColor: p.raised, borderColor: p.hairline, maxHeight: height * maxHeight, paddingBottom: Math.max(insets.bottom, 12) },
             glass && { backgroundColor: "transparent", borderWidth: 0, ...glassRadius },
             sheetStyle,
           ]}
         >
-          {glass ? <GlassSurface pointerEvents="none" tint={`${p.card}C7`} style={[StyleSheet.absoluteFill, glassRadius]} /> : null}
+          {glass ? <GlassSurface pointerEvents="none" tint={`${p.raised}C7`} style={[StyleSheet.absoluteFill, glassRadius]} /> : null}
           <GestureDetector gesture={drag}>
             <View style={styles.grabZone}>
-              <View style={[styles.grabber, { backgroundColor: p.line }]} />
+              <View style={[styles.grabber, { backgroundColor: p.muted, opacity: 0.4 }]} />
               {title ? (
                 <View style={{ paddingHorizontal: metrics.padX, gap: 3, alignSelf: "stretch" }}>
                   <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, color: p.ink }}>{title}</AppText>
@@ -392,8 +384,8 @@ export function SheetItem({ icon, label, detail, onPress, tone, disabled, traili
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
-      android_ripple={{ color: p.soft }}
-      style={({ pressed }) => [styles.sheetItem, { opacity: disabled ? 0.45 : 1, backgroundColor: pressed ? p.soft : "transparent" }]}
+      android_ripple={{ color: p.selected }}
+      style={({ pressed }) => [styles.sheetItem, { opacity: disabled ? 0.45 : 1, backgroundColor: pressed ? p.selected : "transparent" }]}
     >
       {icon ? <View style={{ width: 22, alignItems: "center" }}>{icon}</View> : null}
       <View style={{ flex: 1, gap: 1 }}>
@@ -409,12 +401,12 @@ export function SheetDivider({ label }: { label?: string }) {
   const p = usePalette();
   if (label) {
     return (
-      <View style={{ paddingHorizontal: metrics.padX, paddingTop: 14, paddingBottom: 6, borderTopWidth: 1, borderTopColor: p.soft }}>
-        <AppText variant="micro">{label.toUpperCase()}</AppText>
+      <View style={{ paddingHorizontal: metrics.padX + 4, paddingTop: 14, paddingBottom: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: p.hairline }}>
+        <AppText variant="micro">{label}</AppText>
       </View>
     );
   }
-  return <View style={{ height: 1, backgroundColor: p.soft, marginVertical: 4 }} />;
+  return <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: p.hairline, marginVertical: 4, marginStart: metrics.padX + 4 }} />;
 }
 
 // ─── Toast ──────────────────────────────────────────────────────────────────
@@ -454,31 +446,31 @@ export function ToastHost() {
   }, [msg, o]);
   const style = useAnimatedStyle(() => ({ opacity: o.value, transform: [{ translateY: (1 - o.value) * 12 }] }));
   if (!msg) return null;
-  const accent = msg.tone === "danger" ? p.danger : msg.tone === "ok" ? p.ok : p.gold;
+  const accent = msg.tone === "danger" ? p.danger : msg.tone === "ok" ? p.ok : p.action;
   return (
-    <Animated.View pointerEvents="none" style={[styles.toast, { bottom: insets.bottom + 86, backgroundColor: p.card, borderColor: p.line }, style]}>
-      <View style={{ width: 7, height: 7, backgroundColor: accent }} />
+    <Animated.View pointerEvents="none" style={[styles.toast, { bottom: insets.bottom + 86, backgroundColor: p.raised, borderColor: p.hairline }, style]}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: accent }} />
       <AppText style={{ fontFamily: fonts.regular, fontSize: 15, color: p.ink }}>{msg.text}</AppText>
     </Animated.View>
   );
 }
 
-/** Inline busy indicator in the action colour. */
+/** Inline busy indicator. */
 export function Spinner({ size = "small" as "small" | "large" }) {
   const p = usePalette();
-  return <ActivityIndicator size={size} color={p.gold} />;
+  return <ActivityIndicator size={size} color={p.muted} />;
 }
 
 const styles = StyleSheet.create({
-  stackHeader: { paddingTop: 8, paddingBottom: 10, paddingHorizontal: metrics.padX, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", gap: 10 },
+  stackHeader: { paddingTop: 6, paddingBottom: 8, paddingHorizontal: metrics.inset - 4, flexDirection: "row", alignItems: "center", gap: 8 },
   trailing: { flexDirection: "row", gap: 8, alignItems: "center" },
-  item: { flexDirection: "row", gap: 13, minHeight: 56 },
-  chip: { minHeight: 24, paddingHorizontal: 8, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignSelf: "flex-start" },
-  strip: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 12, paddingBottom: metrics.gap },
-  filter: { minHeight: 40, paddingHorizontal: 15, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 7 },
-  sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: metrics.radius.sheet, borderTopEndRadius: metrics.radius.sheet, borderWidth: 1, borderBottomWidth: 0, overflow: "hidden" },
+  item: { flexDirection: "row", gap: 13, minHeight: 52 },
+  chip: { minHeight: 24, paddingHorizontal: 8, borderRadius: metrics.radius.chip, justifyContent: "center", alignSelf: "flex-start" },
+  strip: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 8, paddingBottom: 14 },
+  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 6 },
+  sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: metrics.radius.sheet, borderTopEndRadius: metrics.radius.sheet, borderWidth: StyleSheet.hairlineWidth, borderBottomWidth: 0, overflow: "hidden" },
   grabZone: { alignItems: "center", paddingTop: 9, paddingBottom: 10, gap: 12 },
   grabber: { width: 44, height: 4, borderRadius: 2 },
   sheetItem: { minHeight: 48, paddingHorizontal: metrics.padX, flexDirection: "row", alignItems: "center", gap: 14 },
-  toast: { position: "absolute", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, minHeight: 40, borderRadius: metrics.radius.control, borderWidth: 1 },
+  toast: { position: "absolute", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, minHeight: 42, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
 });

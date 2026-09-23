@@ -15,31 +15,29 @@ import {
   type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, Line, Pattern, Rect } from "react-native-svg";
 
 import { GlassGroup, GlassSurface } from "@/features/nav/glass";
 import { useI18n } from "@/lib/i18n";
 import { isLiquidGlass } from "@/lib/platform";
 import { fonts, metrics, type, usePalette } from "@/theme";
 
-// The house mobile design, ported from fadymondy.com/mobile/src/components/ui.tsx
-// (spec: fadymondy.com/.setup/design/mobile/SCREENS.md §1). A screen is
-// [status-bar spacer][header][hatch-ground content][footer] with two 1px rails
-// painted over everything, 20px in from each edge. Content blocks are
-// full-bleed rows with a hairline top and bottom and 28px padding; the 16px
-// gaps between them show the −45° hatch. Radii: controls 8, chips 6, sheets 14.
-// Zekra's violet is the one primary action per screen (the reference's
-// orange); gold is selection, focus and the active tab.
+// Zekra's mobile design — the desktop app's native language (desktop/src/
+// renderer/theme.css) on a phone. A screen is [status-bar spacer][header]
+// [content][footer] on the plain ground. Content sits in grouped cards: 16pt
+// in from the edges, 12pt radius, the raised surface with a hairline outline
+// (the desktop's settings groups, iOS's inset-grouped lists). Section labels
+// are sentence case in the UI face; selection is the violet accent's tint;
+// violet is also the one primary action per screen. No rails, no hatch, no
+// mono labels (mono is for code and secrets only).
 
 // ─── Text ───────────────────────────────────────────────────────────────────
 
 type Variant = "bigHeader" | "title" | "rowTitle" | "body" | "meta" | "micro" | "latin" | "mono";
 
 /**
- * Text with the design's rules baked in (§ Type): Lusail for Arabic and Latin,
- * weights 300/400/500 only; Arabic is never letter-spaced and never set in
- * mono, so `micro` switches shape by locale. `latin` is a micro-label that
- * stays Latin mono in both languages.
+ * Text with the design's rules baked in: Inter for English, Lusail for
+ * Arabic; Arabic is never letter-spaced and never set in mono. `micro` is a
+ * section label; `latin` is one that stays left-to-right in both languages.
  *
  * The paragraph direction follows the language by default — iOS otherwise
  * resolves "natural" alignment from the device language, putting Arabic on the
@@ -53,19 +51,11 @@ export function AppText({ variant = "body", color, style, ...rest }: TextProps &
     bigHeader: { fontFamily: fonts.semibold, fontSize: type.bigHeader, color: p.ink, lineHeight: Math.round(type.bigHeader * (isRtl ? 1.45 : 1.3)) },
     title: { fontFamily: fonts.semibold, fontSize: type.title, color: p.ink, lineHeight: Math.round(type.title * (isRtl ? 1.6 : 1.45)) },
     rowTitle: { fontFamily: fonts.medium, fontSize: type.rowTitle, color: p.ink, lineHeight: Math.round(type.rowTitle * (isRtl ? 1.7 : 1.4)) },
-    body: { fontFamily: fonts.light, fontSize: type.body, color: p.body, lineHeight: Math.round(type.body * (isRtl ? 1.85 : 1.5)) },
+    body: { fontFamily: fonts.regular, fontSize: type.body, color: p.body, lineHeight: Math.round(type.body * (isRtl ? 1.8 : 1.45)) },
     meta: { fontFamily: fonts.regular, fontSize: type.meta, color: p.muted, lineHeight: Math.round(type.meta * (isRtl ? 1.7 : 1.5)) },
-    micro: isRtl
-      ? { fontFamily: fonts.medium, fontSize: type.microAr, color: p.muted }
-      : { fontFamily: fonts.monoMedium, fontSize: type.micro, color: p.muted, letterSpacing: type.micro * 0.08, textTransform: "uppercase" },
-    latin: {
-      fontFamily: fonts.monoMedium,
-      fontSize: type.micro,
-      color: p.muted,
-      letterSpacing: type.micro * 0.08,
-      textTransform: "uppercase",
-      writingDirection: "ltr",
-    },
+    // A section label: sentence case, the UI face, muted (desktop .grid-micro).
+    micro: { fontFamily: fonts.semibold, fontSize: isRtl ? type.microAr : type.micro, color: p.muted },
+    latin: { fontFamily: fonts.semibold, fontSize: type.micro, color: p.muted, writingDirection: "ltr" },
     mono: { fontFamily: fonts.mono, fontSize: type.meta, color: p.muted },
   };
   return <Text {...rest} style={[base[variant], { writingDirection: isRtl ? "rtl" : "ltr" }, variant === "latin" ? { writingDirection: "ltr" } : null, color ? { color } : null, style]} />;
@@ -76,38 +66,11 @@ export function AppText({ variant = "body", color, style, ...rest }: TextProps &
  *  writingDirection on nested runs, so the isolate is what actually works. */
 export const ltr = (s: string) => "\u2066" + s + "\u2069";
 
-// ─── Grid ───────────────────────────────────────────────────────────────────
+// ─── Groups ─────────────────────────────────────────────────────────────────
 
-/** Two full-height 1px rails, 20px in from each edge, painted above content (§1.3). */
-export function Rails() {
-  const p = usePalette();
-  return (
-    <>
-      <View pointerEvents="none" style={[styles.rail, { start: metrics.rail, backgroundColor: p.line }]} />
-      <View pointerEvents="none" style={[styles.rail, { end: metrics.rail, backgroundColor: p.line }]} />
-    </>
-  );
-}
-
-/** The −45° hatch ground: a 1px `soft` line every 8px (§1.4). It is the ground
- *  of the content area, so it shows only in the gaps between rows. */
-export function HatchFill({ period = 8, opacity = 1 }: { period?: number; opacity?: number }) {
-  const p = usePalette();
-  return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity }]}>
-      <Svg width="100%" height="100%">
-        <Defs>
-          <Pattern id="zekra-hatch" patternUnits="userSpaceOnUse" width={period} height={period} patternTransform="rotate(-45)">
-            <Line x1={0} y1={0} x2={0} y2={period} stroke={p.soft} strokeWidth={1} />
-          </Pattern>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#zekra-hatch)" />
-      </Svg>
-    </View>
-  );
-}
-
-/** A full-bleed content row (§1.7): hairline top and bottom, 16/28 padding, 12 gap. */
+/** A grouped card: 16pt in from the screen edges, 12pt radius, the raised
+ *  surface with a hairline outline, 16/14 padding, 12 gap (desktop's settings
+ *  group). Pressable when given onPress / onLongPress. */
 export function Row({ children, style, onPress, onLongPress, accessibilityLabel }: {
   children: ReactNode;
   style?: ViewStyle;
@@ -116,25 +79,18 @@ export function Row({ children, style, onPress, onLongPress, accessibilityLabel 
   accessibilityLabel?: string;
 }) {
   const p = usePalette();
-  const body = (
-    <View
-      style={[
-        {
-          borderTopWidth: 1,
-          borderBottomWidth: 1,
-          borderColor: p.line,
-          backgroundColor: p.bg,
-          paddingHorizontal: metrics.padX,
-          paddingVertical: metrics.padY,
-          gap: 12,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
-  if (!onPress && !onLongPress) return body;
+  const card = (pressed: boolean): ViewStyle => ({
+    marginHorizontal: metrics.inset,
+    borderRadius: metrics.radius.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: p.hairline,
+    backgroundColor: pressed ? p.selected : p.raised,
+    paddingHorizontal: metrics.padX,
+    paddingVertical: metrics.padY,
+    gap: 12,
+    overflow: "hidden",
+  });
+  if (!onPress && !onLongPress) return <View style={[card(false), style]}>{children}</View>;
   return (
     <Pressable
       onPress={onPress}
@@ -142,22 +98,68 @@ export function Row({ children, style, onPress, onLongPress, accessibilityLabel 
       delayLongPress={350}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      android_ripple={{ color: p.soft }}
-      style={({ pressed }) => ({ opacity: pressed ? 0.86 : 1 })}
+      android_ripple={{ color: p.selected }}
+      style={({ pressed }) => [card(pressed), style]}
     >
-      {body}
+      {children}
     </Pressable>
   );
 }
 
-/** Rows stacked 16px apart; the hatch shows in the gaps. `inset` is the
- *  reference's variant A (search): rows start 8px in from each edge, 16px
- *  below the header. */
-export function Rows({ children, inset, style }: { children: ReactNode; inset?: boolean; style?: ViewStyle }) {
-  return <View style={[{ gap: metrics.gap }, inset && { paddingTop: metrics.gap, paddingHorizontal: 8 }, style]}>{children}</View>;
+/**
+ * One cell of a grouped list rendered by a FlatList (notes, brains): the
+ * first cell carries the card's top corners, the last its bottom corners,
+ * and cells in between are split by an inset hairline — so a virtualised
+ * list still reads as one grouped card, as in the desktop's lists.
+ */
+export function Cell({ first, last, children, style, dividerInset = metrics.padX }: {
+  first?: boolean;
+  last?: boolean;
+  children: ReactNode;
+  style?: ViewStyle;
+  /** Where the divider starts (align it with the cell's text). */
+  dividerInset?: number;
+}) {
+  const p = usePalette();
+  const r = metrics.radius.card;
+  return (
+    <View
+      style={[
+        {
+          marginHorizontal: metrics.inset,
+          backgroundColor: p.raised,
+          borderColor: p.hairline,
+          borderStartWidth: StyleSheet.hairlineWidth,
+          borderEndWidth: StyleSheet.hairlineWidth,
+          overflow: "hidden",
+        },
+        first && { borderTopWidth: StyleSheet.hairlineWidth, borderTopStartRadius: r, borderTopEndRadius: r },
+        last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomStartRadius: r, borderBottomEndRadius: r },
+        style,
+      ]}
+    >
+      {children}
+      {!last ? <View pointerEvents="none" style={{ position: "absolute", bottom: 0, end: 0, start: dividerInset, height: StyleSheet.hairlineWidth, backgroundColor: p.hairline }} /> : null}
+    </View>
+  );
 }
 
-/** A row micro-label (§1.7): Latin mono uppercase 12, Arabic 13/500. */
+/** Groups stacked 20pt apart. `inset` adds the same space above the first. */
+export function Rows({ children, inset, style }: { children: ReactNode; inset?: boolean; style?: ViewStyle }) {
+  return <View style={[{ gap: metrics.gap }, inset && { paddingTop: metrics.gap - 8 }, style]}>{children}</View>;
+}
+
+/** A section label above a group, aligned with the card's content. */
+export function SectionLabel({ children, trailing }: { children: string; trailing?: ReactNode }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: metrics.inset + 4, marginBottom: -12 }}>
+      <AppText variant="micro" style={{ flex: 1 }} numberOfLines={1}>{children}</AppText>
+      {trailing}
+    </View>
+  );
+}
+
+/** A label inside a card: sentence case, the UI face, muted. */
 export function MicroLabel({ children, trailing }: { children: string; trailing?: ReactNode }) {
   if (!trailing) return <AppText variant="micro">{children}</AppText>;
   return (
@@ -170,8 +172,8 @@ export function MicroLabel({ children, trailing }: { children: string; trailing?
 
 // ─── Chrome ─────────────────────────────────────────────────────────────────
 
-/** 44px square, 1px border, transparent ground, 8px radius (§1.5). Icons go in
- *  at 20 / 1.6 stroke / muted. `dot` draws the gold unread dot.
+/** A 44pt round bar button: borderless, a soft fill while pressed; icons at
+ *  20 / 1.6 stroke / muted. `dot` draws the unread dot.
  *
  *  iOS 26+ (isLiquidGlass): the same button as a 44px Liquid Glass circle —
  *  clear glass, or violet-tinted glass for `tone="action"` — like the system's
@@ -204,7 +206,7 @@ export function IconButton({ children, onPress, label, disabled, dot, tone }: {
           style={{ width: metrics.touch, height: metrics.touch, borderRadius: metrics.touch / 2, alignItems: "center", justifyContent: "center" }}
         >
           {children}
-          {dot ? <View style={[styles.dot, { top: 8, end: 8, backgroundColor: p.gold }]} /> : null}
+          {dot ? <View style={[styles.dot, { top: 8, end: 8, backgroundColor: p.action }]} /> : null}
         </GlassSurface>
       </Pressable>
     );
@@ -221,19 +223,21 @@ export function IconButton({ children, onPress, label, disabled, dot, tone }: {
         styles.iconBtn,
         action
           ? { borderColor: p.action, backgroundColor: p.action, opacity: disabled ? 0.45 : pressed ? 0.85 : 1 }
-          : { borderColor: p.line, backgroundColor: pressed ? p.card : "transparent", opacity: disabled ? 0.45 : 1 },
+          : { backgroundColor: pressed ? p.field : "transparent", opacity: disabled ? 0.45 : 1 },
       ]}
     >
       {children}
-      {dot ? <View style={[styles.dot, { backgroundColor: p.gold }]} /> : null}
+      {dot ? <View style={[styles.dot, { backgroundColor: p.action }]} /> : null}
     </Pressable>
   );
 }
 
-/** Large header for tab roots (§1.5): 31/600 title, optional mono superscript
- *  count 7px after it, trailing icon buttons 9 apart, hairline bottom. */
-export function Header({ title, eyebrow, count, actions }: {
+/** Large title for tab roots (iOS large title / the desktop's window title):
+ *  32/600, an optional muted count after it, trailing bar buttons. */
+export function Header({ title, subtitle, eyebrow, count, actions }: {
   title: string;
+  /** A muted line under the title (the desktop's window subtitle). */
+  subtitle?: string;
   /** Legacy: a micro-label above the title. The reference has none; kept for callers. */
   eyebrow?: string;
   count?: number | string;
@@ -242,21 +246,22 @@ export function Header({ title, eyebrow, count, actions }: {
   const p = usePalette();
   const { isRtl } = useI18n();
   return (
-    <View style={[styles.header, { borderBottomColor: p.line, backgroundColor: p.bg }]}>
+    <View style={[styles.header, { backgroundColor: p.bg }]}>
       <View style={styles.headerTitle}>
         {eyebrow ? <AppText variant="micro" numberOfLines={1} style={{ marginBottom: 2 }}>{eyebrow}</AppText> : null}
         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
           {/* Arabic is never letter-spaced — spacing it also makes the title
               measure wider than it renders and truncates. */}
-          <AppText variant="bigHeader" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ letterSpacing: isRtl ? 0 : -0.3, flexShrink: 1 }}>
+          <AppText variant="bigHeader" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ letterSpacing: isRtl ? 0 : -0.5, flexShrink: 1 }}>
             {title}
           </AppText>
           {count !== undefined && count !== "" ? (
-            <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.muted, marginStart: 7, marginTop: 4, writingDirection: "ltr" }}>
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 17, color: p.muted, marginStart: 8, marginTop: isRtl ? 12 : 10, writingDirection: "ltr" }}>
               {String(count)}
             </AppText>
           ) : null}
         </View>
+        {subtitle ? <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: p.muted, marginTop: -2 }}>{subtitle}</AppText> : null}
       </View>
       {actions ? (
         // iOS 26+: the glass buttons share one container so neighbours blend.
@@ -266,9 +271,8 @@ export function Header({ title, eyebrow, count, actions }: {
   );
 }
 
-/** A screen (§1.2): safe-area spacer, header, content on the hatch ground,
- *  optional footer, rails over all. Not scrolling by default (lists bring
- *  their own FlatList). */
+/** A screen: safe-area spacer, header, content on the plain ground, optional
+ *  footer. Not scrolling by default (lists bring their own FlatList). */
 export function Screen({ header, footer, children, scroll = false, refreshControl, contentStyle }: {
   header?: ReactNode;
   footer?: ReactNode;
@@ -286,10 +290,9 @@ export function Screen({ header, footer, children, scroll = false, refreshContro
       <View style={{ height: insets.top, backgroundColor: p.bg }} />
       {header}
       <View style={{ flex: 1 }}>
-        <HatchFill />
         {scroll ? (
           <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[{ paddingBottom: metrics.gap + (footer ? 0 : 8) }, contentStyle]}
+            contentContainerStyle={[{ paddingTop: 4, paddingBottom: metrics.gap + (footer ? 0 : 8) }, contentStyle]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
             refreshControl={refreshControl}
@@ -301,17 +304,16 @@ export function Screen({ header, footer, children, scroll = false, refreshContro
         )}
       </View>
       {footer}
-      <Rails />
     </View>
   );
 }
 
-/** Bottom action bar (§1.13): card ground, hairline top, 12/28 padding. */
+/** Bottom action bar: the raised surface, hairline top. */
 export function ActionBar({ children }: { children: ReactNode }) {
   const p = usePalette();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: p.line, backgroundColor: p.card, paddingTop: 12, paddingHorizontal: metrics.padX, paddingBottom: Math.max(insets.bottom, 12) + 4, gap: 9 }}>
+    <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: p.hairline, backgroundColor: p.raised, paddingTop: 12, paddingHorizontal: metrics.inset, paddingBottom: Math.max(insets.bottom, 12) + 4, gap: 9 }}>
       {children}
     </View>
   );
@@ -319,8 +321,8 @@ export function ActionBar({ children }: { children: ReactNode }) {
 
 // ─── Buttons ────────────────────────────────────────────────────────────────
 
-/** Primary (§1.9): 46 min height, 8 radius, violet ground, 15/600 label,
- *  optional leading icon (18, 1.6, onAction). One per screen. */
+/** Primary: 46 min height, violet ground, 16/600 label, optional leading icon
+ *  (18, 1.6, onAction). One per screen. */
 export function PrimaryButton({ label, loading, icon, style, disabled, ...props }: PressableProps & { label: string; loading?: boolean; icon?: ReactNode }) {
   const p = usePalette();
   return (
@@ -341,8 +343,8 @@ export function PrimaryButton({ label, loading, icon, style, disabled, ...props 
   );
 }
 
-/** Secondary (§1.9): 46 min, 1px line border, card ground, 14.5/400 label.
- *  `selected` is the gold choice state; `tone="danger"` the destructive one. */
+/** Secondary: 46 min, the soft field fill, no outline, 16/500 label.
+ *  `selected` is the accent-tint choice state; `tone="danger"` the destructive one. */
 export function SecondaryButton({ label, loading, icon, selected, tone, style, disabled, ...props }: PressableProps & {
   label: string;
   loading?: boolean;
@@ -352,7 +354,7 @@ export function SecondaryButton({ label, loading, icon, selected, tone, style, d
 }) {
   const p = usePalette();
   const danger = tone === "danger";
-  const text = danger ? p.danger : selected ? p.gold : p.ink;
+  const text = danger ? p.danger : selected ? p.action : p.ink;
   return (
     <Pressable
       accessibilityRole="button"
@@ -361,9 +363,7 @@ export function SecondaryButton({ label, loading, icon, selected, tone, style, d
       style={(state) => [
         styles.button,
         {
-          borderWidth: 1,
-          borderColor: selected ? p.gold : danger ? `${p.danger}66` : p.line,
-          backgroundColor: selected ? `${p.gold}1A` : danger ? (state.pressed ? `${p.danger}22` : `${p.danger}0F`) : state.pressed ? p.soft : p.card,
+          backgroundColor: selected ? p.tint : danger ? (state.pressed ? `${p.danger}2E` : `${p.danger}1A`) : state.pressed ? p.selected : p.field,
           opacity: disabled ? 0.45 : 1,
         },
         typeof style === "function" ? style(state) : style,
@@ -371,7 +371,7 @@ export function SecondaryButton({ label, loading, icon, selected, tone, style, d
       {...props}
     >
       {loading ? <ActivityIndicator color={text} size="small" /> : icon}
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 16, lineHeight: 24 }} color={text}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 16, lineHeight: 24 }} color={text}>{label}</AppText>
     </Pressable>
   );
 }
@@ -379,9 +379,9 @@ export function SecondaryButton({ label, loading, icon, selected, tone, style, d
 // ─── Inputs ─────────────────────────────────────────────────────────────────
 
 /**
- * Field (§1.10): 11/500 muted label 8px above; a 46px card box with a 1px line
- * border (gold while focused), 8 radius, 13 padding, optional leading icon
- * (17, 1.6, muted) and trailing slot; 14.5 text. No textAlign — natural
+ * Field: a muted label above; a 44pt filled box (the desktop's .field — no
+ * outline until focused, then the accent), 10 radius, optional leading icon
+ * (17, 1.6, muted) and trailing slot; 16 text. No textAlign — natural
  * alignment follows the direction; `ltr` pins emails, codes and URLs
  * left-to-right in both languages. `style` applies to the TextInput.
  */
@@ -396,8 +396,8 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
   const { isRtl } = useI18n();
   const [focused, setFocused] = useState(false);
   return (
-    <View style={{ gap: 8 }}>
-      {label ? <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{label}</AppText> : null}
+    <View style={{ gap: 7 }}>
+      {label ? <AppText style={{ fontFamily: fonts.medium, fontSize: 13.5, lineHeight: 20, color: p.muted }}>{label}</AppText> : null}
       <View
         style={[
           styles.fieldBox,
@@ -405,16 +405,16 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
             minHeight: multiline ? 96 : metrics.input,
             alignItems: multiline ? "flex-start" : "center",
             paddingVertical: multiline ? 4 : 0,
-            borderColor: focused ? p.gold : p.line,
-            backgroundColor: editable ? p.card : p.bg,
+            borderColor: focused ? p.action : "transparent",
+            backgroundColor: editable ? p.field : p.raised,
           },
         ]}
       >
         {icon ? <View style={multiline ? { paddingTop: 12 } : null}>{icon}</View> : null}
         <TextInput
           placeholderTextColor={p.muted}
-          selectionColor={p.gold}
-          cursorColor={p.gold}
+          selectionColor={p.action}
+          cursorColor={p.action}
           multiline={multiline}
           editable={editable}
           textAlignVertical={multiline ? "top" : "center"}
@@ -425,7 +425,7 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
               flex: 1,
               minHeight: multiline ? 88 : metrics.input - 2,
               paddingVertical: multiline ? 8 : 10,
-              fontFamily: multiline ? fonts.light : fonts.regular,
+              fontFamily: fonts.regular,
               fontSize: 16,
               lineHeight: multiline ? Math.round(16 * 1.65) : undefined,
               color: editable ? p.ink : p.muted,
@@ -470,13 +470,13 @@ export function CodeField({ value, onChangeText, length = 6, autoFocus, onComple
               key={i}
               style={[
                 styles.codeBox,
-                { borderColor: filled ? p.gold : p.line, backgroundColor: filled ? `${p.gold}14` : p.card },
+                { borderColor: filled || current ? p.action : "transparent", backgroundColor: filled ? p.tint : p.field },
               ]}
             >
               {filled ? (
                 <AppText style={{ fontFamily: fonts.mono, fontSize: 23, lineHeight: 29, color: p.ink, writingDirection: "ltr" }}>{digits[i]}</AppText>
               ) : current ? (
-                <View style={{ width: 2, height: 24, backgroundColor: p.gold }} />
+                <View style={{ width: 2, height: 24, backgroundColor: p.action }} />
               ) : null}
             </View>
           );
@@ -506,9 +506,8 @@ export function CodeField({ value, onChangeText, length = 6, autoFocus, onComple
 }
 
 /**
- * A choice group (theme, language, Edit/Preview). The reference draws choices
- * as equal-width secondary buttons with the gold selected state (Account →
- * Settings), not a filled segment — so this does too.
+ * A segmented control (theme, Edit/Preview, a brain's sections): a soft
+ * track with the chosen segment raised on it, as on iOS and the desktop.
  */
 export function Segmented<T extends string>({ value, options, onChange }: {
   value: T;
@@ -517,7 +516,7 @@ export function Segmented<T extends string>({ value, options, onChange }: {
 }) {
   const p = usePalette();
   return (
-    <View style={{ flexDirection: "row", gap: 8 }} accessibilityRole="radiogroup">
+    <View style={[styles.track, { backgroundColor: p.field }]} accessibilityRole="radiogroup">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -528,13 +527,10 @@ export function Segmented<T extends string>({ value, options, onChange }: {
             onPress={() => onChange(option.value)}
             style={({ pressed }) => [
               styles.segment,
-              {
-                borderColor: active ? p.gold : p.line,
-                backgroundColor: active ? `${p.gold}1A` : pressed ? p.soft : p.card,
-              },
+              active ? [styles.segmentOn, { backgroundColor: p.raised }] : { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <AppText numberOfLines={1} style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: 15, lineHeight: 22, color: active ? p.gold : p.body }}>
+            <AppText numberOfLines={1} style={{ fontFamily: active ? fonts.semibold : fonts.medium, fontSize: 14.5, lineHeight: 21, color: active ? p.ink : p.muted }}>
               {option.label}
             </AppText>
           </Pressable>
@@ -544,31 +540,32 @@ export function Segmented<T extends string>({ value, options, onChange }: {
   );
 }
 
-/** A centred state: spinner or a 7px gold square, title, optional body.
+/** A centred state: a spinner while loading, title, optional body.
  *  Prefer a Row with kit's AwaitNote inside lists; this is for whole screens. */
 export function StatePanel({ title, body, loading, action }: { title: string; body?: string; loading?: boolean; action?: ReactNode }) {
   const p = usePalette();
   return (
     <View style={styles.state}>
-      {loading ? <ActivityIndicator color={p.gold} /> : <View style={{ width: 7, height: 7, backgroundColor: p.gold }} />}
+      {loading ? <ActivityIndicator color={p.muted} /> : null}
       <AppText style={{ fontFamily: fonts.semibold, fontSize: 17, lineHeight: 28, color: p.ink, textAlign: "center" }}>{title}</AppText>
-      {body ? <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.muted, textAlign: "center", maxWidth: 320 }}>{body}</AppText> : null}
+      {body ? <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 24, color: p.muted, textAlign: "center", maxWidth: 320 }}>{body}</AppText> : null}
       {action ? <View style={{ alignSelf: "stretch", marginTop: 6 }}>{action}</View> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  rail: { position: "absolute", top: 0, bottom: 0, width: 1, zIndex: 5 },
-  header: { paddingTop: 6, paddingBottom: 14, paddingHorizontal: metrics.padX, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", gap: 12 },
+  header: { paddingTop: 6, paddingBottom: 10, paddingHorizontal: metrics.inset + 4, flexDirection: "row", alignItems: "center", gap: 12 },
   headerTitle: { flex: 1 },
   headerEnd: { flexDirection: "row", gap: 9, alignItems: "center" },
-  iconBtn: { width: metrics.touch, height: metrics.touch, borderWidth: 1, borderRadius: metrics.radius.control, alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: metrics.touch, height: metrics.touch, borderRadius: metrics.touch / 2, alignItems: "center", justifyContent: "center" },
   dot: { position: "absolute", top: 9, end: 10, width: 7, height: 7, borderRadius: 3.5 },
   button: { minHeight: metrics.button, borderRadius: metrics.radius.control, flexDirection: "row", gap: 9, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
   fieldBox: { borderWidth: 1, borderRadius: metrics.radius.control, paddingHorizontal: 13, flexDirection: "row", gap: 10 },
   codeBox: { flex: 1, minHeight: 56, borderWidth: 1, borderRadius: metrics.radius.control, alignItems: "center", justifyContent: "center" },
   codeInput: { position: "absolute", top: 0, bottom: 0, start: 0, end: 0, opacity: 0.02, color: "transparent" },
-  segment: { flex: 1, minHeight: 44, borderWidth: 1, borderRadius: metrics.radius.control, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  track: { flexDirection: "row", padding: 2, borderRadius: metrics.radius.control, gap: 2 },
+  segment: { flex: 1, minHeight: 34, borderRadius: metrics.radius.control - 2, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
+  segmentOn: { shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   state: { flex: 1, minHeight: 200, paddingHorizontal: metrics.padX + 8, paddingVertical: 32, alignItems: "center", justifyContent: "center", gap: 10 },
 });

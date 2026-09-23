@@ -217,7 +217,7 @@ function EnableOffer({ info, open, onClose }: { info: BiometricInfo | null; open
     <BottomSheet open={open} onClose={decline} title={t("lock.offerTitle", { kind: label })}>
       <View style={{ paddingHorizontal: metrics.padX, paddingTop: 6, paddingBottom: 8, gap: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Icon size={28} color={p.gold} strokeWidth={1.5} />
+          <Icon size={28} color={p.action} strokeWidth={1.5} />
           <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 24, color: p.body }}>{t("lock.offerBody", { kind: label })}</AppText>
         </View>
         <PrimaryButton label={t("lock.offerYes", { kind: label })} loading={busy} onPress={() => void accept()} />

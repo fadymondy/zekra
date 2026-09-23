@@ -8,7 +8,7 @@ import { fonts, usePalette } from "@/theme";
 
 /** The language switcher: a list of every shipped language (never a
  *  two-way toggle — more languages are coming), the current one checked. */
-export function LanguageList() {
+export function LanguageList({ onPicked }: { onPicked?: (code: Locale) => void } = {}) {
   const p = usePalette();
   const { locale, setLocale } = useI18n();
   return (
@@ -20,8 +20,11 @@ export function LanguageList() {
             key={lang.code}
             last={i === LANGUAGES.length - 1}
             padV={12}
-            onPress={() => setLocale(lang.code as Locale)}
-            trailing={on ? <Check size={18} color={p.gold} strokeWidth={2} /> : undefined}
+            onPress={() => {
+              setLocale(lang.code as Locale);
+              onPicked?.(lang.code as Locale);
+            }}
+            trailing={on ? <Check size={18} color={p.action} strokeWidth={2} /> : undefined}
           >
             <AppText
               accessibilityRole="radio"

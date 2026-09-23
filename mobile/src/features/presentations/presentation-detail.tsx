@@ -335,7 +335,7 @@ export function PresentationDetail({ id }: { id: string }) {
                             <ExternalLink size={17} color={p.muted} strokeWidth={1.6} />
                           </IconButton>
                           <IconButton label={t("presentations.dl.shareFile")} disabled={!!busyFile} onPress={() => void onFile(fmt, "share")}>
-                            <Share2 size={17} color={busyFile?.startsWith(`${fmt}:`) ? p.gold : p.muted} strokeWidth={1.6} />
+                            <Share2 size={17} color={busyFile?.startsWith(`${fmt}:`) ? p.action : p.muted} strokeWidth={1.6} />
                           </IconButton>
                         </View>
                       }
@@ -447,7 +447,7 @@ function ShareItem({ share, url, last, canWrite, busy, onReissue, onRevoke }: {
   return (
     <View style={[styles.share, !last && { borderBottomWidth: 1, borderBottomColor: p.soft }, !active && { opacity: 0.6 }]}>
       <View style={styles.shareTop}>
-        <Link2 size={15} color={active ? p.gold : p.muted} strokeWidth={1.8} />
+        <Link2 size={15} color={active ? p.action : p.muted} strokeWidth={1.8} />
         <AppText variant="rowTitle" numberOfLines={1} style={{ flex: 1 }}>
           {share.label === PREVIEW_LABEL ? t("presentations.share.previewLabel") : share.label || t("presentations.share.unnamed")}
         </AppText>

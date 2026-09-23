@@ -45,7 +45,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
         const tab = TABS.find((x) => x.name === route.name);
         if (!tab) return null;
         const active = state.index === i;
-        const color = active ? p.gold : p.muted;
+        const color = active ? p.action : p.muted;
         return (
           <Pressable
             key={route.key}

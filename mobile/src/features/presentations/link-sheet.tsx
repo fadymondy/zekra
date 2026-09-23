@@ -123,7 +123,7 @@ function LinkResult({ created, onDone }: { created: ShareCreated; onDone: () => 
   const { t } = useI18n();
   return (
     <>
-      <View style={[styles.url, { borderColor: p.gold, backgroundColor: `${p.gold}14` }]}>
+      <View style={[styles.url, { borderColor: p.action, backgroundColor: `${p.action}14` }]}>
         <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 14, color: p.ink, writingDirection: "ltr", textAlign: "left" }}>
           {created.url}
         </AppText>

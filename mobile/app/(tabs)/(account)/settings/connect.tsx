@@ -27,7 +27,7 @@ export default function ConnectScreen() {
         <View>
           <SettingsItem
             Icon={Plug}
-            tone="gold"
+            tone="accent"
             label={t("settings.mcpUrl")}
             detail={MCP_URL}
             mono

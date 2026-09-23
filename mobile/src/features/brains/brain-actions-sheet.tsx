@@ -118,7 +118,7 @@ export function BrainActionsSheet({ brain, onClose }: { brain: BrainListItem | n
         </KeyboardAvoidingView>
       ) : (
         <View style={{ paddingBottom: 6 }}>
-          <SheetItem icon={icon(SquareArrowOutUpRight, p.gold)} label={t("brains.menu.open")} onPress={() => open()} />
+          <SheetItem icon={icon(SquareArrowOutUpRight, p.action)} label={t("brains.menu.open")} onPress={() => open()} />
           <SheetItem icon={icon(NotebookText)} label={t("brains.menu.notes")} onPress={() => open("notes")} />
           <SheetItem icon={icon(Presentation)} label={t("brains.menu.presentations")} onPress={() => open("presentations")} />
           <SheetItem icon={icon(KeyRound)} label={t("brains.menu.vault")} onPress={() => open("vault")} />

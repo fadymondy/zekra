@@ -56,7 +56,7 @@ export function NoteMenuSheet({ open, onClose, canWrite, saved, pinned, archived
         <SheetItem icon={icon(BookOpen)} label={t("editor.readingSettings")} onPress={onReading} />
         {canWrite ? <SheetItem icon={icon(Tag)} label={t("editor.tags")} onPress={onTags} /> : null}
         {canWrite ? (
-          <SheetItem icon={icon(pinned ? PinOff : Pin, p.gold)} label={t(pinned ? "row.unpin" : "row.pin")} disabled={!saved} onPress={onPin} />
+          <SheetItem icon={icon(pinned ? PinOff : Pin, p.action)} label={t(pinned ? "row.unpin" : "row.pin")} disabled={!saved} onPress={onPin} />
         ) : null}
         {canWrite ? (
           <SheetItem icon={icon(archived ? ArchiveRestore : Archive)} label={t(archived ? "row.unarchive" : "row.archive")} disabled={!saved} onPress={onArchive} />
@@ -157,10 +157,10 @@ export function TagsSheet({ open, onClose, tags, onChange }: {
               accessibilityRole="button"
               accessibilityLabel={t("editor.tagRemove", { tag })}
               onPress={() => onChange(tags.filter((x) => x !== tag))}
-              style={[styles.chip, { borderColor: `${p.gold}66`, backgroundColor: `${p.gold}14` }]}
+              style={[styles.chip, { borderColor: `${p.action}66`, backgroundColor: `${p.action}14` }]}
             >
-              <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.gold }}>#{tag}</AppText>
-              <X size={13} color={p.gold} strokeWidth={2} />
+              <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.action }}>#{tag}</AppText>
+              <X size={13} color={p.action} strokeWidth={2} />
             </Pressable>
           ))}
         </View>

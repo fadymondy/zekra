@@ -243,3 +243,67 @@ export const NOTE_COLORS = [
   "#7e63c4",
   "#6e7781",
 ] as const;
+
+// ─── Date groups (the desktop's list: desktop/src/renderer/features/notes/notes-sidebar.tsx) ─
+
+/**
+ * A run of notes under one heading: pinned first (in the All view), then
+ * Today · Yesterday · Previous 7 Days · Previous 30 Days · <month> this year ·
+ * <year>. Sorting by title is one unlabelled group. `month`/`year` are set for
+ * the calendar groups so the UI can name them in its own language.
+ */
+export type NoteGroup = {
+  key: string;
+  kind: "all" | "pinned" | "today" | "yesterday" | "week" | "month" | "calendarMonth" | "year";
+  notes: Note[];
+  month?: number;
+  year?: number;
+};
+
+const DAY_MS = 86_400_000;
+
+export function groupNotes(notes: readonly Note[], filter: NoteFilter, sort: NoteSort, now: number = Date.now()): NoteGroup[] {
+  if (sort === "title") return notes.length ? [{ key: "all", kind: "all", notes: [...notes] }] : [];
+  const out: NoteGroup[] = [];
+  const pinned = filter === "all" ? notes.filter((n) => n.pinned) : [];
+  if (pinned.length) out.push({ key: "pinned", kind: "pinned", notes: pinned });
+  const rest = pinned.length ? notes.filter((n) => !n.pinned) : notes;
+  const today = new Date(now);
+  const day0 = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const by = new Map<string, NoteGroup>();
+  for (const n of rest) {
+    const at = new Date(sort === "created" && n.createdAt ? n.createdAt : n.updatedAt);
+    const valid = !Number.isNaN(at.getTime());
+    const days = valid ? Math.round((day0 - new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime()) / DAY_MS) : Infinity;
+    let group: Omit<NoteGroup, "notes">;
+    if (days <= 0) group = { key: "today", kind: "today" };
+    else if (days === 1) group = { key: "yesterday", kind: "yesterday" };
+    else if (days < 7) group = { key: "week", kind: "week" };
+    else if (days < 30) group = { key: "month", kind: "month" };
+    else if (valid && at.getFullYear() === today.getFullYear()) group = { key: `m${at.getMonth()}`, kind: "calendarMonth", month: at.getMonth(), year: at.getFullYear() };
+    else group = { key: `y${valid ? at.getFullYear() : 0}`, kind: "year", year: valid ? at.getFullYear() : undefined };
+    let g = by.get(group.key);
+    if (!g) {
+      g = { ...group, notes: [] };
+      by.set(group.key, g);
+      out.push(g);
+    }
+    g.notes.push(n);
+  }
+  return out;
+}
+
+/** One FlatList row: a group heading, or a note cell that knows whether it
+ *  opens / closes its group's card. */
+export type NoteListRow =
+  | { type: "header"; key: string; group: NoteGroup }
+  | { type: "note"; key: string; note: Note; first: boolean; last: boolean };
+
+export function flattenGroups(groups: readonly NoteGroup[]): NoteListRow[] {
+  const rows: NoteListRow[] = [];
+  for (const g of groups) {
+    if (g.kind !== "all") rows.push({ type: "header", key: `h:${g.key}`, group: g });
+    g.notes.forEach((note, i) => rows.push({ type: "note", key: note.id, note, first: i === 0, last: i === g.notes.length - 1 }));
+  }
+  return rows;
+}

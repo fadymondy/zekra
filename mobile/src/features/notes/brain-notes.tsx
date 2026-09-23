@@ -8,16 +8,16 @@ import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSw
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AwaitNote, BottomSheet, ErrorLine, FilterStrip, QueryStatus, SheetItem, Spinner, TextButton, useQueryRefresh } from "@/components/kit";
-import { Field, PrimaryButton, Row } from "@/components/ui";
+import { AppText, Field, PrimaryButton, Row } from "@/components/ui";
 import type { Brain, Note } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
-import { metrics, usePalette } from "@/theme";
+import { fonts, metrics, usePalette } from "@/theme";
 
 import { noteKeys, notesApi } from "./api";
 import { NoteRow, type OpenRowRegistry } from "./note-row";
 import { NoteSheet } from "./note-sheet";
-import { visibleNotes, type NoteFilter, type NoteSort, type NoteView } from "./notes-core";
+import { flattenGroups, groupNotes, visibleNotes, type NoteFilter, type NoteGroup, type NoteListRow, type NoteSort, type NoteView } from "./notes-core";
 import { useNoteActions } from "./use-note-actions";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -25,8 +25,37 @@ const SEARCH_DEBOUNCE_MS = 300;
  *  it has at least this many rows or the brain runs out. */
 const ARCHIVED_FILL = 12;
 
-const keyOf = (note: Note) => note.id;
-const Gap = () => <View style={{ height: metrics.gap }} />;
+const keyOf = (row: NoteListRow) => row.key;
+
+/** A date group's heading (the desktop list's group headers). */
+function GroupHeader({ group }: { group: NoteGroup }) {
+  const p = usePalette();
+  const { t, locale } = useI18n();
+  const label =
+    group.kind === "pinned"
+      ? t("notes.x.grp.pinned")
+      : group.kind === "today"
+        ? t("notes.x.grp.today")
+        : group.kind === "yesterday"
+          ? t("notes.x.grp.yesterday")
+          : group.kind === "week"
+            ? t("notes.x.grp.week")
+            : group.kind === "month"
+              ? t("notes.x.grp.month")
+              : group.kind === "calendarMonth" && group.month !== undefined
+                ? new Date(group.year ?? 2000, group.month, 1).toLocaleDateString(locale, { month: "long" })
+                : group.year
+                  ? String(group.year)
+                  : t("notes.x.grp.earlier");
+  return (
+    <AppText
+      accessibilityRole="header"
+      style={{ fontFamily: fonts.semibold, fontSize: 15, lineHeight: 20, color: p.ink, paddingHorizontal: metrics.inset + 4, paddingTop: 18, paddingBottom: 7 }}
+    >
+      {label}
+    </AppText>
+  );
+}
 
 function useDebounced<T>(value: T, ms: number): T {
   const [out, setOut] = useState(value);
@@ -70,6 +99,8 @@ export function BrainNotes({ brain }: { brain: Brain }) {
     placeholderData: keepPreviousData,
   });
   const notes = useMemo(() => visibleNotes(list.data?.pages ?? [], filter), [list.data, filter]);
+  // Grouped by day like the desktop list (pinned first in All; one group for A–Z).
+  const rows = useMemo(() => flattenGroups(groupNotes(notes, filter, sort)), [notes, filter, sort]);
   const refresh = useQueryRefresh(list);
   const actions = useNoteActions(ns);
 
@@ -124,10 +155,12 @@ export function BrainNotes({ brain }: { brain: Brain }) {
   const onDelete = useCallback((note: Note) => actions.askDelete(note), [actions]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  const renderItem = useCallback<ListRenderItem<Note>>(
-    ({ item }) => (
+  const renderItem = useCallback<ListRenderItem<NoteListRow>>(
+    ({ item }) => item.type === "header" ? <GroupHeader group={item.group} /> : (
       <NoteRow
-        note={item}
+        note={item.note}
+        first={item.first}
+        last={item.last}
         canWrite={brain.canWrite}
         registry={registry}
         onOpen={onOpen}
@@ -203,16 +236,16 @@ export function BrainNotes({ brain }: { brain: Brain }) {
           accessibilityRole="button"
           accessibilityLabel={t("notes.x.sort")}
           onPress={() => setSortOpen(true)}
-          style={({ pressed }) => [styles.square, { borderColor: sort === "updated" ? p.line : p.gold, backgroundColor: pressed ? p.soft : p.card }]}
+          style={({ pressed }) => [styles.square, { backgroundColor: sort !== "updated" ? p.tint : pressed ? p.selected : p.field }]}
         >
-          <ArrowUpDown size={18} color={sort === "updated" ? p.muted : p.gold} strokeWidth={1.6} />
+          <ArrowUpDown size={18} color={sort === "updated" ? p.muted : p.action} strokeWidth={1.7} />
         </Pressable>
         {brain.canWrite ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("notes.x.new")}
             onPress={create}
-            style={({ pressed }) => [styles.square, { borderColor: p.action, backgroundColor: p.action, opacity: pressed ? 0.85 : 1 }]}
+            style={({ pressed }) => [styles.square, { backgroundColor: p.action, opacity: pressed ? 0.85 : 1 }]}
           >
             <Plus size={20} color={p.onAction} strokeWidth={1.9} />
           </Pressable>
@@ -233,10 +266,9 @@ export function BrainNotes({ brain }: { brain: Brain }) {
       />
 
       <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-        data={notes}
+        data={rows}
         keyExtractor={keyOf}
         renderItem={renderItem}
-        ItemSeparatorComponent={Gap}
         ListHeaderComponent={
           refetchFailed ? (
             <View style={{ marginBottom: metrics.gap }}>
@@ -280,8 +312,8 @@ export function BrainNotes({ brain }: { brain: Brain }) {
           <SheetItem
             key={option}
             label={t(option === "updated" ? "notes.x.sort.updated" : option === "created" ? "notes.x.sort.created" : "notes.x.sort.title")}
-            tone={sort === option ? "gold" : undefined}
-            trailing={sort === option ? <Check size={17} color={p.gold} strokeWidth={2} /> : null}
+            tone={sort === option ? "action" : undefined}
+            trailing={sort === option ? <Check size={17} color={p.action} strokeWidth={2} /> : null}
             onPress={() => {
               setSort(option);
               setSortOpen(false);
@@ -294,10 +326,10 @@ export function BrainNotes({ brain }: { brain: Brain }) {
 }
 
 const styles = StyleSheet.create({
-  toolbar: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: metrics.padX, paddingTop: metrics.gap },
+  toolbar: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: metrics.inset, paddingTop: 6 },
   searchInput: { minHeight: metrics.touch, height: metrics.touch, paddingStart: 38 },
   searchIcon: { position: "absolute", top: 0, bottom: 0, justifyContent: "center" },
   searchEnd: { position: "absolute", top: 0, bottom: 0, width: 32, alignItems: "center", justifyContent: "center" },
-  square: { width: metrics.touch, height: metrics.touch, borderWidth: 1, borderRadius: metrics.radius.control, alignItems: "center", justifyContent: "center" },
+  square: { width: metrics.touch, height: metrics.touch, borderRadius: metrics.radius.control, alignItems: "center", justifyContent: "center" },
   footer: { paddingVertical: metrics.gap, alignItems: "center" },
 });

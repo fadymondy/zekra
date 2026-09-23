@@ -65,7 +65,7 @@ export function ReadingSettings() {
         accessibilityLabel={label}
         accessibilityState={{ selected: active }}
         onPress={() => updateReading({ theme: theme?.id ?? null })}
-        style={[styles.swatch, { backgroundColor: bg, borderColor: active ? p.gold : border, borderWidth: active ? 2 : 1 }]}
+        style={[styles.swatch, { backgroundColor: bg, borderColor: active ? p.action : border, borderWidth: active ? 2 : 1 }]}
       >
         <View style={[styles.bar, { backgroundColor: fg, width: "70%" }]} />
         <View style={[styles.bar, { backgroundColor: accent, width: "45%" }]} />
@@ -74,7 +74,7 @@ export function ReadingSettings() {
           {label}
         </AppText>
         {active ? (
-          <View style={[styles.tick, { backgroundColor: p.gold }]}>
+          <View style={[styles.tick, { backgroundColor: p.action }]}>
             <Check color={p.onAction} size={10} strokeWidth={3} />
           </View>
         ) : null}

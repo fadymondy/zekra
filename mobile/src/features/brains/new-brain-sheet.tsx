@@ -22,7 +22,7 @@ function Swatches({ value, onChange }: { value: string; onChange: (key: string) 
         accessibilityLabel={t("brains.new.colorNone")}
         accessibilityState={{ checked: value === "" }}
         onPress={() => onChange("")}
-        style={[styles.ring, { borderColor: value === "" ? p.gold : "transparent" }]}
+        style={[styles.ring, { borderColor: value === "" ? p.action : "transparent" }]}
       >
         <View style={[styles.swatch, { backgroundColor: p.card, borderWidth: 1, borderColor: p.line, alignItems: "center", justifyContent: "center" }]}>
           <View style={{ width: 18, height: 1.5, backgroundColor: p.muted, transform: [{ rotate: "-45deg" }] }} />
@@ -37,7 +37,7 @@ function Swatches({ value, onChange }: { value: string; onChange: (key: string) 
             accessibilityLabel={c.key}
             accessibilityState={{ checked: on }}
             onPress={() => onChange(c.key)}
-            style={[styles.ring, { borderColor: on ? p.gold : "transparent" }]}
+            style={[styles.ring, { borderColor: on ? p.action : "transparent" }]}
           >
             <View style={[styles.swatch, { backgroundColor: c.hex, alignItems: "center", justifyContent: "center" }]}>
               {on ? <Check size={14} color="#ffffff" strokeWidth={2.4} /> : null}

@@ -65,7 +65,7 @@ export function UpdatesAboutRows() {
       <AppText variant="micro">{t("updates.section")}</AppText>
       <View>
         {s.ota.phase === "ready" ? (
-          <SettingsItem Icon={Download} tone="gold" label={t("updates.restart")} detail={s.ota.label} onPress={() => void restartToUpdate()} />
+          <SettingsItem Icon={Download} tone="accent" label={t("updates.restart")} detail={s.ota.label} onPress={() => void restartToUpdate()} />
         ) : null}
         <SettingsItem Icon={RefreshCw} label={t("updates.check")} detail={detail} onPress={() => void check()} trailing={checking ? <Spinner /> : undefined} />
         {build ? <SettingsItem Icon={Layers} label={t("updates.build")} detail={build} mono /> : null}

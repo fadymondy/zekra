@@ -72,13 +72,13 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
           style={({ pressed }) => [
             styles.statusBtn,
             {
-              borderColor: status !== "all" ? p.gold : p.line,
-              backgroundColor: status !== "all" ? `${p.gold}1A` : pressed ? p.soft : p.card,
+              borderColor: status !== "all" ? p.action : p.line,
+              backgroundColor: status !== "all" ? `${p.action}1A` : pressed ? p.soft : p.card,
             },
           ]}
         >
-          <ListFilter size={16} color={status !== "all" ? p.gold : p.muted} strokeWidth={1.6} />
-          <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, color: status !== "all" ? p.gold : p.muted }}>
+          <ListFilter size={16} color={status !== "all" ? p.action : p.muted} strokeWidth={1.6} />
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, color: status !== "all" ? p.action : p.muted }}>
             {status === "all" ? t("presentations.status.any") : f.status(status)}
           </AppText>
         </Pressable>
@@ -113,8 +113,14 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
         data={list.error ? [] : items}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={header}
-        renderItem={({ item }) => <PresentationRow item={item} onPress={() => router.push(`/presentation/${encodeURIComponent(item.id)}`)} />}
-        ItemSeparatorComponent={() => <View style={{ height: metrics.gap }} />}
+        renderItem={({ item, index }) => (
+          <PresentationRow
+            item={item}
+            first={index === 0}
+            last={index === items.length - 1}
+            onPress={() => router.push(`/presentation/${encodeURIComponent(item.id)}`)}
+          />
+        )}
         contentContainerStyle={{ paddingBottom: metrics.gap * 2 }}
         refreshControl={refresh}
         keyboardShouldPersistTaps="handled"
@@ -127,7 +133,7 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
             key={s}
             label={s === "all" ? t("presentations.status.any") : f.status(s)}
             tone={s === status ? "gold" : undefined}
-            trailing={s === status ? <Check size={18} color={p.gold} strokeWidth={1.8} /> : null}
+            trailing={s === status ? <Check size={18} color={p.action} strokeWidth={1.8} /> : null}
             onPress={() => { setStatus(s); setStatusOpen(false); }}
           />
         ))}

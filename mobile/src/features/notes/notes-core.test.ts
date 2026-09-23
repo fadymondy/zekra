@@ -8,7 +8,9 @@ import {
   applyNote,
   edgeFromTravel,
   edgeOf,
+  flattenGroups,
   fullSwipeArmed,
+  groupNotes,
   listParams,
   matchesFilter,
   NOTE_COLORS,
@@ -167,4 +169,38 @@ test("appearance options are exactly the shared map's icons and colours", () => 
   const mapColors = new Set(Object.values(CATEGORY_ICONS).map((s) => s.color).filter((c) => c.startsWith("#")));
   assert.equal(NOTE_COLORS.length, 13);
   assert.deepEqual(new Set(NOTE_COLORS), mapColors);
+});
+
+test("groupNotes buckets by day like the desktop list, pinned first", () => {
+  const now = new Date(2026, 8, 23, 15, 0).getTime();
+  const at = (y: number, m: number, d: number) => new Date(y, m, d, 9, 0).toISOString();
+  const notes = [
+    note("p", { pinned: true, updatedAt: at(2026, 0, 1) }),
+    note("t", { updatedAt: at(2026, 8, 23) }),
+    note("y", { updatedAt: at(2026, 8, 22) }),
+    note("w", { updatedAt: at(2026, 8, 18) }),
+    note("m", { updatedAt: at(2026, 8, 1) }),
+    note("cal", { updatedAt: at(2026, 5, 10) }),
+    note("old", { updatedAt: at(2024, 2, 2) }),
+  ];
+  const groups = groupNotes(notes, "all", "updated", now);
+  assert.deepEqual(groups.map((g) => g.kind), ["pinned", "today", "yesterday", "week", "month", "calendarMonth", "year"]);
+  assert.equal(groups[5].month, 5);
+  assert.equal(groups[6].year, 2024);
+  // Outside the All view pinned notes stay in their date group.
+  const inPinnedView = groupNotes(notes, "pinned", "updated", now)[0];
+  assert.equal(inPinnedView.kind, "calendarMonth");
+  assert.equal(inPinnedView.month, 0);
+  // Title sort: one unlabelled group.
+  assert.deepEqual(groupNotes(notes, "all", "title", now).map((g) => g.kind), ["all"]);
+  assert.deepEqual(groupNotes([], "all", "title", now), []);
+});
+
+test("flattenGroups marks each group's first and last cell", () => {
+  const now = new Date(2026, 8, 23, 15, 0).getTime();
+  const today = new Date(2026, 8, 23, 9, 0).toISOString();
+  const rows = flattenGroups(groupNotes([note("a", { updatedAt: today }), note("b", { updatedAt: today })], "all", "updated", now));
+  assert.deepEqual(rows.map((r) => (r.type === "header" ? r.key : `${r.key}:${r.first ? "F" : ""}${r.last ? "L" : ""}`)), ["h:today", "a:F", "b:L"]);
+  // Unlabelled (title sort) groups get no header row.
+  assert.equal(flattenGroups(groupNotes([note("a")], "all", "title", now))[0].type, "note");
 });

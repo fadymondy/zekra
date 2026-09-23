@@ -209,7 +209,7 @@ export function BrainVault({ brain }: { brain: Brain }) {
             />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
-              <LockKeyhole size={16} color={p.gold} strokeWidth={1.6} />
+              <LockKeyhole size={16} color={p.action} strokeWidth={1.6} />
               <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, color: p.body }}>{t("vault.readOnlyNote")}</AppText>
             </View>
           )}
@@ -342,7 +342,7 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
       onLongPress={onLongPress}
       leading={
         <Tile size={38} gold={!!shown}>
-          <KindIcon kind={s.kind} color={shown ? p.gold : p.muted} />
+          <KindIcon kind={s.kind} color={shown ? p.action : p.muted} />
         </Tile>
       }
       trailing={
@@ -352,7 +352,7 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
           </View>
         ) : canWrite ? (
           <IconButton label={t(shown ? "vault.hide" : "vault.reveal")} onPress={onPress}>
-            {shown ? <EyeOff size={18} color={p.gold} strokeWidth={1.6} /> : <Eye size={18} color={p.muted} strokeWidth={1.6} />}
+            {shown ? <EyeOff size={18} color={p.action} strokeWidth={1.6} /> : <Eye size={18} color={p.muted} strokeWidth={1.6} />}
           </IconButton>
         ) : null
       }
@@ -368,7 +368,7 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
         <View style={{ gap: 8, marginTop: 6 }}>
           {/* The value itself: selectable, so no isolate marks (they would be
               copied along with it). */}
-          <View style={{ borderWidth: 1, borderColor: `${p.gold}66`, backgroundColor: `${p.gold}0F`, borderRadius: metrics.radius.control, paddingHorizontal: 12, paddingVertical: 10 }}>
+          <View style={{ borderWidth: 1, borderColor: `${p.action}66`, backgroundColor: `${p.action}0F`, borderRadius: metrics.radius.control, paddingHorizontal: 12, paddingVertical: 10 }}>
             <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 21, color: p.ink, textAlign: "left", writingDirection: "ltr" }}>
               {shown.value}
             </AppText>

@@ -24,13 +24,13 @@ export function ScopeChip({ brain, onClear }: { brain: Brain; onClear: () => voi
         accessibilityRole="button"
         accessibilityLabel={`${t("nav.scopeIn", { brain: brainName(brain) })}. ${t("nav.scopeAll")}`}
         hitSlop={6}
-        style={({ pressed }) => [styles.chip, { borderColor: p.gold, backgroundColor: pressed ? `${p.gold}33` : `${p.gold}1A` }]}
+        style={({ pressed }) => [styles.chip, { borderColor: p.action, backgroundColor: pressed ? `${p.action}33` : `${p.action}1A` }]}
       >
         <BrainAvatar brain={brain} size={20} />
-        <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: p.gold }}>
+        <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: p.action }}>
           {t("nav.scopeIn", { brain: brainName(brain) })}
         </AppText>
-        <X size={15} color={p.gold} strokeWidth={1.8} />
+        <X size={15} color={p.action} strokeWidth={1.8} />
       </Pressable>
     </View>
   );
@@ -89,13 +89,13 @@ export function SearchBrowse({ brains, scopeNs, onPickBrain, onOpenBrain, recent
                   onPress={() => onPickBrain(brain.namespace)}
                   onLongPress={() => onOpenBrain(brain.namespace)}
                   leading={<BrainAvatar brain={brain} size={36} />}
-                  trailing={active ? <Check size={18} color={p.gold} strokeWidth={2} /> : <ForwardChevron />}
+                  trailing={active ? <Check size={18} color={p.action} strokeWidth={2} /> : <ForwardChevron />}
                 >
                   <AppText
                     numberOfLines={1}
                     accessibilityHint={`${t("nav.scopeBrain")}. ${t("nav.openBrain")}`}
                     accessibilityState={{ selected: active }}
-                    style={{ fontFamily: fonts.medium, fontSize: 16.5, lineHeight: 25, color: active ? p.gold : p.ink }}
+                    style={{ fontFamily: fonts.medium, fontSize: 16.5, lineHeight: 25, color: active ? p.action : p.ink }}
                   >
                     {brainName(brain)}
                   </AppText>

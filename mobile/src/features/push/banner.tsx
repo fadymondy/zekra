@@ -77,7 +77,7 @@ export function PushBannerHost() {
           accessibilityLiveRegion="polite"
           style={styles.body}
         >
-          <View style={{ width: 7, height: 7, marginTop: 7, backgroundColor: p.gold }} />
+          <View style={{ width: 7, height: 7, marginTop: 7, backgroundColor: p.action }} />
           <View style={{ flex: 1, gap: 2 }}>
             <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 16, color: p.ink }}>{banner.title}</AppText>
             {banner.body ? (

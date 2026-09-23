@@ -553,15 +553,15 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
           {tags.length ? (
             <Pressable onPress={canWrite ? () => setSheet("tags") : undefined} style={styles.tags} accessibilityRole={canWrite ? "button" : undefined}>
               {tags.map((tag) => (
-                <View key={tag} style={[styles.tag, { borderColor: `${p.gold}55`, backgroundColor: `${p.gold}12` }]}>
-                  <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.gold }}>#{tag}</AppText>
+                <View key={tag} style={[styles.tag, { borderColor: `${p.action}55`, backgroundColor: `${p.action}12` }]}>
+                  <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.action }}>#{tag}</AppText>
                 </View>
               ))}
             </Pressable>
           ) : null}
 
           {status === "conflict" ? (
-            <View style={[styles.banner, { borderColor: p.gold, backgroundColor: `${p.gold}14` }]}>
+            <View style={[styles.banner, { borderColor: p.action, backgroundColor: `${p.action}14` }]}>
               <AppText style={{ fontFamily: fonts.medium, fontSize: 15.5, color: p.ink }}>{t("editor.conflictTitle")}</AppText>
               <AppText variant="meta">{t("editor.conflictBody")}</AppText>
               <View style={styles.bannerActions}>

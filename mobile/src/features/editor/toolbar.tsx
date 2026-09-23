@@ -111,17 +111,17 @@ export function EditorToolbar({ state, mode, uploading, onCommand, onLink, onIma
             style={({ pressed }) => [
               styles.btn,
               {
-                backgroundColor: item.active ? `${p.gold}1F` : pressed ? p.soft : "transparent",
-                borderColor: item.active ? p.gold : "transparent",
+                backgroundColor: item.active ? `${p.action}1F` : pressed ? p.soft : "transparent",
+                borderColor: item.active ? p.action : "transparent",
                 opacity: item.disabled ? 0.35 : 1,
               },
             ]}
           >
             {item.key === "image" && uploading ? (
-              <ActivityIndicator size="small" color={p.gold} />
+              <ActivityIndicator size="small" color={p.action} />
             ) : (
               <View style={item.mirror && isRtl ? styles.mirror : undefined}>
-                <item.Icon size={19} color={item.active ? p.gold : p.ink} strokeWidth={1.7} />
+                <item.Icon size={19} color={item.active ? p.action : p.ink} strokeWidth={1.7} />
               </View>
             )}
           </Pressable>

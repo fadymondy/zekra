@@ -27,7 +27,7 @@ export function LiquidGlassTabs() {
   const { scheme, palette: p } = useTheme();
   return (
     <NativeTabs
-      tintColor={p.gold}
+      tintColor={p.action}
       minimizeBehavior="onScrollDown"
       labelStyle={{ default: { fontFamily: fonts.regular }, selected: { fontFamily: fonts.medium } }}
       unstable_nativeProps={{ colorScheme: scheme, direction: isRtl ? "rtl" : "ltr" }}

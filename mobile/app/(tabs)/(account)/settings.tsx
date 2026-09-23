@@ -4,7 +4,7 @@ import { LogOut, Trash2 } from "lucide-react-native";
 import { Pressable, View } from "react-native";
 
 import { ForwardChevron, Tile } from "@/components/kit";
-import { AppText, Header, Row, Rows, Screen, SecondaryButton } from "@/components/ui";
+import { AppText, Header, Row, Rows, Screen, SecondaryButton, SectionLabel } from "@/components/ui";
 import { KIND_KEY } from "@/features/security/app-lock-gate";
 import { useBiometricInfo } from "@/features/security/biometrics";
 import { useAppLock } from "@/features/security/lock-store";
@@ -41,7 +41,7 @@ export default function SettingsScreen() {
   };
   const item = (key: SettingsSection, last?: boolean) => {
     const s = SECTIONS.find((x) => x.key === key)!;
-    return <SettingsItem key={key} last={last} Icon={s.Icon} tone="gold" label={t(s.label)} detail={details[key]} onPress={() => router.push(s.href)} />;
+    return <SettingsItem key={key} last={last} Icon={s.Icon} label={t(s.label)} detail={details[key]} onPress={() => router.push(s.href)} />;
   };
 
   return (
@@ -50,17 +50,17 @@ export default function SettingsScreen() {
         {/* Identity → Profile */}
         <Row onPress={() => router.push("/account/profile")}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
-            <Tile size={46} radius={12} ground="soft">
+            <Tile size={48} radius={12}>
               <ZekraMark size={30} />
             </Tile>
             <View style={{ flex: 1, gap: 4 }}>
-              <AppText variant="micro">{t("settings.signedInAs")}</AppText>
+              <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: p.muted }}>{t("settings.signedInAs")}</AppText>
               {user?.name ? (
                 <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, color: p.ink }}>{user.name}</AppText>
               ) : null}
               <AppText
                 numberOfLines={1}
-                style={{ fontFamily: user?.name ? fonts.mono : fonts.medium, fontSize: user?.name ? 13 : 16, lineHeight: 23, color: user?.name ? p.muted : p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}
+                style={{ fontFamily: user?.name ? fonts.regular : fonts.semibold, fontSize: user?.name ? 14 : 17, lineHeight: 23, color: user?.name ? p.muted : p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}
               >
                 {user?.email || t("app.name")}
               </AppText>
@@ -70,8 +70,8 @@ export default function SettingsScreen() {
         </Row>
 
         {/* One page per section; each page links to the others. */}
-        <Row>
-          <AppText variant="micro">{t("settings.x.preferences")}</AppText>
+        <SectionLabel>{t("settings.x.preferences")}</SectionLabel>
+        <Row style={{ paddingVertical: 0 }}>
           <View>
             {item("appearance")}
             {item("reading")}
@@ -80,8 +80,8 @@ export default function SettingsScreen() {
           </View>
         </Row>
 
-        <Row>
-          <AppText variant="micro">{t("settings.account")}</AppText>
+        <SectionLabel>{t("settings.account")}</SectionLabel>
+        <Row style={{ paddingVertical: 0 }}>
           <View>
             {item("profile")}
             {item("password")}
@@ -89,8 +89,8 @@ export default function SettingsScreen() {
           </View>
         </Row>
 
-        <Row>
-          <AppText variant="micro">{t("settings.x.about")}</AppText>
+        <SectionLabel>{t("settings.x.about")}</SectionLabel>
+        <Row style={{ paddingVertical: 0 }}>
           <View>
             {item("connect")}
             {item("about", true)}

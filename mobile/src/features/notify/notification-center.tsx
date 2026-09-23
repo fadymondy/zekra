@@ -30,7 +30,7 @@ function KindTile({ kind, p }: { kind: string; p: Palette }) {
   const icon = { size: 18, strokeWidth: 1.6 };
   switch (v) {
     case "brain":
-      return <Tile tint={p.gold}><BrainCircuit {...icon} color={p.gold} /></Tile>;
+      return <Tile tint={p.action}><BrainCircuit {...icon} color={p.action} /></Tile>;
     case "presentation":
       return <Tile tint={p.action}><Presentation {...icon} color={p.action} /></Tile>;
     case "download":
@@ -67,7 +67,7 @@ const NotificationRow = memo(function NotificationRow({ item, last, now, onOpen,
         <View style={styles.end}>
           {/* JetBrains Mono has no Arabic: Arabic times use Lusail. */}
           <AppText numberOfLines={1} style={[isRtl ? styles.whenAr : styles.when, { color: p.muted }]}>{when}</AppText>
-          {unread ? <View style={[styles.dot, { backgroundColor: p.gold }]} /> : null}
+          {unread ? <View style={[styles.dot, { backgroundColor: p.action }]} /> : null}
         </View>
       }
       onPress={() => onOpen(item)}
@@ -153,7 +153,7 @@ export function NotificationCenter() {
   } else if (!hasNextPage) {
     empty = (
       <Row style={{ alignItems: "center", paddingVertical: 36 }}>
-        <Tile size={52} radius={12} gold><Bell size={24} color={p.gold} strokeWidth={1.5} /></Tile>
+        <Tile size={52} radius={12} gold><Bell size={24} color={p.action} strokeWidth={1.5} /></Tile>
         <AppText style={{ fontFamily: fonts.medium, fontSize: 17, color: p.ink, textAlign: "center" }}>{t("notify.emptyTitle")}</AppText>
         <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 22, color: p.muted, textAlign: "center" }}>{t("notify.emptyBody")}</AppText>
       </Row>

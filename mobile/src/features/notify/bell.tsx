@@ -29,7 +29,7 @@ export function NotificationBell() {
         <Bell size={20} color={p.muted} strokeWidth={1.6} />
       </IconButton>
       {label ? (
-        <View pointerEvents="none" style={[styles.badge, { backgroundColor: p.gold, borderColor: p.bg }]}>
+        <View pointerEvents="none" style={[styles.badge, { backgroundColor: p.action, borderColor: p.bg }]}>
           <AppText style={styles.count} allowFontScaling={false}>{label}</AppText>
         </View>
       ) : null}

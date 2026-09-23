@@ -32,7 +32,7 @@ function Score({ value }: { value: number }) {
   return (
     <AppText
       accessibilityLabel={`${t("search.score")} ${value.toFixed(2)}`}
-      style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 19, color: p.gold, writingDirection: "ltr" }}
+      style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 19, color: p.action, writingDirection: "ltr" }}
     >
       {value.toFixed(2)}
     </AppText>

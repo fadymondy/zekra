@@ -64,7 +64,7 @@ export function SearchResults({ search, onOpenNote }: { search: SearchState; onO
     <>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 28 }} accessibilityLiveRegion="polite">
         <AppText variant="micro" style={{ flex: 1 }}>{t("nav.resultCount", { count: search.results.length })}</AppText>
-        {search.fetching ? <ActivityIndicator size="small" color={p.gold} accessibilityLabel={t("nav.updating")} /> : null}
+        {search.fetching ? <ActivityIndicator size="small" color={p.action} accessibilityLabel={t("nav.updating")} /> : null}
       </View>
       {groups.map((group) => {
         const brain = brains.find((b) => b.namespace === group.namespace);
