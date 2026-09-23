@@ -7,6 +7,7 @@
 @source "../lib";
 @import "tw-animate-css";
 @import "./styles/grid-tokens.css";
+@import "./styles/inter.css";
 @import "./styles/grid.css";
 @import "./styles/grid-tailwind.css";
 
@@ -129,6 +130,15 @@
   /* The product's identity colour (violet), as the zekra.dev site uses it: text-brand, bg-brand. */
   --color-brand: var(--grid-action);
   --color-brand-foreground: var(--grid-on-action);
+  /* shadcn Sidebar (components/ui/sidebar.tsx); the values come from grid-tailwind.css .grid-surface. */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
