@@ -23,7 +23,7 @@ function NoteLinkRow({ id, title, meta, onOpen }: { id: string; title: string; m
         <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
           {title || t("notes.untitled")}
         </span>
-        {meta ? <span className="shrink-0 text-[10px] text-grid-muted">{meta}</span> : null}
+        {meta ? <span className="shrink-0 text-[12px] text-grid-muted">{meta}</span> : null}
       </button>
     </li>
   )

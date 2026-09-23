@@ -109,7 +109,7 @@ export function NotificationBell() {
         {badge ? (
           <span
             aria-hidden
-            className="absolute -end-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-grid-gold px-1 font-grid-mono text-[10px] leading-none text-[#0e1a3c]"
+            className="absolute -end-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center bg-grid-gold px-1 font-grid-mono text-[12px] leading-none text-[#0e1a3c]"
           >
             {badge}
           </span>
@@ -199,7 +199,7 @@ function Row({ n, onOpen, onRemove }: { n: AppNotification; onOpen: (n: AppNotif
               {n.body}
             </span>
           ) : null}
-          <span className="mt-1 block font-grid-mono text-[10.5px] text-grid-muted">{timeAgo(n.createdAt)}</span>
+          <span className="mt-1 block font-grid-mono text-[12px] text-grid-muted">{timeAgo(n.createdAt)}</span>
         </span>
         {unread ? <span aria-hidden className="absolute end-3 top-3.5 size-2 bg-grid-gold group-hover:hidden" /> : null}
       </button>

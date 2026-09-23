@@ -234,7 +234,7 @@ export function NodeLinks({
                 </span>
                 {locked || readOnly ? (
                   <span
-                    className="inline-flex max-w-[40%] shrink-0 items-center gap-1 truncate font-mono text-[11px] text-grid-muted"
+                    className="inline-flex max-w-[40%] shrink-0 items-center gap-1 truncate font-mono text-[12.5px] text-grid-muted"
                     title={locked ? t("graph.lockedHint") : undefined}
                     dir="ltr"
                   >
@@ -260,7 +260,7 @@ export function NodeLinks({
                 >
                   {e.otherName}
                 </button>
-                <span className="shrink-0 text-[10px] text-grid-muted">{e.otherType}</span>
+                <span className="shrink-0 text-[12px] text-grid-muted">{e.otherType}</span>
                 {!locked && !readOnly ? (
                   <Button
                     variant="ghost"
@@ -277,7 +277,7 @@ export function NodeLinks({
         </ul>
       )}
       {edges.some(isLockedEdge) && !readOnly ? (
-        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-grid-muted">
+        <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-grid-muted">
           <LockIcon className="size-3" /> {t("graph.lockedHint")}
         </p>
       ) : null}

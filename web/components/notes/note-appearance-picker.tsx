@@ -50,7 +50,7 @@ export function NoteAppearancePicker({
   return (
     <div className="w-60 space-y-3 p-2">
       <div>
-        <p className="mb-1.5 font-mono text-[10px] tracking-wider text-grid-muted uppercase">Icon</p>
+        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-grid-muted uppercase">Icon</p>
         <div className="grid grid-cols-8 gap-1">
           {ICON_NAMES.map((name) => {
             const { Icon } = noteIcon({ icon: name, category })
@@ -74,7 +74,7 @@ export function NoteAppearancePicker({
       </div>
 
       <div>
-        <p className="mb-1.5 font-mono text-[10px] tracking-wider text-grid-muted uppercase">Colour</p>
+        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-grid-muted uppercase">Colour</p>
         <div className="grid grid-cols-8 gap-1">
           {COLORS.map((hex) => (
             <button

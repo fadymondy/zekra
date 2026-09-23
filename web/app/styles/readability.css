@@ -1,0 +1,52 @@
+/* Readability scale for the web console (Zekra-owned). grid-*.css and grid.css
+   are GENERATED from the design repo and must not be edited, so the type sizes
+   are raised here, imported from globals.css AFTER the grid imports.
+
+   Tailwind v4 emits text-xs / text-sm / text-base as var(--text-*) — raising
+   the variables raises every utility use at once:
+     text-xs   12px -> 13px      text-sm   14px -> 15px      text-base 16px
+   The grid's mono micro-label goes 10.5px -> 12px with a lighter tracking, the
+   meta line and chips 12px -> 13px, controls 14px -> 15px. Arabic (Lusail)
+   gets ~1px more at small sizes and is never letter-spaced.
+
+   The desktop app compiles globals.css too; desktop/src/renderer/theme.css is
+   layered after this file and re-sets these tokens per OS, so it wins there. */
+
+:root {
+  --text-xs: 0.8125rem; /* 13px */
+  --text-xs--line-height: calc(1.25 / 0.8125);
+  --text-sm: 0.9375rem; /* 15px */
+  --text-sm--line-height: calc(1.375 / 0.9375);
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.6;
+}
+html:lang(ar) {
+  --text-xs: 0.875rem; /* 14px */
+  --text-xs--line-height: 1.6;
+  --text-sm--line-height: 1.7;
+}
+
+/* Latin micro-label: still mono + uppercase, but readable — 12px, +0.08em. */
+.grid-micro {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+:lang(ar) .grid-micro,
+.grid-micro:lang(ar) {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.grid-meta,
+.grid-chip {
+  font-size: 0.8125rem; /* 13px */
+}
+:lang(ar) .grid-meta,
+:lang(ar) .grid-chip {
+  font-size: 0.875rem;
+}
+
+.grid-btn,
+.grid-input {
+  font-size: 0.9375rem; /* 15px */
+}

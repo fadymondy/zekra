@@ -169,7 +169,7 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
                     <p className="truncate font-medium text-grid-fg" dir="auto">
                       {i.title || t("presentations.untitled")}
                     </p>
-                    <p className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] text-grid-muted">
+                    <p className="mt-0.5 flex flex-wrap gap-x-3 text-[12.5px] text-grid-muted">
                       <span>{t(`presentations.kind.${i.kind}`)}</span>
                       <Ltr>{(i.locales ?? [i.locale]).map((l) => l.toUpperCase()).join(" / ")}</Ltr>
                       {!namespace && i.namespace ? <Ltr>{i.namespace}</Ltr> : null}
@@ -191,7 +191,7 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
                     <EyeIcon className="size-3.5" aria-hidden />
                     {formatNumber(i.view_count)}
                   </span>
-                  <span className="hidden w-40 text-end text-[11px] text-grid-muted md:block" title={t("presentations.col.lastViewed")}>
+                  <span className="hidden w-40 text-end text-[12.5px] text-grid-muted md:block" title={t("presentations.col.lastViewed")}>
                     {when(i.last_viewed_at)}
                   </span>
                 </a>
@@ -516,7 +516,7 @@ function NotePicker({ namespace, selected, onChange }: { namespace: string; sele
                     <span className="min-w-0 flex-1 truncate" dir="auto">
                       {n.title || t("presentations.untitled")}
                     </span>
-                    <span className="shrink-0 text-[11px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
+                    <span className="shrink-0 text-[12.5px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
                   </button>
                 </li>
               )

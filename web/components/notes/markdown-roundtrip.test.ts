@@ -52,6 +52,31 @@ before(async () => {
   }
 })
 
+describe("per-block direction (view only)", () => {
+  test("blocks render dir=auto, code blocks ltr, and no dir reaches the markdown", async () => {
+    const { Editor } = await import("@tiptap/core")
+    const { editorExtensions } = await import("./editor-extensions.ts")
+    const element = document.createElement("div")
+    document.body.appendChild(element)
+    const md = "BUILD LEDGER.\n\nمرحبا بالعالم.\n\n- one\n- two\n\n```\ncode\n```\n\n| a | b |\n| --- | --- |\n| 1 | 2 |"
+    const editor = new Editor({ element, extensions: editorExtensions(), content: md })
+    const dom = editor.view.dom
+    assert.equal(dom.querySelector("p")?.getAttribute("dir"), "auto")
+    assert.equal(dom.querySelector("li")?.getAttribute("dir"), "auto")
+    assert.equal(dom.querySelector("ul")?.getAttribute("dir"), "auto")
+    assert.equal(dom.querySelector("pre")?.getAttribute("dir"), "ltr")
+    assert.equal(dom.querySelector("td, th")?.getAttribute("dir"), "auto")
+    // Typing keeps them in step.
+    editor.commands.insertContentAt(editor.state.doc.content.size, "<p>more</p>")
+    assert.ok([...dom.querySelectorAll("p")].every((p) => p.getAttribute("dir") === "auto"))
+    const out = editor.storage.markdown.getMarkdown() as string
+    assert.doesNotMatch(out, /dir=/)
+    assert.match(out, /BUILD LEDGER\./)
+    editor.destroy()
+    element.remove()
+  })
+})
+
 /** Ignore whitespace and escaping noise the serializer legitimately normalises. */
 const norm = (s: string) => s.replace(/\\/g, "").replace(/\s+/g, " ").trim()
 

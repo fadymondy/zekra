@@ -136,7 +136,7 @@ export function AddSourceDialog({
                     <Icon className={cn("size-4", active && "text-grid-action")} />
                     <span className="max-w-full truncate">{t(`sources.kind.${k.kind}`)}</span>
                     {active ? <span aria-hidden className="absolute end-1.5 top-1.5 size-1.5 bg-grid-action" /> : null}
-                    {k.soon ? <span className="absolute end-1 top-1 text-[9px]">{t("sources.soon")}</span> : null}
+                    {k.soon ? <span className="absolute end-1 top-1 text-[12px] leading-none">{t("sources.soon")}</span> : null}
                   </button>
                 )
               })}

@@ -111,8 +111,8 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
               {/* Latin eyebrows are mono and letter-spaced; Arabic drops both (cursive joins). */}
               <p
                 className={cn(
-                  "mt-6 text-[11px] text-brand",
-                  isArabic ? "text-xs font-medium" : "font-mono tracking-[0.18em]",
+                  "mt-6 text-[12.5px] text-brand",
+                  isArabic ? "text-xs font-medium" : "font-mono tracking-[0.1em]",
                 )}
               >
                 {spec.eyebrow}
@@ -194,7 +194,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             ) : null}
             <pre
               dir="ltr"
-              className="overflow-x-auto rounded-lg border border-line bg-card/40 p-5 font-mono text-[12px] leading-relaxed text-muted-foreground"
+              className="overflow-x-auto rounded-lg border border-line bg-card/40 p-5 font-mono text-[13px] leading-relaxed text-muted-foreground"
             >
               {spec.explainer.diagram}
             </pre>
@@ -215,8 +215,8 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             {spec.presentations.eyebrow ? (
               <p
                 className={cn(
-                  "mb-3 text-[11px] text-brand",
-                  isArabic ? "text-xs font-medium" : "font-mono tracking-[0.18em]",
+                  "mb-3 text-[12.5px] text-brand",
+                  isArabic ? "text-xs font-medium" : "font-mono tracking-[0.1em]",
                 )}
               >
                 {spec.presentations.eyebrow}
@@ -278,7 +278,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                       <li
                         key={item}
                         dir="ltr"
-                        className="rounded border border-line px-2 py-1 font-mono text-[11px] text-muted-foreground"
+                        className="rounded border border-line px-2 py-1 font-mono text-[12.5px] text-muted-foreground"
                       >
                         {item}
                       </li>
@@ -336,7 +336,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                 <GithubIcon className="size-4" />
                 GitHub
               </a>
-              <span className="font-mono text-[11px] text-muted-foreground">{isArabic ? "مُصان" : "maintained"}</span>
+              <span className="font-mono text-[12.5px] text-muted-foreground">{isArabic ? "مُصان" : "maintained"}</span>
             </div>
           </section>
         ) : null}

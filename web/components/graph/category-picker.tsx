@@ -114,7 +114,7 @@ export function CategoryPicker({
         {types.map((x) => (
           <SelectItem key={x.name} value={x.name}>
             <span dir="auto">{x.name}</span>
-            {x.count ? <span className="ms-auto ps-3 text-[10px] text-grid-muted">{formatNumber(x.count)}</span> : null}
+            {x.count ? <span className="ms-auto ps-3 text-[12px] text-grid-muted">{formatNumber(x.count)}</span> : null}
           </SelectItem>
         ))}
         {allowAll ? null : (

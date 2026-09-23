@@ -68,7 +68,7 @@ export function EntityResults({
             <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
               {e.name}
             </span>
-            <span className="shrink-0 text-[10px] text-grid-muted">{e.type}</span>
+            <span className="shrink-0 text-[12px] text-grid-muted">{e.type}</span>
           </button>
         </li>
       ))}

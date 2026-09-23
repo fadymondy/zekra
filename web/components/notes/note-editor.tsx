@@ -417,7 +417,7 @@ export function NoteEditor({
               onChange={(body) => edit({ body })}
               minHeight={embedded ? "min-h-[40vh]" : "min-h-[55vh]"}
             />
-            <p className="mt-1.5 text-[11px] text-grid-muted">{t("notes.wikilinkHint")}</p>
+            <p className="mt-1.5 text-[12.5px] text-grid-muted">{t("notes.wikilinkHint")}</p>
           </TabsContent>
           <TabsContent value="preview" className={embedded ? "py-2" : "min-h-[40vh] py-3"}>
             {draft.body.trim() ? (

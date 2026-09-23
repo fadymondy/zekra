@@ -54,7 +54,7 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
                   className={cn("p-3 text-xs transition-colors", focusCite === i + 1 && "border-s-2 border-s-grid-action bg-grid-soft")}
                 >
                   <div className="mb-1.5 flex items-center gap-2 text-grid-muted">
-                    <span className="inline-flex h-4 min-w-4 items-center justify-center bg-grid-soft px-1 font-mono text-[10.5px] text-grid-action">{i + 1}</span>
+                    <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center bg-grid-soft px-1 font-mono text-[12px] leading-none text-grid-action">{i + 1}</span>
                     <FileTextIcon className="size-3 shrink-0" />
                     <span dir="ltr" className="font-mono">
                       {c.network}·{c.memoryType}

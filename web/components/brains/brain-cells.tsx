@@ -156,7 +156,7 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
         <BrainAvatar namespace={b.namespace} profile={b} size={44} />
         <div className="min-w-0 flex-1">
           <span className="block truncate text-base font-medium text-grid-fg">{name}</span>
-          <div className="mt-1 truncate text-[11px] text-grid-muted">
+          <div className="mt-1 truncate text-[12.5px] text-grid-muted">
             {name !== b.namespace ? (
               <>
                 <Ltr mono>{b.namespace}</Ltr> ·{" "}
@@ -209,7 +209,7 @@ export function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => vo
       </div>
       <div className="pointer-events-none min-w-0 flex-1">
         <span className="block truncate font-medium text-grid-fg">{brainName(b)}</span>
-        <div className="mt-0.5 truncate text-[11px] text-grid-muted">
+        <div className="mt-0.5 truncate text-[12.5px] text-grid-muted">
           {brainName(b) !== b.namespace ? (
             <>
               <Ltr mono>{b.namespace}</Ltr> ·{" "}

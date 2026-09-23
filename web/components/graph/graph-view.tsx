@@ -194,7 +194,7 @@ export function BrainGraphView({ data, namespace, focus }: { data: GraphData; na
         ) : null}
 
         <span
-          className="ms-auto whitespace-nowrap text-[11px] text-grid-muted"
+          className="ms-auto whitespace-nowrap text-[12.5px] text-grid-muted"
           title={
             sampled
               ? t("graph.sampledTitle", {
@@ -477,7 +477,7 @@ function SchemaGraphView({
           {columns.map((c) => (
             <div
               key={`h-${c.group}`}
-              className="absolute flex items-center gap-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.2em]"
+              className="absolute flex items-center gap-1.5 font-mono text-[12px] font-medium uppercase tracking-[0.1em]"
               style={{ left: c.x, top: PAD - 6, width: CARD_W }}
             >
               <span aria-hidden className="size-2.5 shrink-0" style={{ background: palette(c.group) }} />

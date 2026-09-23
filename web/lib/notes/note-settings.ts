@@ -45,7 +45,7 @@ export interface NoteSettings {
 export const DEFAULT_SETTINGS: NoteSettings = {
   theme: null,
   fontFamily: 'system',
-  fontSize: 15,
+  fontSize: 16,
   maxWidth: 0,
   wordWrap: true,
   lineNumbers: false,

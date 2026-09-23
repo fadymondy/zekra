@@ -524,7 +524,7 @@ function NoteRow({
               <Loader2Icon className="size-3.5 shrink-0 animate-spin text-grid-muted" aria-label={t("notes.indexing")} />
             )
           ) : null}
-          <span className="shrink-0 text-[11px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
+          <span className="shrink-0 text-[12.5px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
         </span>
         {snippet ? (
           <span dir="auto" className="line-clamp-2 text-xs text-grid-muted">
@@ -534,16 +534,16 @@ function NoteRow({
         <span className="flex min-w-0 items-center gap-1.5">
           {/* Icon + colour derived from the category (MH-264), replacing the
               bare colour square. */}
-          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-grid-body">
+          <span className="inline-flex shrink-0 items-center gap-1 text-[12.5px] text-grid-body">
             <CategoryIcon aria-hidden className="size-3 shrink-0" style={{ color: categoryTint }} />
             <bdi>{cat}</bdi>
           </span>
           {tags.slice(0, 2).map((x) => (
-            <span key={x} className="grid-chip max-w-24 truncate !py-0 text-[10px]">
+            <span key={x} className="grid-chip max-w-24 truncate !py-0 text-[12px]">
               <bdi>{x}</bdi>
             </span>
           ))}
-          {tags.length > 2 ? <span className="text-[10px] text-grid-muted">+{tags.length - 2}</span> : null}
+          {tags.length > 2 ? <span className="text-[12px] text-grid-muted">+{tags.length - 2}</span> : null}
           {n.archived ? <span className="grid-micro ms-auto">{t("notes.archived")}</span> : null}
         </span>
       </button>

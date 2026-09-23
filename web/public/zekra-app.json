@@ -1,0 +1,5 @@
+{
+  "_doc": "Zekra mobile app version policy, read by mobile/src/features/updates (GET https://app.zekra.dev/zekra-app.json). minimumVersion: installed native versions below it are blocked by a full-screen 'Update required' gate until updated from the store. latestVersion: the newest version live in the store (Android has no public lookup API; iOS also asks the App Store). Optional per platform: storeUrl, message {en, ar}. Bump latestVersion once a store release is live; raise minimumVersion only to retire old binaries.",
+  "ios": { "minimumVersion": "0.1.0", "latestVersion": "0.1.0" },
+  "android": { "minimumVersion": "0.1.0", "latestVersion": "0.1.0" }
+}

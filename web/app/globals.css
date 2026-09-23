@@ -11,6 +11,7 @@
 @import "./styles/scrollbars.css";
 @import "./styles/grid.css";
 @import "./styles/grid-tailwind.css";
+@import "./styles/readability.css";
 
 /* Syntax highlighting for note code blocks — lib/markdown emits highlight.js
    token classes.
@@ -233,7 +234,7 @@
   flex: 1;
   text-align: center;
   font-family: var(--grid-font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--grid-muted);
   /* A long filename must ellipsize, never push the menu button off the bar. */
   min-width: 0;
@@ -323,10 +324,10 @@
   border: 0;
   outline: none;
   color: var(--grid-fg);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 .zk-table-count {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--grid-muted);
   white-space: nowrap;
 }
@@ -355,8 +356,8 @@
 .zk-table thead th {
   background: var(--grid-soft);
   border-top: 0;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--grid-muted);
   padding: 0;

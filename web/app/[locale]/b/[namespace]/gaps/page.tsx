@@ -27,7 +27,7 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
         <p className="truncate font-medium text-grid-fg" title={g.query} dir="auto">
           {g.query}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-grid-muted">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-grid-muted">
           <span>{t(g.hits === 1 ? "gaps.miss" : "gaps.misses", { count: formatNumber(g.hits) })}</span>
           <span>{t("gaps.firstSeen", { date: formatDate(g.firstSeen) })}</span>
           <span>{t("gaps.lastSeen", { date: formatDate(g.lastSeen, { dateStyle: "medium", timeStyle: "short" }) })}</span>
@@ -115,7 +115,7 @@ export default function BrainGapsPage() {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        {total > 0 ? <span className="ms-auto text-[11px] text-grid-muted">{t("gaps.count", { count: formatNumber(total) })}</span> : null}
+        {total > 0 ? <span className="ms-auto text-[12.5px] text-grid-muted">{t("gaps.count", { count: formatNumber(total) })}</span> : null}
       </div>
 
       {error ? (
