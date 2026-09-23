@@ -1,6 +1,7 @@
 import "react-native-gesture-handler";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -47,6 +48,10 @@ function Shell() {
     "Lusail-Bold": require("../assets/fonts/Lusail-Bold.ttf"),
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
+    Inter_300Light,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
   });
   const { scheme, palette } = useTheme();
   const { isRtl } = useI18n();

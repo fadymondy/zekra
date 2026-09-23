@@ -15,6 +15,7 @@
     "postinstall": "node scripts/patch-expo-web-browser.mjs"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/ui": "~57.0.19",
     "@react-native-firebase/analytics": "^26.4.0",

@@ -3,6 +3,7 @@ import { I18nManager, Platform } from "react-native";
 
 import { FEATURE_DICTS, type FeatureKey } from "@/i18n/features";
 import { getStored, setStored } from "@/lib/storage";
+import { setUiFontLocale } from "@/theme";
 
 // Zekra ships bilingual everywhere (mirroring web/lib/i18n.tsx). The Arabic
 // product name is ذكرة — never ذكرى.
@@ -495,6 +496,9 @@ export function I18nProvider({ children }: PropsWithChildren) {
     applyNativeDirection(next);
     void setStored(STORE_KEY, next);
   }, []);
+
+  // The UI face follows the language (Inter / Lusail); set before children render.
+  setUiFontLocale(locale);
 
   const value = useMemo<I18nValue>(() => ({
     locale,

@@ -78,7 +78,9 @@ export async function syncWidgets(data: WidgetSourceData, opts: { force?: boolea
     lastFingerprint = fp;
     lastPushAt = now;
     return snapshot;
-  } catch {
+  } catch (e) {
+    // Never throw into the caller, but never hide why the widgets are empty.
+    if (__DEV__) console.warn("[widgets] sync failed:", e);
     return null;
   }
 }

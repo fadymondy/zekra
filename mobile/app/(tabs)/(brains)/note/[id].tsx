@@ -510,6 +510,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
             onBlur={() => void saver.flush()}
             style={[
               styles.title,
+              { fontFamily: fonts.medium },
               { color: p.ink, textAlign: isRtl ? "right" : "left", writingDirection: isRtl ? "rtl" : "ltr" },
             ]}
             accessibilityLabel={t("note.titleLabel")}
@@ -618,7 +619,6 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   title: {
-    fontFamily: fonts.medium,
     fontSize: 25,
     lineHeight: 34,
     paddingHorizontal: metrics.padX,

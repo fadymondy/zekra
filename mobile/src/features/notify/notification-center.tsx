@@ -252,7 +252,7 @@ export function NotificationCenter() {
 const styles = StyleSheet.create({
   end: { alignItems: "flex-end", gap: 8, paddingTop: 2 },
   when: { fontFamily: fonts.mono, fontSize: 10.5 },
-  whenAr: { fontFamily: fonts.regular, fontSize: 11.5 },
+  whenAr: { fontFamily: "Lusail-Regular", fontSize: 11.5 }, // Arabic-only style
   dot: { width: 8, height: 8, borderRadius: 4 },
   footer: { paddingVertical: 18, alignItems: "center" },
 });

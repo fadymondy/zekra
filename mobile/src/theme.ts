@@ -49,17 +49,31 @@ const dark = {
 export type Palette = typeof light;
 export type ThemeMode = "system" | "light" | "dark";
 
-// Lusail carries Arabic and Latin. It ships no 600, and 700 is banned by the
-// design, so 600-weight headings use Medium. Mono is JetBrains Mono, as in the
-// reference app ("monospace" is not a family on iOS).
+// UI type faces by language: Inter for English (a UI face, designed for
+// screens), Lusail for Arabic (it ships no 600 and 700 is banned by the
+// design, so 600-weight text uses Medium). React Native can't fall back to a
+// custom font glyph-by-glyph, so the face follows the app language rather
+// than the script. Mono is JetBrains Mono ("monospace" is not a family on iOS).
+const INTER = { light: "Inter_300Light", regular: "Inter_400Regular", medium: "Inter_500Medium", semibold: "Inter_600SemiBold" };
+const LUSAIL = { light: "Lusail-Light", regular: "Lusail-Regular", medium: "Lusail-Medium", semibold: "Lusail-Medium" };
+let face = INTER;
+
+/** Switch the UI face (called by the i18n provider before it re-renders). */
+export function setUiFontLocale(locale: "en" | "ar"): void {
+  face = locale === "ar" ? LUSAIL : INTER;
+}
+
+// Getters, so styles built during render always get the current language's
+// face. (A StyleSheet.create at module scope would capture the first one —
+// keep UI font families in render, not in module-level sheets.)
 export const fonts = {
-  light: "Lusail-Light",
-  regular: "Lusail-Regular",
-  medium: "Lusail-Medium",
-  semibold: "Lusail-Medium",
+  get light() { return face.light; },
+  get regular() { return face.regular; },
+  get medium() { return face.medium; },
+  get semibold() { return face.semibold; },
   mono: "JetBrainsMono_400Regular",
   monoMedium: "JetBrainsMono_500Medium",
-} as const;
+};
 
 export const metrics = {
   rail: 20, // hairline rail inset from each edge

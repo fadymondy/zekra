@@ -183,7 +183,15 @@ export const IOS_WIDGET_NAME = "ZekraBrains";
 // reads — so this must run in every app process that updates the widget.
 const brainsWidget = createWidget<WidgetProps>(IOS_WIDGET_NAME, ZekraBrainsWidget);
 
+/** Props as the App Group store accepts them. expo-widgets saves the timeline
+ *  with UserDefaults, which only takes property-list values: a single `null`
+ *  (JSON null → NSNull) makes it throw "Exception in HostFunction" and the
+ *  widget never gets any data. The layout treats a missing field like null. */
+function plistSafe(props: WidgetProps): WidgetProps {
+  return JSON.parse(JSON.stringify(props, (_key, value) => (value === null ? undefined : value))) as WidgetProps;
+}
+
 /** Replace the widget's timeline (and so reload it). */
 export function updateIosWidget(entries: { date: Date; props: WidgetProps }[]): void {
-  brainsWidget.updateTimeline(entries);
+  brainsWidget.updateTimeline(entries.map((e) => ({ date: e.date, props: plistSafe(e.props) })));
 }
