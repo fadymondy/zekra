@@ -117,7 +117,7 @@ func (s *Store) insertNotification(ctx context.Context, userID string, msg pushM
 	dataJSON, _ := json.Marshal(data)
 	n := &Notification{Kind: kind, Title: txt.Title, Body: txt.Body, Route: msg.Data["route"], Data: data}
 	err = db.QueryRowContext(ctx, `
-		INSERT INTO notifications (user_id, kind, title, body, texts, route, data)
+		INSERT INTO brain_notifications (user_id, kind, title, body, texts, route, data)
 		VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb)
 		RETURNING id, created_at`,
 		userID, kind, n.Title, n.Body, string(textsJSON), n.Route, string(dataJSON)).Scan(&n.ID, &n.CreatedAt)
@@ -125,8 +125,8 @@ func (s *Store) insertNotification(ctx context.Context, userID string, msg pushM
 		return nil, err
 	}
 	_, _ = db.ExecContext(ctx, `
-		DELETE FROM notifications WHERE user_id = $1 AND id IN (
-		  SELECT id FROM notifications WHERE user_id = $1 ORDER BY created_at DESC, id DESC OFFSET $2)`,
+		DELETE FROM brain_notifications WHERE user_id = $1 AND id IN (
+		  SELECT id FROM brain_notifications WHERE user_id = $1 ORDER BY created_at DESC, id DESC OFFSET $2)`,
 		userID, notificationKeep)
 	return n, nil
 }
@@ -183,7 +183,7 @@ func (s *Store) ListNotifications(ctx context.Context, userID, locale, cursor st
 		return nil, "", err
 	}
 	q := `SELECT id, kind, title, body, texts::text, route, data::text, created_at, read_at
-		FROM notifications WHERE user_id = $1`
+		FROM brain_notifications WHERE user_id = $1`
 	args := []any{userID}
 	if cur != nil {
 		q += ` AND (created_at, id) < ($2, $3)`
@@ -239,7 +239,7 @@ func (s *Store) UnreadNotifications(ctx context.Context, userID string) (int, er
 		return 0, err
 	}
 	var n int
-	err = db.QueryRowContext(ctx, `SELECT count(*) FROM notifications WHERE user_id = $1 AND read_at IS NULL`, userID).Scan(&n)
+	err = db.QueryRowContext(ctx, `SELECT count(*) FROM brain_notifications WHERE user_id = $1 AND read_at IS NULL`, userID).Scan(&n)
 	return n, err
 }
 
@@ -257,7 +257,7 @@ func (s *Store) MarkNotificationsRead(ctx context.Context, userID string, ids []
 		return 0, err
 	}
 	if all {
-		res, err := db.ExecContext(ctx, `UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL`, userID)
+		res, err := db.ExecContext(ctx, `UPDATE brain_notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL`, userID)
 		if err != nil {
 			return 0, err
 		}
@@ -277,7 +277,7 @@ func (s *Store) MarkNotificationsRead(ctx context.Context, userID string, ids []
 	}
 	idsJSON, _ := json.Marshal(clean)
 	res, err := db.ExecContext(ctx, `
-		UPDATE notifications SET read_at = now()
+		UPDATE brain_notifications SET read_at = now()
 		WHERE user_id = $1 AND read_at IS NULL AND id IN (SELECT jsonb_array_elements_text($2::jsonb))`,
 		userID, string(idsJSON))
 	if err != nil {
@@ -295,7 +295,7 @@ func (s *Store) DeleteNotification(ctx context.Context, userID, id string) (bool
 	if err != nil {
 		return false, err
 	}
-	res, err := db.ExecContext(ctx, `DELETE FROM notifications WHERE id = $1 AND user_id = $2`, id, userID)
+	res, err := db.ExecContext(ctx, `DELETE FROM brain_notifications WHERE id = $1 AND user_id = $2`, id, userID)
 	if err != nil {
 		return false, err
 	}

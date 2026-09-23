@@ -818,6 +818,9 @@ CREATE TABLE IF NOT EXISTS public.push_once (
 );
 
 -- ── Notification center: per-user inbox (MH-360) ──────────────────────────────
+-- Named brain_notifications: the togo notifications plugin (blank-imported by
+-- internal/plugins/showcase.go) already owns a generic public.notifications
+-- (notifiable_id, data text), so the inbox cannot use that name.
 -- Every notification a user is sent (notifications.go: Service.notify) is kept
 -- here, whether or not push is configured or reached a device. `kind` is the
 -- push data "type" (brain_access, presentation_viewed, …), `route` the in-app
@@ -825,7 +828,7 @@ CREATE TABLE IF NOT EXISTS public.push_once (
 -- `texts` keeps every language ({"en":{"title","body"},"ar":{…}}) so a reader can
 -- ask for another. `read_at` NULL = unread. Capped per user in code (oldest go).
 -- Idempotent.
-CREATE TABLE IF NOT EXISTS public.notifications (
+CREATE TABLE IF NOT EXISTS public.brain_notifications (
   id          text        PRIMARY KEY DEFAULT gen_random_uuid()::text,
   user_id     text        NOT NULL,
   kind        text        NOT NULL CHECK (length(kind) BETWEEN 1 AND 64),
@@ -838,8 +841,8 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   read_at     timestamptz
 );
 -- The inbox page (keyset on created_at, id) and the unread badge.
-CREATE INDEX IF NOT EXISTS notifications_user_created_idx ON public.notifications (user_id, created_at DESC, id DESC);
-CREATE INDEX IF NOT EXISTS notifications_user_unread_idx ON public.notifications (user_id) WHERE read_at IS NULL;
+CREATE INDEX IF NOT EXISTS brain_notifications_user_created_idx ON public.brain_notifications (user_id, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS brain_notifications_user_unread_idx ON public.brain_notifications (user_id) WHERE read_at IS NULL;
 
 -- ── Per-note description ───────────────────────────────────────────────────────
 -- A short plain-text summary shown under a note's title (<= 500 characters,

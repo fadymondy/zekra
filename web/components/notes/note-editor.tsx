@@ -67,8 +67,8 @@ const toDraft = (n: Note): Draft => ({
 })
 
 const DEBOUNCE_MS = 800
-/** The server's cap on a note's description (notes_handlers.go). */
-const DESCRIPTION_MAX = 280
+/** The server's cap on a note's description (notes.go noteMaxDescription). */
+const DESCRIPTION_MAX = 500
 
 /** A link that opens the brain overview focused on this note's graph node. */
 export function graphHref(locale: string, note: Pick<Note, "namespace" | "id" | "entityId">) {

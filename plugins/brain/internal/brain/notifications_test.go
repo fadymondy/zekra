@@ -51,7 +51,7 @@ func notifFix(t *testing.T) (*fix, bool) {
 	}
 	clean := func() {
 		if db, err := f.svc.Store.db(context.Background()); err == nil {
-			_, _ = db.Exec(`DELETE FROM notifications WHERE user_id LIKE $1`, f.prefix+"%")
+			_, _ = db.Exec(`DELETE FROM brain_notifications WHERE user_id LIKE $1`, f.prefix+"%")
 		}
 	}
 	clean()
