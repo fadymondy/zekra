@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AppState } from "react-native";
+
+import { markSensitive } from "@/features/mahaam/diagnostics";
 
 import { REVEAL_TTL_MS } from "./vault-core";
 
@@ -63,6 +65,14 @@ export function useRevealed() {
       pending.clear();
     };
   }, [hideAll]);
+
+  // While a value is on screen, shake-to-report takes no screenshot (src/features/mahaam).
+  const id = useId();
+  const showing = Object.keys(values).length > 0;
+  useEffect(() => {
+    markSensitive(id, showing);
+    return () => markSensitive(id, false);
+  }, [id, showing]);
 
   return {
     values,

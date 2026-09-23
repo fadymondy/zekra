@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ToastHost } from "@/components/kit";
 import { ExportHost } from "@/features/editor/export-host";
+import { MahaamReportHost } from "@/features/mahaam";
 import { PushBannerHost, usePushNotifications } from "@/features/push";
 import { AppLockGate } from "@/features/security/app-lock-gate";
 import { useWidgetSync } from "@/features/widgets";
@@ -70,6 +71,8 @@ function Shell() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       <ToastHost />
+      {/* Report a problem / Send feedback → Zekra's Mahaam board (Settings → About, crash panel). */}
+      <MahaamReportHost />
       <PushBannerHost />
       <ExportHost />
       {/* Biometric app lock: over the app and its banners, under the splash. */}

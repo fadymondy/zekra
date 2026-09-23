@@ -48,8 +48,27 @@ function errorParts(data: unknown, fallback: string) {
   };
 }
 
+/** One finished API call, for the "Report a problem" diagnostics (src/features/mahaam). Method,
+ *  path and status only — never headers, bodies or the token. */
+export type ApiResult = { method: string; path: string; status: number | null; ms: number; error?: string };
+const apiListeners = new Set<(result: ApiResult) => void>();
+
+export function onApiResult(listener: (result: ApiResult) => void): () => void {
+  apiListeners.add(listener);
+  return () => void apiListeners.delete(listener);
+}
+
+function emitApiResult(result: ApiResult) {
+  apiListeners.forEach((l) => {
+    try {
+      l(result);
+    } catch {}
+  });
+}
+
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method ?? (options.json === undefined ? "GET" : "POST");
+  const started = Date.now();
   const headers: Record<string, string> = { Accept: "application/json", "X-Agent-Id": "zekra-mobile", ...options.headers };
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
   if (options.csrf) headers["X-CSRF-Token"] = await issueCSRF();
@@ -64,8 +83,10 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       credentials: "include",
     });
   } catch (error) {
+    emitApiResult({ method, path, status: null, ms: Date.now() - started, error: error instanceof Error ? error.message : "network error" });
     throw new ApiError(0, error instanceof Error ? error.message : "Could not reach Zekra");
   }
+  emitApiResult({ method, path, status: response.status, ms: Date.now() - started });
   const text = await response.text();
   let payload: unknown = undefined;
   if (text) {

@@ -2,10 +2,14 @@ import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { getLocales } from "expo-localization";
 import type { ErrorBoundaryProps } from "expo-router";
-import { createElement, useEffect } from "react";
+import { createElement, useEffect, useState } from "react";
 import { Platform, View } from "react-native";
 
-import { PrimaryButton, StatePanel } from "@/components/ui";
+import { ToastHost } from "@/components/kit";
+import { PrimaryButton, SecondaryButton, StatePanel } from "@/components/ui";
+import { addCrumb, installDiagnostics, noteError } from "@/features/mahaam/diagnostics";
+import { captureError, initMonitor } from "@/features/mahaam/monitor";
+import { ReportSheet, type ReportRequest } from "@/features/mahaam/report-sheet";
 import { rnfbApp, rnfbCrashlytics } from "@/lib/firebase";
 import { useI18n } from "@/lib/i18n";
 import { usePalette } from "@/theme";
@@ -23,6 +27,11 @@ import { usePalette } from "@/theme";
 // Native crashes and unhandled JS exceptions are captured by Crashlytics itself
 // (firebase.json); this adds the render errors React swallows (ErrorBoundary)
 // and breadcrumbs.
+//
+// Mahaam (src/features/mahaam): breadcrumbs and handled errors also fan out to
+// the in-memory diagnostics a "Report a problem" attaches, and to Mahaam error
+// monitoring when EXPO_PUBLIC_MAHAAM_DSN is set (off otherwise). Crashlytics
+// keeps native crashes; Mahaam gets JS errors as issues on the Zekra board.
 //
 // A build without the Firebase config files has no native default app: every
 // call here is then a silent no-op, never a crash (firebaseReady()).
@@ -80,6 +89,8 @@ let initialised = false;
 export function initCrashReporting(): void {
   if (initialised) return;
   initialised = true;
+  installDiagnostics();
+  initMonitor();
   const c = crashlytics();
   if (!c) return;
   const cfg = Constants.expoConfig;
@@ -99,6 +110,7 @@ export function initCrashReporting(): void {
 
 /** A short, non-personal trail line ("open note", "api GET /api/notes 500"). */
 export function breadcrumb(message: string): void {
+  addCrumb(scrub(message));
   const c = crashlytics();
   if (!c) return;
   try {
@@ -109,6 +121,8 @@ export function breadcrumb(message: string): void {
 /** Records a handled error. `context` is a short label, never user content. */
 export function reportError(error: unknown, context?: string): void {
   if (__DEV__) console.warn(context ? `[${context}]` : "[error]", error);
+  else noteError(error, context);
+  captureError(error, "error", context);
   const c = crashlytics();
   if (!c) return;
   try {
@@ -133,15 +147,28 @@ export function crashReportingAvailable(): boolean {
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   const p = usePalette();
   const { t } = useI18n();
+  const [reporting, setReporting] = useState(false);
+  // Stable per error, so the open sheet is not reset by a re-render.
+  const [request, setRequest] = useState<ReportRequest>({});
   useEffect(() => {
     reportError(error, "render");
+    setRequest({ kind: "bug", error: { message: String(error?.message ?? error), stack: error?.stack } });
   }, [error]);
   return createElement(
     View,
     { style: { flex: 1, backgroundColor: p.bg, justifyContent: "center", padding: 28 } },
     createElement(StatePanel, {
       title: t("kit.error"),
-      action: createElement(PrimaryButton, { label: t("kit.retry"), onPress: () => void retry() }),
+      action: createElement(
+        View,
+        { style: { gap: 10 } },
+        createElement(PrimaryButton, { label: t("kit.retry"), onPress: () => void retry() }),
+        // Offer to file it on the Mahaam board, pre-filled with the error and its stack.
+        createElement(SecondaryButton, { label: t("mahaam.reportCrash"), onPress: () => setReporting(true) }),
+      ),
     }),
+    createElement(ReportSheet, { open: reporting, onClose: () => setReporting(false), request }),
+    // At the root the Shell (and its ToastHost) is gone; the sheet's "Sent as MG-n" needs one.
+    createElement(ToastHost),
   );
 }

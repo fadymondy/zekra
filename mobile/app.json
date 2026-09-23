@@ -163,6 +163,12 @@
           "microphonePermission": false
         }
       ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": false
+        }
+      ],
       "./plugins/with-scene-lifecycle",
       "expo-sharing",
       [
