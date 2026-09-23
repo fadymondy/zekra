@@ -225,7 +225,6 @@ export const NoteEngine = forwardRef<NoteEngineHandle, Props>(function NoteEngin
         automaticallyAdjustContentInsets={false}
         contentInsetAdjustmentBehavior="never"
         allowsLinkPreview={false}
-        dataDetectorTypes="none"
         // Android: the reading size setting, not the system font scale, sizes the note.
         textZoom={100}
         overScrollMode="content"
@@ -234,6 +233,10 @@ export const NoteEngine = forwardRef<NoteEngineHandle, Props>(function NoteEngin
         onContentProcessDidTerminate={revive}
         onRenderProcessGone={revive}
         {...(Platform.OS === "android" ? { androidLayerType: "hardware" as const } : null)}
+        // iOS only, and as a list: the Android wrapper hands props to the
+        // native (Fabric) parser untouched, which expects an array and aborts
+        // the whole app on the string "none" (RawValue castValue assertion).
+        {...(Platform.OS === "ios" ? { dataDetectorTypes: ["none"] as const } : null)}
       />
     </View>
   );
