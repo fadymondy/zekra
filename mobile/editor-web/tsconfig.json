@@ -1,0 +1,20 @@
+{
+  "//": "Type-checks the WebView page sources (npm run build:editor -- --check). Separate from the app's tsconfig: these run in a browser, import the web console's modules (which use .ts import paths), and resolve packages from mobile/node_modules.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": [],
+    "paths": {
+      "@shared/*": ["../../web/lib/*"],
+      "*": ["../node_modules/*"]
+    }
+  },
+  "include": ["*.mts"]
+}

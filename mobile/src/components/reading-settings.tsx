@@ -1,108 +1,178 @@
-import { Check, Minus, Plus, RotateCcw } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Check, Minus, Plus } from "lucide-react-native";
+import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 
+import { FilterStrip } from "@/components/kit";
 import { AppText, Row } from "@/components/ui";
+import type { FontFamilyId } from "@/features/editor/bridge-core";
 import { useI18n } from "@/lib/i18n";
-import { READING_THEMES, useReading } from "@/lib/reading-settings";
-import { FONT_SIZE_RANGE } from "@shared/notes/note-settings";
-import { metrics, usePalette } from "@/theme";
+import {
+  FONT_FAMILY_IDS,
+  FONT_SIZE_RANGE,
+  MAX_WIDTH_OPTIONS,
+  READING_THEMES,
+  updateReading,
+  useReadingSettings,
+} from "@/lib/reading-settings";
+import { fonts, metrics, usePalette } from "@/theme";
+import type { ThemeDefinition } from "@shared/markdown/themes/themes";
 
 /*
-The mobile half of the reading settings (MH-266): body size and the reading
-theme, sharing the 27 palettes with web.
+Reading settings (MH-266, MH-366): the theme picker and typography, the same
+choices as web's note settings panel. Every control writes the shared store
+(src/lib/reading-settings.ts), so the change is visible at once — the app
+repaints from the theme (theme.ts) and an open note re-styles (note engine).
 
-Stepper, not a slider. A slider needs @react-native-community/slider (a native
-module, so a new dependency and a rebuild) and is fiddly at a 12–24 range on a
-touch target; +/- gives exact values and one obvious affordance.
+Two exports:
+  ReadingSettings       the bare controls, for a sheet (the note screen's ⋯)
+  ReadingSettingsPanel  the same inside a Row, for the settings screen
 
-Each theme card previews its OWN palette, as the web picker does — the point of
-picking a reading theme is how it looks, which a label cannot convey.
+Stepper, not a slider, for size: a slider is a native dependency and fiddly
+across a 12–24 range; ± gives exact values.
 */
-export function ReadingSettingsPanel() {
+
+const LIGHT = READING_THEMES.filter((t) => t.kind === "light");
+const DARK = READING_THEMES.filter((t) => t.kind === "dark");
+
+/** Native approximations of the page's font stacks, for the live sample. */
+const SAMPLE_FAMILY: Record<FontFamilyId, string | undefined> = {
+  system: fonts.regular,
+  serif: Platform.select({ ios: "Georgia", default: "serif" }),
+  sans: Platform.select({ ios: "Helvetica Neue", default: "sans-serif" }),
+  mono: fonts.mono,
+  reading: Platform.select({ ios: "Iowan Old Style", default: "serif" }),
+};
+
+export function ReadingSettings() {
   const p = usePalette();
   const { t } = useI18n();
-  const { reading, setReading } = useReading();
+  const reading = useReadingSettings();
 
   const step = (by: number) =>
-    setReading({
-      ...reading,
-      fontSize: Math.min(FONT_SIZE_RANGE.max, Math.max(FONT_SIZE_RANGE.min, reading.fontSize + by)),
-    });
+    updateReading({ fontSize: Math.min(FONT_SIZE_RANGE.max, Math.max(FONT_SIZE_RANGE.min, reading.fontSize + by)) });
 
+  const swatch = (theme: ThemeDefinition | null) => {
+    const active = (theme?.id ?? null) === reading.theme;
+    const bg = theme ? theme.palette.bg : p.bg;
+    const fg = theme ? theme.palette.fg : p.ink;
+    const accent = theme ? theme.palette.accent : p.action;
+    const muted = theme ? theme.palette.fgMuted : p.muted;
+    const border = theme ? theme.palette.border : p.line;
+    const label = theme ? theme.label : t("reading.ownPalette");
+    return (
+      <Pressable
+        key={theme?.id ?? "zekra"}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: active }}
+        onPress={() => updateReading({ theme: theme?.id ?? null })}
+        style={[styles.swatch, { backgroundColor: bg, borderColor: active ? p.gold : border, borderWidth: active ? 2 : 1 }]}
+      >
+        <View style={[styles.bar, { backgroundColor: fg, width: "70%" }]} />
+        <View style={[styles.bar, { backgroundColor: accent, width: "45%" }]} />
+        <View style={[styles.bar, { backgroundColor: muted, width: "60%" }]} />
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 9.5, color: muted, marginTop: 4, writingDirection: "ltr" }}>
+          {label}
+        </AppText>
+        {active ? (
+          <View style={[styles.tick, { backgroundColor: p.gold }]}>
+            <Check color={p.onAction} size={10} strokeWidth={3} />
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  };
+
+  return (
+    <View style={{ gap: 16 }}>
+      <View style={{ gap: 8 }}>
+        <AppText variant="micro">{t("editor.reading.theme").toUpperCase()}</AppText>
+        <View style={styles.grid}>{swatch(null)}</View>
+        <AppText variant="micro" style={{ marginTop: 4 }}>{t("editor.reading.light").toUpperCase()}</AppText>
+        <View style={styles.grid}>{LIGHT.map(swatch)}</View>
+        <AppText variant="micro" style={{ marginTop: 4 }}>{t("editor.reading.dark").toUpperCase()}</AppText>
+        <View style={styles.grid}>{DARK.map(swatch)}</View>
+      </View>
+
+      <View style={{ gap: 4 }}>
+        <AppText variant="micro">{t("editor.reading.font").toUpperCase()}</AppText>
+        <FilterStrip
+          inset={false}
+          value={reading.fontFamily}
+          onChange={(fontFamily) => updateReading({ fontFamily })}
+          options={FONT_FAMILY_IDS.map((id) => ({ value: id, label: t(`editor.font.${id}`) }))}
+        />
+      </View>
+
+      <View style={{ gap: 10 }}>
+        <View style={styles.sizeRow}>
+          <AppText variant="body" style={{ flex: 1 }}>{t("reading.fontSize")}</AppText>
+          <Pressable
+            onPress={() => step(-1)}
+            disabled={reading.fontSize <= FONT_SIZE_RANGE.min}
+            accessibilityRole="button"
+            accessibilityLabel={t("reading.smaller")}
+            style={[styles.step, { borderColor: p.line, opacity: reading.fontSize <= FONT_SIZE_RANGE.min ? 0.4 : 1 }]}
+          >
+            <Minus color={p.body} size={16} />
+          </Pressable>
+          <AppText variant="mono" style={{ width: 46, textAlign: "center", writingDirection: "ltr" }}>{reading.fontSize}px</AppText>
+          <Pressable
+            onPress={() => step(1)}
+            disabled={reading.fontSize >= FONT_SIZE_RANGE.max}
+            accessibilityRole="button"
+            accessibilityLabel={t("reading.larger")}
+            style={[styles.step, { borderColor: p.line, opacity: reading.fontSize >= FONT_SIZE_RANGE.max ? 0.4 : 1 }]}
+          >
+            <Plus color={p.body} size={16} />
+          </Pressable>
+        </View>
+        <View style={[styles.sample, { borderColor: p.line, backgroundColor: p.card }]}>
+          <AppText style={{ fontFamily: SAMPLE_FAMILY[reading.fontFamily], fontSize: reading.fontSize, lineHeight: Math.round(reading.fontSize * 1.55), color: p.ink }}>
+            {t("editor.reading.sample")}
+          </AppText>
+        </View>
+      </View>
+
+      <View style={{ gap: 4 }}>
+        <AppText variant="micro">{t("editor.reading.width").toUpperCase()}</AppText>
+        <FilterStrip
+          inset={false}
+          value={String(MAX_WIDTH_OPTIONS.includes(reading.maxWidth as (typeof MAX_WIDTH_OPTIONS)[number]) ? reading.maxWidth : 0)}
+          onChange={(v) => updateReading({ maxWidth: Number(v) })}
+          options={MAX_WIDTH_OPTIONS.map((w) => ({ value: String(w), label: w === 0 ? t("editor.reading.full") : `${w}px` }))}
+        />
+      </View>
+
+      <View style={styles.toggle}>
+        <AppText variant="body" style={{ flex: 1 }}>{t("editor.reading.wrap")}</AppText>
+        <Switch value={reading.wordWrap} onValueChange={(wordWrap) => updateReading({ wordWrap })} trackColor={{ true: p.action }} />
+      </View>
+      <View style={styles.toggle}>
+        <AppText variant="body" style={{ flex: 1 }}>{t("editor.reading.lines")}</AppText>
+        <Switch value={reading.lineNumbers} onValueChange={(lineNumbers) => updateReading({ lineNumbers })} trackColor={{ true: p.action }} />
+      </View>
+    </View>
+  );
+}
+
+/** The settings screen's section: the same controls in a Row. */
+export function ReadingSettingsPanel() {
+  const { t } = useI18n();
   return (
     <Row style={{ gap: 14 }}>
       <AppText variant="micro">{t("reading.title").toUpperCase()}</AppText>
-
-      <View style={styles.sizeRow}>
-        <AppText variant="body" style={{ flex: 1 }}>{t("reading.fontSize")}</AppText>
-        <Pressable
-          onPress={() => step(-1)}
-          disabled={reading.fontSize <= FONT_SIZE_RANGE.min}
-          accessibilityLabel={t("reading.smaller")}
-          style={[styles.step, { borderColor: p.line, opacity: reading.fontSize <= FONT_SIZE_RANGE.min ? 0.4 : 1 }]}
-        >
-          <Minus color={p.body} size={16} />
-        </Pressable>
-        {/* Tabular width so the row does not shift as the number changes. */}
-        <AppText variant="mono" style={{ width: 44, textAlign: "center" }}>{reading.fontSize}px</AppText>
-        <Pressable
-          onPress={() => step(1)}
-          disabled={reading.fontSize >= FONT_SIZE_RANGE.max}
-          accessibilityLabel={t("reading.larger")}
-          style={[styles.step, { borderColor: p.line, opacity: reading.fontSize >= FONT_SIZE_RANGE.max ? 0.4 : 1 }]}
-        >
-          <Plus color={p.body} size={16} />
-        </Pressable>
-      </View>
-
-      <View style={styles.themeHead}>
-        <AppText variant="micro" style={{ flex: 1 }}>{t("reading.theme").toUpperCase()}</AppText>
-        <Pressable
-          onPress={() => setReading({ ...reading, theme: null })}
-          disabled={!reading.theme}
-          style={[styles.reset, { opacity: reading.theme ? 1 : 0.4 }]}
-        >
-          <RotateCcw color={p.muted} size={13} />
-          <AppText variant="micro">{t("reading.ownPalette")}</AppText>
-        </Pressable>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themes}>
-        {READING_THEMES.map((theme) => {
-          const active = reading.theme === theme.id;
-          return (
-            <Pressable
-              key={theme.id}
-              accessibilityLabel={theme.label}
-              onPress={() => setReading({ ...reading, theme: theme.id })}
-              style={[
-                styles.card,
-                { backgroundColor: theme.palette.bg, borderColor: active ? p.action : theme.palette.border },
-              ]}
-            >
-              {/* Stand-ins for a heading, an accented line and body text. */}
-              <View style={[styles.bar, { backgroundColor: theme.palette.fg, width: 34 }]} />
-              <View style={[styles.bar, { backgroundColor: theme.palette.accent, width: 24 }]} />
-              <View style={[styles.bar, { backgroundColor: theme.palette.fgMuted, width: 30 }]} />
-              <AppText variant="micro" color={theme.palette.fgMuted} numberOfLines={1} style={{ marginTop: 3 }}>
-                {theme.label}
-              </AppText>
-              {active ? <Check color={p.action} size={13} style={styles.tick} /> : null}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <ReadingSettings />
     </Row>
   );
 }
 
 const styles = StyleSheet.create({
-  sizeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  step: { width: 34, height: 34, borderWidth: 1, borderRadius: metrics.radius.chip, alignItems: "center", justifyContent: "center" },
-  themeHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  reset: { flexDirection: "row", alignItems: "center", gap: 5 },
-  themes: { gap: 8, paddingVertical: 2 },
-  card: { width: 96, padding: 8, borderWidth: 1, borderRadius: metrics.radius.chip, gap: 3 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  swatch: { width: 92, minHeight: 64, padding: 8, borderRadius: metrics.radius.chip, gap: 4 },
   bar: { height: 4, borderRadius: 2 },
-  tick: { position: "absolute", top: 5, right: 5 },
+  tick: { position: "absolute", top: 5, end: 5, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  sizeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  step: { width: 36, height: 36, borderWidth: 1, borderRadius: metrics.radius.chip, alignItems: "center", justifyContent: "center" },
+  sample: { borderWidth: 1, borderRadius: metrics.radius.control, paddingHorizontal: 14, paddingVertical: 12 },
+  toggle: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 40 },
 });

@@ -1,3 +1,4 @@
+import { unregisterPush } from "@/features/push/push";
 import { getStored, removeStored, setStored } from "@/lib/storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
@@ -76,6 +77,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   );
   const signOut = useCallback(async () => {
     const current = token;
+    // Detach this device from the account while the session can still
+    // authenticate the call, so a signed-out phone stops receiving pushes.
+    if (current) await unregisterPush(current);
     setToken(null);
     setUser(null);
     await saveSession(null);

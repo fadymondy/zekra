@@ -19,3 +19,19 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
+# Store/Firebase secrets (MH-373): only the README and .gitkeep are committed.
+# See secrets/README.md; CI decodes these from secure variables (codemagic.yaml).
+secrets/*
+!secrets/.gitkeep
+!secrets/README.md
+GoogleService-Info.plist
+google-services.json
+
+# Local release artifacts (scripts/ios-upload.sh, gradle bundles)
+build/
+*.ipa
+*.aab
+*.apk
+*.xcarchive
+*.p8

@@ -1,6 +1,8 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { useColorScheme } from "react-native";
 
+import { paletteFromTheme } from "@/features/editor/reading-core";
+import { hydrateReading, readingTheme, useReadingSettings } from "@/lib/reading-settings";
 import { getStored, setStored } from "@/lib/storage";
 
 // Design system ported from fadymondy.com-v2/mobile/src/theme/tokens.ts (the
@@ -48,13 +50,15 @@ export type Palette = typeof light;
 export type ThemeMode = "system" | "light" | "dark";
 
 // Lusail carries Arabic and Latin. It ships no 600, and 700 is banned by the
-// design, so 600-weight headings use Medium.
+// design, so 600-weight headings use Medium. Mono is JetBrains Mono, as in the
+// reference app ("monospace" is not a family on iOS).
 export const fonts = {
   light: "Lusail-Light",
   regular: "Lusail-Regular",
   medium: "Lusail-Medium",
   semibold: "Lusail-Medium",
-  mono: "monospace",
+  mono: "JetBrainsMono_400Regular",
+  monoMedium: "JetBrainsMono_500Medium",
 } as const;
 
 export const metrics = {
@@ -67,6 +71,7 @@ export const metrics = {
   input: 46,
   button: 46,
   radius: { control: 8, chip: 6, sheet: 14 },
+  scrim: "rgba(5,10,22,0.72)",
 } as const;
 
 export const type = {
@@ -87,6 +92,8 @@ type ThemeValue = {
   scheme: "light" | "dark";
   palette: Palette;
   setMode: (mode: ThemeMode) => void;
+  /** The reading theme repainting the app, or null for Zekra's own palette. */
+  readingTheme: string | null;
 };
 
 const ThemeContext = createContext<ThemeValue>({
@@ -94,11 +101,40 @@ const ThemeContext = createContext<ThemeValue>({
   scheme: "light",
   palette: light,
   setMode: () => {},
+  readingTheme: null,
 });
+
+/*
+A reading theme repaints the WHOLE app, as on web (MH-366): web's
+applyThemeToDocument() rewrites --grid-bg/card/soft/fg/body/muted/line/action
+on the document root, so the console chrome turns Dracula along with the note.
+paletteFromTheme (features/editor/reading-core.ts) is that same mapping onto
+this Palette; the status bar follows the theme's own kind. With no reading
+theme the light/dark/system mode below applies as before.
+
+Memoised per theme id + kind, so every consumer gets a stable object.
+*/
+const themedPalettes = new Map<string, Palette>();
+
+function paletteFor(themeId: string, kind: "light" | "dark"): Palette | null {
+  const theme = readingTheme(themeId);
+  if (!theme) return null;
+  let palette = themedPalettes.get(theme.id);
+  if (!palette) {
+    palette = paletteFromTheme(theme, kind === "dark" ? dark : light) as Palette;
+    themedPalettes.set(theme.id, palette);
+  }
+  return palette;
+}
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const system = useColorScheme();
   const [mode, setModeState] = useState<ThemeMode>("system");
+  const reading = useReadingSettings();
+
+  useEffect(() => {
+    void hydrateReading();
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -115,9 +151,14 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo<ThemeValue>(() => {
+    const theme = reading.theme ? readingTheme(reading.theme) : null;
+    const themed = theme ? paletteFor(theme.id, theme.kind) : null;
+    if (theme && themed) {
+      return { mode, scheme: theme.kind, palette: themed, setMode, readingTheme: theme.id };
+    }
     const scheme: "light" | "dark" = mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
-    return { mode, scheme, palette: scheme === "dark" ? dark : light, setMode };
-  }, [mode, system, setMode]);
+    return { mode, scheme, palette: scheme === "dark" ? dark : light, setMode, readingTheme: null };
+  }, [mode, system, setMode, reading.theme]);
 
   return createElement(ThemeContext.Provider, { value }, children);
 }

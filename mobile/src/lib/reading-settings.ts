@@ -1,62 +1,95 @@
-import { createContext, useContext } from "react";
+import { useSyncExternalStore } from "react";
 
 import { THEMES, type ThemeDefinition } from "@shared/markdown/themes/themes";
-import { FONT_SIZE_RANGE } from "@shared/notes/note-settings";
+import {
+  DEFAULT_READING,
+  coerceReading,
+  type ReadingSettings,
+} from "@/features/editor/reading-core";
 import { getStored, setStored } from "./storage";
 
+export { DEFAULT_READING, FONT_SIZE_RANGE, MAX_WIDTH_OPTIONS, FONT_FAMILY_IDS } from "@/features/editor/reading-core";
+export type { ReadingSettings } from "@/features/editor/reading-core";
+
 /*
-Reading preferences for notes on mobile (MH-266): body size and the reading
-theme.
+Reading preferences for notes (MH-266, MH-366): the full web settings shape —
+reading theme, font family, size, column width, word wrap, line numbers —
+persisted on the device.
 
-The 27 theme palettes are IMPORTED from the web, not copied — themes.ts is
-pure data with no imports, which is the bar for anything crossing the @shared
-boundary (see metro.config.js). Duplicating them would be ~325 lines of hex
-kept in sync by hand.
+The 25+ theme palettes are IMPORTED from the web (themes.ts is pure data with
+no imports, the bar for crossing the @shared boundary — see metro.config.js).
 
-What is NOT shared is web's note-settings store itself: it is built on
-localStorage and a synchronous getSettings(), while mobile persists through
-the SecureStore shim, which is async. So the shape below is mobile's own and
-deliberately smaller — the editor settings (word wrap, line numbers, autosave)
-and the preview max-width have no meaning on a phone, where there is one
-column and no editor textarea to wrap.
+A MODULE-LEVEL STORE, not React state. MH-366 ("themes and font size have no
+effect") was two consumers that never heard about a change: the settings panel
+wrote, the note surface and the app palette did not re-read. Web hit the same
+bug and fixed it with a subscription (web/lib/notes/note-settings.ts). Here the
+store is read with useSyncExternalStore by everyone — ThemeProvider (which
+sits ABOVE ReadingProvider in app/_layout.tsx, so it could not read a context
+the provider owns), the note engine, and the settings UI — so one write
+repaints all of them.
+
+Persistence is fire-and-forget: a failed Keychain write means the preference
+does not survive a restart, which is better than blocking the UI on it.
 */
 
 const KEY = "zekra-reading";
+const THEME_IDS = THEMES.map((t) => t.id);
 
-export interface ReadingSettings {
-  /** Body text size in px, shared range with web so the two agree on limits. */
-  fontSize: number;
-  /** Reading theme id, or null for the app's own palette. */
-  theme: string | null;
+let current: ReadingSettings = { ...DEFAULT_READING };
+let hydration: Promise<void> | null = null;
+/** Set once the user changes anything, so a slow load cannot clobber it. */
+let touched = false;
+const listeners = new Set<() => void>();
+
+function emit() {
+  for (const fn of listeners) fn();
 }
 
-export const DEFAULT_READING: ReadingSettings = { fontSize: 16, theme: null };
+export function getReading(): ReadingSettings {
+  return current;
+}
 
-/** Clamp anything read back off the device — a corrupt value must not make
- *  the note body unreadable. */
-function coerce(raw: unknown): ReadingSettings {
-  const v = (raw ?? {}) as Partial<ReadingSettings>;
-  const size = Number(v.fontSize);
-  return {
-    fontSize: Number.isFinite(size)
-      ? Math.min(FONT_SIZE_RANGE.max, Math.max(FONT_SIZE_RANGE.min, Math.round(size)))
-      : DEFAULT_READING.fontSize,
-    theme: typeof v.theme === "string" && THEMES.some((t) => t.id === v.theme) ? v.theme : null,
+export function setReading(next: ReadingSettings): void {
+  touched = true;
+  current = coerceReading(next, THEME_IDS);
+  emit();
+  void setStored(KEY, JSON.stringify(current));
+}
+
+export function updateReading(patch: Partial<ReadingSettings>): void {
+  setReading({ ...current, ...patch });
+}
+
+export function subscribeReading(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
   };
 }
 
-export async function loadReading(): Promise<ReadingSettings> {
-  const raw = await getStored(KEY);
-  if (!raw) return { ...DEFAULT_READING };
-  try {
-    return coerce(JSON.parse(raw));
-  } catch {
-    return { ...DEFAULT_READING };
-  }
+/** Load the stored settings once; safe to call from several places. */
+export function hydrateReading(): Promise<void> {
+  hydration ??= (async () => {
+    const raw = await getStored(KEY);
+    if (!raw || touched) return;
+    try {
+      current = coerceReading(JSON.parse(raw), THEME_IDS);
+      emit();
+    } catch {
+      // Corrupt value: keep the defaults.
+    }
+  })();
+  return hydration;
 }
 
-export async function saveReading(next: ReadingSettings): Promise<void> {
-  await setStored(KEY, JSON.stringify(coerce(next)));
+/** The live settings; re-renders on every change. */
+export function useReadingSettings(): ReadingSettings {
+  return useSyncExternalStore(subscribeReading, getReading, getReading);
+}
+
+/** Same value with a setter — the shape existing callers use. */
+export function useReading(): { reading: ReadingSettings; setReading: (next: ReadingSettings) => void } {
+  return { reading: useReadingSettings(), setReading };
 }
 
 export function readingTheme(id: string | null): ThemeDefinition | null {
@@ -64,14 +97,3 @@ export function readingTheme(id: string | null): ThemeDefinition | null {
 }
 
 export const READING_THEMES = THEMES;
-
-/** Shared so the settings screen and the note screen see the same value —
- *  the web had the same bug and it cost a round of "it isn't reflected". */
-export const ReadingContext = createContext<{
-  reading: ReadingSettings;
-  setReading: (next: ReadingSettings) => void;
-}>({ reading: DEFAULT_READING, setReading: () => {} });
-
-export function useReading() {
-  return useContext(ReadingContext);
-}
