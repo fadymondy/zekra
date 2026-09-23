@@ -16,13 +16,13 @@ func TestDocKey(t *testing.T) {
 		chunk    int
 	}{
 		{"repo/docs/index.md#3", "repo/docs/index.md", 3},
-		{"cabrain:SPEC.md#0", "cabrain:SPEC.md", 0},
+		{"zekra:SPEC.md#0", "zekra:SPEC.md", 0},
 		{"a/b.go#chunk-2", "a/b.go", 2},
 		{"a/b.go:chunk-7", "a/b.go", 7},
 		{"https://x.io/p?part=4", "https://x.io/p", 4},
 		{"README.md", "README.md", -1},
 		{"handoff/X1-notifications/backend-web/1", "handoff/X1-notifications/backend-web/1", -1}, // a path segment, not a chunk
-		{"cabrain:log:abc123", "cabrain:log:abc123", -1},
+		{"zekra:log:abc123", "zekra:log:abc123", -1},
 		{"#3", "#3", -1}, // nothing left of the key
 	}
 	for _, c := range cases {

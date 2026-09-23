@@ -39,9 +39,6 @@ Environment:
 """
 import json
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 from urllib.parse import urlparse

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/togo-framework/togo"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -204,7 +205,7 @@ type MemoryInput struct {
 
 // UnmarshalJSON accepts BOTH camelCase and snake_case keys. The struct has no
 // json tags, so Go's case-insensitive matching binds "sourceKind" but silently
-// DROPS "source_kind" — which is what the cabrain-agents client sends, so every
+// DROPS "source_kind" — which is what the zekra-agents client sends, so every
 // memory an agent retained lost its provenance. Normalising here fixes that
 // without breaking the camelCase callers (cmd/zekra-mcp) already in the field.
 func (m *MemoryInput) UnmarshalJSON(b []byte) error {
@@ -455,7 +456,7 @@ type RecallQuery struct {
 	// DEFAULT ON: a JSON body that omits the key gets true (see UnmarshalJSON).
 	// It used to default to false for REST callers while only the internal chat/
 	// agent paths opted in, so POST /api/brain/recall — the endpoint the MCP tools
-	// and cabrain-agents actually use — never touched the graph at all. Send
+	// and zekra-agents actually use — never touched the graph at all. Send
 	// "expandEntity": false to opt out.
 	ExpandEntity  bool    `json:"expandEntity"`
 	MinImportance float64 `json:"minImportance"`
@@ -559,18 +560,9 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 			return nil, errors.New("brain.Recall: query: " + err.Error())
 		}
 	}
-	// Rerank the pool with the cross-encoder when available.
+	// Rerank the head of the pool with the cross-encoder when available.
 	if rr := s.reranker(); rr != nil && len(pool) > 1 {
-		docs := make([]string, len(pool))
-		for i := range pool {
-			docs[i] = pool[i].Content
-		}
-		if scores, err := rr.Rerank(ctx, q.Query, docs); err == nil && len(scores) == len(pool) {
-			for i := range pool {
-				pool[i].Score = scores[i]
-			}
-			sortByScoreDesc(pool)
-		}
+		rerankHead(ctx, rr, q.Query, pool)
 	}
 	if len(pool) > q.Limit {
 		pool = pool[:q.Limit]
@@ -823,4 +815,61 @@ func buildFilteredRecallSQL(base string, baseArgCount int, types, exclude []stri
 		out = strings.ReplaceAll(out, "invalid_at IS NULL AND tier='hot'", "tier='hot'")
 	}
 	return out, extraArgs
+}
+
+// rerankMaxDocs is TEI's default --max-client-batch-size. Sending more gets an
+// HTTP 413, which Recall used to swallow — so any brain big enough to fill the
+// 40-row pool silently lost reranking altogether.
+const rerankMaxDocs = 32
+
+// rerankBudget bounds how long Recall waits for the cross-encoder.
+//
+// Measured on production (LXC 109, bge-reranker-v2-m3 on CPU, 2026-09-23):
+// ~2.2s per document regardless of batching — 40 docs took 87–124s whether sent
+// as one request, 40 singles, or parallel batches, because the CPU is the limit.
+// Waiting for that turned every recall into a 30s+ call that MCP clients timed
+// out on. Past the budget the RRF order (vector + BM25) is kept, which is still
+// a good ranking; rerank is a refinement, not a requirement.
+//
+// BRAIN_RERANK_TIMEOUT (a Go duration, e.g. "8s") tunes it; "0" disables
+// reranking entirely.
+func rerankBudget() time.Duration {
+	if v := strings.TrimSpace(os.Getenv("BRAIN_RERANK_TIMEOUT")); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d >= 0 {
+			return d
+		}
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			return time.Duration(n) * time.Second
+		}
+	}
+	return 4 * time.Second
+}
+
+// rerankHead reranks at most the first rerankMaxDocs of pool, in place. The
+// head is RRF-ordered already, so it holds the likeliest answers; the tail keeps
+// its RRF order after the reranked head. On a timeout or an error the pool is
+// left exactly as it was.
+func rerankHead(ctx context.Context, rr Reranker, query string, pool []Recalled) {
+	budget := rerankBudget()
+	if budget == 0 {
+		return
+	}
+	head := pool
+	if len(head) > rerankMaxDocs {
+		head = head[:rerankMaxDocs]
+	}
+	docs := make([]string, len(head))
+	for i := range head {
+		docs[i] = head[i].Content
+	}
+	rctx, cancel := context.WithTimeout(ctx, budget)
+	defer cancel()
+	scores, err := rr.Rerank(rctx, query, docs)
+	if err != nil || len(scores) != len(head) {
+		return
+	}
+	for i := range head {
+		head[i].Score = scores[i]
+	}
+	sortByScoreDesc(head)
 }

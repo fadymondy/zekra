@@ -1,12 +1,12 @@
 -- Zekra BM25 layer — vchord_bm25 0.3.0 + pg_tokenizer 0.1.1 (CONFIRMED against
--- the live cabrain DB). Kept separate from schema.sql so a BM25 issue can never
+-- the live zekra DB). Kept separate from schema.sql so a BM25 issue can never
 -- block the core schema. Applied by ApplyBM25 (idempotent).
 --
 -- TWO hard-won facts from the live DB:
---   1. The TOKENIZER is created by infra, not here. The app role (`cabrain`) has
+--   1. The TOKENIZER is created by infra, not here. The app role (`zekra`) has
 --      SELECT on tokenizer_catalog but not INSERT, so it cannot create_tokenizer.
 --      Infra provides a multilingual tokenizer (unicode_segmentation); its name is
---      configurable via BRAIN_BM25_TOKENIZER (default 'cabrain_bm25_tok'). See
+--      configurable via BRAIN_BM25_TOKENIZER (default 'zekra_bm25_tok'). See
 --      infra/grant-bm25.sql for provisioning a production tokenizer (llmlingua2).
 --   2. `memories` is PARTITIONED. A bm25 index on the partitioned PARENT is an empty
 --      template relation, and to_bm25query('<parent index>', …) fails with

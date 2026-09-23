@@ -45,7 +45,7 @@ phrasing if the first is thin.
   repo (board, playbooks, kaizen engine, kickstart legal/finance, pitch/fundraising,
   research, theses, drills). Use for any question about AVO, founder readiness, the
   board pack, playbooks, or KSA/GCC founder prep.
-- `cabrain` — this project's own dev knowledge: the Zekra repo docs (SPEC, PLAN,
+- `zekra` — this project's own dev knowledge: the Zekra repo docs (SPEC, PLAN,
   DEPLOY, decisions, rules) + git commit history. Use when developing/following up
   on Zekra itself ("how does the Redis L1 work?", "why the partition-index BM25?").
 
@@ -53,16 +53,16 @@ Pick the namespace that matches the question; never mix scopes in one query. If 
 ambiguous which brain, recall both (two calls) and merge.
 
 ## R8 — Keep the brain reachable
-The tools need the app on `:8080`. If `memory_recall` fails to connect, tell the user
-to run `bash /home/coder/run-cabrain.sh` (and confirm the workspace is on
-`stack_stacknet`). See `contracts/internal/flowos-brain.md`.
+The tools talk to the hosted brain at `https://app.zekra.dev`. If `memory_recall` fails
+to connect, tell the user; the service is `zekra.service` on LXC 109 (`pve-3x1`). See
+`DEPLOY.md`.
 
-## R9 — Keep the `cabrain` brain current (every update)
-After committing a set of changes to this project, **refresh the `cabrain` dev brain**
+## R9 — Keep the `zekra` brain current (every update)
+After committing a set of changes to this project, **refresh the `zekra` dev brain**
 so the next session can recall the latest state and history:
 
 ```bash
-ZEKRA_MEMORY_FILE=~/.claude/projects/-home-coder-caBrain/memory/cabrain-project.md \
+ZEKRA_MEMORY_FILE=~/.claude/projects/-home-coder-zekra/memory/zekra-project.md \
   python3 scripts/refresh-zekra-brain.py
 ```
 
@@ -70,4 +70,4 @@ This re-ingests the repo docs + the full git build-log (+ the curated project me
 if the env var is set); the §4.1 write-decision dedupes, so only new/changed knowledge
 is added. Treat it as part of "done": code committed → brain refreshed.
 
-**Order of operations every turn: recall → answer/act → retain (and refresh `cabrain` after commits).**
+**Order of operations every turn: recall → answer/act → retain (and refresh `zekra` after commits).**

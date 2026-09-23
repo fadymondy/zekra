@@ -10,7 +10,7 @@ falls out of the entity graph and stops being reachable by 1-hop expansion and
 by the graph spine.
 
 flowos-activity-rollups.py repairs that itself, but only when it has a brain
-DSN. The copy that actually runs on a timer (/opt/cabrain-analytics on the
+DSN. The copy that actually runs on a timer (/opt/zekra-analytics on the
 Proxmox box) does NOT have one — the brain Postgres is not reachable from
 there — so every rollup it refreshes comes back orphaned. This script closes
 that loop from the workspace, where the brain DSN does work.
@@ -18,16 +18,13 @@ that loop from the workspace, where the brain DSN does work.
 It needs no FlowOS access and no analytics DB: everything it needs is already in
 each rollup's own metadata (scope, repo, person, ranking, zeroCommit).
 
-    export ZEKRA_DSN=postgresql://cabrain:***@host:5432/cabrain
+    export ZEKRA_DSN=postgresql://zekra:***@host:5432/zekra
     python3 scripts/flowos-rollup-relink.py [--dry-run]
 """
 from __future__ import annotations
 
 import argparse
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import sys
 from urllib.parse import urlparse
 

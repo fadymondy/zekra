@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-EnvironmentFile=/opt/cabrain-code-index/env
-WorkingDirectory=/opt/cabrain-code-index
-ExecStart=/usr/bin/python3 /opt/cabrain-code-index/code-index.py run
+EnvironmentFile=/opt/zekra-code-index/env
+WorkingDirectory=/opt/zekra-code-index
+ExecStart=/usr/bin/python3 /opt/zekra-code-index/code-index.py run
 # Registry = the datasources table (kind=github, name code:<owner>/<repo>). Repos
 # whose HEAD sha is unchanged are skipped, so a full pass is cheap.
 TimeoutStartSec=5400

@@ -12,7 +12,7 @@
 set -eu
 
 REPO="github.com/fadymondy/zekra-cli"
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* names.
+# Legacy env names from before the rename: accept CABRAIN_* as a fallback.
 : "${ZEKRA_URL:=${CABRAIN_URL:-}}"
 : "${ZEKRA_TOKEN:=${CABRAIN_TOKEN:-}}"
 : "${ZEKRA_CLIENT:=${CABRAIN_CLIENT:-}}"

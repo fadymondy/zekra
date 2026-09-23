@@ -17,16 +17,13 @@ Idempotent: episodes has UNIQUE(namespace, source_ref) → ON CONFLICT DO UPDATE
 the link UPDATEs are no-ops once applied.
 
 Environment:
-  ZEKRA_DSN        postgresql://user:pass@host:port/cabrain   (required)
+  ZEKRA_DSN        postgresql://user:pass@host:port/zekra   (required)
   ZEKRA_NAMESPACE  default: flowos
   EPISODE_REF_LIKE   default: db:%
 
 Never hard-code credentials here — this file is committed.
 """
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 from urllib.parse import urlparse
 
 import pg8000.native as pg

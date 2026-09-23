@@ -60,13 +60,13 @@ Empirically probed from the Coder workspace (pgx). What is **actually reachable*
   (Debian), vanilla** — installed extensions: only `plpgsql`; **none** of `vector`, `pg_search`,
   `vchord`, `vchord_bm25`, `pg_tokenizer`, `pg_partman`, `pg_duckdb`, `pg_cron` are even *available*.
   Databases present: `fadymondy, flowos, flowos_live, flowos_ref, flowos_v2, postgres, togo`.
-  **No `cabrain` database, no `cabrain_sleep` role.**
+  **No `zekra` database, no `zekra_sleep` role.**
 - **Redis** `host.docker.internal:6379` — reachable. **NATS** `:4222` — reachable.
 - The `pg:5432` internal hostname from the §4 bundle is **not** reachable from the workspace
   (it's inside Docker net `stack_stacknet`).
 
-**Conclusion:** the extension-equipped Zekra DB described in the §4 bundle (dedicated `cabrain`
-DB + `cabrain_sleep` role on `stack-togo-postgres:latest` with the vchord stack) is **not yet live
+**Conclusion:** the extension-equipped Zekra DB described in the §4 bundle (dedicated `zekra`
+DB + `zekra_sleep` role on `stack-togo-postgres:latest` with the vchord stack) is **not yet live
 / not reachable** — consistent with the infra note that the finalizer hasn't completed. The
 services-page image string (`PG17 + pg_duckdb + pg_search + vector + pg_cron`) does not match the
 reachable server either, so treat it as aspirational until the finalizer confirms.
@@ -76,7 +76,7 @@ reachable server either, so treat it as aspirational until the finalizer confirm
   for Arabic `pg_tokenizer` BM25). Do **not** rewrite for ParadeDB based on the services page.
 - **Blocker B stands** for live `migrate`/`serve` and for anything needing vector/BM25/partman.
 - Resource build (task #9) proceeds regardless — **sqlc validates schema statically, no DB**.
-- When the finalizer lands: connect to the real `cabrain` DB, run the §3 extension checks, then migrate.
+- When the finalizer lands: connect to the real `zekra` DB, run the §3 extension checks, then migrate.
 
 ## D4 — Redis L1 working-memory cache (NEW tier; extends SPEC §2/N1)
 

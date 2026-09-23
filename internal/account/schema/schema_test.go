@@ -41,7 +41,7 @@ func TestDDLIsIdempotentAndUnqualified(t *testing.T) {
 		if !strings.Contains(s, "IF NOT EXISTS") {
 			t.Errorf("not idempotent: %.60s", s)
 		}
-		if strings.Contains(s, "public.") || strings.Contains(s, "cabrain_auth.") {
+		if strings.Contains(s, "public.") || strings.Contains(s, "zekra_auth.") {
 			t.Errorf("schema-qualified (must follow search_path): %.60s", s)
 		}
 	}

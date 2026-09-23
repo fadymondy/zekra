@@ -10,8 +10,6 @@ order: 1
 in a *brain*. The next session, or another agent, recalls it. Coding agents, chat
 assistants, your own agent fleet and your team all read from and write to the same memory.
 
-Zekra was formerly called CaBrain.
-
 You can reach Zekra in three ways:
 
 | Surface | Use it when | Docs |

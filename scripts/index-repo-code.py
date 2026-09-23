@@ -2,7 +2,7 @@
 """Index repository SOURCE CODE into a Zekra namespace.
 
 SUPERSEDED by scripts/code-index.py (repomix-based, sha-gated, prunes stale
-chunks, and is what the cabrain-code-index systemd timer runs). Kept because it
+chunks, and is what the zekra-code-index systemd timer runs). Kept because it
 is the only indexer that needs nothing but the GitHub API — no clone, no npx —
 so it still works from a host that cannot run repomix.
 
@@ -38,9 +38,6 @@ import argparse
 import base64
 import json
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import subprocess
 import sys
 import time
@@ -105,7 +102,7 @@ def gh(path_or_url, raw=False):
     url = path_or_url if path_or_url.startswith("http") else API + path_or_url
     req = urllib.request.Request(url)
     req.add_header("Accept", "application/vnd.github.raw" if raw else "application/vnd.github+json")
-    req.add_header("User-Agent", "cabrain-code-indexer")
+    req.add_header("User-Agent", "zekra-code-indexer")
     if GH_TOKEN:
         req.add_header("Authorization", "Bearer " + GH_TOKEN)
     for attempt in range(3):
@@ -292,7 +289,7 @@ def pg():
         user=os.environ["ZEKRA_PG_USER"], password=os.environ["ZEKRA_PG_PASSWORD"],
         host=os.environ.get("ZEKRA_PG_HOST", "localhost"),
         port=int(os.environ.get("ZEKRA_PG_PORT", "5432")),
-        database=os.environ.get("ZEKRA_PG_DATABASE", "cabrain"))
+        database=os.environ.get("ZEKRA_PG_DATABASE", "zekra"))
     c.run("SET search_path = public")
     return c
 

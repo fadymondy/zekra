@@ -204,7 +204,7 @@ function ThemeCard({ theme, selected, onSelect }: { theme: ThemeDefinition; sele
   );
 }
 
-/** Zekra's own palette (grid tokens, data-brand="cabrain"): ivory / navy, the
+/** Zekra's own palette (grid tokens, data-brand="zekra"): ivory / navy, the
  *  violet action and the gold accent — light and dark halves, since it
  *  follows Settings ▸ General ▸ Appearance. */
 function ZekraCard({ selected, onSelect }: { selected: boolean; onSelect: () => void }) {

@@ -12,13 +12,13 @@ import (
 
 // bm25Tokenizer is the pg_tokenizer tokenizer recall/retain use. It is created by
 // infra (the app role cannot), so the name is configurable; the default matches
-// the multilingual tokenizer provisioned on the live cabrain DB.
+// the multilingual tokenizer provisioned on the live zekra DB.
 //
-// Default is `cabrain_ml` (llmlingua2, a pre-trained multilingual subword model).
-// The previous default `cabrain_bm25_tok` is a FIXED-VOCAB PROBE built from a tiny
+// Default is `zekra_ml` (llmlingua2, a pre-trained multilingual subword model).
+// The previous default `zekra_bm25_tok` is a FIXED-VOCAB PROBE built from a tiny
 // sample table: it returns ZERO tokens for essentially all real input — verified
 // empty for English, Arabic, and acronyms alike — which silently disabled the whole
-// BM25 half of hybrid retrieval. With cabrain_ml the lexical layer works and is
+// BM25 half of hybrid retrieval. With zekra_ml the lexical layer works and is
 // exactly what rescues short/acronym queries that dense vectors are weak on:
 // "BIV portfolio Turif" now ranks the BIV=Turif alias at -50.9, "CPTO role
 // responsibilities" ranks the CPTO position spec at -17.2 (both had no signal at all
@@ -31,7 +31,7 @@ func bm25Tokenizer() string {
 	if t := os.Getenv("BRAIN_BM25_TOKENIZER"); t != "" {
 		return t
 	}
-	return "cabrain_ml"
+	return "zekra_ml"
 }
 
 // hnswEFSearch is the HNSW candidate-list size (hnsw.ef_search) applied to every
@@ -164,7 +164,7 @@ func ApplyBM25(ctx context.Context, db *sql.DB) error {
 // could ever be reranked. Salience is a tie-breaker, not a ranker.
 //
 // BM25 uses the CONFIRMED vchord_bm25 0.3.0 API: content_bm25 <&> to_bm25query(
-// 'memories_bm25', tokenize($q,'cabrain_ml')). The <&> operator returns a distance
+// 'memories_bm25', tokenize($q,'zekra_ml')). The <&> operator returns a distance
 // (lower = better; infra §5.2 saw an Arabic match at -0.907), so the BM25 CTE ranks
 // ASC. Rows missing an embedding still rank via BM25 and vice-versa (LEFT JOINs +
 // the OR filter), so this same query serves before TEI is reachable.

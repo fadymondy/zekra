@@ -32,7 +32,7 @@ __pycache__/
 
 # built binaries
 /zekra-mcp
-/cabrain-api
+/zekra-api
 cmd/hubq/
 cmd/sqlx/
 web/vite.preview.local.ts

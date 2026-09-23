@@ -163,19 +163,19 @@
   --grid-on-action: #0e1a3c;
 }
 
-/* CaBrain (CaBrain Brand.dc.html): violet is the action in both themes and carries white text
+/* Zekra (the Zekra brand sheet): violet is the action in both themes and carries white text
    (≈5.5:1). On the dark ground — where memory is read — the mark body turns ivory. The brand's
    light violet #a98cf5 is for active states and recall-score grades inside the product, never
    for actions, so it stays out of the grid. */
-[data-brand="cabrain"] {
+[data-brand="zekra"] {
   --grid-brand: #6d4de6;
   --grid-brand-accent: #c9a227;
   --grid-action: #6d4de6;
   --grid-on-action: #ffffff;
 }
-.dark[data-brand="cabrain"],
-.dark [data-brand="cabrain"],
-[data-theme="dark"][data-brand="cabrain"],
-[data-theme="dark"] [data-brand="cabrain"] {
+.dark[data-brand="zekra"],
+.dark [data-brand="zekra"],
+[data-theme="dark"][data-brand="zekra"],
+[data-theme="dark"] [data-brand="zekra"] {
   --grid-brand: #f0ebe1;
 }

@@ -64,7 +64,7 @@ OPEN edge (valid_to IS NULL) first. Retirement is soft; nothing is deleted.
 
 Credentials come from the environment only (this file is committed):
   FLOWOS_DSN         postgresql://…/onestudio_hub   READ-ONLY, every read in a tx
-  ZEKRA_DSN        postgresql://…/cabrain
+  ZEKRA_DSN        postgresql://…/zekra
   ZEKRA_NAMESPACE  default: flowos
 
 Usage:
@@ -75,9 +75,6 @@ Usage:
 import argparse
 import json
 import os
-# Zekra was formerly CaBrain: accept the legacy CABRAIN_* env names.
-for _k in [k for k in os.environ if k.startswith("CABRAIN_")]:
-    os.environ.setdefault("ZEKRA_" + _k[len("CABRAIN_"):], os.environ[_k])
 import re
 import sys
 from collections import defaultdict

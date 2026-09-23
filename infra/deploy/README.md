@@ -2,22 +2,22 @@
 
 ```bash
 sudo apt-get install -y webhook
-sudo mkdir -p /home/fadymondy/services/cabrain-deploy
-git clone https://github.com/fadymondy/zekra.git /home/fadymondy/services/cabrain-src
-openssl rand -hex 32 | sudo tee /home/fadymondy/services/cabrain-deploy/.webhook-secret
-sudo chmod 600 /home/fadymondy/services/cabrain-deploy/.webhook-secret
-WHSECRET=$(sudo cat /home/fadymondy/services/cabrain-deploy/.webhook-secret)
+sudo mkdir -p /home/fadymondy/services/zekra-deploy
+git clone https://github.com/fadymondy/zekra.git /home/fadymondy/services/zekra-src
+openssl rand -hex 32 | sudo tee /home/fadymondy/services/zekra-deploy/.webhook-secret
+sudo chmod 600 /home/fadymondy/services/zekra-deploy/.webhook-secret
+WHSECRET=$(sudo cat /home/fadymondy/services/zekra-deploy/.webhook-secret)
 sudo sed "s|@@WEBHOOK_SECRET@@|$WHSECRET|" \
-  /home/fadymondy/services/cabrain-src/infra/deploy/hooks.yaml.template \
-  > /home/fadymondy/services/cabrain-deploy/hooks.yaml
-sudo cp /home/fadymondy/services/cabrain-src/infra/deploy/zekra-webhook.service /etc/systemd/system/
+  /home/fadymondy/services/zekra-src/infra/deploy/hooks.yaml.template \
+  > /home/fadymondy/services/zekra-deploy/hooks.yaml
+sudo cp /home/fadymondy/services/zekra-src/infra/deploy/zekra-webhook.service /etc/systemd/system/
 sudo systemctl daemon-reload && sudo systemctl enable --now zekra-webhook
 ```
 
 GitHub → repo Settings → Webhooks → Add webhook:
-- URL: `https://deploy.fadymondy.com/hooks/cabrain-deploy`
+- URL: `https://deploy.fadymondy.com/hooks/zekra-deploy`
 - Content type: `application/json`
-- Secret: the value in `/home/fadymondy/services/cabrain-deploy/.webhook-secret`
+- Secret: the value in `/home/fadymondy/services/zekra-deploy/.webhook-secret`
 - Events: just the push event
 
 On every push to `main`, `deploy.sh` runs: git pull → docker build → docker run.

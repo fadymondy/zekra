@@ -1,5 +1,5 @@
 // The Zekra cube mark, rendered from the canonical cell geometry in
-// web/app/styles/grid-marks.ts (PRODUCT_MARKS.cabrain): 8 cells on a 5x4
+// web/app/styles/grid-marks.ts (PRODUCT_MARKS.zekra): 8 cells on a 5x4
 // lattice with [3,0] carrying the gold accent. Colours come from the grid
 // tokens so it follows the theme.
 const CELLS: [number, number][] = [

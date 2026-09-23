@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // zekra.dev (proxy.ts sets this on its rewrites) is a website, not the installable console.
   const site = h.get("x-zekra-site") === "1"
   return (
-    <html lang={locale} dir={dirForLocale(locale)} data-brand="cabrain" className="grid-surface" suppressHydrationWarning>
+    <html lang={locale} dir={dirForLocale(locale)} data-brand="zekra" className="grid-surface" suppressHydrationWarning>
       <body className="min-h-dvh" suppressHydrationWarning>
         <Providers locale={locale} pwa={!site}>
           {children}

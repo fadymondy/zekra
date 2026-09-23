@@ -4,7 +4,7 @@
 // ignores the string.
 
 // ─── Geometry ───────────────────────────────────────────────────────────────
-// The Zekra mark (web/app/styles/grid-marks.ts PRODUCT_MARKS.cabrain): a gold
+// The Zekra mark (web/app/styles/grid-marks.ts PRODUCT_MARKS.zekra): a gold
 // dome cell over seven violet cells on a 5×4 lattice. Coordinates are those of
 // web/public/site/icon.svg — a 100×100 box, cells 18.4 wide, lattice origin at
 // (4, 13.2) — so the SVG, the native splash PNG (assets/splash-mark.png) and

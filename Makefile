@@ -13,7 +13,7 @@ seed: ## Seed the database
 	togo seed
 
 build: ## Build the API binary
-	go build -o bin/cabrain ./cmd/api
+	go build -o bin/zekra ./cmd/api
 
 test: ## Run tests
 	go test ./...

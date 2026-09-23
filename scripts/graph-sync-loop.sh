@@ -7,11 +7,11 @@
 #
 #   nohup setsid scripts/graph-sync-loop.sh >/dev/null 2>&1 &
 #
-# Check it with:  cat ~/.cabrain-graph-sync/state.json
-#                 tail ~/.cabrain-graph-sync/run.log
+# Check it with:  cat ~/.zekra-graph-sync/state.json
+#                 tail ~/.zekra-graph-sync/run.log
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_DIR="${GRAPH_SYNC_DIR:-$HOME/.cabrain-graph-sync}"
+STATE_DIR="${GRAPH_SYNC_DIR:-$HOME/.zekra-graph-sync}"
 set -a; . "$STATE_DIR/env"; set +a
 INTERVAL="${GRAPH_SYNC_INTERVAL:-900}"
 

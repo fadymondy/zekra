@@ -6,7 +6,7 @@ OnBootSec=10min
 OnUnitActiveSec=30min
 AccuracySec=1min
 RandomizedDelaySec=2min
-Unit=cabrain-code-index.service
+Unit=zekra-code-index.service
 
 [Install]
 WantedBy=timers.target

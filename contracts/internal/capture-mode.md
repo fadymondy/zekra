@@ -19,7 +19,7 @@ session is authoritative).
 - **`source_kind`** = `claude_code`
 - **`source_ref`** = the Claude Code **session id** (provenance; lets recall cite the origin)
 - **`namespace`** = the project namespace (derived from the repo/workstream: `sentra`,
-  `freshup`, `orchestra`, `togo`, `cabrain`, …) — one grant per project, no cross-leak (F5)
+  `freshup`, `orchestra`, `togo`, `zekra`, …) — one grant per project, no cross-leak (F5)
 
 ## What is memory-worthy (capture) vs noise (skip)
 

@@ -1,9 +1,9 @@
 # Zekra webhook receiver (adnanh/webhook). Rendered with the shared secret from
-# /home/fadymondy/services/cabrain-deploy/.webhook-secret at install time.
-- id: cabrain-deploy
-  execute-command: /home/fadymondy/services/cabrain-src/infra/deploy/deploy.sh
-  command-working-directory: /home/fadymondy/services/cabrain-deploy
-  response-message: "cabrain-deploy triggered"
+# /home/fadymondy/services/zekra-deploy/.webhook-secret at install time.
+- id: zekra-deploy
+  execute-command: /home/fadymondy/services/zekra-src/infra/deploy/deploy.sh
+  command-working-directory: /home/fadymondy/services/zekra-deploy
+  response-message: "zekra-deploy triggered"
   trigger-rule:
     and:
       - match:
