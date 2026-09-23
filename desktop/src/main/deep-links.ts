@@ -16,6 +16,7 @@ import * as path from "node:path";
 
 import { MARKDOWN_EXTENSIONS, type DeepLinkEvent, type OpenFileEvent } from "../shared/ipc";
 import { s } from "./menu-strings";
+import { showSettingsWindow } from "./app-windows";
 import { addRecentDocument } from "./os-integration";
 import { focusMainWindow, getMainWindow, sendDeepLink, sendOpenFile } from "./renderer-events";
 
@@ -66,6 +67,11 @@ export function handleDeepLink(url: string): void {
   const event = parseDeepLink(url);
   if (!event) return;
   if (interceptor?.(event)) return;
+  // zekra://settings[/<section>] opens the Settings window, not a route.
+  if (event.host === "settings") {
+    showSettingsWindow(event.path.split("/")[0] || undefined);
+    return;
+  }
   focusMainWindow();
   sendDeepLink(event);
 }

@@ -11,14 +11,13 @@ import { canDelete, filterSort, formatAgo, formatCount, SORTS, type BrainListIte
 
 import { BrainAvatar } from "../components/brain-avatar";
 import { IconButton } from "../components/chrome";
-import { Spotlight } from "../components/spotlight";
 import type { BrainAction } from "../features/brains/brain-card";
-import { DeleteBrainDialog, NewBrainDialog } from "../features/brains/brain-dialogs";
+import { DeleteBrainDialog } from "../features/brains/brain-dialogs";
 import { exportBrain, useBrainList, useBrainStats } from "../features/brains/brains-data";
 import { ReadingTheme } from "../features/editor/reading-theme";
 import { useI18n, type TKey } from "../lib/i18n";
 import { SEP, showMenu } from "../lib/native-menu";
-import { useCommand } from "../shell/commands";
+import { useRunCommand } from "../shell/commands";
 import { useRouter } from "../shell/router";
 import { useAuthed } from "../shell/session";
 import { toast } from "../shell/toast";
@@ -35,8 +34,8 @@ All Brains (MH-450) — a Finder-style list view of every brain:
              native menu: open, notes / presentations / vault, export NDJSON
              (native save dialog), delete (owners/admins, type-to-confirm)
 
-Owns "new-brain" (⇧⌘N) while mounted; the shell's fallback navigates here and
-defers the command, so the dialog opens from anywhere.
+New Brain (⇧⌘N, the toolbar "+") opens the New Brain window; the list
+reloads when that window creates one (shell/base-commands.tsx).
 */
 
 const SORT_KEYS = { recent: "brains.sort.recent", name: "brains.sort.name", memories: "brains.sort.memories" } as const;
@@ -52,11 +51,11 @@ export function BrainsRoute() {
     const saved = localStorage.getItem("zekra.desktop.brains-sort") as Sort | null;
     return saved && SORTS.includes(saved) ? saved : "recent";
   });
-  const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<BrainListItem | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
-  useCommand("new-brain", () => setCreating(true));
+  // New Brain is its own window (the shell's "new-brain" handler).
+  const run = useRunCommand();
 
   const rows = useMemo(() => (brains ? filterSort(brains, term, sort, locale) : null), [brains, term, sort, locale]);
 
@@ -117,7 +116,6 @@ export function BrainsRoute() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <Spotlight />
       <ReadingTheme />
       <WindowTitle title={t("home.title")} subtitle={subtitle} />
       <ToolbarActions>
@@ -142,7 +140,7 @@ export function BrainsRoute() {
             </InputGroupAddon>
           ) : null}
         </InputGroup>
-        <IconButton label={t("sb.newBrain")} shortcut="⇧⌘N" onClick={() => setCreating(true)}>
+        <IconButton label={t("sb.newBrain")} shortcut="⇧⌘N" onClick={() => run("new-brain")}>
           <Plus />
         </IconButton>
       </ToolbarActions>
@@ -198,7 +196,7 @@ export function BrainsRoute() {
               </EmptyHeader>
               {!term ? (
                 <EmptyContent>
-                  <Button onClick={() => setCreating(true)}>
+                  <Button onClick={() => run("new-brain")}>
                     <Plus />
                     {t("brains.new.button")}
                   </Button>
@@ -226,7 +224,7 @@ export function BrainsRoute() {
                 <span className="flex min-w-0 items-center gap-3">
                   <BrainAvatar brain={b} token={token} size={28} />
                   <span className="grid min-w-0 leading-tight">
-                    <span className="list-row-title truncate text-ui font-semibold" style={{ unicodeBidi: "plaintext" }}>
+                    <span className="list-row-title truncate text-ui font-semibold" dir="auto" style={{ unicodeBidi: "plaintext" }}>
                       {b.displayName || b.namespace}
                     </span>
                     <span className="list-row-meta truncate text-ui-sm" dir="auto">
@@ -243,7 +241,6 @@ export function BrainsRoute() {
         </div>
       </div>
 
-      <NewBrainDialog open={creating} onOpenChange={setCreating} onCreated={(ns) => open(ns)} />
       <DeleteBrainDialog
         brain={deleting}
         onOpenChange={(o) => {

@@ -14,16 +14,17 @@ Adding a screen (feature teams):
 
 export type BrainTab = "notes" | "presentations" | "vault";
 export type BrainList = "all" | "pinned" | "recent" | "archived";
-// MH-450 settings: + "notifications" (OS notifications) and "connect" (MCP).
-export type SettingsSection = "general" | "reading" | "notifications" | "security" | "account" | "connect" | "about";
+/** Settings is its own window (screens/settings-window.tsx), not a route:
+ *  bridge().openSettingsWindow(section). */
+export type { SettingsSectionId as SettingsSection } from "../../shared/ipc";
 
 export type Route =
   | { name: "brains" }
   // `list`: which notes list the source list picked (default "all").
   | { name: "brain"; ns: string; tab: BrainTab; noteId?: string; list?: BrainList }
-  | { name: "search"; query?: string; ns?: string }
-  | { name: "notifications" }
-  | { name: "settings"; section: SettingsSection };
+  | { name: "search"; query?: string; ns?: string };
+// Not routes (Health Debug's window architecture): Settings is a window, the
+// notification center is the title bar bell's popover.
 
 export type RouteName = Route["name"];
 
@@ -82,9 +83,12 @@ export function useRoute<N extends RouteName>(name: N): Extract<Route, { name: N
  * Parse the compact route strings used where a Route cannot travel as an
  * object — native notification payloads, push data, zekra://open/… links:
  *
- *   "brains" | "search" | "notifications" | "settings[:section]"
+ *   "brains" | "search[:query]"
  *   "brain:<ns>[:notes|presentations|vault]"
  *   "note:<ns>:<noteId>"
+ *
+ * "notifications" (the bell popover) and "settings[:section]" (the Settings
+ * window) are not routes: shell/base-commands.tsx opens them.
  *
  * Unknown strings return null (the caller ignores them).
  */
@@ -95,12 +99,6 @@ export function routeFromString(s: string): Route | null {
       return { name: "brains" };
     case "search":
       return { name: "search", query: a || undefined };
-    case "notifications":
-      return { name: "notifications" };
-    case "settings": {
-      const sections: SettingsSection[] = ["general", "reading", "notifications", "security", "account", "connect", "about"];
-      return { name: "settings", section: sections.includes(a as SettingsSection) ? (a as SettingsSection) : "general" };
-    }
     case "brain": {
       if (!a) return null;
       const tabs: BrainTab[] = ["notes", "presentations", "vault"];

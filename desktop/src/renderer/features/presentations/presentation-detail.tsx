@@ -223,7 +223,7 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
         <>
           <KindTile kind={doc.kind} size={32} />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-medium text-foreground" style={{ unicodeBidi: "plaintext" }}>
+            <h2 className="truncate text-sm font-medium text-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>
               {doc.title || t("notes.untitled")}
             </h2>
             <p className="grid-micro truncate text-muted-foreground">
@@ -606,7 +606,7 @@ function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
     <li className={cn("flex flex-col gap-1.5 py-3", !active && "opacity-60")}>
       <div className="flex items-center gap-2">
         <Link2 className={cn("size-4 shrink-0", active ? "text-grid-gold" : "text-muted-foreground")} strokeWidth={1.8} />
-        <span className="min-w-0 flex-1 truncate text-sm text-foreground" style={{ unicodeBidi: "plaintext" }}>
+        <span className="min-w-0 flex-1 truncate text-sm text-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>
           {share.label === PREVIEW_LABEL ? t("presentations.share.previewLabel") : share.label || t("presentations.share.unnamed")}
         </span>
         <Chip>{f.short(share.locale)}</Chip>
@@ -621,7 +621,7 @@ function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
         ]}
       />
       {active && url ? (
-        <p dir="ltr" className="truncate text-start font-mono text-[11px] text-foreground/85 select-text">
+        <p dir="ltr" className="truncate text-start font-mono text-[12.5px] text-foreground/85 select-text">
           {url.replace(/^https?:\/\//, "")}
         </p>
       ) : null}

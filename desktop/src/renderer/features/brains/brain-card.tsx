@@ -81,7 +81,7 @@ function useActions(brain: BrainListItem): ActionDef[] {
 function Tag({ children, hue, className }: { children: ReactNode; hue?: string; className?: string }) {
   return (
     <span
-      className={cn("inline-flex h-5 max-w-full items-center gap-1 rounded-md bg-muted px-1.5 text-[11px] leading-4 text-foreground/80", className)}
+      className={cn("inline-flex h-5 max-w-full items-center gap-1 rounded-md bg-muted px-1.5 text-[12.5px] leading-4 text-foreground/80", className)}
       style={hue ? { backgroundColor: `color-mix(in oklab, ${hue} 16%, transparent)`, color: hue } : undefined}
     >
       {children}
@@ -91,7 +91,7 @@ function Tag({ children, hue, className }: { children: ReactNode; hue?: string; 
 
 function Stat({ icon, value, label }: { icon: ReactNode; value: string; label: string }) {
   return (
-    <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground" title={label}>
+    <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground" title={label}>
       <span className="flex shrink-0 [&_svg]:size-3.5 [&_svg]:stroke-[1.75]">{icon}</span>
       <span dir="ltr" className="font-medium text-foreground/85 tabular-nums">
         {value}
@@ -136,12 +136,12 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
           <BrainAvatar brain={brain} token={token} size={36} />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate text-[14px] font-semibold text-foreground" style={{ unicodeBidi: "plaintext" }}>
+              <span className="truncate text-[14px] font-semibold text-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>
                 {name}
               </span>
               {roleKey ? <Tag className="shrink-0">{t(roleKey)}</Tag> : null}
             </div>
-            <div className="mt-0.5 truncate text-[12px] text-muted-foreground">
+            <div className="mt-0.5 truncate text-[13px] text-muted-foreground">
               {name !== brain.namespace ? (
                 <>
                   <bdi>{brain.namespace}</bdi>
@@ -180,7 +180,7 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
         </div>
 
         {brain.description ? (
-          <p className="line-clamp-2 text-[13px] leading-5 text-muted-foreground" dir="auto">
+          <p className="line-clamp-2 text-[14px] leading-5 text-muted-foreground" dir="auto">
             {brain.description}
           </p>
         ) : null}
@@ -202,7 +202,7 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
                 </Tag>
               ))}
               {types.rest > 0 ? (
-                <span dir="ltr" className="px-1 text-[11px] text-muted-foreground">
+                <span dir="ltr" className="px-1 text-[12.5px] text-muted-foreground">
                   +{types.rest}
                 </span>
               ) : null}
@@ -220,7 +220,7 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
                 {detail.openGaps === 1 ? t("brains.openGapOne") : t("brains.openGapMany", { count: formatCount(detail.openGaps) })}
               </Tag>
             ) : (
-              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1 text-[12.5px] text-muted-foreground">
                 <CircleCheck className="size-3.5 text-grid-ok" />
                 {t("brains.noGaps")}
               </span>

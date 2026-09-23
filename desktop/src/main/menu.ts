@@ -18,6 +18,9 @@ import { sendCommand } from "./renderer-events";
 import { checkForUpdatesInteractive } from "./updater";
 import { captureShortcutState, showQuickCapture } from "./quick-capture";
 import { ss } from "./services-strings";
+import { showNewBrainWindow, showSettingsWindow, showSpotlight } from "./app-windows";
+import { openNewNoteWindow } from "./native-ui";
+import { getSettings } from "./settings-store";
 
 export const APP_NAME = "Zekra";
 export const APP_NAME_AR = "ذكرة";
@@ -40,7 +43,10 @@ export function buildMenu(): Menu {
       cmd(t.about, "about"),
       { label: t.checkUpdates, click: () => void checkForUpdatesInteractive() },
       { type: "separator" },
-      cmd(t.settings, "settings", "CmdOrCtrl+,"),
+      // Settings, New Note / Brain and the command palette are their own
+      // windows (app-windows.ts), opened here directly — they work with the
+      // main window closed.
+      { label: t.settings, accelerator: "CmdOrCtrl+,", click: () => void showSettingsWindow() },
       cmd(t.signOut, "sign-out"),
       { type: "separator" },
       { role: "services", label: t.services },
@@ -56,8 +62,8 @@ export function buildMenu(): Menu {
   const fileMenu: MenuItemConstructorOptions = {
     label: t.file,
     submenu: [
-      cmd(t.newNote, "new-note", "CmdOrCtrl+N"),
-      cmd(t.newBrain, "new-brain", "Shift+CmdOrCtrl+N"),
+      { label: t.newNote, accelerator: "CmdOrCtrl+N", click: () => void openNewNoteWindow(getSettings().activeBrain) },
+      { label: `${t.newBrain}…`, accelerator: "Shift+CmdOrCtrl+N", click: () => void showNewBrainWindow() },
       { type: "separator" },
       { label: t.openMarkdown, accelerator: "CmdOrCtrl+O", click: () => void openMarkdownDialog() },
       // Desktop services: Open Recent (macOS), Quick Capture (global shortcut
@@ -96,7 +102,14 @@ export function buildMenu(): Menu {
       cmd(t.closeTab, "close-tab", "CmdOrCtrl+W"),
       cmd(t.reopenTab, "reopen-tab", "Shift+CmdOrCtrl+T"),
       { role: "close", label: t.closeWindow, accelerator: "Shift+CmdOrCtrl+W" },
-      ...(isMac ? [] : ([{ type: "separator" }, cmd(t.signOut, "sign-out"), { role: "quit", label: t.quit }] as MenuItemConstructorOptions[])),
+      ...(isMac
+        ? []
+        : ([
+            { type: "separator" },
+            { label: t.settings, accelerator: "CmdOrCtrl+,", click: () => void showSettingsWindow() },
+            cmd(t.signOut, "sign-out"),
+            { role: "quit", label: t.quit },
+          ] as MenuItemConstructorOptions[])),
     ],
   };
 
@@ -125,7 +138,9 @@ export function buildMenu(): Menu {
       { ...cmd(t.toggleSidebar, "toggle-sidebar", "CmdOrCtrl+\\"), visible: false },
       cmd(t.toggleList, "toggle-list", "Alt+CmdOrCtrl+L"),
       cmd(t.toggleOutline, "toggle-outline", "Shift+CmdOrCtrl+L"),
-      cmd(t.commandPalette, "spotlight", "CmdOrCtrl+K"),
+      // Secondary: the note is always the live editor (Apple Notes style).
+      cmd(t.viewSource, "note:view-source", "Alt+CmdOrCtrl+U"),
+      { label: t.commandPalette, accelerator: "CmdOrCtrl+K", click: () => showSpotlight() },
       { type: "separator" },
       cmd(t.nextTab, "next-tab", "Alt+CmdOrCtrl+Right"),
       cmd(t.prevTab, "prev-tab", "Alt+CmdOrCtrl+Left"),
@@ -138,7 +153,8 @@ export function buildMenu(): Menu {
       ...(isDev
         ? ([
             { type: "separator" },
-            { role: "reload", label: t.reload },
+            // Off ⌘R: that is Note ▸ Rename.
+            { role: "reload", label: t.reload, accelerator: "Shift+Alt+CmdOrCtrl+R" },
             { role: "toggleDevTools", label: t.devtools },
           ] as MenuItemConstructorOptions[])
         : []),
@@ -150,6 +166,8 @@ export function buildMenu(): Menu {
     submenu: [
       cmd(t.openInNewWindow, "open-in-new-window", "Alt+CmdOrCtrl+O"),
       { type: "separator" },
+      // ⌘R on macOS, F2 where that is the rename key (Windows / Linux).
+      cmd(t.rename, "note:rename", process.platform === "darwin" ? "CmdOrCtrl+R" : "F2"),
       cmd(t.pin, "note:pin", "Shift+CmdOrCtrl+P"),
       cmd(t.archive, "note:archive", "Shift+CmdOrCtrl+A"),
       cmd(t.appearance, "note:appearance"),
@@ -169,7 +187,7 @@ export function buildMenu(): Menu {
       cmd(t.brainPresentations, "brain:presentations", "CmdOrCtrl+2"),
       cmd(t.brainVault, "brain:vault", "CmdOrCtrl+3"),
       { type: "separator" },
-      cmd(t.newBrain, "new-brain"),
+      { label: `${t.newBrain}…`, click: () => void showNewBrainWindow() },
       cmd(t.exportBrain, "brain:export"),
     ],
   };

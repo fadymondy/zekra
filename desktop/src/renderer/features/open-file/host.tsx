@@ -4,7 +4,8 @@ import type { OpenFileEvent } from "../../../shared/ipc";
 import { useOsEvent } from "../../shell/os-events";
 import { ImportHost } from "../import";
 import { DocumentView } from "./document-view";
-import { ActiveNoteExport, TrayRecentSync, UpdateToasts } from "./desktop-extras";
+import { UpdateHost } from "../updates/update-host";
+import { ActiveNoteExport, TrayRecentSync } from "./desktop-extras";
 
 /*
 Everything Zekra took over from Mark It Down's desktop app (MH-450), mounted
@@ -15,7 +16,7 @@ once next to the shell's fallback commands (app.tsx):
                     -> the document view
   ActiveNoteExport  File ▸ Export ▸ … for the active note
   TrayRecentSync    the menubar's Recent Notes
-  UpdateToasts      "Restart to update"
+  UpdateHost        Software Update: sidebar loader, ready card, update sheet
 */
 export function MarkItDownFeatures() {
   return (
@@ -24,7 +25,7 @@ export function MarkItDownFeatures() {
       <DocumentHost />
       <ActiveNoteExport />
       <TrayRecentSync />
-      <UpdateToasts />
+      <UpdateHost />
     </>
   );
 }

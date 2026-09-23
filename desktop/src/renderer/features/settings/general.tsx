@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { dirForLocale, isLocale, LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n-locale";
 
 import { setApiBaseUrl } from "../../lib/api";
 import type { ThemeChoice } from "../../lib/bridge";
@@ -13,7 +15,7 @@ import { Group, Row, Segmented, SettingsHeader } from "./ui";
 /*
 Settings ▸ General: appearance (theme → AppSettings.theme; main mirrors it into
 nativeTheme.themeSource, so menus, dialogs and prefers-color-scheme agree),
-language (EN / العربية, mirrors the whole app) and the API origin (reachable
+language (a list of every shipped language; Arabic mirrors the whole app) and the API origin (reachable
 signed out, to point the app at a self-hosted Zekra before signing in).
 */
 export function GeneralSettings() {
@@ -57,18 +59,27 @@ export function GeneralSettings() {
           />
         </Row>
         <Row label={t("settings.language")} hint={t("settingsx.languageBody")}>
-          <Segmented<"en" | "ar">
-            label={t("settings.language")}
+          {/* A list, never a two-way toggle: more languages are coming.
+              Driven by web/lib/i18n-locale.ts (LOCALES / LOCALE_NAMES). */}
+          <Select
             value={locale}
-            onChange={(id) => {
-              setLocale(id);
-              void patch({ locale: id });
+            onValueChange={(id) => {
+              if (!id || !isLocale(String(id))) return;
+              setLocale(id as Locale);
+              void patch({ locale: id as Locale });
             }}
-            options={[
-              { value: "en", label: "English" },
-              { value: "ar", label: "العربية" },
-            ]}
-          />
+          >
+            <SelectTrigger className="w-48" aria-label={t("settings.language")}>
+              <SelectValue>{(id: Locale) => <span dir={dirForLocale(id)}>{LOCALE_NAMES[id]}</span>}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {LOCALES.map((id) => (
+                <SelectItem key={id} value={id}>
+                  <span dir={dirForLocale(id)} lang={id}>{LOCALE_NAMES[id]}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Row>
       </Group>
 

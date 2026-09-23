@@ -158,7 +158,7 @@ function button(label: string, onClick: () => void): HTMLButtonElement {
   const b = document.createElement("button");
   b.type = "button";
   b.textContent = label;
-  b.className = "rounded-sm border border-line bg-grid-card px-2 py-0.5 text-[11px] text-grid-muted hover:text-grid-fg";
+  b.className = "rounded-sm border border-line bg-grid-card px-2 py-0.5 text-[12.5px] text-grid-muted hover:text-grid-fg";
   b.addEventListener("click", (e) => {
     e.preventDefault();
     onClick();

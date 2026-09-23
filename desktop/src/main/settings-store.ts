@@ -13,6 +13,8 @@
 //   quickCaptureShortcut / quickCaptureBrain / launchAtLogin /
 //   openAtLoginHidden / syncIntervalMinutes / offlineCacheEnabled
 //                                   desktop services (services.ts)
+//   autoInstallUpdates / updateChannel
+//                                   updates (updater.ts)
 //
 // The session token is NOT stored in plain JSON. It is encrypted with
 // Electron safeStorage (macOS: a key held in the login Keychain under
@@ -60,6 +62,13 @@ interface StoredSettings {
   openAtLoginHidden: boolean;
   syncIntervalMinutes: number;
   offlineCacheEnabled: boolean;
+  // Updates (updater.ts) — see AppSettings.
+  autoInstallUpdates: boolean;
+  updateChannel: AppSettings["updateChannel"];
+  // App windows (app-windows.ts).
+  spotlightShortcut?: string;
+  /** Frames of the auxiliary windows (Settings), keyed by window. */
+  auxBounds?: Record<string, WindowBounds>;
 }
 
 const { authToken: _t, ...STORED_DEFAULTS } = DEFAULT_SETTINGS;
@@ -163,6 +172,9 @@ export function getSettings(): AppSettings {
     openAtLoginHidden: Boolean(s.get("openAtLoginHidden", DEFAULT_SETTINGS.openAtLoginHidden)),
     syncIntervalMinutes: clampInterval(s.get("syncIntervalMinutes", DEFAULT_SETTINGS.syncIntervalMinutes)),
     offlineCacheEnabled: s.get("offlineCacheEnabled", DEFAULT_SETTINGS.offlineCacheEnabled) !== false,
+    autoInstallUpdates: s.get("autoInstallUpdates", DEFAULT_SETTINGS.autoInstallUpdates) !== false,
+    updateChannel: s.get("updateChannel", DEFAULT_SETTINGS.updateChannel) === "beta" ? "beta" : "stable",
+    spotlightShortcut: String(s.get("spotlightShortcut", "") ?? ""),
   };
 }
 
@@ -179,6 +191,10 @@ export function patchSettings(patch: SettingsPatch): AppSettings {
     if (value === undefined) continue;
     if (key === "authToken") {
       writeToken((value as string | null) ?? null);
+      continue;
+    }
+    if (key === "updateChannel") {
+      s.set("updateChannel", value === "beta" ? "beta" : "stable");
       continue;
     }
     if (key === "apiBaseUrl") {
@@ -200,4 +216,14 @@ export function getWindowBounds(): WindowBounds | null {
 
 export function setWindowBounds(bounds: WindowBounds): void {
   getStore().set("windowBounds", bounds);
+}
+
+/** Saved frame of an auxiliary window (the Settings window). */
+export function getAuxBounds(key: string): WindowBounds | null {
+  return getStore().get("auxBounds", {})?.[key] ?? null;
+}
+
+export function setAuxBounds(key: string, bounds: WindowBounds): void {
+  const s = getStore();
+  s.set("auxBounds", { ...(s.get("auxBounds", {}) ?? {}), [key]: bounds });
 }

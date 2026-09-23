@@ -217,7 +217,7 @@ function PresentationRow({ item, active, onOpen }: { item: Summary; active: bool
         <div className="flex items-center gap-3">
           <KindTile kind={item.kind} />
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-sm font-medium text-foreground" style={{ unicodeBidi: "plaintext" }}>
+            <p className="line-clamp-2 text-sm font-medium text-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>
               {item.title || t("notes.untitled")}
             </p>
             <p className="truncate text-xs text-muted-foreground">{[f.kind(item.kind), who].filter(Boolean).join(" · ")}</p>
@@ -226,11 +226,11 @@ function PresentationRow({ item, active, onOpen }: { item: Summary; active: bool
         <div className="flex flex-wrap items-center gap-2 ps-12">
           <LocaleChips locales={item.locales} />
           <StatusChip status={item.status} />
-          <span className={cn("inline-flex items-center gap-1 font-mono text-[11px]", item.active_shares ? "text-grid-gold" : "text-muted-foreground")}>
+          <span className={cn("inline-flex items-center gap-1 font-mono text-[12.5px]", item.active_shares ? "text-grid-gold" : "text-muted-foreground")}>
             <Link2 className="size-3" strokeWidth={1.8} />
             {item.active_shares}
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1 font-mono text-[12.5px] text-muted-foreground">
             <Eye className="size-3" strokeWidth={1.8} />
             {viewed ? t("presentations.viewsAgo", { n: item.view_count, when: viewed }) : String(item.view_count)}
           </span>

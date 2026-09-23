@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+
+import { SETTINGS_SECTIONS, type SettingsSectionId } from "../../shared/ipc";
 import { bridge } from "../lib/bridge";
 import { useI18n } from "../lib/i18n";
 import { useCommand, useCommands } from "./commands";
@@ -6,15 +9,20 @@ import { routeFromString, useRouter } from "./router";
 import { useSession } from "./session";
 import { toast } from "./toast";
 import { exportBrain } from "../features/brains/brains-data";
+import { notifyStore } from "../features/notify/store";
+
 
 /*
 The shell's FALLBACK handlers — the bottom of every command's stack. A screen
 that knows better registers its own with useCommand and wins while mounted.
 
 Implemented here:
-  settings, sign-out, about, spotlight (-> Search route), new-note (-> open
-  the active brain and hand the command to its workspace), new-brain (-> Brains),
-  close-tab (-> close the window when no screen has tabs, like native apps)
+  settings / spotlight / new-note / new-brain  -> their own windows (main
+      process app-windows.ts; the menu opens them directly, these cover
+      in-app buttons). The browser preview has no windows: it falls back to
+      the Search route / the workspace's draft tab.
+  go:inbox, "notifications" routes            -> the bell's popover
+  sign-out, about, close-tab (-> close the window when no screen has tabs)
 
 Typed no-ops for the feature teams — each is a TODO(feature-team):
   reopen-tab, next-tab, prev-tab   note tabs (screens/workspace.tsx owns tabs)
@@ -28,16 +36,21 @@ export function ShellCommands() {
   const { t } = useI18n();
   const { navigate } = useRouter();
   const { defer } = useCommands();
-  const { user, settings, signOut, token } = useSession();
+  const { user, settings, signOut, token, reloadBrains, patch } = useSession();
   const signedIn = Boolean(user);
+  const b = bridge();
 
-  useCommand("settings", () => navigate({ name: "settings", section: "general" }));
+  useCommand("settings", () => void b.openSettingsWindow?.("general"));
   useCommand("about", () => void bridge().showAboutPanel());
   useCommand("sign-out", () => void signOut(), signedIn);
-  useCommand("spotlight", () => navigate({ name: "search" }), signedIn);
+  useCommand("spotlight", () => (b.openSpotlight ? void b.openSpotlight() : navigate({ name: "search" })), signedIn);
   useCommand(
     "new-note",
     () => {
+      if (b.openNewNoteWindow) {
+        void b.openNewNoteWindow(settings.activeBrain);
+        return;
+      }
       if (!settings.activeBrain) {
         navigate({ name: "brains" });
         return;
@@ -47,15 +60,7 @@ export function ShellCommands() {
     },
     signedIn,
   );
-  // The Brains home owns the create dialog: go there and hand it the command.
-  useCommand(
-    "new-brain",
-    () => {
-      navigate({ name: "brains" });
-      defer("new-brain");
-    },
-    signedIn,
-  );
+  useCommand("new-brain", () => void b.openNewBrainWindow?.(), signedIn);
   useCommand("close-tab", () => void bridge().closeWindow());
 
   // Go ▸ … and Brain ▸ … (the Brain route overrides brain:* for the open brain).
@@ -63,7 +68,7 @@ export function ShellCommands() {
   useCommand("go:back", () => back());
   useCommand("go:brains", () => navigate({ name: "brains" }), signedIn);
   useCommand("go:search", () => navigate({ name: "search" }), signedIn);
-  useCommand("go:inbox", () => navigate({ name: "notifications" }), signedIn);
+  useCommand("go:inbox", () => notifyStore.setOpen(true), signedIn);
   const toBrain = (tab: "notes" | "presentations" | "vault") => () =>
     settings.activeBrain ? navigate({ name: "brain", ns: settings.activeBrain, tab }) : navigate({ name: "brains" });
   useCommand("brain:notes", toBrain("notes"), signedIn);
@@ -80,7 +85,7 @@ export function ShellCommands() {
     signedIn,
   );
   // Owned by the notes workspace / a note window while one is focused.
-  for (const name of ["toggle-list", "open-in-new-window", "note:pin", "note:archive", "note:appearance", "note:versions", "note:copy", "note:delete"] as const) {
+  for (const name of ["toggle-list", "open-in-new-window", "note:pin", "note:archive", "note:appearance", "note:versions", "note:rename", "note:view-source", "note:copy", "note:delete"] as const) {
     // eslint-disable-next-line react-hooks/rules-of-hooks -- fixed list, fixed order
     useCommand(name, () => undefined);
   }
@@ -106,11 +111,37 @@ export function ShellCommands() {
   useCommand("export:png", soon);
   useCommand("export:txt", soon);
 
-  // Notification clicks carry an opaque route string (see routeFromString).
+  // Notification clicks (and the tray / Spotlight's openInMain) carry an
+  // opaque route string (see routeFromString). "notifications" is the bell's
+  // popover, "settings[:section]" the Settings window.
   useOsEvent("notification-click", (e) => {
-    const to = e.route ? routeFromString(e.route) : null;
+    const r = e.route ?? "";
+    if (r === "notifications") {
+      if (signedIn) notifyStore.setOpen(true);
+      return;
+    }
+    if (r === "settings" || r.startsWith("settings:")) {
+      const section = r.split(":")[1] as SettingsSectionId | undefined;
+      void b.openSettingsWindow?.(section && (SETTINGS_SECTIONS as readonly string[]).includes(section) ? section : "general");
+      return;
+    }
+    const to = r ? routeFromString(r) : null;
     if (to) navigate(to);
   });
+
+  // A brain created in the New Brain window: reload, then open it here.
+  useEffect(
+    () =>
+      b.onBroadcast?.((msg) => {
+        if (msg.kind !== "brains-changed") return;
+        void reloadBrains().then(() => {
+          if (!msg.open) return;
+          void patch({ activeBrain: msg.open });
+          navigate({ name: "brain", ns: msg.open, tab: "notes" });
+        });
+      }),
+    [b, reloadBrains, patch, navigate],
+  );
 
   // TODO(feature-team): import opened markdown into the active brain. Until a
   // handler exists the file is acknowledged and PARKED (returning false), so

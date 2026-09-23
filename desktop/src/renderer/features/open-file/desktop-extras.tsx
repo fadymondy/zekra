@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { loadRecent } from "@/lib/notes/recent-notes";
 
-import type { ExportFormat, TrayRecentNote, UpdateState } from "../../../shared/ipc";
+import type { ExportFormat, TrayRecentNote } from "../../../shared/ipc";
 import { zekraApi } from "../../lib/api";
 import { bridge } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
@@ -24,8 +24,7 @@ The rest of Mark It Down's native desktop behaviour (MH-450), renderer side:
                     store — fetched fresh, so what was last SAVED is exported.
   TrayRecentSync    keeps the menubar's "Recent Notes" (last 5) in step with
                     that same store.
-  UpdateToasts      "Restart to update" once an update has downloaded
-                    (updater.ts broadcasts the state).
+(The "Restart to update" toast moved to features/updates/update-host.tsx.)
 */
 
 export function ActiveNoteExport() {
@@ -69,7 +68,7 @@ export function TrayRecentSync() {
     const push = () => {
       const items: TrayRecentNote[] = user
         ? loadRecent()
-            .slice(0, 5)
+            .slice(0, 8)
             .map((r) => ({ id: r.id, namespace: r.namespace, title: r.title }))
         : [];
       const key = JSON.stringify(items);
@@ -87,32 +86,6 @@ export function TrayRecentSync() {
       window.removeEventListener("focus", push);
     };
   }, [user, route]);
-
-  return null;
-}
-
-export function UpdateToasts() {
-  const { t } = useI18n();
-  const shown = useRef<string>("");
-
-  useEffect(() => {
-    const onState = (s: UpdateState) => {
-      if (s.status !== "downloaded") return;
-      const key = `ready:${s.version ?? ""}`;
-      if (shown.current === key) return;
-      shown.current = key;
-      toast(t("upd.ready", { version: s.version ?? "" }), {
-        description: t("upd.readyBody"),
-        duration: Infinity,
-        action: { label: t("upd.restart"), onClick: () => void bridge().installUpdate() },
-      });
-    };
-    void bridge()
-      .getUpdateState()
-      .then(onState)
-      .catch(() => undefined);
-    return bridge().onUpdateState(onState);
-  }, [t]);
 
   return null;
 }

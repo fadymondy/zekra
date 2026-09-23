@@ -124,6 +124,14 @@ export function snippet(body: string | undefined, max = 180): string {
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 }
 
+/** The row's second line: the description when the note has one, else the
+ *  body's head. `description` is absent on servers that predate it. */
+export function rowSnippet(note: Pick<Note, "description" | "body">, max = 180): string {
+  const d = (note.description ?? "").replace(/\s+/g, " ").trim();
+  if (d) return d.length > max ? `${d.slice(0, max).trimEnd()}…` : d;
+  return snippet(note.body, max);
+}
+
 /** What Copy hands over: the note as a markdown document. */
 export function noteMarkdown(note: Pick<Note, "title" | "body">): string {
   const body = (note.body ?? "").trimEnd();

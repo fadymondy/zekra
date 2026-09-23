@@ -127,7 +127,7 @@ export function DocumentView({
           <div className="truncate text-sm font-medium text-foreground" dir="auto">
             {doc.name}
           </div>
-          <div className="truncate text-[11px] text-muted-foreground" dir="ltr" title={doc.path}>
+          <div className="truncate text-[12.5px] text-muted-foreground" dir="ltr" title={doc.path}>
             {t("doc.local")} · {doc.path}
           </div>
         </div>
@@ -182,7 +182,7 @@ export function DocumentView({
         </div>
       </div>
 
-      <footer className="flex h-6 shrink-0 items-center gap-3 border-t border-border/60 px-3 text-[11px] text-muted-foreground">
+      <footer className="flex h-[26px] shrink-0 items-center gap-3 border-t border-border/60 px-3 text-[12px] text-muted-foreground">
         <span>{t("doc.words", { count: words })}</span>
         <span className="ms-auto">Markdown</span>
       </footer>

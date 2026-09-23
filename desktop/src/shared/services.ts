@@ -11,6 +11,8 @@
 /** Fields an offline edit can change (the PUT /api/notes/{id} body). */
 export interface OfflineNotePatch {
   title?: string;
+  /** Short summary under the title; "" clears it. Older servers ignore it. */
+  description?: string;
   body?: string;
   tags?: string[];
   category?: string;
@@ -29,6 +31,8 @@ export interface OfflineNote {
   id: string;
   namespace: string;
   title: string;
+  /** Absent on servers that predate note descriptions. */
+  description?: string;
   body?: string;
   tags: string[];
   category?: string;

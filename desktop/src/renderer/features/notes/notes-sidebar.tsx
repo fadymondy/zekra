@@ -113,7 +113,7 @@ export function NotesSidebar({
   onQuery: (q: string) => void;
   selectedId: string | null;
   openIds: Set<string>;
-  onOpen: (note: Note, how: OpenHow | "open-window") => void;
+  onOpen: (note: Note, how: OpenHow | "open-window" | "rename") => void;
   onRowMenu: (note: Note, e: MouseEvent) => void;
   /** The brain's entity explorer, shown instead of the list when toggled. */
   tree?: ReactNode;
@@ -187,7 +187,7 @@ export function NotesSidebar({
               }}
               placeholder={t("notes.x.search")}
               aria-label={t("notes.x.search")}
-              className="h-7 text-[13px]"
+              className="h-7 text-[14px]"
             />
             {query ? (
               <InputGroupAddon align="inline-end">
@@ -224,7 +224,7 @@ export function NotesSidebar({
           ) : error && notes.length === 0 ? (
             <Empty className="gap-3 p-6">
               <EmptyHeader>
-                <EmptyTitle className="text-[13px]">{t("notes.x.failed")}</EmptyTitle>
+                <EmptyTitle className="text-[14px]">{t("notes.x.failed")}</EmptyTitle>
                 <EmptyDescription className="text-xs">{error}</EmptyDescription>
               </EmptyHeader>
               <Button size="sm" variant="outline" onClick={onRetry}>

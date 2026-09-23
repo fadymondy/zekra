@@ -12,7 +12,7 @@ import { getWindowBounds, setWindowBounds } from "./settings-store";
 export const DEFAULT_SIZE = { width: 1280, height: 840 };
 export const MIN_SIZE = { width: 900, height: 580 };
 
-function visibleOnSomeDisplay(b: Rectangle): boolean {
+export function visibleOnSomeDisplay(b: Rectangle): boolean {
   return screen.getAllDisplays().some(({ workArea: d }) => {
     // At least a 120x80 strip of the title bar must be on screen.
     const ix = Math.max(0, Math.min(b.x + b.width, d.x + d.width) - Math.max(b.x, d.x));

@@ -47,6 +47,7 @@ const api: ZekraBridge = {
   checkForUpdates: () => ipcRenderer.invoke(IPC.updateCheck),
   getUpdateState: () => ipcRenderer.invoke(IPC.updateGetState),
   installUpdate: () => ipcRenderer.invoke(IPC.updateInstall),
+  snoozeUpdate: () => ipcRenderer.invoke(IPC.updateSnooze),
   setTrayStatus: (status) => ipcRenderer.invoke(IPC.traySetStatus, status),
   // MH-450: Dock badge (notifications) + MCP install (settings ▸ connect)
   setBadgeCount: (count) => ipcRenderer.invoke(IPC.appSetBadge, count),
@@ -63,6 +64,22 @@ const api: ZekraBridge = {
   popupAppMenu: (x, y) => ipcRenderer.invoke(IPC.menuPopupApp, x, y),
   openNoteWindow: (req) => ipcRenderer.invoke(IPC.windowOpenNote, req),
   setWindowChrome: (colors) => ipcRenderer.invoke(IPC.windowSetChrome, colors),
+  // App windows (src/main/app-windows.ts): Settings, Spotlight, New Brain, New Note
+  openSettingsWindow: (section) => ipcRenderer.invoke(IPC.windowOpenSettings, section),
+  openSpotlight: () => ipcRenderer.invoke(IPC.windowOpenSpotlight),
+  openNewBrainWindow: () => ipcRenderer.invoke(IPC.windowOpenNewBrain),
+  openNewNoteWindow: (ns) => ipcRenderer.invoke(IPC.windowOpenNewNote, ns ?? null),
+  noteWindowCreated: (req) => ipcRenderer.invoke(IPC.windowNoteCreated, req),
+  openInMain: (route) => ipcRenderer.invoke(IPC.windowOpenInMain, route),
+  hideSelf: () => ipcRenderer.invoke(IPC.windowHideSelf),
+  resizeSelf: (height) => ipcRenderer.invoke(IPC.windowResizeSelf, height),
+  setSpotlightShortcut: (accel) => ipcRenderer.invoke(IPC.windowSetSpotlightShortcut, accel),
+  broadcast: (msg) => ipcRenderer.invoke(IPC.appBroadcast, msg),
+  setTrayState: (state) => ipcRenderer.invoke(IPC.traySetState, state),
+  onSettingsChanged: (cb) => on(IPC.evSettingsChanged, cb),
+  onBroadcast: (cb) => on(IPC.evBroadcast, cb),
+  onWindowShown: (cb) => on(IPC.evWindowShown, cb),
+  onSettingsSection: (cb) => on(IPC.evSettingsSection, cb),
 
   // Desktop services (src/main/services.ts): offline cache + sync, Quick
   // Capture, share, rich notifications, login item / shortcut info.

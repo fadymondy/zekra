@@ -155,7 +155,7 @@ export function TabStrip({
                       }
                     }}
                     className={cn(
-                      "group relative flex h-7 max-w-52 min-w-0 shrink-0 cursor-default items-center gap-1.5 rounded-md ps-2.5 pe-1 text-[12px] transition-colors select-none",
+                      "group relative flex h-7 max-w-52 min-w-0 shrink-0 cursor-default items-center gap-1.5 rounded-md ps-2.5 pe-1 text-[13px] transition-colors select-none",
                       isActive
                         ? "bg-selected font-medium text-foreground"
                         : "text-muted-foreground hover:bg-hover hover:text-foreground",
@@ -163,7 +163,7 @@ export function TabStrip({
                     )}
               >
                 <Icon className="size-3.5 shrink-0 stroke-[1.75] opacity-70" />
-                <span className={cn("min-w-0 flex-1 truncate", !tab.id && "italic")} style={{ unicodeBidi: "plaintext" }}>
+                <span className={cn("min-w-0 flex-1 truncate", !tab.id && "italic")} dir="auto" style={{ unicodeBidi: "plaintext" }}>
                   {tab.title || (tab.id ? t("notes.x.untitled") : t("editor.newNote"))}
                 </span>
                 <button

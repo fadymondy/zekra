@@ -179,7 +179,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
                           )}
                         >
                           <Icon className={cn("size-4 shrink-0", on ? "text-grid-gold" : "text-muted-foreground")} strokeWidth={1.6} />
-                          <span className={cn("truncate", on ? "text-foreground" : "text-foreground/85")} style={{ unicodeBidi: "plaintext" }}>
+                          <span className={cn("truncate", on ? "text-foreground" : "text-foreground/85")} dir="auto" style={{ unicodeBidi: "plaintext" }}>
                             {n.title || t("notes.untitled")}
                           </span>
                         </button>

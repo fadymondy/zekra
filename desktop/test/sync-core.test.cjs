@@ -190,6 +190,22 @@ test("resolveConflict: metadata changed on both sides -> ours wins", () => {
   assert.deepEqual(r.patch, { tags: ["mine"] });
 });
 
+test("description: normalised (absent on old servers), merged per field, carried by a fork", () => {
+  // A server without the column sends no description: absent, not an error.
+  assert.equal(core.normaliseRemote({ id: "x", namespace: "ns", version: 1 }).description, undefined);
+  assert.equal(core.normaliseRemote({ id: "x", namespace: "ns", description: "Sum", version: 1 }).description, "Sum");
+  // A local description edit rebases over a server body edit.
+  const r1 = core.resolveConflict({ description: "" }, { description: "mine" }, note("a", 3, { body: "theirs" }));
+  assert.deepEqual(r1, { kind: "rebase", patch: { description: "mine" } });
+  // Both changed it differently: text is never lost -> the copy carries ours.
+  const r2 = core.resolveConflict({ description: "orig" }, { description: "mine" }, note("a", 3, { description: "theirs" }));
+  assert.equal(r2.kind, "fork");
+  assert.equal(r2.copy.description, "mine");
+  // cleanPatch keeps it; an offline create's local note shows it.
+  assert.deepEqual(core.cleanPatch({ description: "d", junk: 1 }), { description: "d" });
+  assert.equal(core.localNote("local:1", "ns", { title: "t", description: "d" }, "2026-01-01T00:00:00Z").description, "d");
+});
+
 test("conflictCopyTitle", () => {
   const at = new Date(2026, 8, 23, 14, 5);
   assert.equal(core.conflictCopyTitle("Plan", at), "Plan (conflicted copy 2026-09-23 14:05)");

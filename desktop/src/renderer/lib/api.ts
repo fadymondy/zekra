@@ -45,6 +45,9 @@ export type Note = {
   id: string;
   namespace: string;
   title: string;
+  /** One-line summary under the title. Absent on servers that predate it
+   *  (they also ignore it on write), so always read it as `?? ""`. */
+  description?: string;
   body?: string;
   tags: string[];
   category?: string;
@@ -61,7 +64,7 @@ export type Note = {
 };
 
 export type NotePage = { notes: Note[]; nextCursor?: string };
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
+export type NotePatch = Partial<Pick<Note, "title" | "description" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
 
 export type Recalled = {
   id: string;
@@ -197,6 +200,7 @@ export const zekraApi = {
       json: {
         namespace,
         title: patch.title ?? "",
+        ...(patch.description ? { description: patch.description } : {}),
         body: patch.body ?? "",
         tags: patch.tags ?? [],
         category: patch.category ?? "note",

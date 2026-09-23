@@ -61,7 +61,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
 
 export function SectionLabel({ children, className, action }: { children: ReactNode; className?: string; action?: ReactNode }) {
   return (
-    <div className={cn("flex h-7 items-center gap-2 px-2 text-[11px] font-semibold text-muted-foreground", className)}>
+    <div className={cn("flex h-7 items-center gap-2 px-2 text-[12.5px] font-semibold text-muted-foreground", className)}>
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {action}
     </div>

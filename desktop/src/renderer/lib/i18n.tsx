@@ -10,9 +10,18 @@ import account from "../i18n/account"; // search, notifications, settings, sign-
 import notesWs from "../i18n/notes"; // brains home, notes workspace, spotlight
 import mid from "../i18n/mid"; // importers, opened documents, markdown extras, updates
 import shell from "../i18n/shell"; // macOS shell: sidebar, toolbar, notes list
+import updates from "../i18n/updates"; // Software Update: loader, ready card, sheet, About
+import windows from "../i18n/windows"; // app windows: Settings, Spotlight, New Note/Brain
 
-const DESKTOP_FEATURE_DICTS = [presentationsVaultLock, account, notesWs, mid, shell];
-type DesktopFeatureKey = DictKey<typeof presentationsVaultLock> | DictKey<typeof account> | DictKey<typeof notesWs> | DictKey<typeof mid> | DictKey<typeof shell>;
+const DESKTOP_FEATURE_DICTS = [presentationsVaultLock, account, notesWs, mid, shell, updates, windows];
+type DesktopFeatureKey =
+  | DictKey<typeof presentationsVaultLock>
+  | DictKey<typeof account>
+  | DictKey<typeof notesWs>
+  | DictKey<typeof mid>
+  | DictKey<typeof shell>
+  | DictKey<typeof updates>
+  | DictKey<typeof windows>;
 
 import type { LocaleId } from "./bridge";
 

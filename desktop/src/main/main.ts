@@ -31,10 +31,12 @@ import { broadcast, focusMainWindow, getMainWindow, setMainWindow } from "./rend
 import { hardenSession } from "./security";
 import { getSettings, migrateSettings } from "./settings-store";
 import { createTray, rebuildTrayMenu } from "./tray";
-import { installingUpdate, startUpdater } from "./updater";
+import { consumeHiddenRelaunch, installingUpdate, startUpdater, updaterOnSettingsChanged } from "./updater";
 import { initialBounds, MIN_SIZE, trackWindowState } from "./window-state";
 import { windowBackgroundFor, windowChromeFor } from "./window-chrome";
-import { registerNativeUiIpc, restoreNoteWindows } from "./native-ui";
+import { openNewNoteWindow, registerNativeUiIpc, restoreNoteWindows } from "./native-ui";
+import { applySpotlightShortcut, prewarmSpotlight, registerAppWindowsIpc, retitleAppWindows, watchLastWindow } from "./app-windows";
+import { sendRouteToMain } from "./renderer-events";
 import { installDesktopServices, servicesOnSettingsChanged, startHidden } from "./services";
 
 const APP_ID = "com.fadymondy.zekra.desktop";
@@ -118,7 +120,8 @@ let hiddenLaunch = false;
 
 function onReady(): void {
   migrateSettings();
-  hiddenLaunch = startHidden();
+  // An unattended update install relaunches hidden if no window was open.
+  hiddenLaunch = consumeHiddenRelaunch() || startHidden();
   const settings = getSettings();
   setMenuLocale(settings.locale);
   applyThemeSource(settings.theme);
@@ -135,6 +138,15 @@ function onReady(): void {
 
   registerIpc(onSettingsChanged);
   registerNativeUiIpc(); // native popup menus, note windows, title-bar colours
+  // Settings, Spotlight, New Brain, New Note windows (app-windows.ts).
+  registerAppWindowsIpc({
+    openNewNote: (ns) => void openNewNoteWindow(ns ?? getSettings().activeBrain),
+    openInMain: (route) => {
+      showMain();
+      sendRouteToMain(route);
+    },
+  });
+  watchLastWindow();
   installAppActivity(); // MH-450 app lock: before the main window exists
   installMenu();
   createMainWindow();
@@ -144,6 +156,11 @@ function onReady(): void {
     focusMainWindow();
   });
   startUpdater();
+  // Spotlight: its optional global shortcut, and the panel built ahead of time
+  // (hidden) so ⌘K shows it instantly.
+  const spot = applySpotlightShortcut(settings.spotlightShortcut ?? "");
+  if (!spot.ok) console.warn(`[zekra] spotlight shortcut ${spot.accelerator} not registered: ${spot.error}`);
+  setTimeout(prewarmSpotlight, 2_500).unref?.();
   // Offline cache + sync, Quick Capture, login item, Dock menu / Jump List,
   // share, rich notifications (services.ts). Before handleArgv: it claims
   // zekra://app/… links (Jump List tasks).
@@ -165,12 +182,20 @@ function onSettingsChanged(next: AppSettings, patch: Partial<AppSettings>): void
     setMenuLocale(next.locale);
     installMenu();
     rebuildTrayMenu();
+    retitleAppWindows();
   }
   if (patch.theme) {
     applyThemeSource(next.theme);
     getMainWindow()?.setBackgroundColor(backgroundFor());
   }
   servicesOnSettingsChanged(next, patch); // shortcut, login item, sync scope/interval
+  updaterOnSettingsChanged(patch); // update channel, auto-install
+}
+
+/** Show (creating if needed) and focus the main window. */
+function showMain(): void {
+  if (!getMainWindow()) createMainWindow();
+  focusMainWindow();
 }
 
 /* ------------------------------------------------------------ window */

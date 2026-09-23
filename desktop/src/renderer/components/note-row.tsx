@@ -3,7 +3,8 @@ import { Archive, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { ago, snippet } from "../features/notes/notes-model";
+import { NoteIconTile } from "../features/editor/appearance-picker";
+import { ago, rowSnippet } from "../features/notes/notes-model";
 import type { Note } from "../lib/api";
 import { useI18n } from "../lib/i18n";
 
@@ -11,16 +12,21 @@ import { useI18n } from "../lib/i18n";
 A note in the workspace's list column (MH-450) — a dense source-list row in
 the shape of Notes / Linear:
 
-  ● Title (13px semibold)                      2h
-    one line of the body, muted
+  [▣] Title (semibold)                         2h
+      the description, else one line of the body, muted
 
-The dot appears only when the note has its own colour (MH-308 override);
-archived / indexing / index-error show as tiny glyphs by the time.
+The tile is the note's icon on a wash of its colour (MH-308 override, else
+its category's) — the mobile/web icon set. Title and snippet are user
+content: dir="auto", so each reads, aligns and truncates in its OWN direction
+(an English title in the Arabic UI ellipsizes at its end, not clipped at its
+start); the tile and the date mirror with the UI. Archived / indexing /
+index-error show as tiny glyphs by the time.
 
   click           open (replaces the preview tab)
   ⌘-click, middle open in a new tab
   ⌥-click         open to the side (split)
-  double-click    open in its own window
+  double-click    rename: open it and select its title
+                  (Open in New Window is ⌥⌘O / the menu)
   right-click     every note action, as a native menu (features/notes/note-menu.tsx)
   drag            onto a tab strip to open it in that group
 
@@ -74,11 +80,11 @@ export const NoteRow = memo(function NoteRow({ note, selected, open, onMenu, onO
   open: boolean;
   /** Right-click: pop the note's native menu. */
   onMenu: (e: MouseEvent) => void;
-  onOpen: (how: OpenHow | "open-window") => void;
+  onOpen: (how: OpenHow | "open-window" | "rename") => void;
 }) {
   const { t } = useI18n();
   const when = useListDate()(note.updatedAt);
-  const text = snippet(note.body, 140);
+  const text = rowSnippet(note, 140);
 
   function click(e: MouseEvent) {
     if (e.metaKey || e.ctrlKey) onOpen("open-new-tab");
@@ -102,7 +108,7 @@ export const NoteRow = memo(function NoteRow({ note, selected, open, onMenu, onO
         e.dataTransfer.setData("text/plain", note.title);
       }}
       onClick={click}
-      onDoubleClick={() => onOpen("open-window")}
+      onDoubleClick={() => onOpen("rename")}
       onContextMenu={onMenu}
       onAuxClick={(e) => {
         if (e.button === 1) {
@@ -110,28 +116,34 @@ export const NoteRow = memo(function NoteRow({ note, selected, open, onMenu, onO
           onOpen("open-new-tab");
         }
       }}
-      className="list-row group relative flex w-full min-w-0 flex-col gap-0.5 px-2.5 py-[7px] text-start outline-none"
+      className="list-row group relative flex w-full min-w-0 items-start gap-2.5 px-2.5 py-[7px] text-start outline-none"
     >
-      <span className="flex min-w-0 items-center gap-1.5">
-        {note.color ? <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{ background: note.color }} /> : null}
-        <span
-          className={cn("list-row-title min-w-0 flex-1 truncate text-[13px] leading-5", open || selected ? "font-semibold" : "font-medium")}
-          style={{ unicodeBidi: "plaintext" }}
-        >
-          {note.title || t("notes.x.untitled")}
+      <NoteIconTile
+        note={{ category: note.category, icon: note.icon, color: note.color }}
+        className="mt-px size-7 rounded-md"
+        iconClassName="size-3.5"
+      />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span
+            className={cn("list-row-title min-w-0 flex-1 truncate text-[14px] leading-5", open || selected ? "font-semibold" : "font-medium")}
+            dir="auto" style={{ unicodeBidi: "plaintext" }}
+          >
+            {note.title || t("notes.x.untitled")}
+          </span>
+          <span className="list-row-meta flex shrink-0 items-center gap-1 text-[12.5px] tabular-nums">
+            {note.archived ? <Archive aria-label={t("notes.x.archivedLabel")} className="size-3" /> : null}
+            {note.indexError ? (
+              <TriangleAlert aria-label={note.indexError} className="size-3" />
+            ) : !note.indexed ? (
+              <LoaderCircle aria-label={t("notes.x.indexing")} className="size-3 animate-spin" />
+            ) : null}
+            {when}
+          </span>
         </span>
-        <span className="list-row-meta flex shrink-0 items-center gap-1 text-[11px] tabular-nums">
-          {note.archived ? <Archive aria-label={t("notes.x.archivedLabel")} className="size-3" /> : null}
-          {note.indexError ? (
-            <TriangleAlert aria-label={note.indexError} className="size-3" />
-          ) : !note.indexed ? (
-            <LoaderCircle aria-label={t("notes.x.indexing")} className="size-3 animate-spin" />
-          ) : null}
-          {when}
+        <span dir="auto" className="list-row-meta truncate text-[13px] leading-[19px]" style={{ unicodeBidi: "plaintext" }}>
+          {text || "\u00a0"}
         </span>
-      </span>
-      <span dir="auto" className="list-row-meta truncate text-[12px] leading-[18px]">
-        {text || "\u00a0"}
       </span>
     </button>
   );

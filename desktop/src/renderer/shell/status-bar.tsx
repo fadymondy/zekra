@@ -8,14 +8,14 @@ Connection state lives in the sidebar footer (shell/app-sidebar.tsx), so an
 idle window has no status bar at all, like Notes or Linear.
 */
 
-export const STATUSBAR_HEIGHT = 24;
+export const STATUSBAR_HEIGHT = 26;
 
 export function StatusBar() {
   const filled = useSlotFilled("statusbar.start", "statusbar.end");
   if (!filled) return null;
   return (
     <footer
-      className="app-chrome flex shrink-0 items-center gap-3 border-t border-border/50 bg-background px-3 text-[11px] text-muted-foreground"
+      className="app-chrome flex shrink-0 items-center gap-3 border-t border-border/50 bg-background px-3 text-[12px] text-muted-foreground"
       style={{ height: STATUSBAR_HEIGHT }}
     >
       <Slot name="statusbar.start" />

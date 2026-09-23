@@ -1,52 +1,41 @@
 import { useEffect, useState } from "react";
-import { Download, ExternalLink, FileText, LifeBuoy, Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import { Download, ExternalLink, FileText, LifeBuoy, Mail, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 
 import { ZekraMark } from "../../components/zekra-mark";
-import { bridge, type AppInfo, type UpdateState } from "../../lib/bridge";
+import { bridge, type AppInfo } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
 import { useSession } from "../../shell/session";
+import { headline } from "../updates/update-sheet";
+import { canCheck, installNow, openUpdateSheet, useUpdateState } from "../updates/use-update";
 import { SUPPORT_EMAIL, legalUrl } from "./api";
-import { Group, Row } from "./ui";
+import { Group, Row, Segmented } from "./ui";
 
 /*
-Settings ▸ About: the build (version, platform), updates through the updater
-IPC (electron-updater against GitHub Releases; development builds report
-"disabled"), the legal pages on zekra.dev (mobile links out the same way) and
-the web console.
+Settings ▸ About: the build (version, platform), Software Update (the updater
+IPC — electron-updater against GitHub Releases; development and --dir builds
+report "disabled"): status + Check for Updates / Restart to Update, the
+release notes sheet, the channel (stable / beta) and the auto-install switch
+(settings autoInstallUpdates / updateChannel, src/main/updater.ts), the legal
+pages on zekra.dev (mobile links out the same way) and the web console.
 */
 export function AboutSettings() {
   const { t, locale } = useI18n();
-  const { settings, version } = useSession();
+  const { settings, version, patch } = useSession();
   const [info, setInfo] = useState<AppInfo | null>(null);
-  const [update, setUpdate] = useState<UpdateState | null>(null);
+  const update = useUpdateState();
 
   useEffect(() => {
     void bridge().getAppInfo().then(setInfo);
-    void bridge().getUpdateState().then(setUpdate);
-    return bridge().onUpdateState(setUpdate);
   }, []);
 
   const status = update?.status ?? "idle";
-  const vars = { version: update?.version ?? "", progress: Math.round(update?.progress ?? 0) };
-  const statusText =
-    status === "checking"
-      ? t("settingsx.update.checking")
-      : status === "available"
-        ? t("settingsx.update.available", vars)
-        : status === "downloading"
-          ? t("settingsx.update.downloading", vars)
-          : status === "downloaded"
-            ? t("settingsx.update.downloaded", vars)
-            : status === "not-available"
-              ? t("settingsx.update.none")
-              : status === "disabled"
-                ? t("settingsx.update.disabled")
-                : status === "error"
-                  ? t("settingsx.update.error")
-                  : t("settingsx.update.idle");
+  const statusText = headline(t, update);
+  const disabled = status === "disabled";
+  const checkedAt = update?.checkedAt ? new Date(update.checkedAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "";
 
   const open = (url: string) => void bridge().openExternal(url);
 
@@ -67,26 +56,30 @@ export function AboutSettings() {
 
       <Group title={t("settingsx.updates")}>
         <Row
-          label={t("settings.version")}
+          label={
+            <span>
+              {t("dupd.current")}{" "}
+              <span dir="ltr" className="font-grid-mono text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
+                {update?.currentVersion || version || info?.version}
+              </span>
+            </span>
+          }
           hint={
             <span className={status === "error" ? "text-destructive" : undefined} title={status === "error" ? update?.message : undefined}>
               {statusText}
+              {checkedAt && !disabled ? ` · ${t("dupd.lastChecked", { when: checkedAt })}` : ""}
             </span>
           }
         >
           {status === "downloaded" ? (
-            <Button onClick={() => void bridge().installUpdate()}>
+            <Button onClick={installNow}>
               <Download />
-              {t("settings.installUpdate")}
+              {t("dupd.restart")}
             </Button>
           ) : (
-            <Button
-              variant="outline"
-              disabled={status === "disabled" || status === "checking" || status === "downloading" || status === "available"}
-              onClick={() => void bridge().checkForUpdates().then(setUpdate)}
-            >
+            <Button variant="outline" disabled={disabled || !canCheck(update)} onClick={() => void bridge().checkForUpdates()}>
               <RefreshCw className={status === "checking" ? "animate-spin" : undefined} />
-              {t("settings.checkUpdates")}
+              {t("dupd.check")}
             </Button>
           )}
         </Row>
@@ -95,6 +88,27 @@ export function AboutSettings() {
             <Progress value={update?.progress ?? 0} />
           </div>
         ) : null}
+        {update?.releaseNotes && (status === "available" || status === "downloading" || status === "downloaded") ? (
+          <LinkRow icon={Sparkles} label={t("dupd.whatsNew")} external={false} onClick={() => openUpdateSheet()} />
+        ) : null}
+        <Row label={t("dupd.channel")} hint={t("dupd.channelHint")}>
+          <Segmented<"stable" | "beta">
+            label={t("dupd.channel")}
+            value={settings.updateChannel === "beta" ? "beta" : "stable"}
+            options={[
+              { value: "stable", label: t("dupd.stable") },
+              { value: "beta", label: t("dupd.beta") },
+            ]}
+            onChange={(v) => void patch({ updateChannel: v })}
+          />
+        </Row>
+        <Row label={t("dupd.auto")} hint={t("dupd.autoHint")}>
+          <Switch
+            checked={settings.autoInstallUpdates !== false}
+            onCheckedChange={(v) => void patch({ autoInstallUpdates: v })}
+            aria-label={t("dupd.auto")}
+          />
+        </Row>
       </Group>
 
       <Group title={t("settings.legal")}>
@@ -108,14 +122,20 @@ export function AboutSettings() {
   );
 }
 
-function LinkRow({ icon: Icon, label, onClick, mono }: { icon: typeof Mail; label: string; onClick: () => void; mono?: boolean }) {
+function LinkRow({ icon: Icon, label, onClick, mono, external = true }: {
+  icon: typeof Mail;
+  label: string;
+  onClick: () => void;
+  mono?: boolean;
+  external?: boolean;
+}) {
   return (
     <button type="button" onClick={onClick} className="flex items-center gap-3 px-4 py-3 text-start text-sm text-foreground hover:bg-hover">
       <Icon className="size-4 text-muted-foreground" />
       <span className={mono ? "font-grid-mono text-xs" : undefined} dir={mono ? "ltr" : undefined}>
         {label}
       </span>
-      <ExternalLink className="ms-auto size-3.5 text-muted-foreground" />
+      {external ? <ExternalLink className="ms-auto size-3.5 text-muted-foreground" /> : null}
     </button>
   );
 }

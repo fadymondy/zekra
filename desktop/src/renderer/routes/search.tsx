@@ -243,8 +243,8 @@ export function SearchRoute({ route }: { route: Extract<Route, { name: "search" 
                   <section key={group.namespace || "_"}>
                     <div className="mb-2 flex items-center gap-2">
                       {brain ? <BrainAvatar brain={brain} token={token} size={20} /> : null}
-                      <h2 className="text-sm font-medium text-foreground">{brainName(group.namespace)}</h2>
-                      <span className="font-grid-mono text-[11px] text-muted-foreground">{group.hits.length}</span>
+                      <h2 className="min-w-0 truncate text-sm font-medium text-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>{brainName(group.namespace)}</h2>
+                      <span className="font-grid-mono text-[12.5px] text-muted-foreground">{group.hits.length}</span>
                       {!route.ns && group.namespace ? (
                         <Button variant="ghost" size="xs" className="ms-auto text-muted-foreground" onClick={() => setScope(group.namespace)}>
                           {t("nav.scopeBrain")}
@@ -262,7 +262,7 @@ export function SearchRoute({ route }: { route: Extract<Route, { name: "search" 
                           >
                             <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                             <span className="min-w-0 flex-1">
-                              <span className="line-clamp-3 text-sm text-foreground/85" style={{ unicodeBidi: "plaintext" }}>
+                              <span className="line-clamp-3 text-sm text-foreground/85" dir="auto" style={{ unicodeBidi: "plaintext" }}>
                                 {hit.content}
                               </span>
                               <span className="grid-micro mt-1 block text-muted-foreground">{hitMeta(hit)}</span>
@@ -315,7 +315,7 @@ function Browse({ recent, onRecent, onRemoveRecent, onClearRecent, brains, token
                   className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-start text-sm hover:bg-hover"
                 >
                   <Clock className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate" style={{ unicodeBidi: "plaintext" }}>
+                  <span className="truncate" dir="auto" style={{ unicodeBidi: "plaintext" }}>
                     {q}
                   </span>
                 </button>
@@ -365,7 +365,7 @@ function Browse({ recent, onRecent, onRemoveRecent, onClearRecent, brains, token
                   <BrainAvatar brain={b} token={token} size={36} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-foreground">{b.displayName || b.namespace}</span>
-                    <span className="block truncate font-grid-mono text-[11px] text-muted-foreground">
+                    <span className="block truncate font-grid-mono text-[12.5px] text-muted-foreground">
                       {t("searchx.memories", { count: b.memories })}
                     </span>
                   </span>

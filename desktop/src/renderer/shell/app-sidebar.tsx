@@ -3,9 +3,7 @@ import {
   Archive,
   ChevronRight,
   Clock,
-  Inbox,
   KeyRound,
-  LayoutGrid,
   NotebookText,
   PanelLeft,
   Pin,
@@ -14,8 +12,6 @@ import {
   Settings as SettingsIcon,
   WifiOff,
 } from "lucide-react";
-
-import { badgeLabel } from "@mobile/features/notify/notify-core";
 
 import {
   Sidebar,
@@ -35,17 +31,16 @@ import { cn } from "@/lib/utils";
 import { BrainAvatar } from "../components/brain-avatar";
 import { IconButton, PaneResizer } from "../components/chrome";
 import { exportBrain } from "../features/brains/brains-data";
-import { useNotifyState } from "../features/notify/store";
 import { useI18n, type TKey } from "../lib/i18n";
 import { SEP, showMenu } from "../lib/native-menu";
 import { usePlatform } from "../lib/platform";
-import { AccountAvatar } from "./account-menu";
 import { useRunCommand } from "./commands";
-import { useRouter, type BrainList, type BrainTab, type Route } from "./router";
+import { useRouter, type BrainList, type BrainTab } from "./router";
 import { useSession } from "./session";
 import { Slot } from "./slots";
 import { toast } from "./toast";
 import { useWindowControls } from "./toolbar";
+import { bridge } from "../lib/bridge";
 
 /*
 The source list (shadcn Sidebar primitives, web/components/ui/sidebar.tsx),
@@ -53,13 +48,16 @@ in the shape every native notes/mail app uses — Notes, Mail, Finder on macOS;
 the navigation pane of Settings / Explorer on Windows; a libadwaita sidebar
 on Linux. It sits on the START side (right in Arabic).
 
-  Inbox (unread) · All Brains
   ▾ <open brain>        its library: All Notes · Pinned · Recent · Archived ·
                         Presentations · Vault
-  ▾ Brains          +   every brain; right-click for its native menu
+  ▾ Brains          +   every brain; right-click for its native menu. The
+                        header itself opens the all-brains table (there is
+                        no separate "All brains" row).
   ─────────────────
-  <sidebar.status>      sync / offline (desktop services publish here)
-  account · Settings
+  <sidebar.status>  ⚙   sync / offline / updates · Settings (its own window)
+
+Notifications are the title bar bell's popover and the account is in the
+toolbar / the Settings window (Health Debug's layout) — neither is a row here.
 
 Section headers are disclosure groups (state persisted). Row height, font,
 selection style and the header row are per-OS tokens in theme.css
@@ -128,32 +126,65 @@ function NavRow({ icon, label, active, onClick, onContextMenu, badge, title }: {
 }
 
 /** A disclosure section header (Finder / Notes: the chevron shows on hover). */
-function Section({ id, label, open, onToggle, action, children }: {
+function Section({ id, label, open, onToggle, action, children, onOpen, active, openLabel }: {
   id: string;
   label: ReactNode;
   open: boolean;
   onToggle: (id: string) => void;
   action?: ReactNode;
   children: ReactNode;
+  /** The header is a link too (Brains -> the all-brains table); the chevron
+   *  then toggles on its own. */
+  onOpen?: () => void;
+  active?: boolean;
+  openLabel?: string;
 }) {
+  const chevron = (
+    <ChevronRight
+      aria-hidden
+      className={cn(
+        "size-3 shrink-0 opacity-0 transition-[transform,opacity] duration-150 group-hover/section:opacity-100 rtl:-scale-x-100",
+        open && "rotate-90 rtl:-rotate-90",
+      )}
+    />
+  );
   return (
     <SidebarGroup className="nav-section group/section px-2 pt-3 pb-0">
-      <div className="nav-section-header flex items-center gap-1 pe-1">
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => onToggle(id)}
-          className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-        >
-          <span className="min-w-0 truncate">{label}</span>
-          <ChevronRight
-            aria-hidden
-            className={cn(
-              "size-3 shrink-0 opacity-0 transition-[transform,opacity] duration-150 group-hover/section:opacity-100 rtl:-scale-x-100",
-              open && "rotate-90 rtl:-rotate-90",
-            )}
-          />
-        </button>
+      <div className="nav-section-header flex items-center gap-0.5 pe-1">
+        {onOpen ? (
+          <>
+            <button
+              type="button"
+              onClick={onOpen}
+              aria-current={active ? "page" : undefined}
+              title={openLabel}
+              data-active={active || undefined}
+              className="nav-section-link min-w-0 truncate rounded-md px-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              {label}
+            </button>
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-label={typeof label === "string" ? label : undefined}
+              onClick={() => onToggle(id)}
+              className="flex size-5 shrink-0 items-center justify-center rounded outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              {chevron}
+            </button>
+            <div className="flex-1" />
+          </>
+        ) : (
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => onToggle(id)}
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            <span className="min-w-0 truncate">{label}</span>
+            {chevron}
+          </button>
+        )}
         {action}
       </div>
       {open ? (
@@ -183,14 +214,12 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
 }) {
   const { t, isRtl } = useI18n();
   const { route, navigate } = useRouter();
-  const { brains, token, user, settings } = useSession();
+  const { brains, token, settings } = useSession();
   const run = useRunCommand();
   const { toggleSidebar } = useSidebar();
   const { platform } = usePlatform();
   const controls = useWindowControls();
   const online = useOnline();
-  const { unread, available } = useNotifyState();
-  const badge = available === false ? null : badgeLabel(unread);
   const [sections, toggleSection] = useSections();
 
   const openNs = route.name === "brain" ? route.ns : settings.activeBrain;
@@ -222,23 +251,6 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
     });
   }
 
-  function accountMenu(e: MouseEvent<HTMLButtonElement>) {
-    void showMenu(
-      [
-        { id: "account", label: t("settings.section.account") },
-        { id: "connect", label: t("settings.section.connect") },
-        { id: "settings", label: `${t("nav.settings")}…`, accelerator: "CmdOrCtrl+," },
-        SEP,
-        { id: "sign-out", label: t("action.signOut") },
-      ],
-      e.currentTarget,
-    ).then((id) => {
-      if (id === "account" || id === "connect") navigate({ name: "settings", section: id });
-      else if (id === "settings") run("settings");
-      else if (id === "sign-out") run("sign-out");
-    });
-  }
-
   // macOS: the traffic lights live in this header (LTR: physical left edge).
   const lights = platform === "darwin" && controls.side === "left" && !isRtl ? controls.inset : 0;
 
@@ -257,25 +269,12 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
       </SidebarHeader>
 
       <SidebarContent className="gap-0 pb-2">
-        <SidebarGroup className="px-2 pt-1 pb-0">
-          <SidebarMenu className="gap-px">
-            <NavRow
-              icon={<Inbox />}
-              label={t("sb.inbox")}
-              active={route.name === "notifications"}
-              onClick={() => navigate({ name: "notifications" })}
-              badge={badge}
-            />
-            <NavRow icon={<LayoutGrid />} label={t("sb.home")} active={route.name === "brains"} onClick={() => navigate({ name: "brains" })} />
-          </SidebarMenu>
-        </SidebarGroup>
-
         {openBrain ? (
           <Section
             id="library"
             open={sections.library !== false}
             onToggle={toggleSection}
-            label={<span style={{ unicodeBidi: "plaintext" }}>{openBrain.displayName || openBrain.namespace}</span>}
+            label={<span dir="auto" className="block truncate" style={{ unicodeBidi: "plaintext" }}>{openBrain.displayName || openBrain.namespace}</span>}
           >
             {LIBRARY.map((it) => {
               const Icon = it.icon;
@@ -311,6 +310,9 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
           open={sections.brains !== false}
           onToggle={toggleSection}
           label={t("sb.brains")}
+          onOpen={() => navigate({ name: "brains" })}
+          active={route.name === "brains"}
+          openLabel={t("win.sb.showAll")}
           action={
             <IconButton size="icon-xs" label={t("sb.newBrain")} onClick={() => run("new-brain")} className="nav-section-action">
               <Plus />
@@ -330,7 +332,7 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
                 <NavRow
                   key={b.namespace}
                   icon={<BrainAvatar brain={b} token={token} size={16} />}
-                  label={<span style={{ unicodeBidi: "plaintext" }}>{b.displayName || b.namespace}</span>}
+                  label={<span dir="auto" className="block truncate" style={{ unicodeBidi: "plaintext" }}>{b.displayName || b.namespace}</span>}
                   title={b.displayName || b.namespace}
                   onClick={() => navigate({ name: "brain", ns: b.namespace, tab: "notes" })}
                   onContextMenu={(e) => brainMenu(b.namespace, e)}
@@ -339,8 +341,8 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
         </Section>
       </SidebarContent>
 
-      <SidebarFooter className="gap-1 px-2 pt-1 pb-2">
-        <div className="flex flex-col gap-0.5 empty:hidden">
+      <SidebarFooter className="flex-row items-end gap-1 px-2 pt-1 pb-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {!online ? (
             <div className="flex items-center gap-2 px-2 py-1 text-ui-sm text-muted-foreground">
               <WifiOff className="size-3.5 stroke-[1.75]" />
@@ -349,32 +351,14 @@ export function AppSidebar({ width, onWidth, onWidthDone }: {
           ) : null}
           <Slot name="sidebar.status" />
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={accountMenu}
-            aria-label={t("shell.account")}
-            className="nav-account flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1 text-start outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/50"
-          >
-            <AccountAvatar size={24} />
-            <span className="grid min-w-0 flex-1 leading-tight">
-              <span className="truncate text-ui font-medium" style={{ unicodeBidi: "plaintext" }}>
-                {user?.name || user?.email?.split("@")[0]}
-              </span>
-              <span dir="ltr" className="align-ui truncate text-start text-[11px] text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
-                {user?.email}
-              </span>
-            </span>
-          </button>
-          <IconButton
-            label={t("sb.settings")}
-            shortcut={platform === "darwin" ? "⌘," : "Ctrl+,"}
-            active={route.name === "settings"}
-            onClick={() => navigate({ name: "settings", section: "general" })}
-          >
-            <SettingsIcon />
-          </IconButton>
-        </div>
+        <IconButton
+          label={t("sb.settings")}
+          shortcut={platform === "darwin" ? "⌘," : "Ctrl+,"}
+          side="top"
+          onClick={() => void bridge().openSettingsWindow?.("general")}
+        >
+          <SettingsIcon />
+        </IconButton>
       </SidebarFooter>
 
       <PaneResizer

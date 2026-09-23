@@ -11,6 +11,7 @@ import { ZekraMark } from "../components/zekra-mark";
 import { bridge, type AppInfo, type WindowStateEvent } from "../lib/bridge";
 import { useI18n } from "../lib/i18n";
 import { usePlatform } from "../lib/platform";
+import { AccountButton } from "./account-menu";
 import { useRunCommand } from "./commands";
 import { useRouter } from "./router";
 import { Slot } from "./slots";
@@ -105,11 +106,11 @@ export function WindowTitle({ title, subtitle, icon }: { title: string; subtitle
       <span className="window-title flex min-w-0 items-center gap-2">
         {icon ? <span className="flex shrink-0 [&_svg]:size-4">{icon}</span> : null}
         <span className="grid min-w-0 leading-tight">
-          <span className="window-title-main truncate" style={{ unicodeBidi: "plaintext" }}>
+          <span className="window-title-main truncate" dir="auto" style={{ unicodeBidi: "plaintext" }}>
             {title}
           </span>
           {subtitle ? (
-            <span className="window-title-sub truncate" style={{ unicodeBidi: "plaintext" }}>
+            <span className="window-title-sub truncate" dir="auto" style={{ unicodeBidi: "plaintext" }}>
               {subtitle}
             </span>
           ) : null}
@@ -146,10 +147,23 @@ function SearchField({ className }: { className?: string }) {
       <Search className="size-3.5 shrink-0" strokeWidth={1.75} />
       <span className="min-w-0 flex-1 truncate">{t("tb.search")}</span>
       <KbdGroup className="gap-0.5">
-        <Kbd className="h-[18px] min-w-[18px] bg-background/60 text-[10px]">{platform === "darwin" ? "⌘" : "Ctrl"}</Kbd>
-        <Kbd className="h-[18px] min-w-[18px] bg-background/60 text-[10px]">K</Kbd>
+        <Kbd className="h-5 min-w-5 bg-background/60 text-[12px]">{platform === "darwin" ? "⌘" : "Ctrl"}</Kbd>
+        <Kbd className="h-5 min-w-5 bg-background/60 text-[12px]">K</Kbd>
       </KbdGroup>
     </button>
+  );
+}
+
+/** The title bar's trailing items (Health Debug / native toolbars): the
+ *  notification bell (its popover is the center, features/notify/bell.tsx)
+ *  and the account avatar (a native menu; the account itself is in the
+ *  Settings window). */
+function TrailingItems() {
+  return (
+    <span className="ms-0.5 flex shrink-0 items-center gap-0.5">
+      <Slot name="titlebar.bell" />
+      <Slot name="titlebar.account" fallback={<AccountButton />} />
+    </span>
   );
 }
 
@@ -173,10 +187,11 @@ export function WindowsTitleBar() {
           <MenuIcon />
         </IconButton>
         <ZekraMark size={16} className="ms-2 shrink-0" />
-        <span className="ms-1.5 truncate text-[12px]">{t("app.name")}</span>
+        <span className="ms-1.5 truncate text-[13px]">{t("app.name")}</span>
         <div className="min-w-4 flex-1 self-stretch" />
         <SearchField className="w-[min(360px,36vw)]" />
         <div className="min-w-4 flex-1 self-stretch" />
+        <TrailingItems />
         <IconButton label={t("sb.appMenu")} onClick={popAppMenu}>
           <Ellipsis />
         </IconButton>
@@ -225,6 +240,7 @@ export function Toolbar({ sidebar = true, search = true }: { sidebar?: boolean; 
         <div ref={setters?.setActions} className="flex shrink-0 items-center gap-1" />
         <Slot name="titlebar.end" />
         {search ? <SearchField className="w-44" /> : null}
+        <TrailingItems />
         <IconButton label={t("sb.appMenu")} onClick={popAppMenu}>
           <MenuIcon />
         </IconButton>
@@ -254,6 +270,7 @@ export function Toolbar({ sidebar = true, search = true }: { sidebar?: boolean; 
         <div ref={setters?.setActions} className="flex shrink-0 items-center gap-1" />
         <Slot name="titlebar.end" />
         {search ? <SearchField className="ms-1 w-44 lg:w-56" /> : null}
+        <TrailingItems />
       </div>
     </header>
   );

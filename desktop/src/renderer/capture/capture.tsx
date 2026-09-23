@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKe
 import { createRoot } from "react-dom/client";
 
 import type { CaptureInit } from "../../shared/ipc";
+import { installAppearanceSync } from "../lib/appearance";
 
 /*
 Quick Capture panel — its own tiny renderer entry (no router, no session, no
@@ -107,6 +108,9 @@ function Capture() {
     requestAnimationFrame(() => (titleRef.current?.value ? bodyRef.current : titleRef.current)?.focus());
   }, []);
 
+  // The reading theme repaints this panel too, live (lib/appearance.ts).
+  useEffect(() => installAppearanceSync(), []);
+
   useEffect(() => {
     const off = z().onCaptureShow?.(receive);
     // The first show can race the page load: ask for the state too.
@@ -201,18 +205,18 @@ function Capture() {
       style={{ borderRadius: mac ? 12 : undefined }}
     >
       <header className="capture-drag flex h-11 shrink-0 items-center gap-2 px-4">
-        <span className="text-[13px] font-semibold">{mac ? "" : "Zekra · "}{t.heading}</span>
+        <span className="text-[14px] font-semibold">{mac ? "" : "Zekra · "}{t.heading}</span>
         {!init.online ? (
-          <span className="rounded-full border border-border px-2 py-px text-[11px] text-muted-foreground">{t.offline}</span>
+          <span className="rounded-full border border-border px-2 py-px text-[12.5px] text-muted-foreground">{t.offline}</span>
         ) : null}
         <div className="flex-1" />
         {init.brains.length ? (
-          <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+          <label className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
             <span className="sr-only">{t.brain}</span>
             <select
               value={brain}
               onChange={(e) => setBrain(e.target.value)}
-              className="h-7 max-w-[220px] rounded-md border-0 bg-[var(--field)] px-2 text-[12px] text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              className="h-7 max-w-[220px] rounded-md border-0 bg-[var(--field)] px-2 text-[13px] text-foreground outline-none focus:ring-2 focus:ring-primary/40"
             >
               {init.brains.map((b) => (
                 <option key={b.namespace} value={b.namespace}>
@@ -226,7 +230,7 @@ function Capture() {
       </header>
 
       {!init.signedIn || !init.brains.length ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center text-[13px] text-muted-foreground">
+        <div className="flex flex-1 items-center justify-center px-6 text-center text-[14px] text-muted-foreground">
           {!init.signedIn ? t.signedOut : t.noBrains}
         </div>
       ) : (
@@ -246,13 +250,13 @@ function Capture() {
           />
           <textarea
             ref={bodyRef}
-            className="capture-field min-h-0 flex-1 py-1 text-[14px] leading-relaxed"
+            className="capture-field min-h-0 flex-1 py-1 text-[14.5px] leading-relaxed"
             placeholder={t.body}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
           <input
-            className="capture-field border-t border-border/50 py-2 text-[12px] text-muted-foreground"
+            className="capture-field border-t border-border/50 py-2 text-[13px] text-muted-foreground"
             placeholder={t.tags}
             value={tags}
             onChange={(e) => setTags(e.target.value)}
@@ -265,7 +269,7 @@ function Capture() {
           type="button"
           onClick={() => void fromClipboard()}
           disabled={!canSave}
-          className="h-7 rounded-md px-2.5 text-[12px] text-foreground/85 hover:bg-foreground/10 disabled:opacity-40"
+          className="h-7 rounded-md px-2.5 text-[13px] text-foreground/85 hover:bg-foreground/10 disabled:opacity-40"
         >
           {t.clipboard}
         </button>
@@ -274,7 +278,7 @@ function Capture() {
             type="button"
             onClick={() => void fromBrowser()}
             disabled={!canSave}
-            className="h-7 rounded-md px-2.5 text-[12px] text-foreground/85 hover:bg-foreground/10 disabled:opacity-40"
+            className="h-7 rounded-md px-2.5 text-[13px] text-foreground/85 hover:bg-foreground/10 disabled:opacity-40"
           >
             {t.browser}
           </button>
@@ -283,7 +287,7 @@ function Capture() {
           role="status"
           aria-live="polite"
           className={
-            "min-w-0 flex-1 truncate px-1 text-[12px] " +
+            "min-w-0 flex-1 truncate px-1 text-[13px] " +
             (note?.tone === "error" ? "text-destructive" : note?.tone === "ok" ? "text-foreground" : "text-muted-foreground")
           }
           title={note?.text}
@@ -294,7 +298,7 @@ function Capture() {
           type="button"
           onClick={() => void save()}
           disabled={!canSave || busy}
-          className="h-7 rounded-md bg-primary px-3 text-[12px] font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-40"
+          className="h-7 rounded-md bg-primary px-3 text-[13px] font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-40"
         >
           {t.save}
         </button>

@@ -353,12 +353,12 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <bdi dir="ltr" className="truncate font-mono text-[13px] font-medium text-foreground">
+          <bdi dir="ltr" className="truncate font-mono text-[14px] font-medium text-foreground">
             {s.name}
           </bdi>
           <span
             className={cn(
-              "rounded-sm border px-1.5 py-px text-[10px] tracking-wide uppercase",
+              "rounded-sm border px-1.5 py-px text-[12px] tracking-wide uppercase",
               shown ? "border-grid-gold/60 text-grid-gold" : "border-border/60 text-muted-foreground",
             )}
           >
@@ -394,7 +394,7 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
           </bdi>
         )}
 
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-[12.5px] text-muted-foreground">
           {[
             s.createdBy ? tLtr(t, "vault.by", "who", s.createdBy) : null,
             when ? t("vault.updated", { when }) : null,
@@ -408,7 +408,7 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
             ))}
         </p>
         {s.sourceRef ? (
-          <p className="truncate text-[11px] text-muted-foreground">{tLtr(t, "vault.source", "ref", s.sourceRef)}</p>
+          <p className="truncate text-[12.5px] text-muted-foreground">{tLtr(t, "vault.source", "ref", s.sourceRef)}</p>
         ) : null}
         {error ? <p className="text-xs text-destructive">{error}</p> : null}
       </div>

@@ -34,7 +34,7 @@ const TONE: Record<Tone | "danger" | "gold", string> = {
 /** The grid's small uppercase chip. */
 export function Chip({ children, tone = "muted", className }: { children: ReactNode; tone?: keyof typeof TONE; className?: string }) {
   return (
-    <span className={cn("inline-flex h-5 shrink-0 items-center rounded-sm border px-1.5 text-[10px] font-medium tracking-wide uppercase", TONE[tone], className)}>
+    <span className={cn("inline-flex h-5 shrink-0 items-center rounded-sm border px-1.5 text-[12px] font-medium tracking-wide uppercase", TONE[tone], className)}>
       {children}
     </span>
   );

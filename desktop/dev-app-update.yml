@@ -1,0 +1,7 @@
+# Feed for exercising the updater from `npm run dev` (development builds
+# never check otherwise): ZEKRA_FORCE_UPDATES=1 npm run dev
+# Same feed the packaged app gets from electron-builder.yml `publish`.
+provider: github
+owner: fadymondy
+repo: zekra
+updaterCacheDirName: zekra-desktop-updater

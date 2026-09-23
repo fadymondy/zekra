@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { Columns2, ListTree, NotebookPen, PanelLeft, SquarePen } from "lucide-react";
+import { ListTree, NotebookPen, PanelLeft, SquarePen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils";
 import type { AutosaveStatus } from "@mobile/features/editor/autosave-core";
 
 import { IconButton, PaneResizer } from "../components/chrome";
-import { Spotlight, type SpotlightCommand } from "../components/spotlight";
 import type { OpenHow } from "../components/note-row";
 import { NoteTree } from "../components/note-tree";
-import { SplitDivider, loadMode, saveMode, type EditorMode } from "../features/editor/editor-chrome";
-import { NoteEditor } from "../features/editor/note-editor";
+import { SplitDivider } from "../features/editor/editor-chrome";
+import { NoteEditor, type NoteDraft } from "../features/editor/note-editor";
 import { ReadingTheme } from "../features/editor/reading-theme";
 import {
   activeTab,
@@ -66,7 +65,10 @@ editor never write from different versions.
 
 Commands owned while mounted:
   new-note ⌘N · close-tab ⌘W · reopen-tab ⇧⌘T · next/prev-tab ⌥⌘→/←
-  toggle-outline ⇧⌘L · spotlight ⌘K (via <Spotlight>)
+  toggle-outline ⇧⌘L
+New Note (⌘N, the toolbar pen, the empty state) opens a New Note WINDOW for
+this brain (Health Debug's "add" windows); a note saved in any other window
+is folded into the list live (the "note-saved" broadcast).
 The notes list column toggles from the toolbar (⌘\ is the app sidebar's).
 The focused editor adds find ⌘F, save ⌘S and File ▸ Export.
 */
@@ -130,11 +132,6 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
       return next;
     });
   }, []);
-  const [mode, setModeState] = useState<EditorMode>(loadMode);
-  const setMode = useCallback((m: EditorMode) => {
-    setModeState(m);
-    saveMode(m);
-  }, []);
   const closed = useRef<DeskTab[]>([]);
   const [outlineHost, setOutlineHost] = useState<HTMLElement | null>(null);
   const [chromeHosts, setChromeHosts] = useState<(HTMLElement | null)[]>([null, null]);
@@ -189,6 +186,41 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
     const c = noteFor(n.id);
     return c && c.version >= n.version ? c : n;
   }, [noteFor]);
+
+  // Titles/descriptions as typed, before they are saved: the list row and the
+  // tab follow the editor live (keyed by tab; cleared once the editor saved).
+  const [drafts, setDrafts] = useState<Record<string, NoteDraft>>({});
+  const onDraft = useCallback((key: string, d: NoteDraft | null) => {
+    setDrafts((m) => {
+      if (!d) {
+        if (!(key in m)) return m;
+        const { [key]: _gone, ...rest } = m;
+        return rest;
+      }
+      return { ...m, [key]: d };
+    });
+  }, []);
+  const draftById = useMemo(() => {
+    const out = new Map<string, NoteDraft>();
+    for (const d of Object.values(drafts)) if (d.id) out.set(d.id, d);
+    return out;
+  }, [drafts]);
+  const listed = useMemo(
+    () =>
+      draftById.size
+        ? shown.map((n) => {
+            const d = draftById.get(n.id);
+            return d && (d.title !== n.title || d.description !== (n.description ?? ""))
+              ? { ...n, title: d.title, description: d.description }
+              : n;
+          })
+        : shown,
+    [shown, draftById],
+  );
+
+  // Rename (⌘R / F2 / double-click a row / the menus): open the note and
+  // select its title. The counter re-arms the editor's effect every time.
+  const [renameReq, setRenameReq] = useState<{ id: string; n: number } | null>(null);
 
   // ── dirty tracking (tab dots + the window's edited dot) ────────────────
   const [dirty, setDirty] = useState<Set<string>>(() => new Set());
@@ -254,8 +286,38 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
       toast.error(t("editor.readOnly"));
       return;
     }
+    // Its own window (native-ui.ts openNewNoteWindow); the browser preview
+    // has none and opens a draft tab instead.
+    if (bridge().openNewNoteWindow) {
+      void bridge().openNewNoteWindow?.(ns);
+      return;
+    }
     setLayout((l) => openTab(l, { key: draftKey(), id: null, title: "" }, { newTab: true }));
-  }, [brain.canWrite, t]);
+  }, [brain.canWrite, t, ns]);
+
+  // A note created / saved in another window (a note window, New Note).
+  const upsertListed = list.upsert;
+  useEffect(
+    () =>
+      bridge().onBroadcast?.((msg) => {
+        if (msg.kind !== "note-saved") return;
+        const n = msg.note as unknown as Note;
+        if (n.namespace && n.namespace !== ns) return;
+        remember(n);
+        upsertListed(n);
+        setLayout((l) => patchTab(l, { id: n.id }, { title: n.title, category: n.category, icon: n.icon, color: n.color }));
+      }),
+    [ns, remember, upsertListed],
+  );
+
+  const renameNote = useCallback(
+    (n: Note) => {
+      if (!brain.canWrite) return;
+      open(n);
+      setRenameReq((r) => ({ id: n.id, n: (r?.n ?? 0) + 1 }));
+    },
+    [brain.canWrite, open],
+  );
 
   const close = useCallback((key: string) => {
     setLayout((l) => {
@@ -312,6 +374,7 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
       setLayout((l) => dropNote(l, n.id));
     },
     onOpen: (n, how) => open(n, how),
+    onRename: renameNote,
   });
 
   // Native menus (lib/native-menu.ts) from one definition (note-menu.tsx).
@@ -372,14 +435,6 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
   useCommand("prev-tab", () => setLayout((l) => cycleTab(l, -1)));
   useCommand("toggle-outline", () => setPref("outline", !prefs.outline));
 
-  const spotlightCommands: SpotlightCommand[] = [
-    { id: "toggle-list", label: t("tb.list"), icon: <PanelLeft />, run: () => setPref("sidebar", !prefs.sidebar) },
-    { id: "toggle-outline", label: t("ws.outline.toggle"), icon: <ListTree />, shortcut: "⇧⌘L", run: () => setPref("outline", !prefs.outline) },
-    layout.groups.length > 1
-      ? { id: "unsplit", label: t("ws.unsplit"), icon: <Columns2 />, run: () => setLayout((l) => unsplit(l)) }
-      : { id: "split", label: t("ws.split"), icon: <Columns2 />, run: () => setLayout((l) => split(l)) },
-  ];
-
   // ── render ─────────────────────────────────────────────────────────────
   const focusedTab = activeTab(layout);
   const selectedId = focusedTab?.id ?? null;
@@ -393,13 +448,6 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
   return (
     <div className="flex min-h-0 flex-1">
       <ReadingTheme />
-      <Spotlight
-        brain={brain}
-        notes={list.notes}
-        onOpenNote={(id) => void openById(id)}
-        onNewNote={brain.canWrite ? newNote : undefined}
-        extraCommands={spotlightCommands}
-      />
       <ToolbarActions>
         <IconButton label={t("tb.list")} active={prefs.sidebar} onClick={() => setPref("sidebar", !prefs.sidebar)}>
           <PanelLeft className="rtl:-scale-x-100" />
@@ -417,7 +465,7 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
       {prefs.sidebar ? (
         <aside className="relative flex min-w-0 shrink-0 flex-col border-e border-border/60 bg-background" style={{ width: listWidth }}>
           <NotesSidebar
-            notes={shown}
+            notes={listed}
             loading={list.loading}
             loadingMore={list.loadingMore}
             error={list.error}
@@ -431,7 +479,9 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
             onQuery={setQuery}
             selectedId={selectedId}
             openIds={openIds}
-            onOpen={(n, how) => (how === "open-window" ? actions.run(n, { kind: "open-window" }) : open(n, how))}
+            onOpen={(n, how) =>
+              how === "open-window" ? actions.run(n, { kind: "open-window" }) : how === "rename" ? renameNote(n) : open(n, how)
+            }
             onRowMenu={onRowMenu}
             tree={
               // Selecting an entity searches for it: an entity need not be a note.
@@ -472,7 +522,7 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
                   <TabStrip
                     group={gi}
                     groups={layout.groups.length}
-                    tabs={g.tabs}
+                    tabs={g.tabs.map((x) => (drafts[x.key] && drafts[x.key].title !== x.title ? { ...x, title: drafts[x.key].title } : x))}
                     active={g.active}
                     focused={focused}
                     dirty={dirty}
@@ -504,8 +554,8 @@ export function Workspace({ token, brain, initialNoteId, list: listFilter = "all
                     token={token}
                     cached={noteFor(tab.id)}
                     focused={focused}
-                    mode={mode}
-                    onModeChange={setMode}
+                    rename={tab.id && renameReq?.id === tab.id ? renameReq.n : 0}
+                    onDraft={onDraft}
                     outlineHost={prefs.outline ? outlineHost : null}
                     chromeHost={chromeHosts[gi]}
                     onSaved={onSaved}
@@ -536,7 +586,7 @@ function EmptyGroup({ second, canWrite, onNew }: { second: boolean; canWrite: bo
   if (second) {
     return (
       <Empty className="bg-background">
-        <EmptyDescription className="text-[13px]">{t("ws.empty.group")}</EmptyDescription>
+        <EmptyDescription className="text-[14px]">{t("ws.empty.group")}</EmptyDescription>
       </Empty>
     );
   }
@@ -547,11 +597,11 @@ function EmptyGroup({ second, canWrite, onNew }: { second: boolean; canWrite: bo
           <NotebookPen className="size-5 stroke-[1.5]" />
         </EmptyMedia>
         <EmptyTitle className="text-[15px] font-semibold">{t("ws.empty.title")}</EmptyTitle>
-        <EmptyDescription className="text-[13px]">{t("ws.empty.body")}</EmptyDescription>
+        <EmptyDescription className="text-[14px]">{t("ws.empty.body")}</EmptyDescription>
       </EmptyHeader>
       {canWrite ? (
         <EmptyContent>
-          <Button onClick={onNew} className="h-8 gap-2 px-3 text-[13px]">
+          <Button onClick={onNew} className="h-8 gap-2 px-3 text-[14px]">
             <SquarePen className="stroke-[1.75]" />
             {t("ws.empty.new")}
             <Kbd className="ms-1 bg-primary-foreground/15 text-primary-foreground">⌘N</Kbd>

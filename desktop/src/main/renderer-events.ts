@@ -99,6 +99,16 @@ export function sendCommandWhenReady(name: CommandName, source: CommandEvent["so
   enqueue({ channel: IPC.evCommand, payload: { name, source } });
 }
 
+/**
+ * Go to a compact route in the main window (router routeFromString syntax),
+ * queued until its renderer is ready. "notifications" opens the bell popover.
+ * The caller shows / creates the main window first.
+ */
+export function sendRouteToMain(route: string): void {
+  if (route === "notifications") sendCommandWhenReady("go:inbox", "tray");
+  else sendNotificationClick({ route });
+}
+
 export function sendDeepLink(e: DeepLinkEvent): void {
   enqueue({ channel: IPC.evDeepLink, payload: e });
 }

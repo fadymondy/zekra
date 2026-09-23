@@ -26,7 +26,8 @@ import * as path from "node:path";
 
 import { IPC, type NotificationActionEvent, type RichNotifyRequest, type ShareRequest, type ShareResult, type TrayRecentNote } from "../shared/ipc";
 import { badgeBitmap } from "./badge-bitmap";
-import { broadcast, focusMainWindow, sendCommandWhenReady, sendNotificationClick } from "./renderer-events";
+import { openNewNoteWindow, openNoteWindow } from "./native-ui";
+import { broadcast, focusMainWindow, sendNotificationClick } from "./renderer-events";
 import { ss } from "./services-strings";
 import { getSettings } from "./settings-store";
 
@@ -126,17 +127,12 @@ export function setRecentForDock(items: TrayRecentNote[]): void {
   rebuildAppShortcuts();
 }
 
-function withMain(fn: () => void): void {
-  showMain();
-  fn();
-}
-
 /** Dock menu (macOS) / Jump List tasks (Windows). Rebuilt on locale change. */
 export function rebuildAppShortcuts(): void {
   const t = ss();
   if (platform === "darwin" && app.dock) {
     const items: MenuItemConstructorOptions[] = [
-      { label: t.newNote, click: () => withMain(() => sendCommandWhenReady("new-note", "tray")) },
+      { label: t.newNote, click: () => void openNewNoteWindow(getSettings().activeBrain) },
       { label: t.quickCapture, click: () => openCapture() },
     ];
     if (recent.length) {
@@ -144,7 +140,7 @@ export function rebuildAppShortcuts(): void {
       for (const r of recent) {
         items.push({
           label: r.title || t.untitled,
-          click: () => withMain(() => sendNotificationClick({ route: `note:${r.namespace}:${r.id}` })),
+          click: () => void openNoteWindow({ namespace: r.namespace, id: r.id, title: r.title }),
         });
       }
     }
@@ -167,7 +163,7 @@ export function rebuildAppShortcuts(): void {
 export function handleAppLink(host: string, pathPart: string): boolean {
   if (host !== "app") return false;
   if (pathPart === "capture") openCapture();
-  else if (pathPart === "new-note") withMain(() => sendCommandWhenReady("new-note", "tray"));
+  else if (pathPart === "new-note") void openNewNoteWindow(getSettings().activeBrain);
   else if (pathPart === "open") showMain();
   else return false;
   return true;

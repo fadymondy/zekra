@@ -81,6 +81,17 @@ export interface AppSettings {
   syncIntervalMinutes: number;
   /** Keep a local copy of brains and notes so the app opens instantly and works offline. */
   offlineCacheEnabled: boolean;
+  /* Updates (src/main/updater.ts). */
+  /** Install a downloaded update by itself: while the Mac is idle (no unsaved
+   *  edits) and on quit. Off = only when the user clicks Restart to Update
+   *  (critical releases still install on quit). */
+  autoInstallUpdates: boolean;
+  /** stable = full GitHub releases only; beta = pre-releases too. */
+  updateChannel: UpdateChannel;
+  /** Global shortcut for the Spotlight window (works while another app is in
+   *  front). "" = off (⌘K / Ctrl+K inside Zekra always works). Set through
+   *  setSpotlightShortcut, which validates and registers it. */
+  spotlightShortcut?: string;
 }
 
 /** Keys the renderer may patch. windowBounds is owned by main. */
@@ -101,6 +112,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   openAtLoginHidden: true,
   syncIntervalMinutes: 5,
   offlineCacheEnabled: true,
+  autoInstallUpdates: true,
+  updateChannel: "stable",
 };
 
 /* ------------------------------------------------------------ commands */
@@ -140,6 +153,8 @@ export const COMMANDS = [
   "settings",
   "sign-out",
   "about",
+  // Help ▸ Check for Updates… / the tray: open the Software Update sheet.
+  "update:show",
   // Native-shell navigation & object menus (Note / Brain / Go, context menus)
   "toggle-list",
   "open-in-new-window",
@@ -147,6 +162,8 @@ export const COMMANDS = [
   "note:archive",
   "note:appearance",
   "note:versions",
+  "note:rename",
+  "note:view-source",
   "note:copy",
   "note:delete",
   "brain:notes",
@@ -205,14 +222,48 @@ export interface WindowStateEvent {
   maximized: boolean;
 }
 
-export type UpdateStatus = "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error" | "disabled";
+export type UpdateStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "not-available"
+  | "downloading"
+  | "downloaded"
+  | "installing"
+  | "error"
+  | "disabled";
 
+export type UpdateChannel = "stable" | "beta";
+
+/** The updater's state (src/main/updater.ts), broadcast on every change. */
 export interface UpdateState {
   status: UpdateStatus;
+  /** The version on offer (available … installing). */
   version?: string;
   /** 0–100 while downloading. */
   progress?: number;
+  /** Download speed and size while downloading (bytes, bytes/s). */
+  bytesPerSecond?: number;
+  transferred?: number;
+  total?: number;
+  /** Release notes of the version on offer: GitHub gives HTML, a hand-written
+   *  feed may give markdown — both render through the markdown pipeline. */
+  releaseNotes?: string;
+  releaseName?: string;
+  releaseDate?: string;
+  /** The release is marked `[critical]` (notes or title): the prompt cannot be
+   *  snoozed for long and it always installs on quit. */
+  critical?: boolean;
+  /** Downloaded and the update policy wants the user asked now (not snoozed,
+   *  not about to install by itself). */
+  prompt?: boolean;
   message?: string;
+  /** Always present: the running version, channel and auto-install setting. */
+  currentVersion?: string;
+  channel?: UpdateChannel;
+  autoInstall?: boolean;
+  /** When the last check finished (ms since epoch). */
+  checkedAt?: number;
 }
 
 /** MH-450 app lock (src/main/app-activity.ts):
@@ -382,6 +433,37 @@ export interface NoteWindowRequest {
   title?: string;
 }
 
+/* App windows (src/main/app-windows.ts) — every surface is the same bundled
+ * index.html, picked by `?window=`:
+ *   main       the app
+ *   note       a note document window (native-ui.ts)
+ *   note-new   a new, not yet saved note (brain picker on top); becomes a
+ *              `note` window once its first save created it
+ *   settings   the Settings window (single instance, remembers its frame)
+ *   spotlight  the search / command panel (frameless, vibrancy / acrylic)
+ *   new-brain  the New Brain window */
+export type AppWindowKind = "main" | "note" | "note-new" | "settings" | "spotlight" | "new-brain";
+
+/** Settings window sections (zekra://settings/<section>). */
+export const SETTINGS_SECTIONS = ["general", "reading", "notifications", "security", "services", "account", "connect", "about"] as const;
+export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number];
+
+/** Renderer-to-renderer messages, relayed by main to every OTHER window. */
+export type AppBroadcast =
+  /** The note reading/typography store changed (web lib/notes/note-settings). */
+  | { kind: "reading-settings"; settings: unknown }
+  /** A note was created or saved in another window (a Note, loosely typed). */
+  | { kind: "note-saved"; note: { id: string; namespace?: string } & Record<string, unknown> }
+  /** Brains were created / changed; `open` = show this one in the main window. */
+  | { kind: "brains-changed"; open?: string };
+
+/** What the menubar menu shows that only the main window's renderer knows. */
+export interface TrayState {
+  /** Unread notifications; null = unknown / no notification center. */
+  unread: number | null;
+  brains: { namespace: string; name: string }[];
+}
+
 /** Title-bar colours the renderer resolves from the theme tokens (Windows'
  *  caption-button overlay cannot read CSS). */
 export interface WindowChromeColors {
@@ -503,6 +585,7 @@ export const IPC = {
   updateCheck: "zekra:update:check",
   updateGetState: "zekra:update:state",
   updateInstall: "zekra:update:install",
+  updateSnooze: "zekra:update:snooze",
   traySetStatus: "zekra:tray:set-status",
   // MH-450 notifications (Dock badge) + Settings ▸ Connect (MCP install)
   appSetBadge: "zekra:app:set-badge",
@@ -520,7 +603,24 @@ export const IPC = {
   menuPopupApp: "zekra:menu:popup-app",
   windowOpenNote: "zekra:window:open-note",
   windowSetChrome: "zekra:window:set-chrome",
+  // App windows (src/main/app-windows.ts): Settings, Spotlight, New Brain,
+  // New Note; the calling window hides / sizes itself; open a route in main.
+  windowOpenSettings: "zekra:window:open-settings",
+  windowOpenSpotlight: "zekra:window:open-spotlight",
+  windowOpenNewBrain: "zekra:window:open-new-brain",
+  windowOpenNewNote: "zekra:window:open-new-note",
+  windowNoteCreated: "zekra:window:note-created",
+  windowOpenInMain: "zekra:window:open-in-main",
+  windowHideSelf: "zekra:window:hide-self",
+  windowResizeSelf: "zekra:window:resize-self",
+  windowSetSpotlightShortcut: "zekra:window:set-spotlight-shortcut",
+  appBroadcast: "zekra:app:broadcast",
+  traySetState: "zekra:tray:set-state",
   // events (main -> renderer)
+  evSettingsChanged: "zekra:settings-changed",
+  evBroadcast: "zekra:broadcast",
+  evWindowShown: "zekra:window-shown",
+  evSettingsSection: "zekra:settings-section",
   evCommand: "zekra:command",
   evDeepLink: "zekra:deep-link",
   evOpenFile: "zekra:open-file",
@@ -605,6 +705,8 @@ export interface ZekraBridge {
   checkForUpdates(): Promise<UpdateState>;
   getUpdateState(): Promise<UpdateState>;
   installUpdate(): Promise<boolean>;
+  /** "Later": hide the ready prompt for a while (critical: a shorter while). */
+  snoozeUpdate?(): Promise<UpdateState>;
   setTrayStatus(status: TrayStatus): Promise<void>;
   /** MH-450: unread count on the Dock icon; 0 clears it. */
   setBadgeCount(count: number): Promise<void>;
@@ -633,6 +735,36 @@ export interface ZekraBridge {
   openNoteWindow?(req: NoteWindowRequest): Promise<void>;
   /** Theme colours for native title-bar parts (Windows caption overlay). */
   setWindowChrome?(colors: WindowChromeColors): Promise<void>;
+  /* App windows (src/main/app-windows.ts). Optional: absent from the preview. */
+  /** Open (or focus) the Settings window, at `section`. */
+  openSettingsWindow?(section?: SettingsSectionId): Promise<void>;
+  /** Show the Spotlight panel. */
+  openSpotlight?(): Promise<void>;
+  openNewBrainWindow?(): Promise<void>;
+  /** A new note in its own window; `namespace` preselects the brain. */
+  openNewNoteWindow?(namespace?: string | null): Promise<void>;
+  /** The calling note-new window's note now exists (restored as a note window). */
+  noteWindowCreated?(req: NoteWindowRequest): Promise<void>;
+  /** Focus (or open) the main window and go to a compact route
+   *  (router routeFromString syntax; "notifications" opens the bell). */
+  openInMain?(route: string): Promise<void>;
+  /** Hide (Spotlight) or close the calling window. */
+  hideSelf?(): Promise<void>;
+  /** Spotlight sizes itself to its content (CSS px). */
+  resizeSelf?(height: number): Promise<void>;
+  /** Validate, register and persist the global Spotlight shortcut ("" = off). */
+  setSpotlightShortcut?(accelerator: string): Promise<ShortcutResult>;
+  /** Tell every other window (reading settings, a saved note, brains). */
+  broadcast?(msg: AppBroadcast): Promise<void>;
+  /** The main window's unread count + brains, for the menubar menu. */
+  setTrayState?(state: TrayState): Promise<void>;
+  /** Any window changed the app settings (theme, locale, session…). */
+  onSettingsChanged?(cb: (s: AppSettings) => void): Unsubscribe;
+  onBroadcast?(cb: (msg: AppBroadcast) => void): Unsubscribe;
+  /** Spotlight: shown again (reset + focus the field). */
+  onWindowShown?(cb: () => void): Unsubscribe;
+  /** Settings window: switch to a section (a deep link, a menu item). */
+  onSettingsSection?(cb: (section: SettingsSectionId) => void): Unsubscribe;
 
   // events
   onCommand(cb: (e: CommandEvent) => void): Unsubscribe;

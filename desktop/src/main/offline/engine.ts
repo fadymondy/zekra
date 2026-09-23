@@ -670,6 +670,8 @@ export class SyncEngine {
       return this.call("POST", "/api/notes", {
         namespace: op.namespace,
         title: p.title ?? "",
+        // Only when set: a server without descriptions ignores it anyway.
+        ...(p.description ? { description: p.description } : {}),
         body: p.body ?? "",
         tags: p.tags ?? [],
         category: p.category ?? "note",
@@ -729,7 +731,9 @@ export class SyncEngine {
     const mine = doc.notes[op.noteId];
     doc.shadows[op.noteId] = current;
     if (!res || res.kind === "fork") {
-      const copy = res ? res.copy : { title: mine?.title ?? current.title, body: mine?.body ?? "", tags: mine?.tags ?? [] };
+      const copy = res
+        ? res.copy
+        : { title: mine?.title ?? current.title, description: mine?.description, body: mine?.body ?? "", tags: mine?.tags ?? [] };
       const copyId = this.forkCopy(q, op, copy);
       this.addConflict(q, { kind: "edit-edit", namespace: op.namespace, noteId: op.noteId, title: current.title || mine?.title || "", copyId });
     }
@@ -767,6 +771,7 @@ export class SyncEngine {
     for (const o of ops) this.dropOp(q, o);
     const copyId = this.forkCopy(q, op, {
       title: mine?.title ?? op.patch.title ?? "",
+      description: mine?.description ?? op.patch.description,
       body: mine?.body ?? op.patch.body ?? "",
       tags: mine?.tags ?? op.patch.tags ?? [],
       category: mine?.category,

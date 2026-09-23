@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,17 +35,21 @@ import { brainsApi, useInvalidateBrains } from "./brains-data";
 Create / delete a brain — the mobile sheets (new-brain-sheet.tsx,
 brain-actions-sheet.tsx) as desktop dialogs, same rules:
 
-  create  name -> namespace (slugify, editable), validated against the
+  create  (the New Brain window) name -> namespace (slugify, editable), validated against the
           server's namespace rule before the button enables; then POST
           /api/brain/brains + a first marker memory so the brain exists for
           agents even where the create route answers 403 (web parity)
   delete  owners/admins only; type the namespace to confirm
 */
 
-export function NewBrainDialog({ open, onOpenChange, onCreated }: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+/**
+ * The New Brain form — rendered by the New Brain WINDOW
+ * (screens/new-brain-window.tsx, src/main/app-windows.ts). Name, namespace
+ * (slug), description, colour and icon; Enter / the submit button creates.
+ */
+export function NewBrainForm({ onCreated, onCancel }: {
   onCreated: (namespace: string) => void;
+  onCancel: () => void;
 }) {
   const { t } = useI18n();
   const { token } = useAuthed();
@@ -61,18 +65,6 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: {
 
   const namespace = slugEdited ? slug : slugify(name);
   const nsOk = validNamespace(namespace);
-
-  useEffect(() => {
-    if (open) return;
-    setName("");
-    setSlug("");
-    setSlugEdited(false);
-    setDesc("");
-    setColor("");
-    setIcon("");
-    setError(null);
-    setBusy(false);
-  }, [open]);
 
   async function create() {
     if (!nsOk || busy) return;
@@ -99,16 +91,13 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: {
         sourceKind: "system",
         sourceRef: "desktop/new-brain",
       });
-      await invalidate();
-      toast.success(t("brains.new.created", { brain: displayName || namespace }));
-      onOpenChange(false);
+      await invalidate().catch(() => undefined);
       onCreated(namespace);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) setError(t("brains.new.exists"));
       else if (err instanceof ApiError && err.status === 400) setError(t("brains.new.invalid"));
       else if (err instanceof ApiError && err.status === 0) setError(t("brains.error.network"));
       else setError(err instanceof Error ? err.message : t("brains.error.network"));
-    } finally {
       setBusy(false);
     }
   }
@@ -116,99 +105,95 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: {
   const optional = (label: string) => `${label} · ${t("brains.new.optional")}`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void create();
-          }}
-          className="space-y-4"
-        >
-          <DialogHeader>
-            <DialogTitle>{t("brains.new.title")}</DialogTitle>
-            <DialogDescription>{t("brains.new.description")}</DialogDescription>
-          </DialogHeader>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        void create();
+      }}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pt-1 pb-4">
+        <p className="text-ui-sm text-muted-foreground">{t("brains.new.description")}</p>
 
+        <div className="space-y-1.5">
+          <Label htmlFor="nb-name">{t("brains.new.name")}</Label>
+          <Input
+            id="nb-name"
+            autoFocus
+            value={name}
+            maxLength={80}
+            placeholder={t("brains.new.namePlaceholder")}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="nb-ns">{t("brains.new.namespace")}</Label>
+          <Input
+            id="nb-ns"
+            dir="ltr"
+            value={namespace}
+            maxLength={63}
+            aria-invalid={namespace.length > 0 && !nsOk}
+            className="font-mono"
+            onChange={(e) => {
+              setSlugEdited(true);
+              setSlug(e.target.value.toLowerCase());
+            }}
+          />
+          <p className={cn("text-xs", namespace.length > 0 && !nsOk ? "text-destructive" : "text-muted-foreground")}>
+            {namespace.length > 0 && !nsOk ? t("brains.new.namespaceInvalid") : t("brains.new.namespaceHint")}
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="nb-desc">{optional(t("brains.new.descriptionLabel"))}</Label>
+          <Textarea
+            id="nb-desc"
+            value={desc}
+            rows={2}
+            maxLength={280}
+            placeholder={t("brains.new.descriptionPlaceholder")}
+            onChange={(e) => setDesc(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] items-start gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="nb-name">{t("brains.new.name")}</Label>
-            <Input
-              id="nb-name"
-              autoFocus
-              value={name}
-              maxLength={80}
-              placeholder={t("brains.new.namePlaceholder")}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="nb-ns">{t("brains.new.namespace")}</Label>
-            <Input
-              id="nb-ns"
-              dir="ltr"
-              value={namespace}
-              maxLength={63}
-              aria-invalid={namespace.length > 0 && !nsOk}
-              className="font-mono"
-              onChange={(e) => {
-                setSlugEdited(true);
-                setSlug(e.target.value.toLowerCase());
-              }}
-            />
-            <p className={cn("text-xs", namespace.length > 0 && !nsOk ? "text-destructive" : "text-muted-foreground")}>
-              {namespace.length > 0 && !nsOk ? t("brains.new.namespaceInvalid") : t("brains.new.namespaceHint")}
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="nb-desc">{optional(t("brains.new.descriptionLabel"))}</Label>
-            <Textarea
-              id="nb-desc"
-              value={desc}
-              rows={2}
-              maxLength={280}
-              placeholder={t("brains.new.descriptionPlaceholder")}
-              onChange={(e) => setDesc(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-[1fr_auto] items-start gap-4">
-            <div className="space-y-1.5">
-              <Label>{optional(t("brains.new.color"))}</Label>
-              <div role="radiogroup" aria-label={t("brains.new.color")} className="flex flex-wrap gap-1.5">
-                <Swatch label={t("brains.new.colorNone")} selected={!color} onClick={() => setColor("")} />
-                {PALETTE.map((c) => (
-                  <Swatch key={c.key} label={c.key} hex={c.hex} selected={color === c.key} onClick={() => setColor(c.key)} />
-                ))}
-              </div>
-            </div>
-            <div className="w-28 space-y-1.5">
-              <Label htmlFor="nb-icon">{t("brains.new.icon")}</Label>
-              <Input
-                id="nb-icon"
-                value={icon}
-                placeholder="🧠"
-                title={t("brains.new.iconPlaceholder")}
-                onChange={(e) => setIcon(clampIcon(e.target.value))}
-                className="text-center text-lg"
-              />
+            <Label>{optional(t("brains.new.color"))}</Label>
+            <div role="radiogroup" aria-label={t("brains.new.color")} className="flex flex-wrap gap-1.5">
+              <Swatch label={t("brains.new.colorNone")} selected={!color} onClick={() => setColor("")} />
+              {PALETTE.map((c) => (
+                <Swatch key={c.key} label={c.key} hex={c.hex} selected={color === c.key} onClick={() => setColor(c.key)} />
+              ))}
             </div>
           </div>
+          <div className="w-24 space-y-1.5">
+            <Label htmlFor="nb-icon">{t("brains.new.icon")}</Label>
+            <Input
+              id="nb-icon"
+              value={icon}
+              placeholder="🧠"
+              title={t("brains.new.iconPlaceholder")}
+              onChange={(e) => setIcon(clampIcon(e.target.value))}
+              className="text-center text-lg"
+            />
+          </div>
+        </div>
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      </div>
 
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" disabled={!nsOk || busy}>
-              {t("brains.new.submit")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-border/60 px-6 py-3">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          {t("action.cancel")}
+        </Button>
+        <Button type="submit" disabled={!nsOk || busy}>
+          {busy ? <Loader2 className="animate-spin" /> : null}
+          {t("win.newBrain.create")}
+        </Button>
+      </footer>
+    </form>
   );
 }
 

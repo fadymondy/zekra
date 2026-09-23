@@ -25,6 +25,12 @@ export function ensureFindStyles(): void {
     ".zk-live [data-word-wrap]{border-color:transparent!important;background:transparent!important;padding:0!important;border-radius:0!important;}",
     ".zk-live .ProseMirror{min-height:55vh;}",
     ".zk-live .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);color:var(--grid-muted);float:inline-start;height:0;pointer-events:none;}",
+    // Per-block direction: each paragraph, heading, list item, quote and cell
+    // reads in the direction of its own text (the editor also sets dir="auto"
+    // on them — web editor-extensions.ts BlockDirection; this is the fallback,
+    // and the whole mechanism for the read-only render).
+    ".zk-live .ProseMirror :is(p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,dt,dd),.zk-reader :is(p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,dt,dd,figcaption){unicode-bidi:plaintext;text-align:start;}",
+    ".zk-live .ProseMirror pre{direction:ltr;text-align:left;}",
   ].join("\n");
   document.head.appendChild(style);
 }

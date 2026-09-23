@@ -85,7 +85,7 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
         <DialogContent className="flex h-[80vh] flex-col gap-0 p-0 sm:max-w-5xl">
           <DialogHeader className="border-b border-border/60 px-5 py-4">
             <DialogTitle>{t("notes.x.versions")}</DialogTitle>
-            <DialogDescription className="truncate" style={{ unicodeBidi: "plaintext" }}>
+            <DialogDescription className="truncate" dir="auto" style={{ unicodeBidi: "plaintext" }}>
               {note?.title || t("notes.x.untitled")}
             </DialogDescription>
           </DialogHeader>
@@ -113,15 +113,15 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
                           {t("notes.x.version", { n: v.version })}
                         </span>
                         {i === 0 ? (
-                          <span className="rounded-sm bg-grid-action/15 px-1.5 text-[10px] text-grid-action">{t("notes.x.current")}</span>
+                          <span className="rounded-sm bg-grid-action/15 px-1.5 text-[12px] text-grid-action">{t("notes.x.current")}</span>
                         ) : null}
                         {v.deleted ? (
-                          <span className="rounded-sm bg-grid-danger/15 px-1.5 text-[10px] text-destructive">{t("notes.x.deletedTag")}</span>
+                          <span className="rounded-sm bg-grid-danger/15 px-1.5 text-[12px] text-destructive">{t("notes.x.deletedTag")}</span>
                         ) : null}
                       </span>
                       <span className="text-xs text-muted-foreground">{fmt(v.createdAt)}</span>
                       {v.authorAgent || v.source ? (
-                        <span className="truncate text-[11px] text-muted-foreground">
+                        <span className="truncate text-[12.5px] text-muted-foreground">
                           {t("ws.versions.by", { who: v.authorAgent || v.source })}
                         </span>
                       ) : null}
@@ -136,9 +136,14 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
                   <p className="text-sm text-muted-foreground">{t("ws.versions.pick")}</p>
                 ) : (
                   <>
-                    <h2 className="mb-3 text-lg font-medium" style={{ unicodeBidi: "plaintext" }}>
+                    <h2 className={current.description ? "mb-1 text-lg font-medium" : "mb-3 text-lg font-medium"} dir="auto" style={{ unicodeBidi: "plaintext" }}>
                       {current.title || t("notes.x.untitled")}
                     </h2>
+                    {current.description ? (
+                      <p className="mb-3 text-sm text-muted-foreground" dir="auto" style={{ unicodeBidi: "plaintext" }}>
+                        {current.description}
+                      </p>
+                    ) : null}
                     {current.body.trim() ? (
                       <Markdown text={current.body} />
                     ) : (

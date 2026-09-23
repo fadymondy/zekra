@@ -12,6 +12,8 @@ every feature team and kept small). Same endpoints the mobile app uses
 export type NoteVersion = {
   version: number;
   title: string;
+  /** Absent on servers that predate descriptions. */
+  description?: string;
   body: string;
   tags: string[];
   category?: string;

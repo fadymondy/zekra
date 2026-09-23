@@ -38,9 +38,9 @@ import type {
 export const LOCAL_ID_PREFIX = "local:";
 export const isLocalId = (id: string): boolean => id.startsWith(LOCAL_ID_PREFIX);
 
-export const PATCH_FIELDS: OfflinePatchField[] = ["title", "body", "tags", "category", "pinned", "archived", "icon", "color"];
+export const PATCH_FIELDS: OfflinePatchField[] = ["title", "description", "body", "tags", "category", "pinned", "archived", "icon", "color"];
 /** Fields whose concurrent edits cannot be merged: both sides' text is kept. */
-export const TEXT_FIELDS: OfflinePatchField[] = ["title", "body"];
+export const TEXT_FIELDS: OfflinePatchField[] = ["title", "description", "body"];
 
 /* --------------------------------------------------------------- queue */
 
@@ -218,6 +218,8 @@ export function normaliseRemote(raw: unknown): OfflineNote | null {
     id: n.id,
     namespace: n.namespace,
     title: typeof n.title === "string" ? n.title : "",
+    // Missing on servers without the column: absent, never an error.
+    description: typeof n.description === "string" && n.description ? n.description : undefined,
     body: typeof n.body === "string" ? n.body : "",
     tags: Array.isArray(n.tags) ? n.tags.map(String) : [],
     category: typeof n.category === "string" ? n.category : undefined,
@@ -285,6 +287,7 @@ export function localNote(id: string, namespace: string, patch: OfflineNotePatch
     id,
     namespace,
     title: patch.title ?? "",
+    description: patch.description || undefined,
     body: patch.body ?? "",
     tags: patch.tags ?? [],
     category: patch.category ?? "note",
@@ -442,7 +445,13 @@ export function queryNotes(all: Iterable<OfflineNote>, q: OfflineQuery = {}): { 
   for (const n of all) {
     if (!matchesFilter(n, filter)) continue;
     if (tag && !(n.tags ?? []).includes(tag)) continue;
-    if (needle && !n.title.toLowerCase().includes(needle) && !(n.body ?? "").toLowerCase().includes(needle)) continue;
+    if (
+      needle &&
+      !n.title.toLowerCase().includes(needle) &&
+      !(n.description ?? "").toLowerCase().includes(needle) &&
+      !(n.body ?? "").toLowerCase().includes(needle)
+    )
+      continue;
     rows.push(n);
   }
   rows.sort(compare(q.sort ?? "updated"));

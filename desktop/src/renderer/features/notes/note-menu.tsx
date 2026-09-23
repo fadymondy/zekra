@@ -10,6 +10,7 @@ Every action a note has, in the order the mobile note sheet lists them
 (mobile/src/features/notes/note-sheet.tsx) plus the desktop's own:
 
   open · open in new tab · open to the side · open in new window
+  rename · view markdown source (in the editor's "…")
   pin/unpin · archive/unarchive · icon & colour… · version history…
   copy markdown · export ▸ md/html/pdf/docx/png/txt
   delete…
@@ -24,6 +25,8 @@ export type NoteMenuAction =
   | { kind: "open-new-tab" }
   | { kind: "open-side" }
   | { kind: "open-window" }
+  | { kind: "rename" }
+  | { kind: "view-source" }
   | { kind: "pin" }
   | { kind: "archive" }
   | { kind: "appearance"; patch: AppearancePatch }
@@ -59,6 +62,13 @@ export function noteMenuItems(note: Note, t: TFn, { canWrite, showOpen = true, c
   if (canOpenWindow) items.push({ id: "open-window", label: t("sb.openWindow"), accelerator: "Alt+CmdOrCtrl+O" });
   items.push(SEP);
   if (canWrite) {
+    const mac = typeof document !== "undefined" && document.documentElement.dataset.platform === "darwin";
+    items.push({ id: "rename", label: t("ws.rename"), accelerator: mac ? "CmdOrCtrl+R" : "F2" });
+  }
+  // In the editor: the markdown source, a secondary view of the live note.
+  if (!showOpen) items.push({ id: "view-source", label: t("ws.viewSource"), accelerator: "Alt+CmdOrCtrl+U" });
+  items.push(SEP);
+  if (canWrite) {
     items.push(
       { id: "pin", label: note.pinned ? t("notes.x.unpin") : t("notes.x.pin") },
       { id: "archive", label: note.archived ? t("notes.x.unarchive") : t("notes.x.archive") },
@@ -83,6 +93,8 @@ export function noteMenuAction(id: string): NoteMenuAction | null {
     case "open-new-tab":
     case "open-side":
     case "open-window":
+    case "rename":
+    case "view-source":
     case "pin":
     case "archive":
     case "appearance-picker":

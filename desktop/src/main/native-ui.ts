@@ -76,6 +76,8 @@ function popup(e: IpcMainInvokeEvent, req: PopupMenuRequest): Promise<string | n
 
 type Saved = NoteWindowRequest & { bounds?: Electron.Rectangle };
 const noteWindows = new Map<string, BrowserWindow>();
+/** Note windows (existing and new), for cascading. */
+const noteWindowSet = new WeakSet<BrowserWindow>();
 let quitting = false;
 
 const storeFile = () => path.join(app.getPath("userData"), "note-windows.json");
@@ -128,19 +130,12 @@ export function guardWindow(win: BrowserWindow): void {
   win.webContents.on("did-finish-load", () => sendState(win));
 }
 
-export function openNoteWindow(req: NoteWindowRequest, bounds?: Electron.Rectangle): BrowserWindow {
-  const key = keyOf(req);
-  const existing = noteWindows.get(key);
-  if (existing && !existing.isDestroyed()) {
-    if (existing.isMinimized()) existing.restore();
-    existing.focus();
-    return existing;
-  }
-  const win = new BrowserWindow({
+function noteWindowOptions(bounds?: Electron.Rectangle, title?: string): Electron.BrowserWindowConstructorOptions {
+  return {
     ...(bounds ?? { width: 760, height: 820 }),
     minWidth: 480,
     minHeight: 360,
-    title: req.title || "Zekra",
+    title: title || "Zekra",
     show: false,
     ...windowChromeFor(currentPlatform()),
     webPreferences: {
@@ -150,22 +145,65 @@ export function openNoteWindow(req: NoteWindowRequest, bounds?: Electron.Rectang
       sandbox: true,
       spellcheck: true,
     },
-  });
+  };
+}
+
+/** Track `win` under `key` (restored on relaunch) until it closes. */
+function trackNoteWindow(win: BrowserWindow, key: string): void {
   noteWindows.set(key, win);
-  guardWindow(win);
-  win.once("ready-to-show", () => win.show());
-  void win.loadFile(path.join(__dirname, "..", "renderer", "index.html"), {
-    query: { window: "note", ns: req.namespace, id: req.id },
-  });
+  noteWindowSet.add(win);
   win.on("close", () => writeSavedSoon());
   win.on("closed", () => {
-    noteWindows.delete(key);
+    if (noteWindows.get(key) === win) noteWindows.delete(key);
     if (!quitting) writeSaved();
   });
   win.on("moved", writeSavedSoon);
   win.on("resized", writeSavedSoon);
   win.on("page-title-updated", writeSavedSoon);
   writeSavedSoon();
+}
+
+export function openNoteWindow(req: NoteWindowRequest, bounds?: Electron.Rectangle): BrowserWindow {
+  const key = keyOf(req);
+  const existing = noteWindows.get(key);
+  if (existing && !existing.isDestroyed()) {
+    if (existing.isMinimized()) existing.restore();
+    if (!existing.isVisible()) existing.show();
+    existing.focus();
+    return existing;
+  }
+  const win = new BrowserWindow(noteWindowOptions(bounds, req.title));
+  guardWindow(win);
+  win.once("ready-to-show", () => win.show());
+  void win.loadFile(path.join(__dirname, "..", "renderer", "index.html"), {
+    query: { window: "note", ns: req.namespace, id: req.id },
+  });
+  trackNoteWindow(win, key);
+  return win;
+}
+
+/** File ▸ New Note, the tray, the Dock, ⌘N: a new note in its own window,
+ *  with a brain picker on top (`namespace` preselects one). It is not
+ *  restored on relaunch until its first save created the note
+ *  (noteWindowCreated). Cascades from the focused window. */
+export function openNewNoteWindow(namespace?: string | null): BrowserWindow {
+  const focused = BrowserWindow.getFocusedWindow();
+  let bounds: Electron.Rectangle | undefined;
+  if (focused && !focused.isDestroyed() && noteWindowSet.has(focused)) {
+    const b = focused.getBounds();
+    bounds = { x: b.x + 26, y: b.y + 26, width: b.width, height: b.height };
+  }
+  const win = new BrowserWindow(noteWindowOptions(bounds));
+  noteWindowSet.add(win);
+  guardWindow(win);
+  win.once("ready-to-show", () => {
+    win.show();
+    win.focus();
+  });
+  void win.loadFile(path.join(__dirname, "..", "renderer", "index.html"), {
+    query: { window: "note-new", ...(namespace ? { ns: namespace } : {}) },
+  });
+  win.on("closed", () => noteWindowSet.delete(win));
   return win;
 }
 
@@ -201,6 +239,16 @@ export function registerNativeUiIpc(): void {
   ipcMain.handle(IPC.windowOpenNote, (_e, req: NoteWindowRequest): void => {
     if (!req || typeof req.namespace !== "string" || typeof req.id !== "string") return;
     openNoteWindow({ namespace: req.namespace, id: req.id, title: typeof req.title === "string" ? req.title : undefined });
+  });
+
+  // A note-new window saved its note: from now on it is that note's window
+  // (the Window menu title, restore on relaunch, "open again" focuses it).
+  ipcMain.handle(IPC.windowNoteCreated, (e, req: NoteWindowRequest): void => {
+    const win = senderWindow(e);
+    if (!win || !req || typeof req.namespace !== "string" || typeof req.id !== "string") return;
+    const key = keyOf(req);
+    if (noteWindows.get(key) === win) return;
+    trackNoteWindow(win, key);
   });
 
   // Windows: caption buttons in the theme's colours. Only #rrggbb[aa] passes.

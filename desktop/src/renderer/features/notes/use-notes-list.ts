@@ -94,7 +94,11 @@ export function useNotesList(token: string, ns: string, view: NoteView) {
       onSyncChange((e) => {
         if (e.namespace !== ns || e.reason === "clear") return;
         const q = viewRef.current.q.trim().toLowerCase();
-        const matches = (n: Note) => !q || n.title.toLowerCase().includes(q) || (n.body ?? "").toLowerCase().includes(q);
+        const matches = (n: Note) =>
+          !q ||
+          n.title.toLowerCase().includes(q) ||
+          (n.description ?? "").toLowerCase().includes(q) ||
+          (n.body ?? "").toLowerCase().includes(q);
         setPages((p) => {
           if (!p.length) return p;
           let next = p;

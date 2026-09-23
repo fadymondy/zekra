@@ -7,7 +7,12 @@ import { clearAuthedImageCache } from "./lib/authed-image";
 import { bridge, type AppSettings, type SettingsPatch, type ThemeChoice } from "./lib/bridge";
 import { I18nProvider } from "./lib/i18n";
 import { loadPlatform, syncWindowChrome, windowKind } from "./lib/platform";
+import { installAppearanceSync } from "./lib/appearance";
 import { NoteWindow } from "./screens/note-window";
+import { NewBrainWindow } from "./screens/new-brain-window";
+import { SettingsWindow } from "./screens/settings-window";
+import { SpotlightWindow } from "./screens/spotlight-window";
+import { TrayStateSync } from "./shell/tray-state";
 import { AppLockGate } from "./features/security"; // MH-450 Touch ID app lock
 import { MarkItDownFeatures } from "./features/open-file/host"; // MH-450 importers, opened .md, tray, updates
 import { AppShell } from "./shell/app-shell";
@@ -52,6 +57,7 @@ function initialRoute(settings: AppSettings): Route {
 }
 
 const kind = windowKind();
+document.documentElement.dataset.window = kind.kind;
 
 function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (s: AppSettings) => void }) {
   const [user, setUser] = useState<User | null>(settings.authToken ? settings.authUser : null);
@@ -84,6 +90,23 @@ function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (
     };
   }, []);
 
+  // Appearance (reading theme + typography) is live in every window.
+  useEffect(() => installAppearanceSync(), []);
+
+  // Another window changed the settings (theme, language, the session: a
+  // sign-out in the Settings window signs this window out too).
+  useEffect(
+    () =>
+      bridge().onSettingsChanged?.((next) => {
+        setSettings(next);
+        if (!next.authToken) {
+          setUser(null);
+          setBrains(null);
+        }
+      }),
+    [setSettings],
+  );
+
   const loadBrains = useCallback(async (tok: string) => {
     try {
       const { brains: list } = await zekraApi.brains(tok);
@@ -92,6 +115,16 @@ function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (
       toast.error(e instanceof Error ? e.message : "Could not load brains");
     }
   }, []);
+
+  // A brain was created elsewhere: the pickers (Spotlight, New Note) follow.
+  // The main window reloads and opens it itself (shell/base-commands.tsx).
+  useEffect(
+    () =>
+      bridge().onBroadcast?.((msg) => {
+        if (msg.kind === "brains-changed" && kind.kind !== "main" && token) void loadBrains(token);
+      }),
+    [token, loadBrains],
+  );
 
   // Restore the session on boot / token change. Only an auth rejection signs
   // the user out — being offline must not.
@@ -171,10 +204,20 @@ function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (
                 {kind.kind === "note" ? (
                   // A note document window (src/main/native-ui.ts).
                   <NoteWindow ns={kind.ns} id={kind.id} />
+                ) : kind.kind === "note-new" ? (
+                  // File ▸ New Note / the tray: a new note, brain picker on top.
+                  <NoteWindow ns={kind.ns} id={null} />
+                ) : kind.kind === "settings" ? (
+                  <SettingsWindow initial={kind.section} />
+                ) : kind.kind === "spotlight" ? (
+                  <SpotlightWindow />
+                ) : kind.kind === "new-brain" ? (
+                  <NewBrainWindow />
                 ) : (
                   <>
                     <ShellCommands />
                     <MarkItDownFeatures />
+                    <TrayStateSync />
                     <AppShell booting={booting} onSignedIn={(a) => void signIn(a)} />
                   </>
                 )}

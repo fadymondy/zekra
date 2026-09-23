@@ -74,7 +74,7 @@ import { isWindows11 } from "./window-chrome";
 import { broadcast, setCommandTargetFilter } from "./renderer-events";
 import { ss } from "./services-strings";
 import { getSettings, patchSettings } from "./settings-store";
-import { onTrayRecentChanged } from "./tray";
+import { onTrayRecentChanged, setTraySync, setTraySyncNow } from "./tray";
 import { installingUpdate } from "./updater";
 
 export { startHidden, addRecentDocument };
@@ -117,7 +117,10 @@ export function getEngine(): SyncEngine {
     enabled: () => getSettings().offlineCacheEnabled,
     intervalMinutes: () => getSettings().syncIntervalMinutes,
     isOnline: () => net.isOnline(),
-    onStatus: (status) => broadcast(IPC.evSyncStatus, status),
+    onStatus: (status) => {
+      broadcast(IPC.evSyncStatus, status);
+      setTraySync(status); // the menubar's sync line
+    },
     onChange: (change) => broadcast(IPC.evSyncChange, change),
     conflictLabel: () => ss().conflictedCopy,
     log: (...a) => console.warn(...a),
@@ -256,6 +259,10 @@ export function installDesktopServices(opts: { showMainWindow: () => void; appNa
   if (!sc.ok) console.warn(`[zekra] quick capture shortcut ${sc.accelerator} not registered: ${sc.error}`);
   installMenu(); // show the registered shortcut on File ▸ Quick Capture
   if (sc.ok && sc.accelerator) setTimeout(prewarmQuickCapture, 4_000).unref();
+
+  // Menubar: Sync Now + the current status.
+  setTraySyncNow(() => void eng.syncNow().catch(() => undefined));
+  void eng.status().then(setTraySync, () => undefined);
 
   // Dock menu / Jump List, fed by the tray's recent notes.
   initAppShortcuts({ openCapture: () => void showQuickCapture(), showMain: opts.showMainWindow });

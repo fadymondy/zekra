@@ -8,13 +8,14 @@ import {
   type ClipboardEvent,
   type DragEvent,
   type FocusEvent,
-  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Ellipsis, TriangleAlert } from "lucide-react";
+import { Code2, Ellipsis, Info, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { findLossyConstructs } from "@/components/notes/lossy-markdown";
 import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg";
 import { useNoteSettings } from "@/components/notes/note-settings-panel";
 import { imageFilesFrom } from "@/lib/notes/upload-image";
@@ -24,15 +25,16 @@ import { Autosaver, type AutosaveStatus } from "@mobile/features/editor/autosave
 
 import { IconButton } from "../../components/chrome";
 import { Markdown } from "../../components/markdown";
-import type { Brain, Note } from "../../lib/api";
+import type { Brain, Note, NotePatch } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
 import { useCommand } from "../../shell/commands";
 import { useSlot } from "../../shell/slots";
 import { toast } from "../../shell/toast";
 import { notesApi, overwriteNote, saveNote } from "../notes/notes-api";
 import { textStats } from "../notes/notes-model";
+import { AppearancePicker, NoteIconTile } from "./appearance-picker";
 import { uploadNoteImage, useAuthedImagesIn } from "./authed-dom-images";
-import { FindBar, ModeSwitch, OutlineRail, SplitDivider, type EditorMode } from "./editor-chrome";
+import { FindBar, OutlineRail } from "./editor-chrome";
 import { exportNote, type ExportFormat } from "./export";
 import {
   clearHighlights,
@@ -49,51 +51,92 @@ import { activeHeading, headingElements, outlineOf, type OutlineItem } from "./o
 import type { DeskTab } from "./tab-groups";
 
 /*
-One open note: title, tags + category, and the body in one of four modes —
+One open note, Apple Notes style: ONE live surface you read and edit at once.
 
-  live     the web's TipTap WYSIWYG (NoteEditorWysiwyg), the default: you edit
-           the rendered note, Apple Notes style
-  source   the markdown in a plain textarea, in the house mono
-  split    source and a live preview side by side (Mark It Down's Split),
-           draggable divider, the preview following the source's scroll
-  preview  the rendered note (NoteMarkdown), read-only
+  header   icon/colour tile (click: picker) · title (wraps; Enter → description)
+           · description (muted, 1–3 lines) · category + tags
+  body     the web's TipTap WYSIWYG (NoteEditorWysiwyg) — always. Markdown
+           shortcuts and paste render as you type.
+
+There is no Live/Source/Split/Preview switch. The markdown source is a
+secondary view (View ▸ View Markdown Source ⌥⌘U, or the "…" menu), shown in
+place of the body with a Done button. A note whose markdown TipTap cannot
+round-trip (footnotes, raw HTML blocks — web lossy-markdown.ts) is shown
+rendered, read-only, with an inline "Edit as Markdown" that opens the source
+view; editing it live would rewrite the author's content. A read-only brain
+gets the same surface, non-editable.
+
+Every text block reads in its own direction (an English note in the Arabic UI
+starts at the left) — the editor schema's BlockDirection decorations, plus
+unicode-bidi: plaintext in the rendered/read views (find.ts styles).
 
 Saving is mobile's autosave (autosave-core.ts): 800 ms after the last change,
-and at once on blur, on ⌘S, when the tab is switched or closed (unmount). A
-new note (tab.id null) is created by its FIRST save — the server rejects empty
-notes, so an untouched draft never reaches it. A 409 stops autosave and shows
-the conflict banner: Reload theirs / Overwrite.
+and at once on blur, on ⌘S, when the tab is switched or closed (unmount). It
+covers title, description, tags, category, icon and colour like the body, in
+the same PUT with the version. A new note (tab.id null) is created by its
+FIRST save — the server rejects empty notes, so an untouched draft never
+reaches it. A 409 stops autosave and shows the conflict banner: Reload theirs /
+Overwrite.
 
 While its group is focused the editor also owns: the status-bar items (words,
-characters, cursor in source, save state), ⌘F find, ⌘S save, the File ▸ Export
-commands, and the outline rail (portalled into the workspace's rail).
+characters, cursor in source, save state), ⌘F find, ⌘S save, Note ▸ Rename
+(⌘R / F2), View Markdown Source, the File ▸ Export commands, and the outline
+rail (portalled into the workspace's rail).
 */
 
-type Snapshot = { title: string; body: string; tags: string[]; category: string };
+type Snapshot = {
+  title: string;
+  description: string;
+  body: string;
+  tags: string[];
+  category: string;
+  icon: string;
+  color: string;
+};
 
 const snapOf = (n: Note | null | undefined): Snapshot => ({
   title: n?.title ?? "",
+  // Absent on servers that predate descriptions: read as empty.
+  description: n?.description ?? "",
   body: n?.body ?? "",
   tags: n?.tags ?? [],
   category: n?.category ?? "",
+  icon: n?.icon ?? "",
+  color: n?.color ?? "",
 });
 
-/** The PUT body: every editable field, category only when the note has one
- *  (an empty category stays empty rather than becoming "note"). */
-const patchOf = (s: Snapshot) => ({ title: s.title, body: s.body, tags: s.tags, ...(s.category ? { category: s.category } : {}) });
+/** The server caps descriptions at 500 characters (notes.go). */
+const DESCRIPTION_MAX = 500;
+
+/**
+ * The PUT body: every text field; category only when the note has one (an
+ * empty category stays empty rather than becoming "note"); icon/colour only
+ * when changed HERE, so an appearance set elsewhere (the list's menu) is never
+ * put back by an editor that did not touch it.
+ */
+const patchOf = (s: Snapshot, base: Note | null): NotePatch => ({
+  title: s.title,
+  description: s.description,
+  body: s.body,
+  tags: s.tags,
+  ...(s.category ? { category: s.category } : {}),
+  ...(s.icon !== (base?.icon ?? "") ? { icon: s.icon } : {}),
+  ...(s.color !== (base?.color ?? "") ? { color: s.color } : {}),
+});
 
 const sameContent = (a: Note, b: Note) =>
   a.title === b.title &&
+  (a.description ?? "") === (b.description ?? "") &&
   (a.body ?? "") === (b.body ?? "") &&
   (a.category ?? "") === (b.category ?? "") &&
   a.tags.join("\u0000") === b.tags.join("\u0000");
 
+/** The last rename request each tab has acted on. */
+const renamedAt = new Map<string, number>();
+
 /** Unsaved text of editors that unmounted before they could save (offline,
  *  conflict), restored when the tab is shown again. Session memory only. */
 const stashed = new Map<string, { snap: Snapshot; base: Note | null }>();
-
-const SPLIT_KEY = "zekra.desktop.source-split";
-
 
 // Every open editor's autosaver, so quitting the app can wait for pending
 // saves: the main process calls window.__zekraFlushAll() on before-quit
@@ -102,6 +145,9 @@ const liveSavers = new Set<Autosaver<Snapshot>>();
 (window as unknown as { __zekraFlushAll?: () => Promise<unknown> }).__zekraFlushAll = () =>
   Promise.allSettled([...liveSavers].map((s) => s.flush()));
 
+/** Title and description as typed, before they are saved (live list rows/tabs). */
+export type NoteDraft = { id: string | null; title: string; description: string };
+
 export type NoteEditorProps = {
   tab: DeskTab;
   brain: Brain;
@@ -109,22 +155,26 @@ export type NoteEditorProps = {
   /** Freshest copy the workspace knows (list/cache), if any. */
   cached: Note | null;
   focused: boolean;
-  mode: EditorMode;
-  onModeChange: (m: EditorMode) => void;
   outlineHost: HTMLElement | null;
-  /** The pane header's end (the group's tab strip): mode switch + note menu
-   *  are portalled there, so the pane has one header row. */
+  /** The pane header's end (the group's tab strip): the note menu is
+   *  portalled there, so the pane has one header row. */
   chromeHost?: HTMLElement | null;
+  /** Bumped to focus and select the title (Rename: ⌘R / F2 / double-click). */
+  rename?: number;
   onSaved: (tabKey: string, note: Note) => void;
   onCreated: (tabKey: string, note: Note) => void;
   onStatus: (tabKey: string, status: AutosaveStatus) => void;
-  /** Dropdown items for the "…" menu of a saved note. */
+  /** Every title/description keystroke, so the list row and tab follow live;
+   *  null once the editor is gone (its last save is in the list by then). */
+  onDraft?: (tabKey: string, draft: NoteDraft | null) => void;
   /** The "…" button: pops the note's native menu under `anchor`. */
   onMenu: (note: Note, anchor: Element) => void;
 };
 
+type View = "live" | "read" | "source";
+
 export function NoteEditor(props: NoteEditorProps) {
-  const { tab, brain, token, cached, focused, mode, onModeChange, outlineHost, chromeHost, onMenu } = props;
+  const { tab, brain, token, cached, focused, outlineHost, chromeHost, rename, onMenu } = props;
   const { t, dir } = useI18n();
   const { settings } = useNoteSettings();
   const canWrite = brain.canWrite;
@@ -138,21 +188,45 @@ export function NoteEditor(props: NoteEditorProps) {
   const init = stash?.snap ?? snapOf(cached);
   const snapRef = useRef<Snapshot>(init);
   const [title, setTitle] = useState(init.title);
+  const [description, setDescription] = useState(init.description);
   const [body, setBody] = useState(init.body);
   const [tags, setTags] = useState(init.tags);
   const [category, setCategory] = useState(init.category);
+  const [icon, setIcon] = useState(init.icon);
+  const [color, setColor] = useState(init.color);
   const [loading, setLoading] = useState(Boolean(tab.id) && !stash && (!cached || cached.body === undefined));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [status, setStatus] = useState<AutosaveStatus>(stash ? "dirty" : "idle");
   const [saveError, setSaveError] = useState("");
 
-  const setAll = useCallback((s: Snapshot) => {
-    snapRef.current = s;
+  // The lossy check reads the body as LOADED (or as left in the source view),
+  // not every keystroke: typing in the live editor must never flip the view.
+  const [guardBody, setGuardBody] = useState(init.body);
+  const lossy = useMemo(() => findLossyConstructs(guardBody), [guardBody]);
+  const [source, setSource] = useState(false);
+  const view: View = source ? "source" : lossy.length ? "read" : "live";
+  const isSource = view === "source";
+
+  const show = useCallback((s: Snapshot) => {
     setTitle(s.title);
+    setDescription(s.description);
     setBody(s.body);
     setTags(s.tags);
     setCategory(s.category);
+    setIcon(s.icon);
+    setColor(s.color);
   }, []);
+
+  const setAll = useCallback(
+    (s: Snapshot) => {
+      snapRef.current = s;
+      show(s);
+      setGuardBody(s.body);
+      const p = latestProps.current;
+      p.onDraft?.(p.tab.key, null);
+    },
+    [show],
+  );
 
   const rebase = useCallback((n: Note) => {
     baseRef.current = n;
@@ -178,13 +252,22 @@ export function NoteEditor(props: NoteEditorProps) {
         if (!b) {
           if (!snap.title.trim() && !snap.body.trim()) return { ok: true, skipped: true };
           try {
-            const note = await notesApi.create(p.token, p.brain.namespace, {
+            let note = await notesApi.create(p.token, p.brain.namespace, {
               title: snap.title,
+              description: snap.description,
               body: snap.body,
               tags: snap.tags,
               category: snap.category || "note",
             });
             createdHere.current = note.id;
+            // POST ignores appearance: it follows as an update.
+            if (snap.icon || snap.color) {
+              const res = await saveNote(p.token, note, {
+                ...(snap.icon ? { icon: snap.icon } : {}),
+                ...(snap.color ? { color: snap.color } : {}),
+              });
+              if (res.ok) note = res.note;
+            }
             rebase(note);
             p.onCreated(key, note);
             return { ok: true };
@@ -192,7 +275,7 @@ export function NoteEditor(props: NoteEditorProps) {
             return { ok: false, conflict: false, error: e instanceof Error ? e.message : String(e) };
           }
         }
-        const res = await saveNote(p.token, b, patchOf(snap));
+        const res = await saveNote(p.token, b, patchOf(snap, b));
         if (!res.ok) return { ok: false, conflict: res.conflict, error: res.error };
         rebase(res.note);
         p.onSaved(key, res.note);
@@ -213,6 +296,7 @@ export function NoteEditor(props: NoteEditorProps) {
         if (saver.isDirty) stashed.set(key, { snap: snapRef.current, base: baseRef.current });
         saver.dispose();
         latestProps.current.onStatus(key, "idle");
+        if (!saver.isDirty) latestProps.current.onDraft?.(key, null);
       });
     };
   }, [tab.key, rebase]);
@@ -223,9 +307,16 @@ export function NoteEditor(props: NoteEditorProps) {
       const next = { ...snapRef.current, ...patch };
       snapRef.current = next;
       if (patch.title !== undefined) setTitle(patch.title);
+      if (patch.description !== undefined) setDescription(patch.description);
       if (patch.body !== undefined) setBody(patch.body);
       if (patch.tags !== undefined) setTags(patch.tags);
       if (patch.category !== undefined) setCategory(patch.category);
+      if (patch.icon !== undefined) setIcon(patch.icon);
+      if (patch.color !== undefined) setColor(patch.color);
+      if (patch.title !== undefined || patch.description !== undefined) {
+        const p = latestProps.current;
+        p.onDraft?.(p.tab.key, { id: baseRef.current?.id ?? p.tab.id, title: next.title, description: next.description });
+      }
       saverRef.current?.change(next);
     },
     [canWrite],
@@ -238,7 +329,16 @@ export function NoteEditor(props: NoteEditorProps) {
       if (b && n.id !== b.id) return;
       if (b && n.version < b.version) return;
       if (b && sameContent(n, b)) {
-        rebase(n); // metadata only (pin, archive, appearance): keep any edits
+        // Metadata only (pin, archive, appearance): keep any edits, and take
+        // the new icon/colour unless this editor changed them itself.
+        const s = snapRef.current;
+        rebase(n);
+        if (s.icon === (b.icon ?? "") && s.color === (b.color ?? "")) {
+          const next = { ...s, icon: n.icon ?? "", color: n.color ?? "" };
+          snapRef.current = next;
+          setIcon(next.icon);
+          setColor(next.color);
+        }
         return;
       }
       if (saverRef.current?.isDirty) return; // editing: the save will surface the conflict
@@ -300,7 +400,7 @@ export function NoteEditor(props: NoteEditorProps) {
   async function overwrite() {
     if (!baseRef.current) return;
     try {
-      const n = await overwriteNote(token, baseRef.current.id, patchOf(snapRef.current));
+      const n = await overwriteNote(token, baseRef.current.id, patchOf(snapRef.current, baseRef.current));
       rebase(n);
       saverRef.current?.resolved({ dirty: false });
       props.onSaved(tab.key, n);
@@ -321,26 +421,53 @@ export function NoteEditor(props: NoteEditorProps) {
   }, [flush]);
 
   // ── panes ──────────────────────────────────────────────────────────────
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const liveRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
-  const splitRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLTextAreaElement | null>(null);
-  const [splitRatio, setSplitRatio] = useState(() => {
-    const n = Number(localStorage.getItem(SPLIT_KEY));
-    return n >= 0.15 && n <= 0.85 ? n : 0.5;
-  });
-  useAuthedImagesIn(liveRef, `${mode}:${loading}`);
-  useAuthedImagesIn(previewRef, `${mode}:${loading}`);
+  const descRef = useRef<HTMLTextAreaElement | null>(null);
+  useAuthedImagesIn(liveRef, `${view}:${loading}`);
+  useAuthedImagesIn(previewRef, `${view}:${loading}`);
+
+  const focusTitle = useCallback((select: boolean) => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.focus();
+    if (select) el.select();
+    else el.setSelectionRange(el.value.length, el.value.length);
+  }, []);
+  const focusBody = useCallback(() => {
+    if (view === "source") taRef.current?.focus();
+    else (liveRef.current?.querySelector(".ProseMirror") as HTMLElement | null)?.focus();
+  }, [view]);
 
   // New, empty note: start in the title.
   useEffect(() => {
     if (!tab.id && focused) titleRef.current?.focus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const domPane = () => (mode === "live" ? liveRef.current : mode === "source" ? null : previewRef.current);
+  // Rename (⌘R / F2 / double-click in the list): the title, selected. Each
+  // request once — not again when the tab is shown later.
+  useEffect(() => {
+    if (!rename || !canWrite || renamedAt.get(tab.key) === rename) return;
+    renamedAt.set(tab.key, rename);
+    focusTitle(true);
+  }, [rename, canWrite, focusTitle, tab.key]);
+  useCommand("note:rename", () => (canWrite ? focusTitle(true) : false), focused);
 
-  // Source-mode image paste / drop: upload, then insert markdown at the caret.
+  // View Markdown Source: in place of the body, until Done.
+  const toggleSource = useCallback(() => {
+    setSource((on) => {
+      if (on) setGuardBody(snapRef.current.body); // back to live: re-check what was written
+      return !on;
+    });
+  }, []);
+  useCommand("note:view-source", () => toggleSource(), focused);
+
+  const domPane = () => (view === "live" ? liveRef.current : view === "read" ? previewRef.current : null);
+
+  // Source-view image paste / drop: upload, then insert markdown at the caret.
   async function insertImages(files: File[]) {
     const ta = taRef.current;
     if (!ta || !files.length || !canWrite) return;
@@ -380,18 +507,8 @@ export function NoteEditor(props: NoteEditorProps) {
     if (ta) setCursor(lineCol(ta.value, ta.selectionStart ?? 0));
   };
   useEffect(() => {
-    if (mode !== "source" && mode !== "split") setCursor(null);
-  }, [mode]);
-
-  // Split: the preview follows the source's scroll position.
-  const onSourceScroll = () => {
-    if (mode !== "split") return;
-    const ta = taRef.current;
-    const pv = previewRef.current;
-    if (!ta || !pv) return;
-    const max = ta.scrollHeight - ta.clientHeight;
-    pv.scrollTop = max > 0 ? (ta.scrollTop / max) * (pv.scrollHeight - pv.clientHeight) : 0;
-  };
+    if (!isSource) setCursor(null);
+  }, [isSource]);
 
   // ── outline ────────────────────────────────────────────────────────────
   const deferredBody = useDeferredValue(body);
@@ -401,26 +518,26 @@ export function NoteEditor(props: NoteEditorProps) {
 
   const recomputeActive = useCallback(() => {
     if (!showOutline) return;
-    if (mode === "source") {
+    if (isSource) {
       const line = cursor?.line ?? 1;
       let a = -1;
       for (const it of outline) if (it.line <= line) a = it.index;
       setActiveIdx(a);
       return;
     }
-    const pane = mode === "live" ? liveRef.current : previewRef.current;
-    if (pane) setActiveIdx(activeHeading(pane, pane));
-  }, [showOutline, mode, cursor, outline]);
+    const pane = view === "live" ? liveRef.current : previewRef.current;
+    const scroller = scrollRef.current;
+    if (pane && scroller) setActiveIdx(activeHeading(pane, scroller));
+  }, [showOutline, isSource, view, cursor, outline]);
   useEffect(() => recomputeActive(), [recomputeActive, deferredBody]);
 
   function pickHeading(it: OutlineItem) {
-    if (mode === "source" || mode === "split") {
+    if (isSource) {
       const ta = taRef.current;
       if (ta) revealInTextarea(ta, it.offset, it.offset, true);
       trackCursor();
-    }
-    if (mode !== "source") {
-      const pane = mode === "live" ? liveRef.current : previewRef.current;
+    } else {
+      const pane = domPane();
       const h = pane ? headingElements(pane)[it.index] : undefined;
       h?.scrollIntoView({ block: "start", behavior: "smooth" });
     }
@@ -438,18 +555,17 @@ export function NoteEditor(props: NoteEditorProps) {
 
   const reveal = useCallback(
     (i: number) => {
-      if (mode === "source" || mode === "split") {
+      if (isSource) {
         const at = offsets.current[i];
         const ta = taRef.current;
         if (ta && at !== undefined) revealInTextarea(ta, at, at + findQ.length);
+        return;
       }
-      if (mode !== "source") {
-        paintHighlights(ranges.current, i);
-        const r = ranges.current[i];
-        if (r) scrollRangeIntoView(r);
-      }
+      paintHighlights(ranges.current, i);
+      const r = ranges.current[i];
+      if (r) scrollRangeIntoView(r);
     },
-    [mode, findQ],
+    [isSource, findQ],
   );
 
   useEffect(() => {
@@ -458,17 +574,18 @@ export function NoteEditor(props: NoteEditorProps) {
       return;
     }
     const timer = setTimeout(() => {
-      offsets.current = mode === "source" || mode === "split" ? textMatches(snapRef.current.body, findQ) : [];
+      offsets.current = isSource ? textMatches(snapRef.current.body, findQ) : [];
       const pane = domPane();
-      ranges.current = pane && mode !== "source" ? domMatches(pane, findQ) : [];
-      const count = mode === "source" || mode === "split" ? offsets.current.length : ranges.current.length;
+      ranges.current = pane && !isSource ? domMatches(pane, findQ) : [];
+      const count = isSource ? offsets.current.length : ranges.current.length;
       setFindCount(count);
       const idx = Math.min(findIdx, Math.max(0, count - 1));
       if (idx !== findIdx) setFindIdx(idx);
-      if (mode !== "source") paintHighlights(ranges.current, idx);
+      if (!isSource) paintHighlights(ranges.current, idx);
+      else clearHighlights();
     }, 120);
     return () => clearTimeout(timer);
-  }, [findOpen, focused, findQ, body, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [findOpen, focused, findQ, body, view]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => clearHighlights(), []);
 
   const step = (delta: 1 | -1) => {
@@ -480,8 +597,7 @@ export function NoteEditor(props: NoteEditorProps) {
   const closeFind = () => {
     setFindOpen(false);
     clearHighlights();
-    if (mode === "source" || mode === "split") taRef.current?.focus();
-    else (liveRef.current?.querySelector(".ProseMirror") as HTMLElement | null)?.focus();
+    focusBody();
   };
 
   // ── commands (only while this group is focused) ───────────────────────
@@ -565,48 +681,109 @@ export function NoteEditor(props: NoteEditorProps) {
   }
 
   const readerFont = { fontSize: `${Math.max(11, settings.fontSize - 2)}px` };
-  const source = (
-    <textarea
-      ref={taRef}
-      value={body}
-      readOnly={!canWrite}
-      spellCheck={false}
-      wrap={settings.wordWrap ? "soft" : "off"}
-      dir="auto"
-      placeholder={t("editor.placeholder")}
-      onChange={(e) => {
-        change({ body: e.target.value });
-        trackCursor();
-      }}
-      onSelect={trackCursor}
-      onKeyUp={trackCursor}
-      onClick={trackCursor}
-      onFocus={trackCursor}
-      onScroll={onSourceScroll}
-      onPaste={onSourcePaste}
-      onDrop={onSourceDrop}
-      style={readerFont}
-      className="zk-source h-full w-full resize-none bg-transparent px-10 py-5 font-mono leading-6 text-foreground outline-none placeholder:text-muted-foreground xl:px-14"
-    />
-  );
-  const preview = (
-    <div ref={previewRef} onScroll={recomputeActive} className="h-full min-h-0 overflow-y-auto px-10 py-5 xl:px-14 [&>div]:mx-auto">
-      {body.trim() ? <Markdown text={body} /> : <p className="text-sm text-muted-foreground">{t("editor.placeholder")}</p>}
+  const appearance = { icon, color, category };
+  const tile = <NoteIconTile note={appearance} className="size-9 rounded-lg" iconClassName="size-[18px]" />;
+
+  const header = (
+    <div className="shrink-0 px-10 pt-6 pb-3 xl:px-14">
+      <div className="flex items-start gap-3">
+        {/* Icon + colour, on the start side of the title. */}
+        {canWrite ? (
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={t("ws.icon.change")}
+                  title={t("ws.icon.change")}
+                  className="mt-0.5 shrink-0 rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              }
+            >
+              {tile}
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-3">
+              <AppearancePicker
+                icon={icon}
+                color={color}
+                category={category}
+                onChange={(patch) => change({ ...(patch.icon !== undefined ? { icon: patch.icon } : {}), ...(patch.color !== undefined ? { color: patch.color } : {}) })}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span className="mt-0.5">{tile}</span>
+        )}
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <textarea
+            ref={titleRef}
+            rows={1}
+            value={title}
+            readOnly={!canWrite}
+            dir="auto"
+            placeholder={t("editor.titlePlaceholder")}
+            aria-label={t("editor.titlePlaceholder")}
+            onChange={(e) => change({ title: e.target.value.replace(/\n/g, " ") })}
+            onKeyDown={(e) => {
+              const el = e.currentTarget;
+              if (e.key === "Enter") {
+                e.preventDefault();
+                descRef.current?.focus();
+              } else if (e.key === "ArrowDown" && el.selectionStart === el.value.length) {
+                e.preventDefault();
+                descRef.current?.focus();
+              }
+            }}
+            className="zk-bidi field-sizing-content w-full resize-none bg-transparent text-[26px] leading-tight font-bold tracking-[-0.01em] text-foreground outline-none placeholder:text-muted-foreground/50 rtl:tracking-normal"
+          />
+          {canWrite || description ? (
+            <textarea
+              ref={descRef}
+              rows={1}
+              value={description}
+              readOnly={!canWrite}
+              dir="auto"
+              maxLength={DESCRIPTION_MAX}
+              placeholder={t("editor.descriptionPlaceholder")}
+              aria-label={t("editor.descriptionLabel")}
+              onChange={(e) => change({ description: e.target.value.replace(/\n/g, " ") })}
+              onKeyDown={(e) => {
+                const el = e.currentTarget;
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  focusBody();
+                } else if ((e.key === "Backspace" && !el.value) || (e.key === "ArrowUp" && el.selectionStart === 0 && el.selectionEnd === 0)) {
+                  e.preventDefault();
+                  focusTitle(false);
+                }
+              }}
+              className="zk-bidi field-sizing-content max-h-[3lh] w-full resize-none overflow-y-auto bg-transparent text-[15px] leading-snug text-muted-foreground outline-none placeholder:text-muted-foreground/50"
+            />
+          ) : null}
+        </div>
+      </div>
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 ps-12">
+        <CategoryPicker value={category} readOnly={!canWrite} onChange={(c) => change({ category: c })} />
+        <TagEditor namespace={brain.namespace} token={token} tags={tags} readOnly={!canWrite} onChange={(tg) => change({ tags: tg })} />
+        <span className="ms-auto truncate text-[12.5px] text-muted-foreground">
+          {base ? t("notes.x.version", { n: base.version }) : canWrite ? t("ws.draftHint") : null}
+          {base && !canWrite ? <span className="ms-2">· {t("editor.readOnly")}</span> : null}
+        </span>
+      </div>
     </div>
   );
 
+  const lossyWhat = lossy
+    .map((l) => t(l.kind === "footnote" ? "ws.lossy.footnote" : "ws.lossy.html"))
+    .join(t("ws.lossy.and"));
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background" onBlur={onBlur}>
-      {chromeHost
+      {chromeHost && base
         ? createPortal(
-            <>
-              <ModeSwitch mode={mode} onChange={onModeChange} />
-              {base ? (
-                <IconButton label={t("notes.x.more")} onClick={(e) => onMenu(base, e.currentTarget)}>
-                  <Ellipsis />
-                </IconButton>
-              ) : null}
-            </>,
+            <IconButton label={t("notes.x.more")} onClick={(e) => onMenu(base, e.currentTarget)}>
+              <Ellipsis />
+            </IconButton>,
             chromeHost,
           )
         : null}
@@ -628,7 +805,7 @@ export function NoteEditor(props: NoteEditorProps) {
       ) : null}
 
       {status === "conflict" ? (
-        <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/60 px-4 py-2 text-[13px]">
+        <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/60 px-4 py-2 text-[14px]">
           <TriangleAlert className="size-4 shrink-0 text-grid-warn" />
           <div className="min-w-0 flex-1">
             <p className="font-medium text-foreground">{t("editor.conflictTitle")}</p>
@@ -647,69 +824,91 @@ export function NoteEditor(props: NoteEditorProps) {
         </div>
       ) : null}
 
-      {/* Title + meta */}
-      <div className="shrink-0 px-10 pt-7 pb-2 xl:px-14">
-        <textarea
-          ref={titleRef}
-          rows={1}
-          value={title}
-          readOnly={!canWrite}
-          dir="auto"
-          placeholder={t("editor.titlePlaceholder")}
-          aria-label={t("editor.titlePlaceholder")}
-          onChange={(e) => change({ title: e.target.value.replace(/\n/g, " ") })}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              if (mode === "live") (liveRef.current?.querySelector(".ProseMirror") as HTMLElement | null)?.focus();
-              else taRef.current?.focus();
-            }
-          }}
-          className="field-sizing-content w-full resize-none bg-transparent text-[26px] leading-tight font-bold tracking-[-0.01em] text-foreground outline-none placeholder:text-muted-foreground/50 rtl:tracking-normal"
-        />
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <CategoryPicker value={category} readOnly={!canWrite} onChange={(c) => change({ category: c })} />
-          <TagEditor namespace={brain.namespace} token={token} tags={tags} readOnly={!canWrite} onChange={(tg) => change({ tags: tg })} />
-          <span className="ms-auto truncate text-[11px] text-muted-foreground">
-            {base ? t("notes.x.version", { n: base.version }) : canWrite ? t("ws.draftHint") : null}
-            {base && !canWrite ? <span className="ms-2">· {t("editor.readOnly")}</span> : null}
-          </span>
-        </div>
-      </div>
-
-      {/* Body */}
-      {loading ? (
-        <div className="space-y-3 px-10 py-4 xl:px-14" aria-busy>
-          {[90, 75, 82, 60, 70].map((w, i) => (
-            <Skeleton key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%` }} />
-          ))}
-        </div>
-      ) : mode === "live" ? (
-        <div ref={liveRef} onScroll={recomputeActive} className="zk-live min-h-0 flex-1 overflow-y-auto px-10 pt-1 pb-24 xl:px-14">
-          <NoteEditorWysiwyg
-            value={body}
-            namespace={brain.namespace}
-            editable={canWrite}
-            onChange={(md) => change({ body: md })}
-            uploadImage={(file, ns) => uploadNoteImage(token, file, ns)}
-          />
-        </div>
-      ) : mode === "source" ? (
-        <div className="min-h-0 flex-1">{source}</div>
-      ) : mode === "split" ? (
-        <div ref={splitRef} className="flex min-h-0 flex-1 border-t border-border/60">
-          <div className="min-w-0" style={{ flexBasis: `${splitRatio * 100}%`, flexGrow: 0, flexShrink: 0 }}>
-            {source}
+      {isSource ? (
+        // The markdown source: a secondary view in place of the body.
+        <div className="flex min-h-0 flex-1 flex-col">
+          {header}
+          <div className="app-chrome flex shrink-0 items-center gap-2 border-y border-border/60 bg-muted/40 px-10 py-1 text-xs text-muted-foreground xl:px-14">
+            <Code2 className="size-3.5" />
+            <span className="flex-1">{t("ws.source.title")}</span>
+            <Button size="xs" variant="ghost" onClick={toggleSource}>
+              {t("ws.source.done")}
+            </Button>
           </div>
-          <SplitDivider
-            container={() => splitRef.current}
-            onRatio={setSplitRatio}
-            onDone={() => localStorage.setItem(SPLIT_KEY, String(splitRatio))}
-          />
-          <div className="min-w-0 flex-1 bg-pane-raised">{preview}</div>
+          <div className="min-h-0 flex-1">
+            <textarea
+              ref={taRef}
+              value={body}
+              readOnly={!canWrite}
+              spellCheck={false}
+              wrap={settings.wordWrap ? "soft" : "off"}
+              dir="auto"
+              placeholder={t("editor.placeholder")}
+              onChange={(e) => {
+                change({ body: e.target.value });
+                trackCursor();
+              }}
+              onSelect={trackCursor}
+              onKeyUp={trackCursor}
+              onClick={trackCursor}
+              onFocus={trackCursor}
+              onPaste={onSourcePaste}
+              onDrop={onSourceDrop}
+              style={readerFont}
+              className="zk-source zk-bidi h-full w-full resize-none bg-transparent px-10 py-5 font-mono leading-6 text-foreground outline-none placeholder:text-muted-foreground xl:px-14"
+            />
+          </div>
         </div>
       ) : (
-        <div className="min-h-0 flex-1">{preview}</div>
+        // One scrolling page: header and body move together, as in Notes.
+        <div ref={scrollRef} onScroll={recomputeActive} className="min-h-0 flex-1 overflow-y-auto">
+          {header}
+          {loading ? (
+            <div className="space-y-3 px-10 py-4 xl:px-14" aria-busy>
+              {[90, 75, 82, 60, 70].map((w, i) => (
+                <Skeleton key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          ) : view === "live" ? (
+            <div
+              ref={liveRef}
+              className="zk-live px-10 pt-1 pb-24 xl:px-14"
+              // Click below the text: carry on typing at its end.
+              onMouseDown={(e) => {
+                if (!canWrite || e.target !== e.currentTarget) return;
+                e.preventDefault();
+                const pm = liveRef.current?.querySelector(".ProseMirror") as HTMLElement | null;
+                if (!pm) return;
+                pm.focus();
+                const sel = window.getSelection();
+                sel?.selectAllChildren(pm);
+                sel?.collapseToEnd();
+              }}
+            >
+              <NoteEditorWysiwyg
+                value={body}
+                namespace={brain.namespace}
+                editable={canWrite}
+                onChange={(md) => change({ body: md })}
+                uploadImage={(file, ns) => uploadNoteImage(token, file, ns)}
+              />
+            </div>
+          ) : (
+            // Markdown the live editor cannot keep: shown as written.
+            <div ref={previewRef} className="zk-reader px-10 pt-1 pb-24 xl:px-14 [&>div]:mx-auto">
+              <div role="note" className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                <Info className="size-3.5 shrink-0" />
+                <span className="min-w-0 flex-1">{t("ws.lossy.body", { what: lossyWhat })}</span>
+                {canWrite ? (
+                  <Button size="xs" variant="outline" onClick={toggleSource}>
+                    {t("ws.lossy.edit")}
+                  </Button>
+                ) : null}
+              </div>
+              {body.trim() ? <Markdown text={body} /> : null}
+            </div>
+          )}
+        </div>
       )}
 
       {showOutline && outlineHost

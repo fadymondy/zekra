@@ -7,13 +7,17 @@
    data-chrome> are set from the main process (src/renderer/lib/platform.ts,
    src/main/window-chrome.ts):
 
-     darwin  SF Pro 13px, 7px radii, 28px source-list rows, 28px controls,
-             a translucent sidebar over vibrancy, sheets from the title bar
-     win32   Segoe UI Variable 14px, Fluent 4px radii, 36px nav rows with the
-             accent pill, 32px controls, Mica behind nav pane + title bar and a
-             "layer" content surface with a rounded inner corner
-     linux   the system UI font 14px (Cantarell / Ubuntu / Noto), Adwaita 6px
+     darwin  14px UI (Apple's 13 reads too small), 7px radii, 32px source-list
+             rows, 28px controls, a translucent sidebar over vibrancy, sheets
+             from the title bar
+     win32   Segoe UI Variable 14px (Fluent Body), Fluent 4px radii, 36px nav
+             rows with the accent pill, 32px controls, Mica behind nav pane +
+             title bar and a "layer" content surface with a rounded inner corner
+     linux   the system UI font 14.5px (Cantarell / Ubuntu / Noto), Adwaita 6px
              radii, 34px rows and controls, a GTK header bar, no materials
+
+   Readability floor: secondary text 12.5–13px, section headers and the status
+   bar 12px; nothing smaller. Arabic (Lusail) is a step larger again.
 
    RULE: no colour is hard-coded here. Everything derives from the grid tokens
    (--grid-bg/-card/-fg/-muted/-line/-action…), which the reading themes
@@ -41,16 +45,16 @@ body {
   --titlebar-h: 52px; /* set from the main process (lib/platform.ts) */
   --toolbar-h: 52px;
   --nav-header-h: 52px;
-  --nav-row-h: 28px;
+  --nav-row-h: 32px;
   --list-radius: 6px;
   --ctl: 28px;
-  --fs-ui: 13px;
-  --fs-small: 11px;
-  --fs-title: 13px;
+  --fs-ui: 14px;
+  --fs-small: 12.5px;
+  --fs-title: 14.5px;
   --grid-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Lusail", system-ui, sans-serif;
-  --text-xs: 0.6875rem;
+  --text-xs: 0.78125rem; /* 12.5px */
   --text-xs--line-height: 1.45;
-  --text-sm: 0.8125rem;
+  --text-sm: 0.875rem; /* 14px */
   --text-sm--line-height: 1.45;
 }
 html[data-platform="win32"] {
@@ -60,11 +64,11 @@ html[data-platform="win32"] {
   --list-radius: 4px;
   --ctl: 32px;
   --fs-ui: 14px;
-  --fs-small: 12px;
+  --fs-small: 13px;
   --fs-title: 20px;
   --grid-font-sans: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "Lusail", system-ui, sans-serif;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --text-xs: 0.8125rem; /* 13px */
+  --text-sm: 0.875rem; /* 14px */
 }
 html[data-platform="linux"] {
   --toolbar-h: 46px;
@@ -72,21 +76,26 @@ html[data-platform="linux"] {
   --nav-row-h: 34px;
   --list-radius: 6px;
   --ctl: 34px;
-  --fs-ui: 14px;
-  --fs-small: 12px;
-  --fs-title: 14px;
+  --fs-ui: 14.5px;
+  --fs-small: 13px;
+  --fs-title: 15px;
   --grid-font-sans: system-ui, Cantarell, Ubuntu, "Noto Sans", "Lusail", sans-serif;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --text-xs: 0.8125rem; /* 13px */
+  --text-sm: 0.90625rem; /* 14.5px */
 }
-/* Arabic: Lusail (the brand face) on every OS, a step larger — it is not
-   readable at 11px. */
-html:lang(ar) {
-  --grid-font-sans: "Lusail", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --fs-ui: 14px;
-  --fs-small: 12px;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+/* Arabic: Lusail (the brand face) on every OS, a step larger — it needs
+   ~1px more than Latin at small sizes. "Inter AR" comes FIRST (web
+   app/styles/inter.css): Inter has no Arabic glyphs, so Arabic text falls
+   through to Lusail glyph-by-glyph while English brain names and note titles
+   render in Inter — sized ~14px against Lusail's 15px (size-adjust). */
+html:lang(ar),
+html:lang(ar)[data-platform] {
+  --grid-font-sans: "Inter AR", "Lusail", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --fs-ui: 15px;
+  --fs-small: 13.5px;
+  --text-xs: 0.84375rem; /* 13.5px */
+  --text-xs--line-height: 1.55;
+  --text-sm: 0.9375rem; /* 15px */
   --text-sm--line-height: 1.6;
 }
 
@@ -106,6 +115,11 @@ html:lang(ar) {
   letter-spacing: 0;
   text-transform: none;
   color: var(--grid-muted);
+}
+/* grid.css sizes the Arabic micro-label with a more specific selector. */
+:lang(ar) .grid-micro,
+.grid-micro:lang(ar) {
+  font-size: var(--fs-small);
 }
 
 /* The hatch is a web/mobile house texture. Desktop surfaces are clean. */
@@ -239,7 +253,7 @@ html[data-platform="linux"] .toolbar {
    the content is a raised "layer" with a rounded inner corner and a hairline,
    like Settings / Explorer. */
 .win-titlebar {
-  font-size: 12px;
+  font-size: 13px;
 }
 html[data-platform="win32"]:not([data-material="mica"]) .win-titlebar {
   background: var(--sidebar);
@@ -302,7 +316,7 @@ html[data-platform="linux"] .field {
   color: var(--grid-action);
 }
 .nav-section-header {
-  height: 26px;
+  height: 28px;
   font-size: var(--fs-small);
   font-weight: 600;
   color: var(--muted-foreground);
@@ -317,11 +331,11 @@ html[data-platform="linux"] .field {
 .nav-badge {
   top: 50% !important;
   transform: translateY(-50%);
-  height: 18px !important;
-  min-width: 18px;
+  height: 20px !important;
+  min-width: 20px;
   border-radius: 999px !important;
   padding-inline: 6px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
   background: color-mix(in oklab, var(--grid-fg) 12%, transparent);
   color: var(--foreground) !important;
@@ -348,7 +362,7 @@ html[data-platform="win32"] .nav-row[data-active]::before {
 }
 html[data-platform="win32"] .nav-section-header {
   height: 32px;
-  font-size: 12px;
+  font-size: 12.5px;
   color: color-mix(in oklab, var(--grid-fg) 70%, transparent);
 }
 /* Linux / Adwaita: a neutral selected row. */
@@ -383,6 +397,11 @@ html[data-platform="darwin"] .list-pane:focus-within .list-row[data-selected] {
 html[data-platform="darwin"] .list-pane:focus-within .list-row[data-selected] .list-row-meta {
   color: color-mix(in oklab, var(--grid-on-action) 78%, transparent);
 }
+/* The note's icon tile on the accent fill: white on a light wash. */
+html[data-platform="darwin"] .list-pane:focus-within .list-row[data-selected] [data-slot="note-tile"] {
+  color: var(--grid-on-action) !important;
+  background: color-mix(in oklab, var(--grid-on-action) 22%, transparent) !important;
+}
 /* Windows: the accent pill, as in Fluent list views. */
 html[data-platform="win32"] .list-row[data-selected]::before {
   content: "";
@@ -404,7 +423,7 @@ html[data-platform="linux"] .list-row[data-selected] {
   color: var(--muted-foreground);
 }
 html[data-platform="win32"] .list-group-header {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--foreground);
 }
 
@@ -467,18 +486,35 @@ body[data-resizing] :is([data-slot="sidebar-gap"], [data-slot="sidebar-container
   transition: none;
 }
 
-/* Mixed-script labels (a Latin brain name in the Arabic UI, an Arabic title in
-   the English one) render with unicode-bidi: plaintext so each reads in its
-   own direction — but they should still ALIGN with the interface, not with
-   their own script, or a list of names zig-zags. */
-html[dir="rtl"] [style*="unicode-bidi: plaintext"] {
+/* User content (note titles, snippets, tags, tab titles, outline items, brain
+   names, search hits) carries dir="auto" + unicode-bidi: plaintext: it reads,
+   aligns and TRUNCATES in its own direction. An English title in the Arabic
+   UI starts at the left and its ellipsis lands at its logical end — inheriting
+   the UI's rtl instead clipped its START ("ent map; overwrite…"). The layout
+   around it (icons, dates) still mirrors with the UI. */
+[dir="auto"][style*="unicode-bidi: plaintext"],
+.zk-bidi {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+/* Mixed-script labels WITHOUT dir="auto" align with the interface. */
+html[dir="rtl"] [style*="unicode-bidi: plaintext"]:not([dir="auto"]) {
   text-align: right;
 }
-html[dir="ltr"] [style*="unicode-bidi: plaintext"] {
+html[dir="ltr"] [style*="unicode-bidi: plaintext"]:not([dir="auto"]) {
   text-align: left;
 }
 html[dir="rtl"] .align-ui {
   text-align: right;
+}
+/* Short labels in the sidebar (brain names, the account) align with the
+   interface, so the source list reads as one column instead of zig-zagging;
+   they keep their own direction, so characters order and truncate correctly. */
+html[dir="rtl"] [data-slot="sidebar"] :is([dir="auto"], .zk-bidi) {
+  text-align: right;
+}
+html[dir="ltr"] [data-slot="sidebar"] :is([dir="auto"], .zk-bidi) {
+  text-align: left;
 }
 
 /* ── English UI font: Inter on every platform ─────────────────────────────
@@ -488,4 +524,151 @@ html[dir="rtl"] .align-ui {
    web/app/styles/inter.css (bundled with globals.css). */
 html[lang^="en"][data-platform] {
   --grid-font-sans: "Inter", "Lusail", system-ui, sans-serif;
+}
+
+/* ── Sidebar: the Brains header is a link to the all-brains table ─────── */
+.nav-section-link {
+  height: 22px;
+  line-height: 22px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.nav-section-link:hover {
+  color: var(--foreground);
+}
+.nav-section-link[data-active] {
+  color: var(--foreground);
+  background: var(--accent-tint);
+}
+
+/* ── Settings window (screens/settings-window.tsx) ─────────────────────
+   macOS Preferences: a title row naming the section, then toolbar tabs —
+   icon over label — over the window's material; the panes are opaque. */
+.settings-toolbar {
+  background: color-mix(in oklab, var(--grid-bg) 78%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--grid-line) 60%, transparent);
+}
+html[data-material="none"] .settings-toolbar {
+  background: var(--sidebar);
+}
+.settings-title {
+  position: relative;
+  height: 38px;
+  padding-inline: 90px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.settings-toolbar[data-blurred="true"] .settings-title,
+.settings-toolbar[data-blurred="true"] .settings-tab {
+  opacity: 0.65;
+}
+html[data-platform="win32"] .settings-title {
+  height: var(--titlebar-h);
+  justify-content: flex-start;
+  padding-inline-start: 36px;
+  font-weight: 400;
+  font-size: 13px;
+}
+html[data-platform="linux"] .settings-title {
+  display: none; /* the window manager titles the window */
+}
+html[data-platform="linux"] .settings-toolbar nav {
+  padding-top: 8px;
+}
+.settings-tab {
+  display: flex;
+  min-width: 70px;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 8px 5px;
+  border-radius: 8px;
+  color: color-mix(in oklab, var(--grid-fg) 72%, transparent);
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+:lang(ar) .settings-tab {
+  font-size: 12.5px;
+}
+.settings-tab > svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.6;
+}
+.settings-tab:hover {
+  color: var(--foreground);
+  background: var(--hover);
+}
+.settings-tab[data-active] {
+  color: var(--foreground);
+  background: var(--selected);
+}
+.settings-tab[data-active] > svg {
+  color: var(--grid-action);
+}
+.settings-tab:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--grid-action) 60%, transparent);
+  outline-offset: 1px;
+}
+
+/* A compact slider on the theme's accent (Settings ▸ Reading). */
+.zk-range {
+  accent-color: var(--grid-action);
+  height: 18px;
+}
+
+/* ── Spotlight window (screens/spotlight-window.tsx) ───────────────────
+   A frameless panel over the system material (macOS vibrancy "popover",
+   Windows 11 acrylic): the page only tints it; solid elsewhere. The
+   selection is the accent fill of a native list. */
+html[data-window="spotlight"],
+html[data-window="spotlight"] body {
+  background: transparent !important;
+  overflow: hidden;
+}
+html[data-window="spotlight"] .spotlight {
+  background: color-mix(in oklab, var(--grid-bg) 55%, transparent);
+}
+html[data-window="spotlight"][data-material="none"] .spotlight {
+  background: var(--popover);
+}
+.spotlight-input input {
+  font-family: var(--grid-font-sans);
+}
+.spotlight-group {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.spotlight-item {
+  cursor: default;
+  color: var(--foreground);
+}
+.spotlight-item .spotlight-sub {
+  color: var(--muted-foreground);
+}
+.spotlight-item[data-active] {
+  background: var(--grid-action);
+  color: var(--grid-on-action);
+}
+.spotlight-item[data-active] .spotlight-sub,
+.spotlight-item[data-active] .spotlight-icon svg {
+  color: color-mix(in oklab, var(--grid-on-action) 85%, transparent) !important;
+}
+.spotlight-kbd {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 4px;
+  border-radius: 4px;
+  background: var(--muted);
+  font-family: var(--grid-font-sans);
+  font-size: 12px;
+}
+html[data-platform="win32"] .spotlight-item {
+  border-radius: 4px;
 }

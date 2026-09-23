@@ -73,6 +73,10 @@ const STR = {
     inUse: "{key} is already used by another app or the system.",
     invalid: "{key} can't be used — include ⌘, ⌃ or ⌥ and one key.",
     openCapture: "Open Quick Capture",
+    search: "Search",
+    spotShortcut: "Search shortcut",
+    spotShortcutHint: "Opens Zekra’s search panel from any app. ⌘K / Ctrl+K works whenever Zekra is in front.",
+    openSearch: "Open Search",
     startup: "Startup",
     login: "Open Zekra at login",
     loginHint: "Starts with your computer.",
@@ -132,6 +136,10 @@ const STR = {
     inUse: "{key} مستخدم من تطبيق آخر أو من النظام.",
     invalid: "لا يمكن استخدام {key} — أضف ⌘ أو ⌃ أو ⌥ ومفتاحًا واحدًا.",
     openCapture: "افتح الالتقاط السريع",
+    search: "البحث",
+    spotShortcut: "اختصار البحث",
+    spotShortcutHint: "يفتح لوحة بحث ذكرة من أي تطبيق. يعمل ⌘K / Ctrl+K دائمًا عندما تكون ذكرة في المقدمة.",
+    openSearch: "افتح البحث",
     startup: "بدء التشغيل",
     login: "افتح ذكرة عند تسجيل الدخول",
     loginHint: "تبدأ مع تشغيل الجهاز.",
@@ -213,6 +221,7 @@ export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
   const status = useSyncStatus();
   const [info, setInfo] = useState<ServicesInfo | null>(null);
   const [recording, setRecording] = useState(false);
+  const [recordingSpot, setRecordingSpot] = useState(false);
   const [busy, setBusy] = useState(false);
   const [dev, setDev] = useState(false);
   const available = typeof bridge().getServicesInfo === "function";
@@ -257,6 +266,26 @@ export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
       toast.error(res.error === "in-use" ? t("inUse", { key }) : t("invalid", { key }));
     }
     await refresh();
+  }
+
+  async function setSpotShortcut(accel: string) {
+    const res = await bridge().setSpotlightShortcut?.(accel);
+    setRecordingSpot(false);
+    if (res && !res.ok) {
+      const key = displayAccelerator(res.accelerator, mac);
+      toast.error(res.error === "in-use" ? t("inUse", { key }) : t("invalid", { key }));
+    }
+  }
+
+  function onRecordSpotKey(e: ReactKeyboardEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === "Escape" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      setRecordingSpot(false);
+      return;
+    }
+    const accel = acceleratorFromEvent(e.nativeEvent, mac);
+    if (accel) void setSpotShortcut(accel);
   }
 
   function onRecordKey(e: ReactKeyboardEvent) {
@@ -326,7 +355,7 @@ export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
               autoFocus
               onKeyDown={onRecordKey}
               onBlur={() => setRecording(false)}
-              className="h-7 min-w-40 rounded-md border border-primary px-3 text-[12px] text-muted-foreground outline-none ring-2 ring-primary/30"
+              className="h-7 min-w-40 rounded-md border border-primary px-3 text-[13px] text-muted-foreground outline-none ring-2 ring-primary/30"
             >
               {t("recording")}
             </button>
@@ -335,7 +364,7 @@ export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
               type="button"
               onClick={() => setRecording(true)}
               title={t("record")}
-              className="h-7 min-w-24 rounded-md border border-border/70 bg-background px-3 font-mono text-[12px] text-foreground hover:bg-hover"
+              className="h-7 min-w-24 rounded-md border border-border/70 bg-background px-3 font-mono text-[13px] text-foreground hover:bg-hover"
             >
               {shortcut ? displayAccelerator(shortcut, mac) : t("none")}
             </button>
@@ -350,6 +379,39 @@ export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
         <Row label={t("openCapture")}>
           <Button variant="outline" size="sm" onClick={() => void bridge().openQuickCapture?.()}>
             {t("openCapture")}
+          </Button>
+        </Row>
+      </Group>
+
+      <Group title={t("search")}>
+        <Row label={t("spotShortcut")} hint={t("spotShortcutHint")}>
+          {recordingSpot ? (
+            <button
+              type="button"
+              autoFocus
+              onKeyDown={onRecordSpotKey}
+              onBlur={() => setRecordingSpot(false)}
+              className="h-7 min-w-40 rounded-md border border-primary px-3 text-[13px] text-muted-foreground outline-none ring-2 ring-primary/30"
+            >
+              {t("recording")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRecordingSpot(true)}
+              title={t("record")}
+              className="h-7 min-w-24 rounded-md border border-border/70 bg-background px-3 font-mono text-[13px] text-foreground hover:bg-hover"
+            >
+              {settings.spotlightShortcut ? displayAccelerator(settings.spotlightShortcut, mac) : t("none")}
+            </button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => void setSpotShortcut("")} disabled={!settings.spotlightShortcut}>
+            {t("disable")}
+          </Button>
+        </Row>
+        <Row label={t("openSearch")}>
+          <Button variant="outline" size="sm" onClick={() => void bridge().openSpotlight?.()}>
+            {t("openSearch")}
           </Button>
         </Row>
       </Group>

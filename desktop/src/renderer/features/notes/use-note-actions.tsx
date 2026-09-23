@@ -1,12 +1,13 @@
 import { useCallback, useState, type ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { NoteAppearancePicker } from "@/components/notes/note-appearance-picker";
 
 import { ApiError, type Brain, type Note, type NotePatch } from "../../lib/api";
 import { bridge } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
+import { useCommands } from "../../shell/commands";
 import { toast } from "../../shell/toast";
+import { AppearancePicker } from "../editor/appearance-picker";
 import { exportNote } from "../editor/export";
 import type { NoteMenuAction } from "./note-menu";
 import { notesApi } from "./notes-api";
@@ -30,7 +31,7 @@ cannot clobber anyone's text.
 */
 
 
-export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onOpen }: {
+export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onOpen, onRename }: {
   token: string;
   brain: Brain;
   /** The freshest known copy of a note (editor/cache), or the note itself. */
@@ -38,8 +39,11 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
   onChanged: (note: Note) => void;
   onRemoved: (note: Note) => void;
   onOpen: (note: Note, how: "open" | "open-new-tab" | "open-side") => void;
+  /** Rename: open the note and select its title (default: the focused editor). */
+  onRename?: (note: Note) => void;
 }): { run: (note: Note, action: NoteMenuAction) => void; dialogs: ReactNode } {
   const { t, dir } = useI18n();
+  const commands = useCommands();
   const [history, setHistory] = useState<Note | null>(null);
   const [styling, setStyling] = useState<Note | null>(null);
 
@@ -72,6 +76,14 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
         case "open-new-tab":
         case "open-side":
           onOpen(note, action.kind);
+          return;
+        case "rename":
+          if (onRename) onRename(note);
+          else commands.run("note:rename");
+          return;
+        case "view-source":
+          // The focused editor owns it (the "…" that asked is in that pane).
+          commands.run("note:view-source");
           return;
         case "pin":
           void patchNote(note, { pinned: !latest(note).pinned })
@@ -119,7 +131,7 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
         }
       }
     },
-    [onOpen, patchNote, latest, onChanged, fail, t, dir, brain.namespace],
+    [onOpen, onRename, commands, patchNote, latest, onChanged, fail, t, dir, brain.namespace],
   );
 
   // Archive / delete: the OS's own confirmation (sheet-attached on macOS).
@@ -155,11 +167,11 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
       <Dialog open={!!styling} onOpenChange={(o) => !o && setStyling(null)}>
         <DialogContent className="w-auto max-w-[360px] p-4">
           <DialogHeader>
-            <DialogTitle className="text-[13px] font-semibold">{t("sheet.appearance")}</DialogTitle>
+            <DialogTitle className="text-[14px] font-semibold">{t("sheet.appearance")}</DialogTitle>
             <DialogDescription className="sr-only">{styling?.title}</DialogDescription>
           </DialogHeader>
           {styling ? (
-            <NoteAppearancePicker
+            <AppearancePicker
               icon={styling.icon}
               color={styling.color}
               category={styling.category}

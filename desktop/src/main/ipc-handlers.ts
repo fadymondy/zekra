@@ -33,13 +33,16 @@ import {
   type SaveFileResult,
   type SettingsPatch,
   type TrayStatus,
+  type TrayState,
+  type AppBroadcast,
   type McpTarget, // MH-450
 } from "../shared/ipc";
 import { proxyBinary, proxyRequest } from "./api-proxy";
-import { focusMainWindow, markRendererReady, sendNotificationClick } from "./renderer-events";
+import { broadcast, focusMainWindow, markRendererReady, sendNotificationClick } from "./renderer-events";
 import { clearSession, getSettings, patchSettings } from "./settings-store";
-import { setTrayStatus } from "./tray";
-import { checkForUpdates, getUpdateState, installUpdate } from "./updater";
+import { setTrayState, setTrayStatus } from "./tray";
+import { checkForUpdates, getUpdateState, installUpdate, snoozeUpdate } from "./updater";
+import { setWindowEdited } from "./unsaved-work";
 import { installMcp, mcpStatus } from "./mcp-install"; // MH-450 settings ▸ connect
 import { registerMarkItDownIpc } from "./importers/ipc"; // MH-450 importers, reveal, tray recents
 import { chromeInfo } from "./window-chrome";
@@ -67,9 +70,24 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
     const { windowBounds: _ignored, ...safe } = (patch ?? {}) as SettingsPatch & { windowBounds?: unknown };
     const next = patchSettings(safe);
     onSettingsChanged(next, safe);
+    // Every window follows at once: theme, language, the session (a sign-out
+    // in the Settings window signs the main window out too).
+    broadcast(IPC.evSettingsChanged, next);
     return next;
   });
-  ipcMain.handle(IPC.settingsClearSession, (): AppSettings => clearSession());
+  ipcMain.handle(IPC.settingsClearSession, (): AppSettings => {
+    const next = clearSession();
+    broadcast(IPC.evSettingsChanged, next);
+    return next;
+  });
+  // Renderer-to-renderer messages (reading settings, a saved note, brains):
+  // relayed to every OTHER window.
+  ipcMain.handle(IPC.appBroadcast, (e, msg: AppBroadcast): void => {
+    if (!msg || typeof msg !== "object" || typeof (msg as { kind?: unknown }).kind !== "string") return;
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed() && win.webContents !== e.sender) win.webContents.send(IPC.evBroadcast, msg);
+    }
+  });
 
   /* ------------------------------------------------------------ app */
   ipcMain.handle(IPC.appInfo, (): AppInfo => ({
@@ -200,7 +218,10 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
 
   /* --------------------------------------------------------- window */
   ipcMain.handle(IPC.windowSetEdited, (e, edited: boolean): void => {
-    senderWindow(e)?.setDocumentEdited(Boolean(edited));
+    const win = senderWindow(e);
+    if (!win) return;
+    win.setDocumentEdited(Boolean(edited));
+    setWindowEdited(win, Boolean(edited)); // the updater never quits over unsaved edits
   });
   ipcMain.handle(IPC.windowClose, (e): void => senderWindow(e)?.close());
 
@@ -208,9 +229,11 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
   ipcMain.handle(IPC.updateCheck, () => checkForUpdates());
   ipcMain.handle(IPC.updateGetState, () => getUpdateState());
   ipcMain.handle(IPC.updateInstall, () => installUpdate());
+  ipcMain.handle(IPC.updateSnooze, () => snoozeUpdate());
 
   /* ----------------------------------------------------------- tray */
   ipcMain.handle(IPC.traySetStatus, (_e, status: TrayStatus): void => setTrayStatus(status));
+  ipcMain.handle(IPC.traySetState, (_e, state: TrayState): void => setTrayState(state));
 
   /* ------------------------------ MH-450 dock badge + MCP install */
   // Unread notifications on the Dock icon (0 clears it).

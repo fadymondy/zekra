@@ -17,7 +17,8 @@ import { notifyStore, useNotifyState } from "./store";
 /*
 The notifications agent: mounted once while signed in (shell/app-shell.tsx).
 
-- Publishes the bell into the "titlebar.bell" slot.
+- Publishes the bell (and its popover center, bell.tsx) into the
+  "titlebar.bell" slot.
 - Polls GET /api/me/notifications/unread — every 30 s while the window is
   focused, every 60 s in the background (so banners can still arrive), and at
   once on focus. A 404 = the server has no notification center: the badge
@@ -152,7 +153,10 @@ export function NotifyAgent() {
         })
         .catch(() => undefined);
     }
-    navigate(routeFromString(parsed.compact) ?? { name: "notifications" });
+    // A summary banner ("notifications") opens the bell's popover.
+    const to = routeFromString(parsed.compact);
+    if (to) navigate(to);
+    else notifyStore.setOpen(true);
   });
 
   return null;

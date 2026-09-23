@@ -21,7 +21,7 @@ npm run typecheck    # main + renderer, both strict
 npm run build        # out/ (main via tsc, preload + renderer via esbuild)
 npm run pack         # signed, unpacked app: dist/mac-arm64/Zekra.app
 npm run dist         # dmg + zip, universal, signed (+ notarised if configured)
-npm run dist:publish # same, uploaded to GitHub Releases (needs GH_TOKEN)
+npm run dist:publish # same, uploaded to GitHub Releases (needs GH_TOKEN) — see "Updates"
 npm run icons        # regenerate build/icon.icns + tray icons from build/icon.svg
 ```
 
@@ -154,6 +154,70 @@ sleep, Low Power Mode, thermal pressure), ~1 s after an edit, and on Sync Now.
   `APPLE_API_KEY` + `APPLE_API_KEY_ID` + `APPLE_API_ISSUER`, or
   `APPLE_KEYCHAIN_PROFILE` (a `xcrun notarytool store-credentials` profile).
 - Auto-update: `electron-updater` against GitHub Releases of `fadymondy/zekra`
-  (needs the signed zip target, i.e. `npm run dist:publish`). Packaged builds check
-  once after launch; Help ▸ Check for Updates… checks interactively. Development
-  builds never check.
+  — see "Updates" below.
+
+## Updates
+
+**How it behaves** (`src/main/updater.ts`, policy in `src/main/update-policy.ts`,
+UI in `src/renderer/features/updates/`):
+
+- Checks ~8 s after launch and every 6 hours; Help ▸ Check for Updates…, the tray
+  item and Settings ▸ About open the **Software Update** sheet and check now.
+- An update downloads by itself (`autoDownload`). The **loader** in the sidebar
+  footer shows a progress ring and % while it downloads; the sheet shows the bar,
+  size, speed, time left and the release notes (the GitHub release body, rendered
+  through the markdown pipeline).
+- Once downloaded the policy decides, on download and every minute after:
+  - **install now** (flush every editor via `window.__zekraFlushAll`, then
+    `quitAndInstall`, relaunch) when *Install updates automatically* is on, no
+    window has unsaved edits (the workspace's edited flag) and the user is away —
+    system idle ≥ 10 min (`powerMonitor.getSystemIdleTime`), or ≥ 1 min with no
+    Zekra window on screen (the relaunch then starts hidden, menubar only);
+  - otherwise **prompt**: the in-app card "Zekra X.Y.Z is ready — Restart to
+    Update / Later" (Later snoozes it for 4 h);
+  - with *Install updates automatically* on, a downloaded update also installs
+    when you quit (`autoInstallOnAppQuit`).
+- **Critical releases**: put `[critical]` anywhere in the GitHub release notes (or
+  the release title). The marker is hidden from the notes shown to the user; the
+  update is prompted with a native sheet on the main window, its Later only
+  snoozes for 1 h, and it always installs on quit — even with auto-install off.
+  Unsaved edits still block an unattended install.
+- Settings ▸ About: current version, status and last check, Check for Updates /
+  Restart to Update, What's New, **channel** (`updateChannel`: *Stable* = full
+  releases only; *Beta* = GitHub pre-releases too; never downgrades) and
+  **Install updates automatically** (`autoInstallUpdates`, default on).
+- Development builds and `--dir` builds (`npm run pack`, no `app-update.yml`)
+  never check; the UI says "Updates are available in installed builds". To try
+  the flow from source: `ZEKRA_FORCE_UPDATES=1 npm run dev` (reads
+  `dev-app-update.yml`; downloads work, installing needs a packaged app).
+
+**Releasing an update**
+
+1. Bump `version` in `package.json` (semver; electron-updater compares it with
+   the running app's). A pre-release version (`0.3.0-beta.1`) published as a
+   GitHub *pre-release* only reaches the Beta channel.
+2. Publish with a GitHub token that can write releases of `fadymondy/zekra`
+   (classic PAT with `repo`, or a fine-grained token with *Contents: read and
+   write*):
+
+   ```bash
+   export GH_TOKEN=ghp_…
+   npm run dist:publish         # macOS: dmg + zip + latest-mac.yml (+ blockmaps)
+   npm run dist:publish:win     # Windows: NSIS .exe + latest.yml
+   npm run dist:publish:linux   # Linux: AppImage + .deb + latest-linux.yml
+   npm run dist:publish:all     # all three from one machine (cross-building
+                                # Windows/Linux from macOS may need extra tools)
+   ```
+
+   electron-builder creates the release `v<version>` (`releaseType: release` in
+   `electron-builder.yml`; each run adds its platform's files to the same
+   release). Edit the release notes on GitHub — they are what the sheet shows —
+   and add `[critical]` for a critical update.
+3. **macOS** installs only a **signed** update: Squirrel.Mac checks that the new
+   app is signed by the same Developer ID as the running one, and it installs
+   from the **zip** (the dmg is for first installs). Notarise it too
+   (`APPLE_KEYCHAIN_PROFILE=zekra-notary npm run dist:publish`) or Gatekeeper
+   may block the relaunched app. An unsigned build can never update itself.
+4. Windows updates are applied by the NSIS installer (silent for unattended
+   installs); on Linux the AppImage updates itself (updating a .deb install goes
+   through electron-updater's package installer and an admin prompt — untested).

@@ -1,4 +1,4 @@
-import type { AppInfo } from "../../shared/ipc";
+import { SETTINGS_SECTIONS, type AppInfo, type SettingsSectionId } from "../../shared/ipc";
 import { bridge } from "./bridge";
 
 /*
@@ -76,13 +76,37 @@ export function usePlatform(): PlatformInfo {
   return current;
 }
 
-/** Which window this renderer is: the main window, or a note document window
- *  (src/main/native-ui.ts loads index.html?window=note&ns=…&id=…). */
-export function windowKind(): { kind: "main" } | { kind: "note"; ns: string; id: string } {
+export type WindowKind =
+  | { kind: "main" }
+  | { kind: "note"; ns: string; id: string }
+  /** A new note (native-ui.ts openNewNoteWindow); `ns` preselects the brain. */
+  | { kind: "note-new"; ns: string | null }
+  | { kind: "settings"; section: SettingsSectionId | null }
+  | { kind: "spotlight" }
+  | { kind: "new-brain" };
+
+/** Which window this renderer is: every window loads index.html and names
+ *  itself with `?window=` (src/main/native-ui.ts, src/main/app-windows.ts). */
+export function windowKind(): WindowKind {
   const q = new URLSearchParams(location.search);
   const ns = q.get("ns");
   const id = q.get("id");
-  return q.get("window") === "note" && ns && id ? { kind: "note", ns, id } : { kind: "main" };
+  switch (q.get("window")) {
+    case "note":
+      return ns && id ? { kind: "note", ns, id } : { kind: "main" };
+    case "note-new":
+      return { kind: "note-new", ns: ns || null };
+    case "settings": {
+      const section = q.get("section");
+      return { kind: "settings", section: (SETTINGS_SECTIONS as readonly string[]).includes(section ?? "") ? (section as SettingsSectionId) : null };
+    }
+    case "spotlight":
+      return { kind: "spotlight" };
+    case "new-brain":
+      return { kind: "new-brain" };
+    default:
+      return { kind: "main" };
+  }
 }
 
 /** CSS colour (any syntax the engine resolves to rgb/rgba) -> #rrggbbaa. */
