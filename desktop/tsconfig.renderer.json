@@ -26,14 +26,19 @@
     // @types also lives in the web install; tsc otherwise looks only in this
     // project's own node_modules/@types, which does not exist.
     "typeRoots": ["../web/node_modules/@types"],
-    // Two mappings, both mirroring what build/bundle.mjs already does:
-    //   @/*  -> the web app, because the bundler sets `alias: { "@": WEB }`
-    //   *    -> web/node_modules, because desktop has NO node_modules of its
-    //           own and esbuild resolves packages from the web install
+    // Mirrors build/bundle.mjs:
+    //   @/*       -> the web app (`alias: { "@": WEB }`). The mobile/src
+    //                fallback exists only for files UNDER mobile/src, which
+    //                use "@/" for their own root (e.g. "@/i18n/define"); the
+    //                bundler resolves that by importer, tsc by fallback.
+    //   @mobile/* -> mobile/src (shared pure-TS modules: i18n dictionaries)
+    //   *         -> web/node_modules: the renderer's React/shadcn packages
+    //                come from the web install, not desktop/node_modules
     // Without the second one, react, react-dom and lucide-react all read as
     // missing and every JSX tag errors.
     "paths": {
-      "@/*": ["../web/*"],
+      "@/*": ["../web/*", "../mobile/src/*"],
+      "@mobile/*": ["../mobile/src/*"],
       // React ships no types of its own, and the wildcard below would resolve
       // it to index.js and stop — never consulting @types. Point the typed
       // packages at their declarations explicitly, before the fallback.
@@ -41,10 +46,13 @@
       "react/*": ["../web/node_modules/@types/react/*"],
       "react-dom": ["../web/node_modules/@types/react-dom"],
       "react-dom/*": ["../web/node_modules/@types/react-dom/*"],
+      // The presentations viewers (MH-450) pull in three.js, typed the same way.
+      "three": ["../web/node_modules/@types/three"],
+      "three/*": ["../web/node_modules/@types/three/*"],
       "*": ["../web/node_modules/*"]
     }
   },
   // The web edits Tiptap's Storage type in types/*.d.ts; the renderer mounts the
   // same editor, so it needs the same ambient declarations.
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "../web/types/**/*.d.ts"]
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/shared/**/*.ts", "../web/types/**/*.d.ts"]
 }

@@ -1,42 +1,100 @@
-appId: dev.zekra.desktop
+# Zekra for macOS — electron-builder config.
+#
+#   npm run pack          unpacked .app in dist/mac-universal (fast, signed)
+#   npm run dist          dmg + zip (universal), signed; notarised when the
+#                         notarisation env vars below are present
+#   npm run dist:publish  same, uploaded to GitHub Releases (GH_TOKEN)
+#
+# Signing: there are TWO identical-named "Developer ID Application: Fady Nasef
+# (JW9HJH86GC)" certificates in the login keychain (both valid, both with a
+# private key, same expiry 2027-02-01). Signing by NAME is ambiguous for
+# codesign, so the identity is pinned by SHA-1 below (the other one is
+# D3DA7066B6C287DBBE9E43FCE0E483EF7F2C4DC3). On a machine without that
+# certificate electron-builder logs "skipped macOS code signing" and
+# continues. mac.identity wins over CSC_NAME; override per build with
+# `-c.mac.identity=<sha1>`, or `-c.mac.identity=null` to build unsigned.
+#
+# Notarisation (off unless credentials are in the environment — local builds
+# never fail on it). Either:
+#   APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID=JW9HJH86GC
+# or an App Store Connect API key:
+#   APPLE_API_KEY (path to .p8) + APPLE_API_KEY_ID + APPLE_API_ISSUER
+# or a notarytool keychain profile (simplest locally):
+#   xcrun notarytool store-credentials zekra-notary --apple-id … --team-id JW9HJH86GC
+#   APPLE_KEYCHAIN_PROFILE=zekra-notary npm run dist
+# electron-builder notarises (and staples) automatically when one of these is
+# set, and logs "skipped macOS notarization" otherwise.
+
+appId: com.fadymondy.zekra.desktop
 productName: Zekra
-copyright: Copyright © Zekra (ذكرة)
+copyright: Copyright © 2026 Fady Mondy — Zekra (ذكرة)
 
 directories:
   output: dist
   buildResources: build
 
+# Ship only the UI languages the app has (Electron locale .pak + .lproj; the
+# .lproj set also decides which languages macOS offers native menus/panels in).
+electronLanguages:
+  - en
+  - ar
+
 files:
   - out/**/*
+  - "!out/**/*.map"
   - package.json
-  - node_modules/**/*
 
-# NOTE: icon.ico / icon.icns are placeholders-in-waiting — only build/icon.svg and a
-# hand-generated build/icon.png (both derived from the real cabrain brand mark, see
-# web/app/icon.svg / web/lib/brand) currently exist (no ImageMagick/rsvg-convert/sharp
-# in this environment to derive real multi-resolution .ico/.icns). See README.md for
-# the follow-up conversion step before a real packaged Windows/macOS build.
-win:
-  target:
-    - nsis
-    - portable
-  icon: build/icon.ico
+# Registered with Launch Services: zekra:// links (social sign-in returns).
+protocols:
+  - name: Zekra
+    schemes:
+      - zekra
 
-nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
+# Markdown files open in Zekra (main.ts open-file -> renderer "open-file").
+fileAssociations:
+  - ext: md
+    name: Markdown Document
+    description: Markdown document
+    role: Editor
+    rank: Alternate
+  - ext: markdown
+    name: Markdown Document
+    role: Editor
+    rank: Alternate
+  - ext: mdx
+    name: MDX Document
+    role: Editor
+    rank: Alternate
 
 mac:
-  target:
-    - dmg
-  icon: build/icon.icns
   category: public.app-category.productivity
-
-linux:
+  icon: build/icon.icns
+  identity: 5697A4668C164256E390AC317BBF76ADC5D1892A
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  darkModeSupport: true
+  minimumSystemVersion: "11.0"
+  extendInfo:
+    NSHumanReadableCopyright: Copyright © 2026 Fady Mondy
+    # Touch ID (systemPreferences.promptTouchID) — shown in the system prompt.
+    NSFaceIDUsageDescription: Zekra uses Touch ID to unlock the app and reveal vault secrets.
+    # Apple Notes import (AppleScript) — shown in the Automation prompt.
+    NSAppleEventsUsageDescription: Zekra reads your Apple Notes only when you import them into a brain.
   target:
-    - AppImage
-    - deb
-  icon: build/icon.png
-  category: Utility
+    - target: dmg
+      arch: universal
+    - target: zip
+      arch: universal
+
+dmg:
+  title: Zekra ${version}
+  icon: build/icon.icns
+
+# electron-updater reads the feed from app-update.yml, generated from this.
+publish:
+  - provider: github
+    owner: fadymondy
+    repo: zekra
+    releaseType: release

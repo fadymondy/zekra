@@ -82,7 +82,7 @@ export function getApiBaseUrl() {
 }
 
 type Options = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; // PATCH: presentations (MH-450)
   token?: string | null;
   json?: unknown;
   csrf?: boolean;

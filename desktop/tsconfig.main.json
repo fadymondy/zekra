@@ -1,10 +1,15 @@
 {
+  // Main process (+ the shared IPC contract it imports). tsc emits
+  // src/main/*.ts -> out/main/*.js and src/shared/*.ts -> out/shared/*.js.
+  // preload.ts is type-checked here too, but the file Electron loads is the
+  // esbuild bundle build/bundle.mjs writes over out/main/preload.js (a
+  // sandboxed preload cannot require ../shared/ipc at runtime).
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
-    "outDir": "out/main",
-    "rootDir": "src/main",
+    "outDir": "out",
+    "rootDir": "src",
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "Node",
@@ -13,9 +18,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "types": ["node"],
-    // Desktop has no node_modules of its own; the type packages live in the
-    // web install, same as for the renderer.
-    "typeRoots": ["../web/node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/main/**/*.ts"]
+  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"]
 }

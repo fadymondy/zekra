@@ -1,15 +1,14 @@
 <!doctype html>
-<!-- data-brand selects the palette in web/app/styles/grid-tokens.css. Without it
-     --grid-action falls back to the :root default (#e2661c, fadymondy's orange)
-     and every primary button, focus ring and accent comes out the wrong colour.
-     The web app sets the same attribute in web/app/layout.tsx. -->
-<html lang="en" data-brand="cabrain">
+<!-- data-brand selects the palette in web/app/styles/grid-tokens.css (violet
+     action, gold accent). Without it --grid-action falls back to the :root
+     orange. lang/dir/data-theme/data-platform are set at runtime by the shell.
+     %CSP% is replaced at build time from src/shared/csp.ts (build/bundle.mjs);
+     the main process sends the same policy as a header. -->
+<html lang="en" dir="ltr" data-brand="cabrain" data-theme="dark" class="dark">
   <head>
     <meta charset="utf-8" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src *;"
-    />
+    <meta http-equiv="Content-Security-Policy" content="%CSP%" />
+    <meta name="color-scheme" content="dark light" />
     <title>Zekra</title>
     <link rel="stylesheet" href="app.css" />
   </head>

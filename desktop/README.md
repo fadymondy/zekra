@@ -1,77 +1,114 @@
-# Zekra Desktop
+# Zekra for macOS (ذكرة)
 
-A native Electron notes app backed by Zekra's own brain/notes REST API
-(`https://app.zekra.dev` by default, configurable in Settings). This is **not** a
-browser wrapper — the only thing ever loaded into the `BrowserWindow` is this app's
-own bundled renderer (`out/renderer/index.html`); every Zekra API call goes out via
-plain `fetch` from the renderer, the same way `mobile/src/lib/api.ts` does from React
-Native.
+A native Electron client of the Zekra brain/notes API (`https://app.zekra.dev` by
+default; changeable in Settings ▸ General). It is not a browser wrapper: the only
+page ever loaded is the app's own bundled renderer (`out/renderer/index.html`),
+and every API call is made by the main process (`src/main/api-proxy.ts`) because
+a `file://` page sends `Origin: null`, which the API rejects (MH-269).
 
-Architecture mirrors `E:\Sites\mark-it-down\apps\electron` (main/preload/renderer
-split, `electron-builder` packaging) and its theme system
-(`packages/core/src/themes/themes.ts` — a pluggable array of named palettes), but the
-notes/auth logic and the theme colors are Zekra's own.
+It replaces the Mark It Down app (epic MH-450) and follows its native-macOS
+patterns: hidden-inset title bar with an 80px traffic-light inset, full native
+menu, menubar item, Finder integration for Markdown files.
+
+## Commands
+
+```bash
+npm install          # desktop deps (electron, esbuild, electron-builder, …)
+                     # the renderer's React/shadcn/Tailwind come from ../web —
+                     # run `npm install` in ../web too
+npm run dev          # build (with source maps) and launch
+npm run typecheck    # main + renderer, both strict
+npm run build        # out/ (main via tsc, preload + renderer via esbuild)
+npm run pack         # signed, unpacked app: dist/mac-arm64/Zekra.app
+npm run dist         # dmg + zip, universal, signed (+ notarised if configured)
+npm run dist:publish # same, uploaded to GitHub Releases (needs GH_TOKEN)
+npm run icons        # regenerate build/icon.icns + tray icons from build/icon.svg
+```
+
+If your shell exports `ELECTRON_RUN_AS_NODE=1` (some tool hosts do), Electron
+starts as plain Node and `require("electron").app` is undefined — unset it.
 
 ## Layout
 
-- `src/main/main.ts` — app lifecycle, BrowserWindow, IPC handlers for local settings.
-- `src/main/preload.ts` — the only bridge exposed to the renderer (`window.zekra`):
-  local settings get/patch, session clear, app version, safe `openExternal`, and
-  native-menu event relays. No filesystem/Node access is exposed beyond that.
-- `src/main/menu.ts` — native app menu (Zekra / Note / Edit / View / Window / Help).
-- `src/main/settings-store.ts` — `electron-store`-backed local settings (API base URL,
-  theme, active brain, session token/user). Never sent to the backend.
-- `src/renderer/*.ts` — vanilla TS (no framework/bundler), compiled 1:1 by `tsc` to
-  `out/renderer/*.js` and loaded via plain `<script>` tags in dependency order
-  (`themes.js`, `api.js`, `app.js`) — same pattern as mark-it-down's renderer.
-  - `themes.ts` — the theme system: `zekra-light` / `zekra-dark` / `zekra-gold`,
-    applied as CSS custom properties.
-  - `api.ts` — the Zekra API client, mirroring `mobile/src/lib/api.ts`'s contract
-    (bearer-token auth, CSRF-then-login, `/api/brain/mine`, `/api/notes*`) with
-    `source: "desktop"` instead of `"mobile"`.
-  - `app.ts` — the SPA: sign-in -> brain picker -> notes list + editor, plus Settings.
-- `build/icon.svg` / `build/icon.png` — the real cabrain/Zekra brand mark (see
-  `web/app/icon.svg`), redrawn on the dark-ink ground per the brand's square-corner,
-  no-gradient rule.
-
-## Run it
-
-```bash
-cd desktop
-npm install
-npm run dev      # builds main+renderer, then launches electron .
+```
+src/shared/ipc.ts      THE contract: settings schema, command names, events,
+                       IPC channel names, the typed window.zekra API
+src/shared/csp.ts      the renderer CSP (meta tag + response header)
+src/main/              main process (see the module map atop main.ts)
+  main.ts              lifecycle, single-instance lock, main window
+  ipc-handlers.ts      every ipcMain.handle
+  renderer-events.ts   main -> renderer events, buffered until renderer ready
+  menu.ts / menu-strings.ts   native menu, EN/AR, -> command bus
+  deep-links.ts        zekra:// + open-file (.md/.markdown/.mdx)
+  settings-store.ts    electron-store + safeStorage-encrypted session token
+  window-state.ts      persisted bounds / maximised / full screen
+  tray.ts              menubar item
+  updater.ts           electron-updater (GitHub fadymondy/zekra)
+  security.ts          CSP header, permission policy
+  preload.ts           exposes window.zekra (bundled by esbuild)
+src/renderer/          React 19 renderer
+  app.tsx              providers + session restore
+  shell/               app chrome and the extension points (below)
+  routes/              one file per route
+  screens/             sign-in, the notes workspace
+  components/, lib/    avatar, markdown, api client, i18n, authed images
+build/                 bundle.mjs, icons, entitlements
 ```
 
-Point at a different backend at runtime via Settings (gear icon / Zekra menu ->
-Settings…), or by pre-seeding the `apiBaseUrl` field in the local settings file
-(`electron-store` writes to the OS's per-user config dir, e.g.
-`%APPDATA%/zekra-desktop-settings/zekra-desktop-settings.json` on Windows).
+Aliases (build/bundle.mjs and tsconfig.renderer.json agree):
+`@/` → `../web` (shadcn components, web lib) and `@mobile/` → `../mobile/src`
+(pure-TS modules shared with the phone app, e.g. i18n dictionaries).
 
-## Typecheck / build only
+## Extending the shell (feature teams)
 
-```bash
-npm run typecheck   # tsc --noEmit for both main and renderer
-npm run build        # tsc (main + renderer) -> out/
-```
+- **Screens** — add a variant to `Route` in `shell/router.tsx`, render it in
+  `routes/index.tsx` (exhaustive switch). Navigate with `useRouter().navigate()`.
+- **Activity bar** — append to `ACTIVITY_ITEMS` in `shell/activity-bar.tsx`.
+- **Title / status bar items** — `useSlot(name, node, { order })` from
+  `shell/slots.tsx`. Slots: `titlebar.start`, `titlebar.end`,
+  `titlebar.bell` (replaces the default bell), `titlebar.account` (replaces the
+  default account menu), `statusbar.start`, `statusbar.end`.
+- **Menu commands** — `useCommand("export:pdf", handler)` from
+  `shell/commands.tsx`. Latest-mounted handler wins; return `false` to pass
+  down. Shell fallbacks and TODO(feature-team) stubs: `shell/base-commands.tsx`.
+- **OS events** — `useOsEvent("deep-link" | "open-file" | "notification-click", fn)`
+  from `shell/os-events.tsx`. Unhandled events are parked and delivered to the
+  first handler that mounts.
+- **Toasts** — `import { toast } from "shell/toast"`.
+- **Authenticated images** — `useAuthedImage(path)` from `lib/authed-image.ts`
+  (bytes fetched by main with the stored token; returns an object URL).
+- **Strings** — `t(key, vars)` from `lib/i18n.tsx`. Mobile's feature dictionaries
+  (`mobile/src/i18n/features/*`) are merged in; reuse their keys.
 
-## Package installers
+## Settings and secrets
 
-```bash
-npm run package
-```
+Local settings live in
+`~/Library/Application Support/zekra-desktop/zekra-desktop-settings.json` (the
+userData dir follows package.json `name`; dev and packaged builds share it).
+Schema: `AppSettings` in `src/shared/ipc.ts`. The session token is encrypted with Electron `safeStorage`
+(key in the login Keychain) and stored as `authTokenEnc`; plain tokens written by
+older builds are migrated on first launch. A token encrypted by a differently
+signed build (dev Electron vs the signed app) may not decrypt; it is then
+dropped and the user signs in again.
 
-Produces Windows (NSIS installer + portable exe), macOS (`.dmg`), and Linux
-(AppImage + `.deb`) artifacts in `dist/`, via `electron-builder.yml`.
+## Signing, notarisation, updates
 
-**Known gap:** no image-conversion tool (ImageMagick, rsvg-convert, Inkscape, sharp)
-was available in this environment, so there is no real multi-resolution `.ico`/`.icns`
-yet — `electron-builder.yml` references `build/icon.ico` / `build/icon.icns`, which
-don't exist. Before a real Windows/macOS package build, generate them from
-`build/icon.png`, e.g.:
-
-```bash
-npx electron-icon-builder --input=build/icon.png --output=build --flatten
-```
-
-Linux packaging works as-is since `linux.icon` points at the already-generated
-`build/icon.png`.
+- App id `com.fadymondy.zekra.desktop` (distinct from the iOS bundle id).
+- Signed with **Developer ID Application: Fady Nasef (JW9HJH86GC)**, pinned by
+  SHA-1 `5697A4668C164256E390AC317BBF76ADC5D1892A` in `electron-builder.yml`. Two
+  certificates with that exact name exist in the login keychain (the other is
+  `D3DA7066B6C287DBBE9E43FCE0E483EF7F2C4DC3`; both valid, both with a key, same
+  expiry), so signing by name is ambiguous. Override per build with
+  `-c.mac.identity=<sha1>` (`mac.identity` takes precedence over `CSC_NAME`), or
+  `-c.mac.identity=null` for an unsigned build; on a machine without the
+  certificate electron-builder skips signing with a warning.
+- Hardened runtime with `build/entitlements.mac.plist` (JIT, unsigned executable
+  memory, network client, user-selected files).
+- Notarisation runs only when credentials are in the environment:
+  `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID`, or
+  `APPLE_API_KEY` + `APPLE_API_KEY_ID` + `APPLE_API_ISSUER`, or
+  `APPLE_KEYCHAIN_PROFILE` (a `xcrun notarytool store-credentials` profile).
+- Auto-update: `electron-updater` against GitHub Releases of `fadymondy/zekra`
+  (needs the signed zip target, i.e. `npm run dist:publish`). Packaged builds check
+  once after launch; Help ▸ Check for Updates… checks interactively. Development
+  builds never check.
