@@ -1,0 +1,13 @@
+{
+  "notifications.bell": "Notifications",
+  "notifications.bellUnread": "Notifications, {count} unread",
+  "notifications.title": "Notifications",
+  "notifications.markAllRead": "Mark all read",
+  "notifications.delete": "Delete notification",
+  "notifications.loadMore": "Load more",
+  "notifications.empty": "You're all caught up",
+  "notifications.emptyHint": "When a brain is shared with you or someone opens a presentation you shared, it shows up here.",
+  "notifications.error": "Couldn't load notifications.",
+  "notifications.failed": "Couldn't update notifications. Try again.",
+  "notifications.unread": "Unread"
+}

@@ -17,6 +17,7 @@ import { LanguageSwitcher, ThemeToggle } from "@/components/header-controls"
 import { ErrorState } from "@/components/states"
 import { MahaamWidget, feedbackEnabled, openFeedback } from "@/components/feedback/mahaam-widget"
 import { LiveIndicator } from "@/components/shell/live"
+import { NotificationBell } from "@/components/shell/notification-bell"
 import { Spotlight } from "@/components/spotlight/spotlight"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
@@ -219,6 +220,7 @@ export function AppShell({
               </Button>
             ) : null}
             <LiveIndicator />
+            {me.data ? <NotificationBell /> : null}
             <LanguageSwitcher />
             <ThemeToggle />
             {me.data ? <UserMenu user={me.data} /> : null}
