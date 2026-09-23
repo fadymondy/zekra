@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="tokens.css" />
   <style>
     body { width: 360px; padding: 0 0 14px; }
+    #brainsStatus:not(:empty) { margin-top: 6px; }
     .zk-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 var(--zk-pad-x); }
   </style>
 </head>
@@ -17,7 +18,7 @@
     <p class="zk-muted">Connect your Zekra account to save pages, notes and secrets straight into a brain.</p>
     <button id="signInBtn">Connect Zekra account</button>
     <div id="authStatus"></div>
-    <p class="zk-muted">Opens zekra.dev to sign in and approve access. Nothing is stored except the access token this grant issues.</p>
+    <p class="zk-muted">Opens Zekra in a new window to sign in and approve access. Nothing is stored except the access token this grant issues.</p>
   </div>
 
   <div id="tabs" class="zk-tabs" hidden>
@@ -29,6 +30,7 @@
     <div>
       <label class="zk-label" for="brainSelect">Brain</label>
       <select id="brainSelect"></select>
+      <div id="brainsStatus" class="zk-muted"></div>
     </div>
     <div>
       <label class="zk-label" for="titleInput">Title</label>

@@ -1,53 +1,68 @@
 # Save to Zekra (Chrome extension)
 
 A Manifest V3 capture tool: save the current page (title + URL + selection) as a
-note in a Zekra brain, from a popup, a right-click context menu, or `Ctrl+Shift+Z`.
+memory in a Zekra brain, or add a secret to a brain's vault — from the popup, a
+right-click context menu, or `Ctrl+Shift+Z` / `Cmd+Shift+Z`.
 
-## Auth contract
+No content scripts: nothing runs on the pages you visit. The selection is read
+on demand (`activeTab` + `scripting`) only when you open the popup or use the
+shortcut.
 
-This extension authenticates like `cmd/zekra-mcp` (see
-`plugins/brain/mcptools/http_backend.go`), **not** like the Next.js web console
-(`web/lib/api.ts`), because a browser extension is a separate origin and can't
-reuse the console's `togo_session` cookie + CSRF token. Every request sends:
+## Auth
 
-- `X-Zekra-Token: <token>` — the ACL token credential, checked first in
-  `plugins/brain/internal/brain/caller.go` `resolveCaller()` via `TokenHeader()`
-  (`plugins/brain/internal/brain/envcompat.go`).
-- `X-Agent-Id: <label>` — a non-credential activity label (defaults to
-  `extension`), same as `HTTPBackend.Agent` in `http_backend.go`.
+OAuth 2.1 against Zekra's own authorization server
+(`plugins/brain/internal/brain/oauth.go`): dynamic client registration (public
+client, no secret), authorization code + PKCE (S256) through
+`chrome.identity.launchWebAuthFlow`, rotating refresh tokens. Discovery is
+`<apiBase>/.well-known/oauth-authorization-server`; on production the issuer
+(register/token/revoke) is `https://mcp.zekra.dev`, which is why that host is in
+`host_permissions`.
 
-Get a token from the console's brain token UI, or `POST /api/brain/tokens`
-(admin-only; see `plugins/brain/internal/brain/handlers.go:569`), or the
-`brain_create_token` MCP tool. Paste it into the popup or the options page —
-it's stored only in `chrome.storage.local` (never injected into page contexts,
-never sent anywhere but the configured API base).
+- Sign-in runs in the **service worker** (`background.js`): the popup closes as
+  soon as the sign-in window takes focus, so it cannot finish the code exchange
+  itself. Reopen the popup when you are done (on Chrome 127+ the worker also tries to reopen it).
+- Refresh is single-flight across the popup, options page and worker (Web
+  Locks): the server revokes the whole connection if a refresh token is used
+  twice.
+- A dead session (refresh rejected, or 401 after one refresh) clears the local
+  token and shows **Connect** again — no retry loops.
+- All requests use `credentials: "omit"` and a timeout.
 
 ## Endpoints
 
-- `GET /api/brain/mine` — lists brains (namespaces) the token can reach, for the
-  popup's brain picker (`plugins/brain/internal/brain/notes_handlers.go:410`).
-- `POST /api/notes` — creates the note
-  (`plugins/brain/internal/brain/notes_handlers.go:217`), body
-  `{namespace, title, body, tags, pinned, source}`. `source` must be one of
-  `web|mobile|desktop|agent|api` (`plugins/brain/internal/brain/notes.go:46`) —
-  there's no `"extension"` value, so this client sends `"api"`.
+Everything goes through the MCP endpoint `POST <apiBase>/api/mcp`
+(`tools/call`), because the OAuth principal is only attached there:
+
+- `brain_list` — brains this connection can reach (popup picker; cached locally).
+- `memory_retain` — the note (`source_kind: "extension"`, `source_ref: <page URL>`).
+- `secret_store` — the vault add.
+
+## Build
+
+```sh
+cd extension
+npm run build        # node scripts/build.mjs — no dependencies
+```
+
+Outputs `dist/zekra-extension-<version>/` (load unpacked) and
+`dist/zekra-extension-<version>.zip` (Chrome Web Store upload). The build drops
+the web-preview shim (`browser-shim.js`, `index.html`) and checks that every
+referenced file is present.
 
 ## Load unpacked (Chrome/Edge)
 
-1. Visit `chrome://extensions`, enable **Developer mode**.
-2. **Load unpacked** → select this `extension/` folder.
-3. Click the toolbar icon, paste a Zekra API token, pick a brain, and save a note.
-4. Optional: open the extension's **Options** page to change the API base URL
-   (default `https://app.zekra.dev`) — a non-default base prompts an
-   `optional_host_permissions` grant at save time.
+1. `chrome://extensions` → enable **Developer mode**.
+2. **Load unpacked** → select `extension/dist/zekra-extension-<version>/`
+   (or the `extension/` folder itself while developing).
+   Updating an existing install: click the reload icon on the extension card.
+3. Click the toolbar icon → **Connect Zekra account**, approve the brains in
+   the Zekra window, reopen the popup, pick a brain, save.
+4. Options: API base URL (default `https://app.zekra.dev`; a different host asks
+   for an `optional_host_permissions` grant), agent label, the access token, and
+   Disconnect.
 
-## Known gaps / open questions
+## Web preview
 
-- Icons are solid-color placeholders (generated, not designed) — swap
-  `icons/icon{16,48,128}.png` for real artwork.
-- No i18n; English only, per the task's v1 scope.
-- The background service worker's context-menu/shortcut quick-capture needs a
-  default brain saved first (from the popup) — until then it opens the popup so
-  the user can pick one, rather than guessing a namespace.
-- Token minting/rotation UI is intentionally out of scope here — this extension
-  only *consumes* a token created elsewhere (console/admin/MCP tool).
+`index.html` + `browser-shim.js` let the popup/options UI render in a plain
+browser tab (served over HTTP) for visual checks. Chrome-only parts (active tab,
+sign-in, the worker) are stubbed there.

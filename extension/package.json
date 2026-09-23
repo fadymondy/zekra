@@ -1,0 +1,9 @@
+{
+  "name": "zekra-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --check background.js && node --check api.js && node --check oauth.js && node --check popup.js && node --check options.js"
+  }
+}

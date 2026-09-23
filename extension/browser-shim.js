@@ -36,6 +36,20 @@
           writeAll(all);
         },
       },
+      // In-memory, like the real session area (cleared when the page closes).
+      session: (() => {
+        const mem = {};
+        return {
+          async get(keys) {
+            const out = {};
+            for (const k of Array.isArray(keys) ? keys : [keys]) if (k in mem) out[k] = mem[k];
+            return out;
+          },
+          async set(patch) { Object.assign(mem, patch); },
+          async remove(keys) { for (const k of Array.isArray(keys) ? keys : [keys]) delete mem[k]; },
+        };
+      })(),
+      onChanged: { addListener() {} },
     },
     tabs: {
       async query() {
@@ -48,7 +62,9 @@
       },
     },
     runtime: {
+      id: "web-preview",
       openOptionsPage() { window.open("options.html", "_blank"); },
+      async sendMessage() { throw new Error("No background worker in the web preview."); },
     },
     identity: {
       getRedirectURL() { return location.origin + "/oauth-callback"; },
