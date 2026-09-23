@@ -63,7 +63,7 @@ function SectionStrip({ current }: { current?: SettingsSection }) {
             })}
           >
             <s.Icon size={14} color={on ? p.gold : p.muted} strokeWidth={1.6} />
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, color: on ? p.gold : p.muted }}>{t(s.label)}</AppText>
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: on ? p.gold : p.muted }}>{t(s.label)}</AppText>
           </Pressable>
         );
       })}
@@ -116,13 +116,13 @@ export function SettingsItem({ Icon, label, onPress, last, tone, trailing, detai
       }
       trailing={trailing ?? (onPress ? <ForwardChevron size={17} /> : undefined)}
     >
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 21, color: tone === "danger" ? p.danger : p.ink }}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 23, color: tone === "danger" ? p.danger : p.ink }}>{label}</AppText>
       {detail ? (
         <AppText
           numberOfLines={mono ? 1 : 2}
           style={mono
-            ? { fontFamily: fonts.mono, fontSize: 11, lineHeight: 17, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }
-            : { fontFamily: fonts.light, fontSize: 12, lineHeight: 19, color: p.muted }}
+            ? { fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 19, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }
+            : { fontFamily: fonts.light, fontSize: 13.5, lineHeight: 21, color: p.muted }}
         >
           {detail}
         </AppText>
@@ -136,8 +136,8 @@ export function SettingsLabel({ title, body }: { title: string; body?: string })
   const p = usePalette();
   return (
     <View style={{ gap: 3 }}>
-      <AppText style={{ fontFamily: fonts.medium, fontSize: 13.5, lineHeight: 21, color: p.ink }}>{title}</AppText>
-      {body ? <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 20, color: p.muted }}>{body}</AppText> : null}
+      <AppText style={{ fontFamily: fonts.medium, fontSize: 15, lineHeight: 23, color: p.ink }}>{title}</AppText>
+      {body ? <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 22, color: p.muted }}>{body}</AppText> : null}
     </View>
   );
 }

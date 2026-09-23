@@ -6,6 +6,7 @@ import { Platform, Switch, View } from "react-native";
 import { AppText, Row } from "@/components/ui";
 import { feedbackEnabled, openReport, useShakeSetting } from "@/features/mahaam";
 import { SettingsItem, SettingsPage } from "@/features/settings/settings-nav";
+import { UpdatesAboutRows } from "@/features/updates";
 import { useI18n } from "@/lib/i18n";
 import { fonts, usePalette } from "@/theme";
 
@@ -44,10 +45,11 @@ export default function AboutScreen() {
           <SettingsItem last Icon={LifeBuoy} label={t("legal.support")} onPress={() => legal("support")} />
         </View>
       </Row>
+      <UpdatesAboutRows />
       <Row>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 18, color: p.muted }}>{t("settings.version")}</AppText>
-          <AppText style={{ fontFamily: fonts.mono, fontSize: 11.5, lineHeight: 18, color: p.muted, writingDirection: "ltr" }}>{version}</AppText>
+          <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: p.muted }}>{t("settings.version")}</AppText>
+          <AppText style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 20, color: p.muted, writingDirection: "ltr" }}>{version}</AppText>
         </View>
       </Row>
     </SettingsPage>

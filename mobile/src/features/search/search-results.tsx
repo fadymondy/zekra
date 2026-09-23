@@ -54,7 +54,7 @@ export function SearchResults({ search, onOpenNote }: { search: SearchState; onO
     return (
       <Row>
         <AwaitNote text={t("search.empty")} />
-        <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 21, color: p.muted }}>{t("search.emptyBody")}</AppText>
+        <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 24, color: p.muted }}>{t("search.emptyBody")}</AppText>
       </Row>
     );
   }

@@ -78,7 +78,7 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
           ]}
         >
           <ListFilter size={16} color={status !== "all" ? p.gold : p.muted} strokeWidth={1.6} />
-          <AppText style={{ fontFamily: fonts.regular, fontSize: 13, color: status !== "all" ? p.gold : p.muted }}>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, color: status !== "all" ? p.gold : p.muted }}>
             {status === "all" ? t("presentations.status.any") : f.status(status)}
           </AppText>
         </Pressable>
@@ -141,6 +141,6 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
 const styles = StyleSheet.create({
   searchRow: { flexDirection: "row", gap: 8, paddingHorizontal: metrics.padX, paddingTop: 12 },
   search: { flex: 1, minHeight: 40, borderWidth: 1, borderRadius: metrics.radius.control, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 11 },
-  searchInput: { flex: 1, fontSize: 14, paddingVertical: 8 },
+  searchInput: { flex: 1, fontSize: 15.5, paddingVertical: 8 },
   statusBtn: { minHeight: 40, borderWidth: 1, borderRadius: metrics.radius.chip, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 11 },
 });

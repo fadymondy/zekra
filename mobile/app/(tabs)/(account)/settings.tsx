@@ -10,7 +10,7 @@ import { useBiometricInfo } from "@/features/security/biometrics";
 import { useAppLock } from "@/features/security/lock-store";
 import { SECTIONS, SettingsItem, type SettingsSection } from "@/features/settings/settings-nav";
 import { ZekraMark } from "@/features/splash/zekra-mark";
-import { useI18n } from "@/lib/i18n";
+import { languageName, useI18n } from "@/lib/i18n";
 import { readingTheme, useReadingSettings } from "@/lib/reading-settings";
 import { useAuth } from "@/providers/auth";
 import { fonts, usePalette, useTheme } from "@/theme";
@@ -30,7 +30,7 @@ export default function SettingsScreen() {
 
   const modeLabel = t(mode === "system" ? "settings.themeSystem" : mode === "light" ? "settings.themeLight" : "settings.themeDark");
   const details: Partial<Record<SettingsSection, string>> = {
-    appearance: `${modeLabel} · ${locale === "ar" ? "العربية" : "English"}`,
+    appearance: `${modeLabel} · ${languageName(locale)}`,
     reading: t("settings.x.readingDetail", { theme: readingTheme(reading.theme)?.label ?? t("settings.x.readingOwn"), size: reading.fontSize }),
     security: lock.settings.enabled
       ? t("security.detailOn", { kind: t(KIND_KEY[biometric?.kind ?? "biometrics"]), after: t(`security.after.${lock.settings.after}`) })
@@ -56,11 +56,11 @@ export default function SettingsScreen() {
             <View style={{ flex: 1, gap: 4 }}>
               <AppText variant="micro">{t("settings.signedInAs")}</AppText>
               {user?.name ? (
-                <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 22, color: p.ink }}>{user.name}</AppText>
+                <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, color: p.ink }}>{user.name}</AppText>
               ) : null}
               <AppText
                 numberOfLines={1}
-                style={{ fontFamily: user?.name ? fonts.mono : fonts.medium, fontSize: user?.name ? 11.5 : 14.5, lineHeight: 20, color: user?.name ? p.muted : p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}
+                style={{ fontFamily: user?.name ? fonts.mono : fonts.medium, fontSize: user?.name ? 13 : 16, lineHeight: 23, color: user?.name ? p.muted : p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}
               >
                 {user?.email || t("app.name")}
               </AppText>

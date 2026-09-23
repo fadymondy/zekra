@@ -34,7 +34,7 @@ const TABS: { name: string; label: "nav.search" | "nav.brains" | "nav.account"; 
 // mirrors the order.
 function TabBar({ state, navigation }: BottomTabBarProps) {
   const p = usePalette();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -60,7 +60,7 @@ function TabBar({ state, navigation }: BottomTabBarProps) {
             style={styles.item}
           >
             <tab.Icon size={23} color={color} strokeWidth={active ? 1.9 : 1.5} />
-            <AppText style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: type.tab, lineHeight: 15, color }}>
+            <AppText style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: isRtl ? type.tab + 1 : type.tab, lineHeight: isRtl ? 19 : 16, color }}>
               {t(tab.label)}
             </AppText>
           </Pressable>

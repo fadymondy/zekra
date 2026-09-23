@@ -119,6 +119,8 @@ export type Note = {
   id: string;
   namespace: string;
   title: string;
+  /** Short summary shown under the title and in lists; absent on older servers (treat as ""). Max 500. */
+  description?: string;
   body?: string;
   tags: string[];
   category?: string;
@@ -139,7 +141,7 @@ export type Note = {
 };
 
 export type NotePage = { notes: Note[]; nextCursor?: string; serverTime: string };
-export type NotePatch = Partial<Pick<Note, "title" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
+export type NotePatch = Partial<Pick<Note, "title" | "description" | "body" | "tags" | "category" | "pinned" | "archived" | "icon" | "color">>;
 
 // A hit from the hybrid (vector + BM25) recall engine — the same shape the web
 // console reads (web/lib/api.ts Recalled).
@@ -199,7 +201,7 @@ export const zekraApi = {
   note: (token: string, id: string) => request<Note>(`/api/notes/${encodeURIComponent(id)}`, { token }),
   createNote: (token: string, namespace: string, patch: NotePatch = {}) => request<Note>("/api/notes", {
     token,
-    json: { namespace, title: patch.title ?? "", body: patch.body ?? "", tags: patch.tags ?? [], category: patch.category ?? "note", pinned: patch.pinned ?? false, source: "mobile" },
+    json: { namespace, title: patch.title ?? "", ...(patch.description ? { description: patch.description } : {}), body: patch.body ?? "", tags: patch.tags ?? [], category: patch.category ?? "note", pinned: patch.pinned ?? false, source: "mobile" },
   }),
   updateNote: (token: string, note: Note, patch: NotePatch) => request<Note>(`/api/notes/${encodeURIComponent(note.id)}`, {
     method: "PUT",

@@ -31,7 +31,7 @@ export default function LegalScreen() {
     <Screen scroll header={<StackHeader title={t(entry.key)} subtitle={url.replace(/^https:\/\//, "").toUpperCase()} />}>
       <Rows style={{ paddingTop: 16 }}>
         <Row>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>
             {support ? t("legal.supportBody") : t("legal.intro")}
           </AppText>
           {support ? (
@@ -46,8 +46,8 @@ export default function LegalScreen() {
                 }
                 trailing={<ForwardChevron size={17} />}
               >
-                <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 21, color: p.ink }}>{t("legal.email")}</AppText>
-                <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 11.5, lineHeight: 18, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }}>
+                <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 23, color: p.ink }}>{t("legal.email")}</AppText>
+                <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 20, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }}>
                   {SUPPORT_EMAIL}
                 </AppText>
               </ListItem>

@@ -34,7 +34,7 @@ export const FONT_FAMILY_IDS: readonly FontFamilyId[] = ["system", "serif", "san
 export const DEFAULT_READING: ReadingSettings = {
   theme: null,
   fontFamily: "system",
-  fontSize: 16,
+  fontSize: 17,
   maxWidth: 0,
   wordWrap: true,
   lineNumbers: false,

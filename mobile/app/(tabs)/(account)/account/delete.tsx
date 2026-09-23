@@ -57,12 +57,12 @@ export default function DeleteAccountScreen() {
         <Row>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <TriangleAlert size={19} color={p.warn} strokeWidth={1.6} />
-            <AppText style={{ flex: 1, fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 22, color: p.ink }}>{t("account.deleteScheduled")}</AppText>
+            <AppText style={{ flex: 1, fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, color: p.ink }}>{t("account.deleteScheduled")}</AppText>
           </View>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>{t("account.deleteScheduledBody")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("account.deleteScheduledBody")}</AppText>
           <View style={{ gap: 4 }}>
-            <AppText style={{ fontFamily: fonts.medium, fontSize: 11, lineHeight: 17, color: p.muted }}>{t("account.deleteScheduledFor")}</AppText>
-            <AppText style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 20, color: p.gold, writingDirection: "ltr", alignSelf: "flex-start" }}>{when(state.data?.scheduled_for)}</AppText>
+            <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{t("account.deleteScheduledFor")}</AppText>
+            <AppText style={{ fontFamily: fonts.mono, fontSize: 14.5, lineHeight: 22, color: p.gold, writingDirection: "ltr", alignSelf: "flex-start" }}>{when(state.data?.scheduled_for)}</AppText>
           </View>
           {error ? <ErrorLine text={error} /> : null}
           <SecondaryButton
@@ -78,13 +78,13 @@ export default function DeleteAccountScreen() {
             <AppText variant="micro">{t("account.deleteWhat")}</AppText>
             <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
               <View style={{ width: 6, height: 6, marginTop: 9, backgroundColor: p.danger }} />
-              <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 13.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>{t("account.deleteWarn")}</AppText>
+              <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("account.deleteWarn")}</AppText>
             </View>
           </Row>
           <Row>
             <View style={{ gap: 4 }}>
               <AppText variant="micro">{t("settings.signedInAs")}</AppText>
-              <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 14, lineHeight: 21, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
+              <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 15.5, lineHeight: 23, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
                 {user?.email ?? "—"}
               </AppText>
             </View>

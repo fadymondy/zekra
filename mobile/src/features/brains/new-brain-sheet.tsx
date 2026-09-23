@@ -129,7 +129,7 @@ export function NewBrainSheet({ open, onClose, onCreated }: { open: boolean; onC
     <BottomSheet open={open} onClose={onClose} title={t("brains.new.title")} maxHeight={0.92}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 22, color: p.muted }}>{t("brains.new.description")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 25, color: p.muted }}>{t("brains.new.description")}</AppText>
 
           <Field
             label={t("brains.new.name")}
@@ -153,7 +153,7 @@ export function NewBrainSheet({ open, onClose, onCreated }: { open: boolean; onC
             autoCorrect={false}
             maxLength={63}
             placeholder="research"
-            style={{ fontFamily: fonts.mono, fontSize: 14 }}
+            style={{ fontFamily: fonts.mono, fontSize: 15.5 }}
             hint={namespace && !nsOk ? undefined : t("brains.new.namespaceHint")}
           />
           {namespace && !nsOk ? <ErrorLine text={t("brains.new.namespaceInvalid")} /> : null}
@@ -168,7 +168,7 @@ export function NewBrainSheet({ open, onClose, onCreated }: { open: boolean; onC
           />
 
           <View style={{ gap: 8 }}>
-            <AppText style={{ fontFamily: fonts.medium, fontSize: 11, lineHeight: 17, color: p.muted }}>{optional(t("brains.new.color"))}</AppText>
+            <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{optional(t("brains.new.color"))}</AppText>
             <Swatches value={color} onChange={setColor} />
           </View>
 

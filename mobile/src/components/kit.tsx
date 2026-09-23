@@ -64,9 +64,9 @@ export function StackHeader({ title, subtitle, trailing, onBack, leading }: {
       </IconButton>
       {leading}
       <View style={{ flex: 1, gap: 2 }}>
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 16, color: p.ink }}>{title}</AppText>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, color: p.ink }}>{title}</AppText>
         {subtitle ? (
-          <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 10.5, letterSpacing: 1.2, color: p.muted, writingDirection: "ltr" }}>
+          <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12, letterSpacing: 0.6, color: p.muted, writingDirection: "ltr" }}>
             {subtitle}
           </AppText>
         ) : null}
@@ -143,7 +143,7 @@ export function Chip({ label, tone = "muted" }: { label: string; tone?: ChipTone
   const { isRtl } = useI18n();
   const color = tone === "muted" ? p.muted : p[tone];
   // JetBrains Mono has no Arabic; Arabic labels use Lusail, never letter-spaced.
-  const face = isRtl ? { fontFamily: fonts.medium, fontSize: 11.5 } : { fontFamily: fonts.mono, fontSize: 10.5, letterSpacing: 0.4 };
+  const face = isRtl ? { fontFamily: fonts.medium, fontSize: 13 } : { fontFamily: fonts.mono, fontSize: 12, letterSpacing: 0.2 };
   return (
     <View style={[styles.chip, { borderColor: `${color}66`, backgroundColor: `${color}14` }]}>
       <AppText style={[face, { color }]}>{label}</AppText>
@@ -171,9 +171,9 @@ export function FilterStrip<T extends string>({ options, value, onChange, inset 
             onPress={() => onChange(o.value)}
             style={[styles.filter, { borderColor: on ? p.gold : p.line, backgroundColor: on ? `${p.gold}1A` : p.card }]}
           >
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 13, color: on ? p.gold : p.muted }}>{o.label}</AppText>
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, color: on ? p.gold : p.muted }}>{o.label}</AppText>
             {o.count !== undefined ? (
-              <AppText style={{ fontFamily: fonts.mono, fontSize: 10.5, color: on ? p.gold : p.muted }}>{o.count}</AppText>
+              <AppText style={{ fontFamily: fonts.mono, fontSize: 12, color: on ? p.gold : p.muted }}>{o.count}</AppText>
             ) : null}
           </Pressable>
         );
@@ -188,7 +188,7 @@ export function AwaitNote({ text }: { text: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
       <View style={{ width: 7, height: 7, backgroundColor: p.gold }} />
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, color: p.muted, flexShrink: 1 }}>{text}</AppText>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: p.muted, flexShrink: 1 }}>{text}</AppText>
     </View>
   );
 }
@@ -202,7 +202,7 @@ export function Meta({ items }: { items: (string | false | null | undefined)[] }
       {shown.map((m, i) => (
         <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           {i > 0 && <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: p.line }} />}
-          <AppText style={{ fontFamily: fonts.mono, fontSize: 11, color: p.muted }}>{m}</AppText>
+          <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.muted }}>{m}</AppText>
         </View>
       ))}
     </View>
@@ -214,14 +214,14 @@ export function TextButton({ label, onPress, muted, tone }: { label: string; onP
   const color = tone ? p[tone] : muted ? p.muted : p.gold;
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={{ minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 }}>
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, color }}>{label}</AppText>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 15, color }}>{label}</AppText>
     </Pressable>
   );
 }
 
 export function ErrorLine({ text }: { text: string }) {
   const p = usePalette();
-  return <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, color: p.danger }}>{text}</AppText>;
+  return <AppText style={{ fontFamily: fonts.regular, fontSize: 14, color: p.danger }}>{text}</AppText>;
 }
 
 /** Grey skeleton bar (§1.15). */
@@ -362,7 +362,7 @@ export function BottomSheet({ open, onClose, title, subtitle, children, maxHeigh
               <View style={[styles.grabber, { backgroundColor: p.line }]} />
               {title ? (
                 <View style={{ paddingHorizontal: metrics.padX, gap: 3, alignSelf: "stretch" }}>
-                  <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 16, color: p.ink }}>{title}</AppText>
+                  <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, color: p.ink }}>{title}</AppText>
                   {subtitle ? <AppText numberOfLines={1} variant="micro">{subtitle}</AppText> : null}
                 </View>
               ) : null}
@@ -397,7 +397,7 @@ export function SheetItem({ icon, label, detail, onPress, tone, disabled, traili
     >
       {icon ? <View style={{ width: 22, alignItems: "center" }}>{icon}</View> : null}
       <View style={{ flex: 1, gap: 1 }}>
-        <AppText style={{ fontFamily: fonts.regular, fontSize: 15, color }}>{label}</AppText>
+        <AppText style={{ fontFamily: fonts.regular, fontSize: 16.5, color }}>{label}</AppText>
         {detail ? <AppText variant="meta" numberOfLines={1}>{detail}</AppText> : null}
       </View>
       {trailing}
@@ -458,7 +458,7 @@ export function ToastHost() {
   return (
     <Animated.View pointerEvents="none" style={[styles.toast, { bottom: insets.bottom + 86, backgroundColor: p.card, borderColor: p.line }, style]}>
       <View style={{ width: 7, height: 7, backgroundColor: accent }} />
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, color: p.ink }}>{msg.text}</AppText>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 15, color: p.ink }}>{msg.text}</AppText>
     </Animated.View>
   );
 }
@@ -473,9 +473,9 @@ const styles = StyleSheet.create({
   stackHeader: { paddingTop: 8, paddingBottom: 10, paddingHorizontal: metrics.padX, borderBottomWidth: 1, flexDirection: "row", alignItems: "center", gap: 10 },
   trailing: { flexDirection: "row", gap: 8, alignItems: "center" },
   item: { flexDirection: "row", gap: 13, minHeight: 56 },
-  chip: { minHeight: 22, paddingHorizontal: 7, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignSelf: "flex-start" },
+  chip: { minHeight: 24, paddingHorizontal: 8, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignSelf: "flex-start" },
   strip: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 12, paddingBottom: metrics.gap },
-  filter: { minHeight: 38, paddingHorizontal: 15, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 7 },
+  filter: { minHeight: 40, paddingHorizontal: 15, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 7 },
   sheet: { position: "absolute", start: 0, end: 0, bottom: 0, borderTopStartRadius: metrics.radius.sheet, borderTopEndRadius: metrics.radius.sheet, borderWidth: 1, borderBottomWidth: 0, overflow: "hidden" },
   grabZone: { alignItems: "center", paddingTop: 9, paddingBottom: 10, gap: 12 },
   grabber: { width: 44, height: 4, borderRadius: 2 },

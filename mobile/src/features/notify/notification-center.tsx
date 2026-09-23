@@ -73,11 +73,11 @@ const NotificationRow = memo(function NotificationRow({ item, last, now, onOpen,
       onPress={() => onOpen(item)}
       onLongPress={() => onMenu(item)}
     >
-      <AppText numberOfLines={2} style={{ fontFamily: unread ? fonts.medium : fonts.regular, fontSize: 14.5, lineHeight: 21, color: unread ? p.ink : p.body }}>
+      <AppText numberOfLines={2} style={{ fontFamily: unread ? fonts.medium : fonts.regular, fontSize: 16, lineHeight: 23, color: unread ? p.ink : p.body }}>
         {item.title}
       </AppText>
       {item.body ? (
-        <AppText numberOfLines={2} style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 19, color: p.body }}>{item.body}</AppText>
+        <AppText numberOfLines={2} style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 21, color: p.body }}>{item.body}</AppText>
       ) : null}
     </ListItem>
   );
@@ -144,8 +144,8 @@ export function NotificationCenter() {
     empty = (
       <Row style={{ alignItems: "center", paddingVertical: 36 }}>
         <Tile size={52} radius={12}><Bell size={24} color={p.muted} strokeWidth={1.5} /></Tile>
-        <AppText style={{ fontFamily: fonts.medium, fontSize: 16, color: p.ink, textAlign: "center" }}>{t("notify.unavailableTitle")}</AppText>
-        <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 20, color: p.muted, textAlign: "center" }}>{t("notify.unavailableBody")}</AppText>
+        <AppText style={{ fontFamily: fonts.medium, fontSize: 17, color: p.ink, textAlign: "center" }}>{t("notify.unavailableTitle")}</AppText>
+        <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 22, color: p.muted, textAlign: "center" }}>{t("notify.unavailableBody")}</AppText>
       </Row>
     );
   } else if (list.isPending || (list.error && !list.data)) {
@@ -154,8 +154,8 @@ export function NotificationCenter() {
     empty = (
       <Row style={{ alignItems: "center", paddingVertical: 36 }}>
         <Tile size={52} radius={12} gold><Bell size={24} color={p.gold} strokeWidth={1.5} /></Tile>
-        <AppText style={{ fontFamily: fonts.medium, fontSize: 16, color: p.ink, textAlign: "center" }}>{t("notify.emptyTitle")}</AppText>
-        <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 20, color: p.muted, textAlign: "center" }}>{t("notify.emptyBody")}</AppText>
+        <AppText style={{ fontFamily: fonts.medium, fontSize: 17, color: p.ink, textAlign: "center" }}>{t("notify.emptyTitle")}</AppText>
+        <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 22, color: p.muted, textAlign: "center" }}>{t("notify.emptyBody")}</AppText>
       </Row>
     );
   }
@@ -251,8 +251,8 @@ export function NotificationCenter() {
 
 const styles = StyleSheet.create({
   end: { alignItems: "flex-end", gap: 8, paddingTop: 2 },
-  when: { fontFamily: fonts.mono, fontSize: 10.5 },
-  whenAr: { fontFamily: "Lusail-Regular", fontSize: 11.5 }, // Arabic-only style
+  when: { fontFamily: fonts.mono, fontSize: 12 },
+  whenAr: { fontFamily: "Lusail-Regular", fontSize: 13 }, // Arabic-only style
   dot: { width: 8, height: 8, borderRadius: 4 },
   footer: { paddingVertical: 18, alignItems: "center" },
 });

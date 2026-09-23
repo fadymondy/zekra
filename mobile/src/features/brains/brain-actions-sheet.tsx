@@ -90,7 +90,7 @@ export function BrainActionsSheet({ brain, onClose }: { brain: BrainListItem | n
       {confirming ? (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View style={{ paddingHorizontal: metrics.padX, paddingBottom: 12, gap: 14 }}>
-            <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 23, color: p.body }}>
+            <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.body }}>
               {t("brains.delete.description", { brain: ltr(ns) })}
             </AppText>
             <Field
@@ -102,7 +102,7 @@ export function BrainActionsSheet({ brain, onClose }: { brain: BrainListItem | n
               autoFocus
               autoCapitalize="none"
               autoCorrect={false}
-              style={{ fontFamily: fonts.mono, fontSize: 14 }}
+              style={{ fontFamily: fonts.mono, fontSize: 15.5 }}
             />
             {error ? <ErrorLine text={error} /> : null}
             <SecondaryButton

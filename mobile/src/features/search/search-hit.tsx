@@ -19,7 +19,7 @@ function BrainChip({ namespace, bordered }: { namespace: string; bordered: boole
   return (
     <View style={[styles.brainChip, bordered ? { borderWidth: 1, borderColor: p.line, backgroundColor: p.card } : { paddingStart: 0 }]}>
       <BrainAvatar brain={brain ?? { namespace }} size={18} />
-      <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.regular, fontSize: 11.5, lineHeight: 17, color: p.body }}>
+      <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, color: p.body }}>
         {brain ? brainName(brain) : ltr(namespace)}
       </AppText>
     </View>
@@ -32,7 +32,7 @@ function Score({ value }: { value: number }) {
   return (
     <AppText
       accessibilityLabel={`${t("search.score")} ${value.toFixed(2)}`}
-      style={{ fontFamily: fonts.mono, fontSize: 11.5, lineHeight: 17, color: p.gold, writingDirection: "ltr" }}
+      style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 19, color: p.gold, writingDirection: "ltr" }}
     >
       {value.toFixed(2)}
     </AppText>
@@ -65,13 +65,13 @@ export function SearchHit({ item, last, onOpen, variant = "classic", showBrain =
         <Score value={item.score} />
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <AppText numberOfLines={4} style={{ flex: 1, fontFamily: fonts.light, fontSize: inset ? 15 : 14, lineHeight: 24, color: p.ink }}>
+        <AppText numberOfLines={4} style={{ flex: 1, fontFamily: fonts.light, fontSize: inset ? 16.5 : 15.5, lineHeight: 27, color: p.ink }}>
           {item.content}
         </AppText>
         {onOpen ? <ForwardChevron /> : null}
       </View>
       {meta ? (
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 11, lineHeight: 17, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }}>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 19, color: p.muted, writingDirection: "ltr", alignSelf: "flex-start" }}>
           {meta}
         </AppText>
       ) : null}

@@ -42,13 +42,13 @@ export default function PasswordScreen() {
           <Tile size={42}>
             <KeyRound size={20} color={p.gold} strokeWidth={1.6} />
           </Tile>
-          <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 13.5, lineHeight: 25, color: p.body }}>{t("account.passwordBody")}</AppText>
+          <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 28, color: p.body }}>{t("account.passwordBody")}</AppText>
         </View>
       </Row>
       <Row>
         <View style={{ gap: 4 }}>
-          <AppText style={{ fontFamily: fonts.medium, fontSize: 11, lineHeight: 17, color: p.muted }}>{t("account.sentTo")}</AppText>
-          <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 20, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
+          <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{t("account.sentTo")}</AppText>
+          <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 22, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
             {user?.email ?? "—"}
           </AppText>
         </View>
@@ -56,7 +56,7 @@ export default function PasswordScreen() {
         {sent ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
             <View style={{ width: 7, height: 7, backgroundColor: p.ok }} />
-            <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 20, color: p.ok }}>{t("account.passwordSent")}</AppText>
+            <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, color: p.ok }}>{t("account.passwordSent")}</AppText>
           </View>
         ) : null}
         <PrimaryButton

@@ -79,9 +79,9 @@ export function PushBannerHost() {
         >
           <View style={{ width: 7, height: 7, marginTop: 7, backgroundColor: p.gold }} />
           <View style={{ flex: 1, gap: 2 }}>
-            <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 14.5, color: p.ink }}>{banner.title}</AppText>
+            <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 16, color: p.ink }}>{banner.title}</AppText>
             {banner.body ? (
-              <AppText numberOfLines={2} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, color: p.body }}>{banner.body}</AppText>
+              <AppText numberOfLines={2} style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 21, color: p.body }}>{banner.body}</AppText>
             ) : null}
           </View>
         </Pressable>

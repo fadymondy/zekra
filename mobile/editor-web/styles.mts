@@ -12,7 +12,7 @@ reading and typing look the same.
 */
 
 export const CSS = String.raw`
-:root{--zk-font:system-ui,sans-serif;--zk-size:16px;--zk-maxw:none;--zk-padx:28px;--zk-code-font:${CODE_FONT_STACK}}
+:root{--zk-font:system-ui,sans-serif;--zk-size:17px;--zk-maxw:none;--zk-padx:28px;--zk-code-font:${CODE_FONT_STACK}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;scrollbar-width:none}
 *::-webkit-scrollbar{display:none;width:0;height:0}
 html,body{margin:0;padding:0;background:var(--grid-bg);color:var(--grid-fg)}
@@ -66,7 +66,7 @@ html[data-wrap=on] .zk-code[data-lines=on] pre code{white-space:pre;word-break:n
 .zk-code-lights{display:inline-flex;gap:.3rem;flex:none}
 .zk-code-lights i{width:.62rem;height:.62rem;border-radius:9999px;background:currentColor}
 .zk-code-lights i:nth-child(1){color:#ff5f57}.zk-code-lights i:nth-child(2){color:#febc2e}.zk-code-lights i:nth-child(3){color:#28c840}
-.zk-code-name{flex:1;text-align:center;font-family:var(--zk-code-font);font-size:.72rem;color:var(--grid-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zk-code-name{flex:1;text-align:center;font-family:var(--zk-code-font);font-size:.78rem;color:var(--grid-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .zk-code-menu{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.6rem;border:0;border-radius:4px;background:none;color:var(--grid-muted);padding:0}
 .zk-code-menu:active{background:var(--grid-line);color:var(--grid-fg)}
 .zk-code-menu svg{fill:currentColor}
@@ -79,14 +79,14 @@ html[data-wrap=on] .zk-code[data-lines=on] pre code{white-space:pre;word-break:n
 .zk-table{margin:.8em 0;border:1px solid var(--grid-line);border-radius:8px;overflow:hidden;background:var(--grid-card)}
 .zk-table-bar{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-bottom:1px solid var(--grid-line);background:var(--grid-soft)}
 .zk-table-filter{display:inline-flex;align-items:center;gap:.4rem;flex:1;min-width:0;padding:.2rem .5rem;border:1px solid var(--grid-line);border-radius:6px;background:var(--grid-bg);color:var(--grid-muted);max-width:18rem}
-.zk-table-filter input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:var(--grid-fg);font:inherit;font-size:.8rem;padding:.15rem 0}
-.zk-table-count{font-size:.72rem;color:var(--grid-muted);white-space:nowrap}
+.zk-table-filter input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:var(--grid-fg);font:inherit;font-size:.875rem;padding:.15rem 0}
+.zk-table-count{font-size:.78rem;color:var(--grid-muted);white-space:nowrap}
 .zk-table-menu{margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.75rem;border:0;border-radius:4px;background:none;color:var(--grid-muted);padding:0}
 .zk-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .zk-table table{width:100%;border-collapse:collapse;margin:0}
 .zk-table th,.zk-table td{border:0;border-top:1px solid var(--grid-line);padding:.5rem .75rem;text-align:start;white-space:nowrap}
 .zk-table tbody tr:nth-child(even){background:var(--zk-table-stripe,transparent)}
-.zk-table thead th{background:var(--grid-soft);border-top:0;font-size:.69rem;letter-spacing:.06em;text-transform:uppercase;color:var(--grid-muted);padding:0}
+.zk-table thead th{background:var(--grid-soft);border-top:0;font-size:.75rem;letter-spacing:.03em;text-transform:uppercase;color:var(--grid-muted);padding:0}
 .zk-table-sort{display:inline-flex;align-items:center;gap:.35rem;width:100%;padding:.5rem .75rem;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:start}
 .zk-sort-caret::after{content:"⌄";opacity:.35;font-size:.75em}
 .zk-table-sort[data-active=asc] .zk-sort-caret::after{content:"⌃";opacity:1}
@@ -130,8 +130,8 @@ html[data-wrap=on] .ProseMirror pre{white-space:pre-wrap}
 .zk-banner{margin:0 0 14px;border:1px solid var(--grid-gold,#c9a227);background:var(--grid-soft);background:color-mix(in srgb,var(--grid-gold,#c9a227) 9%,var(--grid-bg));border-radius:8px;padding:12px 14px;font-size:14px;line-height:1.5}
 .zk-banner strong{display:block;font-weight:500;color:var(--grid-fg)}
 .zk-banner p{margin:4px 0 0;color:var(--grid-muted)}
-.zk-banner code{font-family:var(--zk-code-font);font-size:12px;color:var(--grid-fg)}
-.zk-banner button{margin-top:10px;font:inherit;font-size:14px;border:1px solid var(--grid-line);background:var(--grid-bg);color:var(--grid-fg);border-radius:6px;padding:7px 12px}
+.zk-banner code{font-family:var(--zk-code-font);font-size:13px;color:var(--grid-fg)}
+.zk-banner button{margin-top:10px;font:inherit;font-size:15px;border:1px solid var(--grid-line);background:var(--grid-bg);color:var(--grid-fg);border-radius:6px;padding:7px 12px}
 .zk-banner button:active{background:var(--grid-soft)}
 
 /* ── export capture ──────────────────────────────────────────────────── */

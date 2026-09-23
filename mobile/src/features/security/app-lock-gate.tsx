@@ -138,14 +138,14 @@ function LockScreen({ kind }: { kind: BiometricKind }) {
         <View style={styles.center}>
           <ZekraMark size={72} />
           <View style={{ gap: 8, alignItems: "center", paddingHorizontal: metrics.padX }}>
-            <AppText accessibilityRole="header" style={{ fontFamily: fonts.semibold, fontSize: 22, lineHeight: 32, color: INK, textAlign: "center" }}>
+            <AppText accessibilityRole="header" style={{ fontFamily: fonts.semibold, fontSize: 23, lineHeight: 33, color: INK, textAlign: "center" }}>
               {t("lock.title")}
             </AppText>
-            <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 22, color: MUTED, textAlign: "center" }}>
+            <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 24, color: MUTED, textAlign: "center" }}>
               {t("lock.body", { kind: label })}
             </AppText>
             {user?.email ? (
-              <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 11.5, lineHeight: 18, color: MUTED, writingDirection: "ltr" }}>
+              <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 20, color: MUTED, writingDirection: "ltr" }}>
                 {user.email}
               </AppText>
             ) : null}
@@ -164,15 +164,15 @@ function LockScreen({ kind }: { kind: BiometricKind }) {
           >
             <Icon size={34} color={GOLD} strokeWidth={1.5} />
           </Pressable>
-          <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 21, color: INK }}>{t("lock.unlock", { kind: label })}</AppText>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 23, color: INK }}>{t("lock.unlock", { kind: label })}</AppText>
           {error ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: metrics.padX }}>
               <View style={{ width: 7, height: 7, backgroundColor: "#d9455f" }} />
-              <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 20, color: "#d9455f" }}>{error}</AppText>
+              <AppText style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, color: "#d9455f" }}>{error}</AppText>
             </View>
           ) : null}
           <Pressable accessibilityRole="button" onPress={() => void signOut().then(() => setLocked(false))} style={styles.textAction}>
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 20, color: MUTED }}>{t("auth.signOut")}</AppText>
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22, color: MUTED }}>{t("auth.signOut")}</AppText>
           </Pressable>
         </View>
       </View>
@@ -218,7 +218,7 @@ function EnableOffer({ info, open, onClose }: { info: BiometricInfo | null; open
       <View style={{ paddingHorizontal: metrics.padX, paddingTop: 6, paddingBottom: 8, gap: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Icon size={28} color={p.gold} strokeWidth={1.5} />
-          <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 13.5, lineHeight: 22, color: p.body }}>{t("lock.offerBody", { kind: label })}</AppText>
+          <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 24, color: p.body }}>{t("lock.offerBody", { kind: label })}</AppText>
         </View>
         <PrimaryButton label={t("lock.offerYes", { kind: label })} loading={busy} onPress={() => void accept()} />
         <SecondaryButton label={t("lock.offerNo")} disabled={busy} onPress={decline} />

@@ -50,19 +50,19 @@ export function AppText({ variant = "body", color, style, ...rest }: TextProps &
   const p = usePalette();
   const { isRtl } = useI18n();
   const base: Record<Variant, TextStyle> = {
-    bigHeader: { fontFamily: fonts.semibold, fontSize: type.bigHeader, color: p.ink, lineHeight: type.bigHeader * 1.45 },
-    title: { fontFamily: fonts.semibold, fontSize: type.title, color: p.ink, lineHeight: type.title * 1.55 },
-    rowTitle: { fontFamily: fonts.medium, fontSize: type.rowTitle, color: p.ink, lineHeight: type.rowTitle * (isRtl ? 1.8 : 1.55) },
-    body: { fontFamily: fonts.light, fontSize: type.body, color: p.body, lineHeight: type.body * (isRtl ? 2 : 1.7) },
-    meta: { fontFamily: fonts.regular, fontSize: type.meta, color: p.muted, lineHeight: type.meta * 1.7 },
+    bigHeader: { fontFamily: fonts.semibold, fontSize: type.bigHeader, color: p.ink, lineHeight: Math.round(type.bigHeader * (isRtl ? 1.45 : 1.3)) },
+    title: { fontFamily: fonts.semibold, fontSize: type.title, color: p.ink, lineHeight: Math.round(type.title * (isRtl ? 1.6 : 1.45)) },
+    rowTitle: { fontFamily: fonts.medium, fontSize: type.rowTitle, color: p.ink, lineHeight: Math.round(type.rowTitle * (isRtl ? 1.7 : 1.4)) },
+    body: { fontFamily: fonts.light, fontSize: type.body, color: p.body, lineHeight: Math.round(type.body * (isRtl ? 1.85 : 1.5)) },
+    meta: { fontFamily: fonts.regular, fontSize: type.meta, color: p.muted, lineHeight: Math.round(type.meta * (isRtl ? 1.7 : 1.5)) },
     micro: isRtl
       ? { fontFamily: fonts.medium, fontSize: type.microAr, color: p.muted }
-      : { fontFamily: fonts.monoMedium, fontSize: type.micro, color: p.muted, letterSpacing: type.micro * 0.2, textTransform: "uppercase" },
+      : { fontFamily: fonts.monoMedium, fontSize: type.micro, color: p.muted, letterSpacing: type.micro * 0.08, textTransform: "uppercase" },
     latin: {
       fontFamily: fonts.monoMedium,
       fontSize: type.micro,
       color: p.muted,
-      letterSpacing: type.micro * 0.2,
+      letterSpacing: type.micro * 0.08,
       textTransform: "uppercase",
       writingDirection: "ltr",
     },
@@ -157,7 +157,7 @@ export function Rows({ children, inset, style }: { children: ReactNode; inset?: 
   return <View style={[{ gap: metrics.gap }, inset && { paddingTop: metrics.gap, paddingHorizontal: 8 }, style]}>{children}</View>;
 }
 
-/** A row micro-label (§1.7): Latin mono uppercase, Arabic 11.5/500. */
+/** A row micro-label (§1.7): Latin mono uppercase 12, Arabic 13/500. */
 export function MicroLabel({ children, trailing }: { children: string; trailing?: ReactNode }) {
   if (!trailing) return <AppText variant="micro">{children}</AppText>;
   return (
@@ -230,7 +230,7 @@ export function IconButton({ children, onPress, label, disabled, dot, tone }: {
   );
 }
 
-/** Large header for tab roots (§1.5): 27/600 title, optional mono superscript
+/** Large header for tab roots (§1.5): 31/600 title, optional mono superscript
  *  count 7px after it, trailing icon buttons 9 apart, hairline bottom. */
 export function Header({ title, eyebrow, count, actions }: {
   title: string;
@@ -248,11 +248,11 @@ export function Header({ title, eyebrow, count, actions }: {
         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
           {/* Arabic is never letter-spaced — spacing it also makes the title
               measure wider than it renders and truncates. */}
-          <AppText variant="bigHeader" numberOfLines={1} style={{ letterSpacing: isRtl ? 0 : -0.27, flexShrink: 1 }}>
+          <AppText variant="bigHeader" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ letterSpacing: isRtl ? 0 : -0.3, flexShrink: 1 }}>
             {title}
           </AppText>
           {count !== undefined && count !== "" ? (
-            <AppText style={{ fontFamily: fonts.mono, fontSize: 12, color: p.muted, marginStart: 7, marginTop: 4, writingDirection: "ltr" }}>
+            <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.muted, marginStart: 7, marginTop: 4, writingDirection: "ltr" }}>
               {String(count)}
             </AppText>
           ) : null}
@@ -336,7 +336,7 @@ export function PrimaryButton({ label, loading, icon, style, disabled, ...props 
       {...props}
     >
       {loading ? <ActivityIndicator color={p.onAction} size="small" /> : icon}
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 15, lineHeight: 22 }} color={p.onAction}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 16.5, lineHeight: 24 }} color={p.onAction}>{label}</AppText>
     </Pressable>
   );
 }
@@ -371,7 +371,7 @@ export function SecondaryButton({ label, loading, icon, selected, tone, style, d
       {...props}
     >
       {loading ? <ActivityIndicator color={text} size="small" /> : icon}
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22 }} color={text}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 16, lineHeight: 24 }} color={text}>{label}</AppText>
     </Pressable>
   );
 }
@@ -397,7 +397,7 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
   const [focused, setFocused] = useState(false);
   return (
     <View style={{ gap: 8 }}>
-      {label ? <AppText style={{ fontFamily: fonts.medium, fontSize: 11, lineHeight: 17, color: p.muted }}>{label}</AppText> : null}
+      {label ? <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{label}</AppText> : null}
       <View
         style={[
           styles.fieldBox,
@@ -426,8 +426,8 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
               minHeight: multiline ? 88 : metrics.input - 2,
               paddingVertical: multiline ? 8 : 10,
               fontFamily: multiline ? fonts.light : fonts.regular,
-              fontSize: 14.5,
-              lineHeight: multiline ? 14.5 * 1.8 : undefined,
+              fontSize: 16,
+              lineHeight: multiline ? Math.round(16 * 1.65) : undefined,
               color: editable ? p.ink : p.muted,
               writingDirection: forceLtr ? "ltr" : isRtl ? "rtl" : "ltr",
             },
@@ -437,7 +437,7 @@ export function Field({ label, hint, icon, trailing, ltr: forceLtr, multiline, s
         />
         {trailing}
       </View>
-      {hint ? <AppText style={{ fontFamily: fonts.light, fontSize: 11.5, lineHeight: 19, color: p.muted }}>{hint}</AppText> : null}
+      {hint ? <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 21, color: p.muted }}>{hint}</AppText> : null}
     </View>
   );
 }
@@ -474,7 +474,7 @@ export function CodeField({ value, onChangeText, length = 6, autoFocus, onComple
               ]}
             >
               {filled ? (
-                <AppText style={{ fontFamily: fonts.mono, fontSize: 22, lineHeight: 28, color: p.ink, writingDirection: "ltr" }}>{digits[i]}</AppText>
+                <AppText style={{ fontFamily: fonts.mono, fontSize: 23, lineHeight: 29, color: p.ink, writingDirection: "ltr" }}>{digits[i]}</AppText>
               ) : current ? (
                 <View style={{ width: 2, height: 24, backgroundColor: p.gold }} />
               ) : null}
@@ -534,7 +534,7 @@ export function Segmented<T extends string>({ value, options, onChange }: {
               },
             ]}
           >
-            <AppText numberOfLines={1} style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: 13.5, lineHeight: 20, color: active ? p.gold : p.body }}>
+            <AppText numberOfLines={1} style={{ fontFamily: active ? fonts.medium : fonts.regular, fontSize: 15, lineHeight: 22, color: active ? p.gold : p.body }}>
               {option.label}
             </AppText>
           </Pressable>
@@ -551,8 +551,8 @@ export function StatePanel({ title, body, loading, action }: { title: string; bo
   return (
     <View style={styles.state}>
       {loading ? <ActivityIndicator color={p.gold} /> : <View style={{ width: 7, height: 7, backgroundColor: p.gold }} />}
-      <AppText style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 26, color: p.ink, textAlign: "center" }}>{title}</AppText>
-      {body ? <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 23, color: p.muted, textAlign: "center", maxWidth: 320 }}>{body}</AppText> : null}
+      <AppText style={{ fontFamily: fonts.semibold, fontSize: 17, lineHeight: 28, color: p.ink, textAlign: "center" }}>{title}</AppText>
+      {body ? <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.muted, textAlign: "center", maxWidth: 320 }}>{body}</AppText> : null}
       {action ? <View style={{ alignSelf: "stretch", marginTop: 6 }}>{action}</View> : null}
     </View>
   );

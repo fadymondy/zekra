@@ -19,7 +19,7 @@ import { uploadNoteImage, zekraApi, type Note } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { useBrains } from "@/providers/brains";
-import { fonts, metrics, usePalette } from "@/theme";
+import { fonts, metrics, type, usePalette } from "@/theme";
 
 /*
 The note screen (MH-368, MH-367): Apple-Notes style — a title, then the note
@@ -38,9 +38,11 @@ body has real content — the server rejects empty notes, which is what made
 editing carries on in place.
 */
 
-type Snapshot = { title: string; body: string; tags: string[] };
+type Snapshot = { title: string; description: string; body: string; tags: string[] };
 
 const AUTOSAVE_MS = 800;
+const DESCRIPTION_MAX = 500;
+const DESCRIPTION_LINE = Math.round(type.body * 1.5);
 
 function errorText(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
@@ -136,6 +138,8 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
   const keyboard = useKeyboardInset(outer);
 
   const [title, setTitle] = useState(initialNote?.title ?? "");
+  // Older servers omit description; missing is "".
+  const [description, setDescription] = useState(initialNote?.description ?? "");
   const [tags, setTags] = useState<string[]>(initialNote?.tags ?? []);
   const [pinned, setPinned] = useState(initialNote?.pinned ?? false);
   const [archived, setArchived] = useState(initialNote?.archived ?? false);
@@ -151,6 +155,8 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
   // Refs hold what async work must see NOW, not what it closed over.
   const base = useRef<Note | null>(initialNote);
   const titleRef = useRef(title);
+  const descriptionRef = useRef(description);
+  const descriptionInput = useRef<TextInput>(null);
   const bodyRef = useRef(initialNote?.body ?? "");
   const tagsRef = useRef(tags);
   const mounted = useRef(true);
@@ -162,7 +168,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
   const tRef = useRef(t);
   tRef.current = t;
 
-  const snapshot = (): Snapshot => ({ title: titleRef.current, body: bodyRef.current, tags: tagsRef.current });
+  const snapshot = (): Snapshot => ({ title: titleRef.current, description: descriptionRef.current, body: bodyRef.current, tags: tagsRef.current });
 
   const invalidateList = useCallback(() => {
     void client.invalidateQueries({ queryKey: ["notes", namespace] });
@@ -186,7 +192,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
         // created once there is something in it.
         if (!snap.title.trim() && !snap.body.trim()) return { ok: true, skipped: true };
         try {
-          const created = await zekraApi.createNote(tk, namespace, { title: snap.title, body: snap.body, tags: snap.tags });
+          const created = await zekraApi.createNote(tk, namespace, { title: snap.title, description: snap.description, body: snap.body, tags: snap.tags });
           adopt(created);
           if (mounted.current) onCreatedRef.current(created);
           return { ok: true };
@@ -195,7 +201,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
           return { ok: false, conflict: false, error: errorText(e) };
         }
       }
-      const result = await saveNote(tk, base.current, { title: snap.title, body: snap.body, tags: snap.tags });
+      const result = await saveNote(tk, base.current, { title: snap.title, description: snap.description, body: snap.body, tags: snap.tags });
       if (result.ok) {
         adopt(result.note);
         return { ok: true };
@@ -301,6 +307,8 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
       adopt(server);
       titleRef.current = server.title;
       setTitle(server.title);
+      descriptionRef.current = server.description ?? "";
+      setDescription(server.description ?? "");
       tagsRef.current = server.tags;
       setTags(server.tags);
       setPinned(server.pinned);
@@ -325,7 +333,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
       const saved = await overwriteNote(token, id, snap);
       adopt(saved);
       const now = snapshot();
-      const stillDirty = now.title !== snap.title || now.body !== snap.body || now.tags.join("\u0000") !== snap.tags.join("\u0000");
+      const stillDirty = now.title !== snap.title || now.description !== snap.description || now.body !== snap.body || now.tags.join("\u0000") !== snap.tags.join("\u0000");
       saver.resolved({ dirty: stillDirty, snapshot: now });
     } catch (e) {
       toast(t("editor.actionFailed", { error: errorText(e) }), "danger");
@@ -389,8 +397,8 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
         await flushAll();
         const body = bodyRef.current;
         const note: Note = base.current
-          ? { ...base.current, title: titleRef.current, body, tags: tagsRef.current }
-          : ({ id: "", namespace, title: titleRef.current, body, tags: tagsRef.current } as Note);
+          ? { ...base.current, title: titleRef.current, description: descriptionRef.current, body, tags: tagsRef.current }
+          : ({ id: "", namespace, title: titleRef.current, description: descriptionRef.current, body, tags: tagsRef.current } as Note);
         await exportNote(note, format);
         setSheet(null);
       } catch (e) {
@@ -498,7 +506,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
               changed();
             }}
             editable={canWrite}
-            // A new note starts in the title; Return moves to the body.
+            // A new note starts in the title; Return moves to the description.
             autoFocus={!initialNote && canWrite}
             placeholder={t("editor.titlePlaceholder")}
             placeholderTextColor={p.muted}
@@ -506,7 +514,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
             scrollEnabled={false}
             submitBehavior="blurAndSubmit"
             returnKeyType="next"
-            onSubmitEditing={() => engine.current?.focus()}
+            onSubmitEditing={() => descriptionInput.current?.focus()}
             onBlur={() => void saver.flush()}
             style={[
               styles.title,
@@ -516,11 +524,37 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
             accessibilityLabel={t("note.titleLabel")}
           />
 
+          <TextInput
+            ref={descriptionInput}
+            value={description}
+            onChangeText={(v) => {
+              descriptionRef.current = v;
+              setDescription(v);
+              changed();
+            }}
+            editable={canWrite}
+            placeholder={t("editor.descriptionPlaceholder")}
+            placeholderTextColor={p.muted}
+            maxLength={DESCRIPTION_MAX}
+            // Wraps and grows to three lines, then scrolls; Return moves to the body.
+            multiline
+            submitBehavior="blurAndSubmit"
+            returnKeyType="next"
+            onSubmitEditing={() => engine.current?.focus()}
+            onBlur={() => void saver.flush()}
+            style={[
+              styles.description,
+              { fontFamily: fonts.regular },
+              { color: p.muted, textAlign: isRtl ? "right" : "left", writingDirection: isRtl ? "rtl" : "ltr" },
+            ]}
+            accessibilityLabel={t("editor.descriptionLabel")}
+          />
+
           {tags.length ? (
             <Pressable onPress={canWrite ? () => setSheet("tags") : undefined} style={styles.tags} accessibilityRole={canWrite ? "button" : undefined}>
               {tags.map((tag) => (
                 <View key={tag} style={[styles.tag, { borderColor: `${p.gold}55`, backgroundColor: `${p.gold}12` }]}>
-                  <AppText style={{ fontFamily: fonts.mono, fontSize: 11, color: p.gold }}>#{tag}</AppText>
+                  <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.gold }}>#{tag}</AppText>
                 </View>
               ))}
             </Pressable>
@@ -528,7 +562,7 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
 
           {status === "conflict" ? (
             <View style={[styles.banner, { borderColor: p.gold, backgroundColor: `${p.gold}14` }]}>
-              <AppText style={{ fontFamily: fonts.medium, fontSize: 14, color: p.ink }}>{t("editor.conflictTitle")}</AppText>
+              <AppText style={{ fontFamily: fonts.medium, fontSize: 15.5, color: p.ink }}>{t("editor.conflictTitle")}</AppText>
               <AppText variant="meta">{t("editor.conflictBody")}</AppText>
               <View style={styles.bannerActions}>
                 <TextButton label={t("editor.reloadTheirs")} onPress={() => !resolving && void reloadTheirs()} />
@@ -619,15 +653,24 @@ function NoteEditor({ initialNote, namespace, brainName, canWrite, token, onCrea
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   title: {
-    fontSize: 25,
-    lineHeight: 34,
+    fontSize: 27,
+    lineHeight: 37,
     paddingHorizontal: metrics.padX,
     paddingTop: 18,
     paddingBottom: 6,
     borderWidth: 0,
   },
+  description: {
+    fontSize: type.body,
+    lineHeight: DESCRIPTION_LINE,
+    maxHeight: DESCRIPTION_LINE * 3 + 6,
+    paddingHorizontal: metrics.padX,
+    paddingTop: 0,
+    paddingBottom: 6,
+    borderWidth: 0,
+  },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: metrics.padX, paddingBottom: 6 },
-  tag: { minHeight: 22, paddingHorizontal: 7, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center" },
+  tag: { minHeight: 24, paddingHorizontal: 8, borderRadius: metrics.radius.chip, borderWidth: 1, justifyContent: "center" },
   banner: { marginHorizontal: metrics.padX, marginVertical: 6, padding: 12, borderWidth: 1, borderRadius: metrics.radius.control, gap: 4 },
   bannerActions: { flexDirection: "row", gap: 8, marginStart: -8 },
 });

@@ -52,5 +52,5 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", gap: 13 },
   meta: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   stat: { flexDirection: "row", alignItems: "center", gap: 4, marginStart: 2 },
-  mono: { fontFamily: fonts.mono, fontSize: 11 },
+  mono: { fontFamily: fonts.mono, fontSize: 12.5 },
 });

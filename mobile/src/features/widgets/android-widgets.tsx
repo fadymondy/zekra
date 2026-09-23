@@ -58,7 +58,7 @@ function stat(c: Ctx, s: WidgetStat, valueSize: number, flex = 1) {
   return (
     <FlexWidget style={{ flex, flexDirection: "column", alignItems: cross(c) }}>
       <TextWidget text={s.value} maxLines={1} style={{ fontSize: valueSize, fontFamily: FONT.mono, color: hex(tone(c, s.tone)), textAlign: textAlign(c) }} />
-      <TextWidget text={s.label} maxLines={1} truncate="END" style={{ fontSize: 10, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />
+      <TextWidget text={s.label} maxLines={1} truncate="END" style={{ fontSize: 11.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />
     </FlexWidget>
   );
 }
@@ -76,7 +76,7 @@ function brainRow(c: Ctx, r: WidgetRow, size: number) {
           tile(r, size),
           <FlexWidget style={{ flex: 1, flexDirection: "column", alignItems: cross(c) }}>
             <TextWidget text={r.name} maxLines={1} truncate="END" style={{ fontSize: 13.5, fontFamily: FONT.medium, color: hex(c.p.ink), textAlign: textAlign(c) }} />
-            <TextWidget text={r.ago} maxLines={1} style={{ fontSize: 10.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />
+            <TextWidget text={r.ago} maxLines={1} style={{ fontSize: 11.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />
           </FlexWidget>,
           <TextWidget text={r.memories} maxLines={1} style={{ fontSize: 13, fontFamily: FONT.mono, color: hex(c.p.ink) }} />,
         ],
@@ -92,7 +92,7 @@ function header(c: Ctx, title: string, trailing: string) {
       {dirOrder(
         [
           <TextWidget text={title} maxLines={1} style={{ fontSize: 13.5, fontFamily: FONT.medium, color: hex(c.p.gold) }} />,
-          <TextWidget text={trailing} maxLines={1} style={{ fontSize: 11, fontFamily: FONT.mono, color: hex(c.p.muted) }} />,
+          <TextWidget text={trailing} maxLines={1} style={{ fontSize: 12, fontFamily: FONT.mono, color: hex(c.p.muted) }} />,
         ],
         c.rtl,
       )}
@@ -138,7 +138,7 @@ function message(c: Ctx, props: WidgetProps | null) {
     tile({ glyph: "ذ", mono: false, color: c.p.action }, 30),
     <FlexWidget style={{ flex: 1 }} />,
     <TextWidget text={title} maxLines={1} style={{ fontSize: 15, fontFamily: FONT.medium, color: hex(c.p.ink), textAlign: textAlign(c) }} />,
-    <TextWidget text={body} maxLines={3} style={{ fontSize: 12, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />,
+    <TextWidget text={body} maxLines={3} style={{ fontSize: 13, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />,
   ]);
 }
 
@@ -148,7 +148,7 @@ function small(c: Ctx, props: WidgetProps) {
     tile(b, 34),
     <FlexWidget style={{ flex: 1 }} />,
     <TextWidget text={b.name} maxLines={1} truncate="END" style={{ fontSize: 15, fontFamily: FONT.medium, color: hex(c.p.ink), textAlign: textAlign(c) }} />,
-    <TextWidget text={b.ago} maxLines={1} style={{ fontSize: 10.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c), marginBottom: 8 }} />,
+    <TextWidget text={b.ago} maxLines={1} style={{ fontSize: 12, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c), marginBottom: 8 }} />,
     <FlexWidget style={{ width: "match_parent", flexDirection: "row", flexGap: 6 }}>
       {dirOrder(b.stats.map((s) => stat(c, s, 14)), c.rtl)}
     </FlexWidget>,
@@ -156,7 +156,7 @@ function small(c: Ctx, props: WidgetProps) {
 }
 
 function medium(c: Ctx, props: WidgetProps, size: Size) {
-  const rows = props.rows.slice(0, rowsThatFit(size.height, 24 + 28, 34, 4));
+  const rows = props.rows.slice(0, rowsThatFit(size.height, 24 + 28, 35, 4));
   return shell(c, props.url, [header(c, props.title, props.total), divider(c), ...rows.map((r) => brainRow(c, r, 26))]);
 }
 
@@ -169,10 +169,10 @@ function large(c: Ctx, props: WidgetProps, size: Size) {
   const strip = (items: WidgetStat[]) => (
     <FlexWidget style={{ width: "match_parent", flexDirection: "row", flexGap: 6, marginBottom: 6 }}>{dirOrder(items.map(statTile), c.rtl)}</FlexWidget>
   );
-  const rows = props.rows.slice(0, rowsThatFit(size.height, 24 + 28 + 104 + 18, 36, 6));
+  const rows = props.rows.slice(0, rowsThatFit(size.height, 24 + 28 + 104 + 18, 37, 6));
   const more = moreLabel(props, rows.length);
   const footer = more
-    ? [<TextWidget text={more} maxLines={1} style={{ fontSize: 10.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />]
+    ? [<TextWidget text={more} maxLines={1} style={{ fontSize: 11.5, fontFamily: FONT.regular, color: hex(c.p.muted), textAlign: textAlign(c) }} />]
     : [];
   return shell(c, props.url, [
     header(c, props.title, props.updated),

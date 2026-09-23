@@ -6,6 +6,8 @@ export default defineDict({
   en: {
     "editor.newNote": "New note",
     "editor.titlePlaceholder": "Title",
+    "editor.descriptionPlaceholder": "Add a description",
+    "editor.descriptionLabel": "Description",
     "editor.saving": "Saving…",
     "editor.saved": "Saved",
     "editor.unsaved": "Unsaved",
@@ -86,6 +88,8 @@ export default defineDict({
   ar: {
     "editor.newNote": "ملاحظة جديدة",
     "editor.titlePlaceholder": "العنوان",
+    "editor.descriptionPlaceholder": "أضف وصفاً",
+    "editor.descriptionLabel": "الوصف",
     "editor.saving": "جارٍ الحفظ…",
     "editor.saved": "تم الحفظ",
     "editor.unsaved": "غير محفوظ",

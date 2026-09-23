@@ -200,7 +200,7 @@ export function BrainVault({ brain }: { brain: Brain }) {
         contentContainerStyle={{ gap: metrics.gap, paddingBottom: metrics.gap * 2 }}
       >
         <Row>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 20, color: p.muted }}>{t("vault.intro")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 22, color: p.muted }}>{t("vault.intro")}</AppText>
           {canWrite ? (
             <PrimaryButton
               label={t("vault.new")}
@@ -210,7 +210,7 @@ export function BrainVault({ brain }: { brain: Brain }) {
           ) : (
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
               <LockKeyhole size={16} color={p.gold} strokeWidth={1.6} />
-              <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 19, color: p.body }}>{t("vault.readOnlyNote")}</AppText>
+              <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, color: p.body }}>{t("vault.readOnlyNote")}</AppText>
             </View>
           )}
         </Row>
@@ -235,7 +235,7 @@ export function BrainVault({ brain }: { brain: Brain }) {
         <QueryStatus q={secrets} empty={list.length === 0} emptyText={t("vault.emptyList")} lines={3} />
         {!secrets.isPending && !secrets.error && list.length === 0 && canWrite ? (
           <Row>
-            <AppText variant="meta" style={{ lineHeight: 18 }}>{t("vault.emptyHint")}</AppText>
+            <AppText variant="meta" style={{ lineHeight: 21 }}>{t("vault.emptyHint")}</AppText>
           </Row>
         ) : null}
 
@@ -358,7 +358,7 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
       }
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.monoMedium, fontSize: 13.5, color: p.ink, flexShrink: 1 }}>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.monoMedium, fontSize: 15, color: p.ink, flexShrink: 1 }}>
           {ltrRun(s.name)}
         </AppText>
         <Chip label={labelKey ? t(labelKey) : ltrRun(s.kind)} tone={shown ? "gold" : "muted"} />
@@ -369,7 +369,7 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
           {/* The value itself: selectable, so no isolate marks (they would be
               copied along with it). */}
           <View style={{ borderWidth: 1, borderColor: `${p.gold}66`, backgroundColor: `${p.gold}0F`, borderRadius: metrics.radius.control, paddingHorizontal: 12, paddingVertical: 10 }}>
-            <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 19, color: p.ink, textAlign: "left", writingDirection: "ltr" }}>
+            <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 21, color: p.ink, textAlign: "left", writingDirection: "ltr" }}>
               {shown.value}
             </AppText>
           </View>
@@ -381,12 +381,12 @@ function SecretItem({ s, last, canWrite, shown, busy, error, onPress, onLongPres
           </View>
         </View>
       ) : (
-        <AppText style={{ fontFamily: fonts.mono, fontSize: 12, color: p.muted, letterSpacing: 0.3 }}>{ltrRun(displayHint(s.hint))}</AppText>
+        <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.muted, letterSpacing: 0.3 }}>{ltrRun(displayHint(s.hint))}</AppText>
       )}
 
       <Meta items={[s.createdBy ? t("vault.by", { who: ltrRun(s.createdBy) }) : null, when ? t("vault.updated", { when }) : null]} />
       {s.sourceRef ? (
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 11, color: p.muted }}>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.muted }}>
           {t("vault.source", { ref: ltrRun(s.sourceRef) })}
         </AppText>
       ) : null}

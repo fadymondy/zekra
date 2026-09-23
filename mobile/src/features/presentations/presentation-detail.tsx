@@ -466,7 +466,7 @@ function ShareItem({ share, url, last, canWrite, busy, onReissue, onRevoke }: {
         ]}
       />
       {active && url ? (
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 11, color: p.body, writingDirection: "ltr", textAlign: "left" }}>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.body, writingDirection: "ltr", textAlign: "left" }}>
           {url.replace(/^https?:\/\//, "")}
         </AppText>
       ) : null}

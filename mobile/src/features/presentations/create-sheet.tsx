@@ -159,7 +159,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
                         ]}
                       >
                         <Icon size={18} color={on ? p.gold : p.muted} strokeWidth={1.6} />
-                        <AppText numberOfLines={1} style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, color: on ? p.ink : p.body }}>
+                        <AppText numberOfLines={1} style={{ flex: 1, fontFamily: fonts.regular, fontSize: 15.5, color: on ? p.ink : p.body }}>
                           {n.title || t("common.untitled")}
                         </AppText>
                       </Pressable>

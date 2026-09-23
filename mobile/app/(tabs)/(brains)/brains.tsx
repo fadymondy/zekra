@@ -96,14 +96,14 @@ export default function BrainsScreen() {
           <View style={{ width: 64, height: 64, borderRadius: 14, borderWidth: 1, borderColor: p.line, backgroundColor: p.card, alignItems: "center", justifyContent: "center" }}>
             <ZekraMark size={40} />
           </View>
-          <AppText style={{ fontFamily: fonts.semibold, fontSize: 17, lineHeight: 26, color: p.ink, textAlign: "center" }}>{t("brains.emptyTitle")}</AppText>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 23, color: p.muted, textAlign: "center" }}>{t("brains.emptyLead")}</AppText>
+          <AppText style={{ fontFamily: fonts.semibold, fontSize: 18, lineHeight: 28, color: p.ink, textAlign: "center" }}>{t("brains.emptyTitle")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.muted, textAlign: "center" }}>{t("brains.emptyLead")}</AppText>
           <View style={{ alignSelf: "stretch" }}>{newButton}</View>
         </Row>
       ) : shown.length === 0 ? (
         <Row>
           <AwaitNote text={t("brains.emptySearch")} />
-          <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 21, color: p.muted }}>{t("brains.emptySearchBody")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 24, color: p.muted }}>{t("brains.emptySearchBody")}</AppText>
         </Row>
       ) : null}
     </View>

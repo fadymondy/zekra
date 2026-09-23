@@ -74,7 +74,7 @@ export function PreviewModal({ open, onClose, url, title, locales, initialLocale
             <X size={20} color={p.muted} strokeWidth={1.6} />
           </IconButton>
           <View style={{ flex: 1, gap: 2 }}>
-            <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 16, color: p.ink }}>{title}</AppText>
+            <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, color: p.ink }}>{title}</AppText>
             <AppText variant="micro" numberOfLines={1}>{t("presentations.preview.title").toUpperCase()}</AppText>
           </View>
           <IconButton label={t("presentations.share.open")} onPress={external} disabled={!shown}>

@@ -18,7 +18,7 @@ export function Tag({ label, hue, icon, mono }: { label: string; hue?: string; i
   return (
     <View style={[styles.tag, { borderColor: hue ? `${hue}55` : p.line, backgroundColor: hue ? `${hue}1A` : p.card }]}>
       {icon}
-      <AppText numberOfLines={1} style={{ fontFamily: mono && !isRtl ? fonts.mono : fonts.regular, fontSize: 11, lineHeight: 17, color }}>
+      <AppText numberOfLines={1} style={{ fontFamily: mono && !isRtl ? fonts.mono : fonts.regular, fontSize: 12.5, lineHeight: 19, color }}>
         {label}
       </AppText>
     </View>
@@ -29,7 +29,7 @@ function Metric({ value, label, first }: { value: string; label: string; first?:
   const p = usePalette();
   return (
     <View style={[styles.metric, first ? { paddingStart: 0 } : { borderStartWidth: 1, borderStartColor: p.soft }]}>
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 15, lineHeight: 22, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 16.5, lineHeight: 24, color: p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
         {value}
       </AppText>
       <AppText variant="micro" numberOfLines={1}>{label}</AppText>
@@ -75,16 +75,16 @@ export const BrainCard = memo(function BrainCard({ brain, onOpen, onMenu }: {
         <BrainAvatar brain={brain} size={44} />
         <View style={{ flex: 1, gap: 2 }}>
           <View style={styles.nameLine}>
-            <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 15.5, lineHeight: 24, color: p.ink }}>
+            <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 16.5, lineHeight: 26, color: p.ink }}>
               {name}
             </AppText>
             {roleKey ? <Tag label={t(roleKey)} /> : null}
           </View>
           {/* One run so it wraps like prose; the namespace is an LTR isolate in mono. */}
-          <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 11.5, lineHeight: 18, color: p.muted }}>
+          <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 20, color: p.muted }}>
             {name !== brain.namespace ? (
               <>
-                <AppText style={{ fontFamily: fonts.mono, fontSize: 11, color: p.muted }}>{ltr(brain.namespace)}</AppText>
+                <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.muted }}>{ltr(brain.namespace)}</AppText>
                 {"  ·  "}
               </>
             ) : null}
@@ -103,7 +103,7 @@ export const BrainCard = memo(function BrainCard({ brain, onOpen, onMenu }: {
       </View>
 
       {brain.description ? (
-        <AppText numberOfLines={2} style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: isRtl ? 24 : 21, color: p.body }}>
+        <AppText numberOfLines={2} style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: isRtl ? 27 : 23, color: p.body }}>
           {brain.description}
         </AppText>
       ) : null}
@@ -122,17 +122,17 @@ export const BrainCard = memo(function BrainCard({ brain, onOpen, onMenu }: {
             <Bar width={64} height={24} />
           </>
         ) : types.top.length === 0 ? (
-          <AppText style={{ fontFamily: fonts.regular, fontSize: 12, lineHeight: 24, color: p.muted }}>{t("brains.noTypes")}</AppText>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 27, color: p.muted }}>{t("brains.noTypes")}</AppText>
         ) : (
           <>
             {types.top.map(([type, n]) => (
               <View key={type} style={[styles.tag, { borderColor: p.line, backgroundColor: p.card }]}>
-                <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 11.5, lineHeight: 17, color: p.body }}>{type}</AppText>
-                <AppText style={{ fontFamily: fonts.mono, fontSize: 10.5, lineHeight: 17, color: p.muted, writingDirection: "ltr" }}>{formatCount(n)}</AppText>
+                <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, color: p.body }}>{type}</AppText>
+                <AppText style={{ fontFamily: fonts.mono, fontSize: 12, lineHeight: 19, color: p.muted, writingDirection: "ltr" }}>{formatCount(n)}</AppText>
               </View>
             ))}
             {types.rest > 0 ? (
-              <AppText style={{ fontFamily: fonts.mono, fontSize: 11, lineHeight: 24, color: p.muted }}>{ltr(`+${types.rest}`)}</AppText>
+              <AppText style={{ fontFamily: fonts.mono, fontSize: 12.5, lineHeight: 27, color: p.muted }}>{ltr(`+${types.rest}`)}</AppText>
             ) : null}
           </>
         )}
@@ -149,12 +149,12 @@ export const BrainCard = memo(function BrainCard({ brain, onOpen, onMenu }: {
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <CircleCheck size={14} color={p.ok} strokeWidth={1.7} />
-              <AppText style={{ fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: p.muted }}>{t("brains.noGaps")}</AppText>
+              <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 20, color: p.muted }}>{t("brains.noGaps")}</AppText>
             </View>
           )}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 20, color: p.muted }}>{t("brains.open")}</AppText>
+          <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22, color: p.muted }}>{t("brains.open")}</AppText>
           <ForwardChevron size={17} />
         </View>
       </View>

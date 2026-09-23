@@ -14,6 +14,14 @@
 #   zekra_app_env          EXPO_PUBLIC_ZEKRA_API_URL (production API, never localhost)
 #                          GOOGLE_SERVICES_JSON       base64 of secrets/google-services.json
 #                          GOOGLE_SERVICE_INFO_PLIST  base64 of secrets/GoogleService-Info.plist
+#                          PATCH_IOS_PRODUCTION_KEY, PATCH_IOS_STAGING_KEY,
+#                          PATCH_ANDROID_PRODUCTION_KEY, PATCH_ANDROID_STAGING_KEY
+#                                                     Codemagic Patch deployment keys (public ids,
+#                                                     baked into store binaries by app.config.js)
+#   zekra_patch            CODEMAGIC_PATCH_SERVER_URL (https://patch.fadymondy.com)
+#                          CODEMAGIC_PATCH_TOKEN      cmpatch API token (release rights)
+#                          CODEMAGIC_PATCH_PRIVATE_KEY base64 of the release-signing private key
+#                                                     (its public half is mobile/patch-public-key.pem)
 #   zekra_android_keystore CM_KEYSTORE (base64 .jks), CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
 #   zekra_google_play      GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (once Play API upload is enabled)
 #   integration zekra_asc  App Store Connect API key (Team → Integrations), team JW9HJH86GC
@@ -146,3 +154,56 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # OTA update — a new JS bundle for the store binaries already out, through
+  # the self-hosted Codemagic Patch server (same stack as fadymondy.com/mobile).
+  # Ships to every installed binary whose version equals app.json expo.version
+  # (--target-binary-version); a native change needs a store build instead.
+  # Mark a release mandatory on the Patch server (or add --mandatory below)
+  # to make the app install it at once behind its full-screen loader.
+  # Setup (Patch apps, deployment keys, signing key): mobile/README.md →
+  # "OTA updates (Codemagic Patch)".
+  ota-release:
+    name: OTA update — Codemagic Patch (iOS + Android)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    working_directory: mobile
+    environment:
+      groups:
+        - zekra_app_env
+        - zekra_patch
+      node: 22
+      vars:
+        PATCH_DEPLOYMENT: Production
+        PATCH_APP_IOS: zekra
+        PATCH_APP_ANDROID: zekra-android
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+          npm install -g @codemagic/patch-cli
+      - name: Signing key
+        script: echo "$CODEMAGIC_PATCH_PRIVATE_KEY" | base64 --decode > "$CM_BUILD_DIR/patch-private-key.pem"
+      - *firebase
+      - name: Generate the native projects
+        # android/ and ios/ are generated (gitignored). release-react fingerprints
+        # the native project and fails without it. Same inputs as the store
+        # builds (zekra_app_env: Firebase, PATCH_* keys), so the fingerprint
+        # matches theirs. --no-install: CocoaPods is not needed for it.
+        script: npx expo prebuild --non-interactive --no-install
+      - name: Release iOS
+        script: |
+          cmpatch release-react --server-url "$CODEMAGIC_PATCH_SERVER_URL" --token "$CODEMAGIC_PATCH_TOKEN" \
+            --app "$PATCH_APP_IOS" --platform ios --deployment "$PATCH_DEPLOYMENT" \
+            --target-binary-version "$(node -p "require('./app.json').expo.version")" --bundler expo \
+            --private-key-path "$CM_BUILD_DIR/patch-private-key.pem" \
+            --release-notes "$(git log -1 --format=%s)" --no-duplicate-release-error --non-interactive --yes
+      - name: Release Android
+        script: |
+          cmpatch release-react --server-url "$CODEMAGIC_PATCH_SERVER_URL" --token "$CODEMAGIC_PATCH_TOKEN" \
+            --app "$PATCH_APP_ANDROID" --platform android --deployment "$PATCH_DEPLOYMENT" \
+            --target-binary-version "$(node -p "require('./app.json').expo.version")" --bundler expo \
+            --private-key-path "$CM_BUILD_DIR/patch-private-key.pem" \
+            --release-notes "$(git log -1 --format=%s)" --no-duplicate-release-error --non-interactive --yes
+    publishing:
+      <<: *email

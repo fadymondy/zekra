@@ -78,7 +78,7 @@ export default function SecurityScreen() {
             />
           </Row>
           <Row>
-            <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 20, color: p.muted }}>{t("security.passcodeNote", { kind: label })}</AppText>
+            <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 22, color: p.muted }}>{t("security.passcodeNote", { kind: label })}</AppText>
           </Row>
         </>
       ) : null}

@@ -126,6 +126,11 @@ export function snippet(body: string | undefined, max = 220): string {
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 }
 
+/** The row's preview line: the note's description when it has one, else a body snippet. */
+export function rowPreview(note: Pick<Note, "description" | "body">): string {
+  return note.description?.trim() || snippet(note.body);
+}
+
 /** What Copy and Share hand over: the note as a markdown document. */
 export function noteMarkdown(note: Pick<Note, "title" | "body">): string {
   const body = (note.body ?? "").trimEnd();

@@ -9,8 +9,8 @@ function Stat({ label, value, hue }: { label: string; value: string; hue?: strin
   const p = usePalette();
   return (
     <View style={[styles.stat, { borderColor: p.line, backgroundColor: p.card }]}>
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 11.5, lineHeight: 17, color: p.muted }}>{label}</AppText>
-      <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 17, lineHeight: 24, color: hue ?? p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, color: p.muted }}>{label}</AppText>
+      <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 18, lineHeight: 25, color: hue ?? p.ink, writingDirection: "ltr", alignSelf: "flex-start" }}>
         {value}
       </AppText>
     </View>

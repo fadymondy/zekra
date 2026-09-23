@@ -137,7 +137,7 @@ export function ReportSheet({ open, onClose, request }: { open: boolean; onClose
           {attachment ? (
             <View style={[styles.shot, { borderColor: p.line, backgroundColor: p.card }]}>
               <Image source={{ uri: attachment.uri }} style={styles.thumb} resizeMode="cover" accessibilityIgnoresInvertColors />
-              <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 13.5, color: p.ink }}>{t(attachment.source === "screen" ? "mahaam.screenAttached" : "mahaam.imageAttached")}</AppText>
+              <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 15, color: p.ink }}>{t(attachment.source === "screen" ? "mahaam.screenAttached" : "mahaam.imageAttached")}</AppText>
               <Pressable accessibilityRole="button" accessibilityLabel={t("mahaam.removeImage")} hitSlop={10} onPress={() => setAttachment(null)}>
                 <X size={18} color={p.muted} strokeWidth={1.8} />
               </Pressable>
@@ -148,15 +148,15 @@ export function ReportSheet({ open, onClose, request }: { open: boolean; onClose
 
           <View style={styles.toggle}>
             <View style={{ flex: 1, gap: 3 }}>
-              <AppText style={{ fontFamily: fonts.medium, fontSize: 13.5, lineHeight: 21, color: p.ink }}>{t("mahaam.diagnostics")}</AppText>
-              <AppText style={{ fontFamily: fonts.light, fontSize: 12, lineHeight: 19, color: p.muted }}>
+              <AppText style={{ fontFamily: fonts.medium, fontSize: 15, lineHeight: 23, color: p.ink }}>{t("mahaam.diagnostics")}</AppText>
+              <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 21, color: p.muted }}>
                 {t("mahaam.diagnosticsHint", { errors: counts.errors, failed: counts.failed })}
               </AppText>
             </View>
             <Switch value={withDiagnostics} onValueChange={setWithDiagnostics} trackColor={{ true: p.action }} accessibilityLabel={t("mahaam.diagnostics")} />
           </View>
 
-          {request.error ? <AppText style={{ fontFamily: fonts.light, fontSize: 12, lineHeight: 19, color: p.muted }}>{t("mahaam.crashAttached")}</AppText> : null}
+          {request.error ? <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 21, color: p.muted }}>{t("mahaam.crashAttached")}</AppText> : null}
 
           {error ? <ErrorLine text={error} /> : null}
 

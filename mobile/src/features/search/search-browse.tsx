@@ -27,7 +27,7 @@ export function ScopeChip({ brain, onClear }: { brain: Brain; onClear: () => voi
         style={({ pressed }) => [styles.chip, { borderColor: p.gold, backgroundColor: pressed ? `${p.gold}33` : `${p.gold}1A` }]}
       >
         <BrainAvatar brain={brain} size={20} />
-        <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 13, lineHeight: 19, color: p.gold }}>
+        <AppText numberOfLines={1} style={{ flexShrink: 1, fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: p.gold }}>
           {t("nav.scopeIn", { brain: brainName(brain) })}
         </AppText>
         <X size={15} color={p.gold} strokeWidth={1.8} />
@@ -66,7 +66,7 @@ export function SearchBrowse({ brains, scopeNs, onPickBrain, onOpenBrain, recent
                 }
                 trailing={<ForwardChevron />}
               >
-                <AppText numberOfLines={1} accessibilityHint={t("nav.rerun")} style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22, color: p.ink }}>
+                <AppText numberOfLines={1} accessibilityHint={t("nav.rerun")} style={{ fontFamily: fonts.regular, fontSize: 16, lineHeight: 24, color: p.ink }}>
                   {query}
                 </AppText>
               </ListItem>
@@ -77,7 +77,7 @@ export function SearchBrowse({ brains, scopeNs, onPickBrain, onOpenBrain, recent
       {brains.length ? (
         <Row style={{ paddingBottom: 4 }}>
           <MicroLabel>{t("nav.brains")}</MicroLabel>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 20, color: p.muted, marginTop: -6 }}>{t("nav.browseHint")}</AppText>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 14, lineHeight: 22, color: p.muted, marginTop: -6 }}>{t("nav.browseHint")}</AppText>
           <View>
             {brains.map((brain, i) => {
               const active = brain.namespace === scopeNs;
@@ -95,11 +95,11 @@ export function SearchBrowse({ brains, scopeNs, onPickBrain, onOpenBrain, recent
                     numberOfLines={1}
                     accessibilityHint={`${t("nav.scopeBrain")}. ${t("nav.openBrain")}`}
                     accessibilityState={{ selected: active }}
-                    style={{ fontFamily: fonts.medium, fontSize: 15, lineHeight: 23, color: active ? p.gold : p.ink }}
+                    style={{ fontFamily: fonts.medium, fontSize: 16.5, lineHeight: 25, color: active ? p.gold : p.ink }}
                   >
                     {brainName(brain)}
                   </AppText>
-                  <AppText style={{ fontFamily: fonts.mono, fontSize: 11.5, lineHeight: 17, color: p.muted, alignSelf: "flex-start" }}>
+                  <AppText style={{ fontFamily: fonts.mono, fontSize: 13, lineHeight: 19, color: p.muted, alignSelf: "flex-start" }}>
                     {`${formatCount(brain.memories)} ${t("brains.memories")}`}
                   </AppText>
                 </ListItem>

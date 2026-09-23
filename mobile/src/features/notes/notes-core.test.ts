@@ -17,6 +17,7 @@ import {
   physicalOf,
   physicalOrder,
   removeNote,
+  rowPreview,
   snippet,
   stripMarkdown,
   visibleNotes,
@@ -104,6 +105,12 @@ test("snippet caps length and handles empty bodies", () => {
   const long = snippet("word ".repeat(200), 20);
   assert.ok(long.endsWith("…"));
   assert.ok(long.length <= 21);
+});
+
+test("rowPreview prefers a non-empty description over the body snippet", () => {
+  assert.equal(rowPreview({ description: "  Short summary ", body: "# Body" }), "Short summary");
+  assert.equal(rowPreview({ description: "   ", body: "# Body" }), "Body");
+  assert.equal(rowPreview({ body: "**Body**" }), "Body");
 });
 
 test("noteMarkdown prefixes the title as a heading", () => {

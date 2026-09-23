@@ -70,7 +70,7 @@ export function ReadingSettings() {
         <View style={[styles.bar, { backgroundColor: fg, width: "70%" }]} />
         <View style={[styles.bar, { backgroundColor: accent, width: "45%" }]} />
         <View style={[styles.bar, { backgroundColor: muted, width: "60%" }]} />
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 9.5, color: muted, marginTop: 4, writingDirection: "ltr" }}>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.mono, fontSize: 12, color: muted, marginTop: 4, writingDirection: "ltr" }}>
           {label}
         </AppText>
         {active ? (

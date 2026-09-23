@@ -90,7 +90,7 @@ export function SecretForm({ target, namespace, onClose, onSaved }: {
     }
   }
 
-  const ltrInput = { fontFamily: fonts.mono, fontSize: 13.5, textAlign: "left", writingDirection: "ltr" } as const;
+  const ltrInput = { fontFamily: fonts.mono, fontSize: 15, textAlign: "left", writingDirection: "ltr" } as const;
 
   return (
     <BottomSheet

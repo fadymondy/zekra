@@ -77,7 +77,7 @@ export function ClassicSearchScreen() {
             cursorColor={p.gold}
             returnKeyType="search"
             accessibilityLabel={t("search.placeholder")}
-            style={{ flex: 1, minHeight: 44, fontFamily: fonts.regular, fontSize: 15, color: p.ink, writingDirection: isRtl ? "rtl" : "ltr" }}
+            style={{ flex: 1, minHeight: 44, fontFamily: fonts.regular, fontSize: 16.5, color: p.ink, writingDirection: isRtl ? "rtl" : "ltr" }}
           />
           {input ? (
             <Pressable accessibilityRole="button" accessibilityLabel={t("search.clear")} hitSlop={10} onPress={() => { setInput(""); setSubmitted(""); field.current?.focus(); }}>
@@ -123,8 +123,8 @@ export function ClassicSearchScreen() {
         ) : (
           <>
             <Row>
-              <AppText style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 26, color: p.ink }}>{t("search.start")}</AppText>
-              <AppText style={{ fontFamily: fonts.light, fontSize: 13.5, lineHeight: 23, color: p.muted }}>{t("search.startBody")}</AppText>
+              <AppText style={{ fontFamily: fonts.semibold, fontSize: 17, lineHeight: 28, color: p.ink }}>{t("search.start")}</AppText>
+              <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: 26, color: p.muted }}>{t("search.startBody")}</AppText>
             </Row>
             <SearchBrowse
               brains={brains}

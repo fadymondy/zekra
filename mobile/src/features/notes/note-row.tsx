@@ -14,7 +14,7 @@ import { noteIcon } from "@/lib/note-icon";
 import { fonts, useTheme } from "@/theme";
 
 import { formatAgo } from "./format";
-import { edgeFromTravel, edgeOf, fullSwipeArmed, physicalOrder, snippet, type Edge, type Physical } from "./notes-core";
+import { edgeFromTravel, edgeOf, fullSwipeArmed, physicalOrder, rowPreview, type Edge, type Physical } from "./notes-core";
 
 /** Keeps at most one row swiped open across the list. */
 export type OpenRowRegistry = {
@@ -72,7 +72,7 @@ function ActionPanel({ physical, actions, translation, rowWidth, onArm, close }:
             style={({ pressed }) => [styles.action, { backgroundColor: action.ground, opacity: pressed ? 0.8 : 1 }]}
           >
             <action.Icon size={20} color={action.ink} strokeWidth={1.8} />
-            <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 12, color: action.ink }}>{action.label}</AppText>
+            <AppText numberOfLines={1} style={{ fontFamily: fonts.medium, fontSize: 13.5, color: action.ink }}>{action.label}</AppText>
           </Pressable>
         </Animated.View>
       ))}
@@ -107,7 +107,7 @@ export const NoteRow = memo(function NoteRow({ note, canWrite, registry, onOpen,
 
   const close = useCallback(() => swipe.current?.close(), []);
   const title = note.title.trim() || t("notes.x.untitled");
-  const preview = useMemo(() => snippet(note.body), [note.body]);
+  const preview = useMemo(() => rowPreview({ description: note.description, body: note.body }), [note.description, note.body]);
   const { Icon, color } = noteIcon({ category: note.category, icon: note.icon, color: note.color }, p.muted);
 
   // Gold carries dark text in both themes: ink is dark only in light mode.

@@ -88,15 +88,18 @@ export const metrics = {
   scrim: "rgba(5,10,22,0.72)",
 } as const;
 
+// Readability scale (iOS HIG-like): body 16, secondary 14, and nothing below
+// 12 (Arabic 13 — Lusail needs ~1px more than Latin at small sizes). Text
+// still follows Dynamic Type (allowFontScaling stays on).
 export const type = {
-  bigHeader: 27,
-  title: 20,
-  rowTitle: 15,
-  body: 14,
-  meta: 12,
-  micro: 10.5,
-  microAr: 11.5,
-  tab: 10.5,
+  bigHeader: 31,
+  title: 22,
+  rowTitle: 16.5,
+  body: 16,
+  meta: 14,
+  micro: 12,
+  microAr: 13,
+  tab: 12,
 } as const;
 
 const STORE_KEY = "zekra.theme";

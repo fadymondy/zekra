@@ -16,6 +16,7 @@ import { ExportHost } from "@/features/editor/export-host";
 import { MahaamReportHost } from "@/features/mahaam";
 import { PushBannerHost, usePushNotifications } from "@/features/push";
 import { AppLockGate } from "@/features/security/app-lock-gate";
+import { UpdateHost } from "@/features/updates";
 import { useWidgetSync } from "@/features/widgets";
 import { useScreenTracking } from "@/lib/analytics";
 import { initCrashReporting } from "@/lib/crash";
@@ -82,6 +83,8 @@ function Shell() {
       <ExportHost />
       {/* Biometric app lock: over the app and its banners, under the splash. */}
       <AppLockGate />
+      {/* App updates: OTA sheet / mandatory loader (Codemagic Patch), store prompt / force-update gate. */}
+      <UpdateHost />
       {!splashDone ? <AnimatedSplash ready={ready && fontsLoaded} onDone={onSplashDone} /> : null}
     </View>
   );

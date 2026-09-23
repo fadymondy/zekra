@@ -124,7 +124,7 @@ function LinkResult({ created, onDone }: { created: ShareCreated; onDone: () => 
   return (
     <>
       <View style={[styles.url, { borderColor: p.gold, backgroundColor: `${p.gold}14` }]}>
-        <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 12.5, color: p.ink, writingDirection: "ltr", textAlign: "left" }}>
+        <AppText selectable style={{ fontFamily: fonts.mono, fontSize: 14, color: p.ink, writingDirection: "ltr", textAlign: "left" }}>
           {created.url}
         </AppText>
       </View>
@@ -133,7 +133,7 @@ function LinkResult({ created, onDone }: { created: ShareCreated; onDone: () => 
       ) : (
         <View style={styles.once}>
           <KeyRound size={15} color={p.warn} strokeWidth={1.8} />
-          <AppText style={{ flex: 1, fontFamily: fonts.medium, fontSize: 13, color: p.warn }}>{t("presentations.share.keep")}</AppText>
+          <AppText style={{ flex: 1, fontFamily: fonts.medium, fontSize: 14.5, color: p.warn }}>{t("presentations.share.keep")}</AppText>
         </View>
       )}
       <View style={styles.actions}>

@@ -87,7 +87,7 @@ export function SocialButtons({ providers, running, disabled, onPress }: {
     <View style={{ gap: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 2 }}>
         <View style={{ flex: 1, height: 1, backgroundColor: p.line }} />
-        <AppText style={{ fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: p.muted }}>{t("social.or")}</AppText>
+        <AppText style={{ fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 20, color: p.muted }}>{t("social.or")}</AppText>
         <View style={{ flex: 1, height: 1, backgroundColor: p.line }} />
       </View>
       {providers.map((provider) => {

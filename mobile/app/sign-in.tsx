@@ -3,15 +3,16 @@ import { Eye, EyeOff, KeyRound, Lock, LogIn, Mail, Shield, Smartphone, User, Use
 import { useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "react-native";
 
+import { LanguageList } from "@/components/language-list";
 import { ErrorLine, StackHeader, TextButton, Tile } from "@/components/kit";
-import { AppText, CodeField, Field, PrimaryButton, Row, Rows, Screen, Segmented } from "@/components/ui";
+import { AppText, CodeField, Field, PrimaryButton, Row, Rows, Screen } from "@/components/ui";
 import { cancelBrowserSignIn, SocialSignInError } from "@/features/social/browser-flow";
 import { PROVIDER_NAME, SocialButtons, useSocialProviders } from "@/features/social/social-buttons";
 import { socialErrorKey, type SocialProvider } from "@/features/social/social-core";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { ApiError, authApi } from "@/lib/api";
 import { reportError } from "@/lib/crash";
-import { useI18n, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { fonts, metrics, usePalette } from "@/theme";
 
@@ -73,7 +74,7 @@ function StrengthMeter({ score, caption }: { score: number; caption: string }) {
           <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= score ? p.ok : p.soft }} />
         ))}
       </View>
-      <AppText style={{ fontFamily: fonts.light, fontSize: 11, lineHeight: 18, color: p.muted }}>{caption}</AppText>
+      <AppText style={{ fontFamily: fonts.light, fontSize: 12.5, lineHeight: 20, color: p.muted }}>{caption}</AppText>
     </View>
   );
 }
@@ -87,7 +88,7 @@ function IntroRow({ Icon, text }: { Icon: LucideIcon; text: string }) {
         <Tile size={42}>
           <Icon size={20} color={p.gold} strokeWidth={1.6} />
         </Tile>
-        <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 13.5, lineHeight: 25, color: p.body }}>{text}</AppText>
+        <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 28, color: p.body }}>{text}</AppText>
       </View>
     </Row>
   );
@@ -103,7 +104,7 @@ function BrandHeader() {
         <ZekraMark size={30} />
       </Tile>
       <View style={{ flex: 1, gap: 2 }}>
-        <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 24, color: p.ink }}>{t("app.name")}</AppText>
+        <AppText numberOfLines={1} style={{ fontFamily: fonts.semibold, fontSize: 17, lineHeight: 26, color: p.ink }}>{t("app.name")}</AppText>
         {/* An LTR run aligns to the left by default; pin it to the start edge so
             it sits under the title in Arabic too. */}
         <AppText variant="latin" style={{ alignSelf: "flex-start" }}>zekra.dev</AppText>
@@ -117,9 +118,9 @@ function SwitchLine({ prompt, action, onPress }: { prompt: string; action: strin
   const p = usePalette();
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.switchLine}>
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: 20, color: p.muted }}>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22, color: p.muted }}>
         {prompt}{" "}
-        <AppText style={{ fontFamily: fonts.medium, fontSize: 13, color: p.ink }}>{action}</AppText>
+        <AppText style={{ fontFamily: fonts.medium, fontSize: 14.5, color: p.ink }}>{action}</AppText>
       </AppText>
     </Pressable>
   );
@@ -257,7 +258,7 @@ export default function SignInScreen() {
       {notice ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
           <View style={{ width: 7, height: 7, backgroundColor: p.ok }} />
-          <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 20, color: p.ok }}>{notice}</AppText>
+          <AppText style={{ flex: 1, fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, color: p.ok }}>{notice}</AppText>
         </View>
       ) : null}
     </>
@@ -288,7 +289,7 @@ export default function SignInScreen() {
             />
           ) : (
             <View style={{ gap: 8 }}>
-              <AppText style={{ fontFamily: fonts.medium, fontSize: 11, lineHeight: 17, color: p.muted }}>{t("auth.authCode")}</AppText>
+              <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{t("auth.authCode")}</AppText>
               <CodeField value={code} onChangeText={setCode} autoFocus label={t("auth.authCode")} onComplete={(v) => void submit(v)} />
             </View>
           )}
@@ -310,7 +311,7 @@ export default function SignInScreen() {
             style={styles.inlineAction}
           >
             <KeyRound size={15} color={p.gold} strokeWidth={1.6} />
-            <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 20, color: p.gold }}>
+            <AppText style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, color: p.gold }}>
               {t(recovery ? "auth.useAuthenticator" : "auth.useRecovery")}
             </AppText>
           </Pressable>
@@ -378,16 +379,16 @@ export default function SignInScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <ZekraMark size={38} tight />
             <View style={{ width: 1, height: 38, backgroundColor: p.line }} />
-            <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 13.5, lineHeight: 24, color: p.muted }}>{t("auth.intro")}</AppText>
+            <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: 27, color: p.muted }}>{t("auth.intro")}</AppText>
           </View>
         </Row>
         <Row>
-          <AppText style={{ fontFamily: fonts.semibold, fontSize: 19, lineHeight: 30, color: p.ink }}>{t("auth.welcome")}</AppText>
+          <AppText style={{ fontFamily: fonts.semibold, fontSize: 21, lineHeight: 33, color: p.ink }}>{t("auth.welcome")}</AppText>
           {emailField}
           <PasswordField label={t("auth.password")} value={password} onChangeText={setPassword} onSubmitEditing={() => void submit()} />
           <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
             <Pressable accessibilityRole="button" onPress={() => switchMode("reset")} style={{ minHeight: 44, justifyContent: "center" }}>
-              <AppText style={{ fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 20, color: p.gold }}>{t("auth.forgot")}</AppText>
+              <AppText style={{ fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, color: p.gold }}>{t("auth.forgot")}</AppText>
             </Pressable>
           </View>
           {feedback}
@@ -432,14 +433,7 @@ export default function SignInScreen() {
           {/* Language before sign-in: Settings is not reachable yet. */}
           <Row>
             <AppText variant="micro">{t("settings.language")}</AppText>
-            <Segmented<Locale>
-              value={locale}
-              onChange={setLocale}
-              options={[
-                { value: "en", label: "English" },
-                { value: "ar", label: "العربية" },
-              ]}
-            />
+            <LanguageList />
           </Row>
         </Rows>
       </Screen>

@@ -73,7 +73,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
       <Text modifiers={[font({ size: valueSize, weight: "medium", design: "monospaced" }), foregroundStyle(toneColor(s.tone)), lineLimit(1), minimumScaleFactor(0.6)]}>
         {s.value}
       </Text>
-      <Text modifiers={[font({ size: 10 }), foregroundStyle(P.muted), lineLimit(1), minimumScaleFactor(0.7)]}>{s.label}</Text>
+      <Text modifiers={[font({ size: 11.5 }), foregroundStyle(P.muted), lineLimit(1), minimumScaleFactor(0.7)]}>{s.label}</Text>
     </VStack>
   );
 
@@ -84,7 +84,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
           tile(r, size),
           <VStack alignment={lead} spacing={1}>
             <Text modifiers={[font({ size: 13, weight: "semibold" }), foregroundStyle(P.ink), lineLimit(1)]}>{r.name}</Text>
-            <Text modifiers={[font({ size: 10.5 }), foregroundStyle(P.muted), lineLimit(1)]}>{r.ago}</Text>
+            <Text modifiers={[font({ size: 11.5 }), foregroundStyle(P.muted), lineLimit(1), minimumScaleFactor(0.85)]}>{r.ago}</Text>
           </VStack>,
           <Spacer minLength={4} />,
           <Text modifiers={[font({ size: 13, weight: "medium", design: "monospaced" }), foregroundStyle(P.ink), lineLimit(1)]}>{r.memories}</Text>,
@@ -98,7 +98,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
       {order([
         <Text modifiers={[font({ size: 13, weight: "semibold" }), foregroundStyle(P.gold), lineLimit(1)]}>{p ? p.title : "Zekra"}</Text>,
         <Spacer minLength={4} />,
-        <Text modifiers={[font({ size: 11, design: "monospaced" }), foregroundStyle(P.muted), lineLimit(1), minimumScaleFactor(0.7)]}>{trailing}</Text>,
+        <Text modifiers={[font({ size: 12, design: "monospaced" }), foregroundStyle(P.muted), lineLimit(1), minimumScaleFactor(0.7)]}>{trailing}</Text>,
       ])}
     </HStack>
   );
@@ -117,7 +117,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
         {line(tile({ glyph: "ذ", mono: false, color: P.action }, 30))}
         <Spacer minLength={0} />
         {line(<Text modifiers={[font({ size: 15, weight: "semibold" }), foregroundStyle(P.ink), lineLimit(1)]}>{title}</Text>)}
-        {line(<Text modifiers={[font({ size: 12 }), foregroundStyle(P.muted), lineLimit(3)]}>{body}</Text>)}
+        {line(<Text modifiers={[font({ size: 13 }), foregroundStyle(P.muted), lineLimit(3)]}>{body}</Text>)}
       </VStack>,
       "zekra://",
     );
@@ -130,7 +130,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
         {line(tile(b, 30))}
         <Spacer minLength={2} />
         {line(<Text modifiers={[font({ size: 15, weight: "semibold" }), foregroundStyle(P.ink), lineLimit(1), minimumScaleFactor(0.8)]}>{b.name}</Text>)}
-        {line(<Text modifiers={[font({ size: 10.5 }), foregroundStyle(P.muted), lineLimit(1)]}>{b.ago}</Text>)}
+        {line(<Text modifiers={[font({ size: 12 }), foregroundStyle(P.muted), lineLimit(1)]}>{b.ago}</Text>)}
         <Spacer minLength={4} />
         <HStack spacing={6} alignment="top">
           {order([stat(b.stats[0], 14), <Spacer minLength={0} />, stat(b.stats[1], 14), <Spacer minLength={0} />, stat(b.stats[2], 14)])}
@@ -161,7 +161,7 @@ const ZekraBrainsWidget = (props: WidgetProps, env: WidgetEnvironment) => {
   );
   const hidden = p.brainCount - rows.length;
   const more = hidden > 0 ? p.moreTemplate.replace("{count}", String(hidden)) : "";
-  const footer = more ? [line(<Text modifiers={[font({ size: 10.5 }), foregroundStyle(P.muted), lineLimit(1)]}>{more}</Text>)] : [];
+  const footer = more ? [line(<Text modifiers={[font({ size: 11.5 }), foregroundStyle(P.muted), lineLimit(1)]}>{more}</Text>)] : [];
   return shell(
     <VStack alignment={lead} spacing={6}>
       {header(p.updated)}

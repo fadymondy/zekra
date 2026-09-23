@@ -9,6 +9,18 @@ import { setUiFontLocale } from "@/theme";
 // product name is ذكرة — never ذكرى.
 export type Locale = "en" | "ar";
 
+/** Every language the app ships, in switcher order. Adding a language is one
+ *  entry here plus its dictionaries — every language switcher (a list, never
+ *  a toggle) picks it up. A language names itself; `english` is the subtitle. */
+export const LANGUAGES: readonly { code: Locale; name: string; english: string; rtl: boolean }[] = [
+  { code: "en", name: "English", english: "English", rtl: false },
+  { code: "ar", name: "العربية", english: "Arabic", rtl: true },
+];
+
+export function languageName(code: Locale): string {
+  return LANGUAGES.find((l) => l.code === code)?.name ?? code;
+}
+
 const en = {
   "app.name": "Zekra",
   "app.tagline": "Your notes, brains, and connected knowledge — carried with you.",

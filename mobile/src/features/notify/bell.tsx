@@ -42,14 +42,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -5,
     end: -5,
-    minWidth: 18,
-    height: 18,
+    minWidth: 20,
+    height: 20,
     paddingHorizontal: 4,
-    borderRadius: 9,
+    borderRadius: 10,
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
   },
   // Dark ink on gold reads in both themes; Latin digits in both languages.
-  count: { fontFamily: fonts.monoMedium, fontSize: 10, lineHeight: 13, color: "#0e1a3c", writingDirection: "ltr" },
+  count: { fontFamily: fonts.monoMedium, fontSize: 12, lineHeight: 16, color: "#0e1a3c", writingDirection: "ltr" },
 });

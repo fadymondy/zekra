@@ -23,7 +23,7 @@ export default function ConnectScreen() {
     <SettingsPage section="connect">
       <Row>
         <AppText variant="micro">{t("settings.connect")}</AppText>
-        <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 22, color: p.body }}>{t("settings.mcpBody")}</AppText>
+        <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: 25, color: p.body }}>{t("settings.mcpBody")}</AppText>
         <View>
           <SettingsItem
             Icon={Plug}

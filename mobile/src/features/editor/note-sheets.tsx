@@ -159,7 +159,7 @@ export function TagsSheet({ open, onClose, tags, onChange }: {
               onPress={() => onChange(tags.filter((x) => x !== tag))}
               style={[styles.chip, { borderColor: `${p.gold}66`, backgroundColor: `${p.gold}14` }]}
             >
-              <AppText style={{ fontFamily: fonts.mono, fontSize: 12, color: p.gold }}>#{tag}</AppText>
+              <AppText style={{ fontFamily: fonts.mono, fontSize: 13.5, color: p.gold }}>#{tag}</AppText>
               <X size={13} color={p.gold} strokeWidth={2} />
             </Pressable>
           ))}
