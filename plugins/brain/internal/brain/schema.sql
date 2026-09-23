@@ -833,3 +833,14 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 -- The inbox page (keyset on created_at, id) and the unread badge.
 CREATE INDEX IF NOT EXISTS notifications_user_created_idx ON public.notifications (user_id, created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS notifications_user_unread_idx ON public.notifications (user_id) WHERE read_at IS NULL;
+
+-- ── Per-note description ───────────────────────────────────────────────────────
+-- A short plain-text summary shown under a note's title (<= 500 characters,
+-- validated in notes.go, not by a CHECK, so the limit can move without a
+-- migration). DEFAULT '' means "no description", which is what every existing
+-- note has, so nothing is backfilled. note_versions carries it too, so a
+-- restored version brings its description back; versions recorded before this
+-- column existed read as '' — accurately, since no note had one then.
+-- Idempotent.
+ALTER TABLE public.notes         ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';
+ALTER TABLE public.note_versions ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';

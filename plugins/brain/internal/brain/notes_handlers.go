@@ -20,9 +20,11 @@ read/write grant, or an OAuth-connected MCP app (in-process only). Every write
 publishes an SSE `note` event on /api/brain/events.
 
 	GET    /api/notes?namespace=&q=&tag=&since=&limit=&cursor=&archived=
-	POST   /api/notes                    {namespace,title,body,tags,pinned,source}
+	POST   /api/notes                    {namespace,title,description,body,tags,pinned,source}
 	GET    /api/notes/{id}
-	PUT    /api/notes/{id}               If-Match: "<version>" or {version}; 409 + server copy on conflict
+	PUT    /api/notes/{id}               If-Match: "<version>" or {version}; 409 + server copy on conflict.
+	                                     Partial: an omitted (or null) field is left unchanged,
+	                                     "description": "" clears the description.
 	DELETE /api/notes/{id}               optional If-Match
 	GET    /api/notes/{id}/versions
 	POST   /api/notes/{id}/restore       {version?}
@@ -185,13 +187,17 @@ func (s *Service) ListNotes(w http.ResponseWriter, r *http.Request) {
 }
 
 type noteBody struct {
-	Namespace string    `json:"namespace"`
-	Title     *string   `json:"title"`
-	Body      *string   `json:"body"`
-	Tags      *[]string `json:"tags"`
-	Pinned    *bool     `json:"pinned"`
-	Archived  *bool     `json:"archived"`
-	Category  *string   `json:"category"`
+	Namespace string  `json:"namespace"`
+	Title     *string `json:"title"`
+	// Description is optional on both create and update; on update nil (absent
+	// or null) keeps the stored value and "" clears it — the same presence
+	// semantics as every other field here.
+	Description *string   `json:"description"`
+	Body        *string   `json:"body"`
+	Tags        *[]string `json:"tags"`
+	Pinned      *bool     `json:"pinned"`
+	Archived    *bool     `json:"archived"`
+	Category    *string   `json:"category"`
 	// Appearance overrides (MH-308). Empty string clears the override and
 	// returns the note to its derived icon/colour.
 	Icon    *string `json:"icon"`
@@ -250,7 +256,8 @@ func (s *Service) CreateNote(w http.ResponseWriter, r *http.Request) {
 			in.Category = &p.DefaultNoteCategory
 		}
 	}
-	n, err := s.Store.CreateNote(r.Context(), NoteInput{Namespace: in.Namespace, Title: deref(in.Title), Body: deref(in.Body),
+	n, err := s.Store.CreateNote(r.Context(), NoteInput{Namespace: in.Namespace, Title: deref(in.Title),
+		Description: deref(in.Description), Body: deref(in.Body),
 		Tags: deref(in.Tags), Pinned: deref(in.Pinned), Category: deref(in.Category)}, s.noteAuthor(r, in.Source))
 	if err != nil {
 		writeErr(w, err)
@@ -313,7 +320,7 @@ func (s *Service) UpdateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n, err := s.Store.UpdateNote(r.Context(), chi.URLParam(r, "id"), expect, NotePatch{
-		Title: in.Title, Body: in.Body, Tags: in.Tags, Pinned: in.Pinned, Archived: in.Archived, Category: in.Category,
+		Title: in.Title, Description: in.Description, Body: in.Body, Tags: in.Tags, Pinned: in.Pinned, Archived: in.Archived, Category: in.Category,
 		Icon: in.Icon, Color: in.Color,
 	}, s.noteAuthor(r, in.Source))
 	if errors.Is(err, ErrConflict) {

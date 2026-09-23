@@ -959,10 +959,10 @@ func (s *Store) DeleteType(ctx context.Context, k OntologyKind, ns, name, reassi
 				WITH u AS (
 				  UPDATE notes SET category=$3, version=version+1, updated_at=clock_timestamp()
 				  WHERE namespace=$1 AND category=$2
-				  RETURNING id, version, title, body, tags, pinned, archived, deleted_at, source, category)
+				  RETURNING id, version, title, body, tags, pinned, archived, deleted_at, source, category, description)
 				INSERT INTO note_versions (note_id, version, title, body, tags, pinned, archived, deleted, source,
-				                           author_user_id, author_agent, category)
-				SELECT id, version, title, body, tags, pinned, archived, deleted_at IS NOT NULL, source, $4, $5, category FROM u`,
+				                           author_user_id, author_agent, category, description)
+				SELECT id, version, title, body, tags, pinned, archived, deleted_at IS NOT NULL, source, $4, $5, category, description FROM u`,
 				ns, name, reassignTo, nullStr(by.UserID), nullStr(by.Agent)); err != nil {
 				return 0, err
 			}

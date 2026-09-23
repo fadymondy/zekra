@@ -4,8 +4,9 @@ package brain
 Notes (Phase 1). A note is a markdown document living in a brain. It is the
 source of truth for its own text; its memories are derived:
 
-  - saving a note chunks "title + body" (noteChunks: split on markdown headings,
-    then on paragraphs up to noteChunkMax runes, reusing chunkText) and retains
+  - saving a note chunks "title + description + body" (noteChunks: split on
+    markdown headings, then on paragraphs up to noteChunkMax runes, reusing
+    chunkText; title and description lead every chunk) and retains
     every chunk through the ordinary write pipeline (Store.Retain) with
     source_kind='note', source_ref='note:<id>#<n>';
   - notes.chunk_hashes remembers the sha256 of what was retained at each index, so
@@ -36,11 +37,14 @@ import (
 )
 
 const (
-	noteChunkMax  = 1600
-	noteMaxBody   = 1 << 20 // 1 MiB of markdown
-	noteMaxTitle  = 300
-	noteMaxTags   = 32
-	noteSourceRef = "note:"
+	noteChunkMax = 1600
+	noteMaxBody  = 1 << 20 // 1 MiB of markdown
+	noteMaxTitle = 300
+	// noteMaxDescription caps the one-line summary shown under a note's title
+	// (runes, after trimming).
+	noteMaxDescription = 500
+	noteMaxTags        = 32
+	noteSourceRef      = "note:"
 )
 
 var validNoteSource = map[string]bool{"web": true, "mobile": true, "desktop": true, "agent": true, "api": true}
@@ -50,13 +54,16 @@ var ErrConflict = errors.New("brain: version conflict")
 
 // Note is the REST shape of a note. A tombstone carries Deleted=true and no body.
 type Note struct {
-	ID             string     `json:"id"`
-	Namespace      string     `json:"namespace"`
-	OwnerUserID    string     `json:"ownerUserId,omitempty"`
-	Title          string     `json:"title"`
-	Body           string     `json:"body,omitempty"`
-	Tags           []string   `json:"tags"`
-	Category       string     `json:"category"`
+	ID          string `json:"id"`
+	Namespace   string `json:"namespace"`
+	OwnerUserID string `json:"ownerUserId,omitempty"`
+	Title       string `json:"title"`
+	// Description is a short plain-text summary (<= noteMaxDescription runes).
+	// Omitted when empty, so older clients and servers see no change.
+	Description string   `json:"description,omitempty"`
+	Body        string   `json:"body,omitempty"`
+	Tags        []string `json:"tags"`
+	Category    string   `json:"category"`
 	// Appearance overrides (MH-308). Empty means "derive from Category",
 	// which is how every note behaved before these existed.
 	Icon           string     `json:"icon,omitempty"`
@@ -82,6 +89,7 @@ type Note struct {
 type NoteVersion struct {
 	Version      int       `json:"version"`
 	Title        string    `json:"title"`
+	Description  string    `json:"description,omitempty"`
 	Body         string    `json:"body"`
 	Tags         []string  `json:"tags"`
 	Category     string    `json:"category,omitempty"`
@@ -103,15 +111,18 @@ type NoteAuthor struct {
 
 // NotePatch is a partial update; nil fields are left unchanged.
 type NotePatch struct {
-	Title    *string
-	Body     *string
-	Tags     *[]string
-	Pinned   *bool
-	Archived *bool
-	Category *string
+	Title *string
+	// Description follows the same presence rule as every other field: nil
+	// leaves it alone, a pointer to "" clears it.
+	Description *string
+	Body        *string
+	Tags        *[]string
+	Pinned      *bool
+	Archived    *bool
+	Category    *string
 	// Appearance overrides (MH-308); a pointer to "" clears one.
-	Icon     *string
-	Color    *string
+	Icon  *string
+	Color *string
 }
 
 // --- chunking (pure) -----------------------------------------------------------
@@ -120,12 +131,27 @@ var headingRE = regexp.MustCompile(`(?m)^#{1,6}[ \t]+\S`)
 
 // noteChunks turns a note into the texts that get retained. Sections start at
 // markdown headings; each section is split on paragraphs by chunkText. The title
-// leads every chunk so a chunk recalled on its own still says what it is from.
-func noteChunks(title, body string) []string {
+// (and the description, when there is one) leads every chunk so a chunk recalled
+// on its own still says what it is from.
+//
+// An empty description yields exactly the chunks a note had before descriptions
+// existed, so existing notes keep their chunk hashes and are not re-indexed.
+func noteChunks(title, body string) []string { return noteChunksDescribed(title, "", body) }
+
+// noteChunksDescribed is noteChunks with the note's description after the title.
+func noteChunksDescribed(title, description, body string) []string {
 	title = strings.TrimSpace(title)
+	description = strings.TrimSpace(strings.ReplaceAll(description, "\r\n", "\n"))
 	body = strings.TrimSpace(strings.ReplaceAll(body, "\r\n", "\n"))
-	if body == "" && title == "" {
+	if body == "" && title == "" && description == "" {
 		return nil
+	}
+	head := title
+	if description != "" {
+		if head != "" {
+			head += "\n\n"
+		}
+		head += description
 	}
 	var sections []string
 	locs := headingRE.FindAllStringIndex(body, -1)
@@ -138,7 +164,7 @@ func noteChunks(title, body string) []string {
 	}
 	sections = append(sections, body[start:])
 
-	budget := noteChunkMax - len([]rune(title)) - 2
+	budget := noteChunkMax - len([]rune(head)) - 2
 	if budget < 400 {
 		budget = 400
 	}
@@ -148,14 +174,14 @@ func noteChunks(title, body string) []string {
 			if c = strings.TrimSpace(c); c == "" {
 				continue
 			}
-			if title != "" {
-				c = title + "\n\n" + c
+			if head != "" {
+				c = head + "\n\n" + c
 			}
 			out = append(out, c)
 		}
 	}
-	if len(out) == 0 && title != "" {
-		out = []string{title}
+	if len(out) == 0 && head != "" {
+		out = []string{head}
 	}
 	return out
 }
@@ -207,6 +233,19 @@ func cleanTags(in []string) []string {
 	return out
 }
 
+// cleanNoteDescription trims a description the way titles are trimmed.
+func cleanNoteDescription(d string) string { return strings.TrimSpace(d) }
+
+// validateNoteDescription bounds the (already trimmed) description. It is a
+// sibling of validateNote rather than a parameter of it because only create and
+// update ever change a description; every other write path leaves it as stored.
+func validateNoteDescription(d string) error {
+	if len([]rune(d)) > noteMaxDescription {
+		return fmt.Errorf("%w: description is longer than %d characters", ErrInvalidInput, noteMaxDescription)
+	}
+	return nil
+}
+
 func validateNote(title, body string) error {
 	if len([]rune(title)) > noteMaxTitle {
 		return fmt.Errorf("%w: title is longer than %d characters", ErrInvalidInput, noteMaxTitle)
@@ -224,7 +263,8 @@ func validateNote(title, body string) error {
 
 const noteCols = `id::text, namespace, COALESCE(owner_user_id,''), title, body, tags, pinned, archived,
 	source, version, chunk_hashes, indexed_version, COALESCE(index_error,''), created_at, updated_at, deleted_at,
-	category, COALESCE(entity_id::text,''), COALESCE(origin_ref,''), COALESCE(icon,''), COALESCE(color,'')`
+	category, COALESCE(entity_id::text,''), COALESCE(origin_ref,''), COALESCE(icon,''), COALESCE(color,''),
+	COALESCE(description,'')`
 
 type rowScanner interface{ Scan(dest ...any) error }
 
@@ -234,7 +274,7 @@ func scanNote(row rowScanner) (*Note, error) {
 	var deleted sql.NullTime
 	if err := row.Scan(&n.ID, &n.Namespace, &n.OwnerUserID, &n.Title, &n.Body, &tags, &n.Pinned, &n.Archived,
 		&n.Source, &n.Version, &hashes, &n.indexedVersion, &n.IndexError, &n.CreatedAt, &n.UpdatedAt, &deleted,
-		&n.Category, &n.EntityID, &n.OriginRef, &n.Icon, &n.Color); err != nil {
+		&n.Category, &n.EntityID, &n.OriginRef, &n.Icon, &n.Color, &n.Description); err != nil {
 		return nil, err
 	}
 	n.Tags = []string(tags)
@@ -271,12 +311,13 @@ var uuidRE = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[
 
 // NoteInput is a new note.
 type NoteInput struct {
-	Namespace string
-	Title     string
-	Body      string
-	Tags      []string
-	Pinned    bool
-	Category  string // entity type of the note's graph node; "" = "note"
+	Namespace   string
+	Title       string
+	Description string // trimmed; <= noteMaxDescription runes
+	Body        string
+	Tags        []string
+	Pinned      bool
+	Category    string // entity type of the note's graph node; "" = "note"
 	// EntityID attaches the note to an existing graph entity instead of minting
 	// one (open-an-entity-as-a-note). The entity must not already be a note's:
 	// that returns ErrEntityHasNote.
@@ -290,6 +331,10 @@ func (s *Store) CreateNote(ctx context.Context, in NoteInput, by NoteAuthor) (*N
 		return nil, fmt.Errorf("%w: namespace is required", ErrInvalidInput)
 	}
 	if err := validateNote(in.Title, in.Body); err != nil {
+		return nil, err
+	}
+	in.Description = cleanNoteDescription(in.Description)
+	if err := validateNoteDescription(in.Description); err != nil {
 		return nil, err
 	}
 	cat, err := noteCategory(in.Category)
@@ -325,10 +370,10 @@ func (s *Store) CreateNote(ctx context.Context, in NoteInput, by NoteAuthor) (*N
 		}
 	}
 	n, err := scanNote(tx.QueryRowContext(ctx, `
-		INSERT INTO notes (namespace, owner_user_id, title, body, tags, pinned, source, category, entity_id)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING `+noteCols,
+		INSERT INTO notes (namespace, owner_user_id, title, body, tags, pinned, source, category, entity_id, description)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING `+noteCols,
 		in.Namespace, nullStr(by.UserID), strings.TrimSpace(in.Title), in.Body, stringArray(cleanTags(in.Tags)),
-		in.Pinned, src, cat, nullStr(in.EntityID)))
+		in.Pinned, src, cat, nullStr(in.EntityID), in.Description))
 	if err != nil {
 		return nil, err
 	}
@@ -348,11 +393,11 @@ func (s *Store) CreateNote(ctx context.Context, in NoteInput, by NoteAuthor) (*N
 
 func insertNoteVersion(ctx context.Context, tx *sql.Tx, n *Note, by NoteAuthor) error {
 	_, err := tx.ExecContext(ctx, `
-		INSERT INTO note_versions (note_id, version, title, body, tags, pinned, archived, deleted, source, author_user_id, author_agent, category)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		INSERT INTO note_versions (note_id, version, title, body, tags, pinned, archived, deleted, source, author_user_id, author_agent, category, description)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 		ON CONFLICT (note_id, version) DO NOTHING`,
 		n.ID, n.Version, n.Title, n.Body, stringArray(n.Tags), n.Pinned, n.Archived, n.Deleted, n.Source,
-		nullStr(by.UserID), nullStr(by.Agent), n.Category)
+		nullStr(by.UserID), nullStr(by.Agent), n.Category, n.Description)
 	return err
 }
 
@@ -365,6 +410,12 @@ func (s *Store) UpdateNote(ctx context.Context, id string, expectVersion int, p 
 		}
 		if p.Title != nil {
 			n.Title = strings.TrimSpace(*p.Title)
+		}
+		if p.Description != nil {
+			n.Description = cleanNoteDescription(*p.Description)
+			if err := validateNoteDescription(n.Description); err != nil {
+				return err
+			}
 		}
 		if p.Body != nil {
 			n.Body = *p.Body
@@ -453,6 +504,10 @@ func (s *Store) RestoreNote(ctx context.Context, id string, version int, by Note
 		n.Deleted, n.DeletedAt = false, nil
 		if old != nil {
 			n.Title, n.Body, n.Tags, n.Pinned, n.Archived = old.Title, old.Body, old.Tags, old.Pinned, old.Archived
+			// Versions recorded before descriptions existed carry '' — which is
+			// what the note had then, so restoring one clears it (unlike category,
+			// which every note always had and so NULL there means "unknown").
+			n.Description = old.Description
 			if old.Category != "" {
 				n.Category = old.Category
 			}
@@ -506,11 +561,11 @@ func (s *Store) mutateNote(ctx context.Context, id string, expectVersion int, by
 	}
 	updated, err := scanNote(tx.QueryRowContext(ctx, `
 		UPDATE notes SET title=$2, body=$3, tags=$4, pinned=$5, archived=$6, source=$7, version=$8,
-		       deleted_at=$9, chunk_hashes=$10, category=$11, icon=$12, color=$13,
+		       deleted_at=$9, chunk_hashes=$10, category=$11, icon=$12, color=$13, description=$14,
 		       updated_at=clock_timestamp()
 		WHERE id=$1 RETURNING `+noteCols,
 		id, next.Title, next.Body, stringArray(next.Tags), next.Pinned, next.Archived, next.Source, next.Version,
-		deletedAt, stringArray(nonNil(hashes)), next.Category, next.Icon, next.Color))
+		deletedAt, stringArray(nonNil(hashes)), next.Category, next.Icon, next.Color, next.Description))
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +603,7 @@ func nonNil(s []string) []string {
 // chunk; the outcome is written to chunk_hashes / indexed_version / index_error.
 func (s *Store) indexNote(ctx context.Context, n *Note, by NoteAuthor) {
 	ctx = context.WithoutCancel(ctx) // a client hanging up must not leave half an index
-	chunks := noteChunks(n.Title, n.Body)
+	chunks := noteChunksDescribed(n.Title, n.Description, n.Body)
 	hashes := make([]string, len(chunks))
 	for i, c := range chunks {
 		hashes[i] = chunkHash(c)
@@ -563,7 +618,7 @@ func (s *Store) indexNote(ctx context.Context, n *Note, by NoteAuthor) {
 		agent = "user:" + by.UserID
 	}
 	for _, i := range plan.Retain {
-		_, err := s.Retain(ctx, MemoryInput{
+		in := MemoryInput{
 			Namespace:    n.Namespace,
 			Content:      chunks[i],
 			SourceKind:   "note",
@@ -575,7 +630,11 @@ func (s *Store) indexNote(ctx context.Context, n *Note, by NoteAuthor) {
 				"type": "note", "noteId": n.ID, "chunk": i, "chunks": len(chunks),
 				"title": n.Title, "tags": n.Tags, "noteVersion": n.Version,
 			},
-		})
+		}
+		if n.Description != "" {
+			in.Metadata["description"] = n.Description
+		}
+		_, err := s.Retain(ctx, in)
 		if err != nil {
 			stored[i] = "" // retried on the next save
 			if firstErr == nil {
@@ -648,7 +707,8 @@ func (s *Store) NoteVersions(ctx context.Context, id string) ([]NoteVersion, err
 	}
 	rows, err := db.QueryContext(ctx, `
 		SELECT version, title, body, tags, pinned, archived, deleted, source,
-		       COALESCE(author_user_id,''), COALESCE(author_agent,''), created_at, COALESCE(category,'')
+		       COALESCE(author_user_id,''), COALESCE(author_agent,''), created_at, COALESCE(category,''),
+		       COALESCE(description,'')
 		FROM note_versions WHERE note_id=$1 ORDER BY version DESC LIMIT 500`, id)
 	if err != nil {
 		return out, err
@@ -658,7 +718,7 @@ func (s *Store) NoteVersions(ctx context.Context, id string) ([]NoteVersion, err
 		var v NoteVersion
 		var tags stringArray
 		if err := rows.Scan(&v.Version, &v.Title, &v.Body, &tags, &v.Pinned, &v.Archived, &v.Deleted, &v.Source,
-			&v.AuthorUserID, &v.AuthorAgent, &v.CreatedAt, &v.Category); err != nil {
+			&v.AuthorUserID, &v.AuthorAgent, &v.CreatedAt, &v.Category, &v.Description); err != nil {
 			return out, err
 		}
 		v.Tags = nonNil([]string(tags))
@@ -743,7 +803,7 @@ func (s *Store) ListNotes(ctx context.Context, q NoteQuery) (*NotePage, error) {
 	}
 	if q.Q != "" {
 		p := arg("%" + escapeLike(q.Q) + "%")
-		where = append(where, "(title ILIKE "+p+" OR body ILIKE "+p+")")
+		where = append(where, "(title ILIKE "+p+" OR description ILIKE "+p+" OR body ILIKE "+p+")")
 	}
 	if q.Category != "" {
 		where = append(where, "category = "+arg(q.Category))

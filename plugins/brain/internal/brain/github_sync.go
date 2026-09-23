@@ -235,6 +235,9 @@ func RenderNote(n Note) string {
 	var b strings.Builder
 	b.WriteString("---\n")
 	fmt.Fprintf(&b, "title: %s\n", yamlString(n.Title))
+	if n.Description != "" {
+		fmt.Fprintf(&b, "description: %s\n", yamlString(n.Description))
+	}
 	if n.Category != "" {
 		fmt.Fprintf(&b, "category: %s\n", yamlString(n.Category))
 	}
