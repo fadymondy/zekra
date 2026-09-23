@@ -15,9 +15,23 @@ import { gateDecision, SECURITY_LEVEL_NONE, type GateDecision } from "./vault-co
  * match blocks. See gateDecision in vault-core.ts.
  *
  * NSFaceIDUsageDescription comes from the expo-local-authentication config
- * plugin entry in app.json.
+ * plugin entry in app.json. The app lock (src/features/security) unlocks
+ * through this same gate.
  */
-export async function confirmIdentity(promptMessage: string, cancelLabel: string): Promise<GateDecision> {
+// A system auth prompt makes iOS report the app "inactive". The app lock's
+// app-switcher cover keys off that state, so it asks here first and stays out
+// of the way of the app's own prompts (src/features/security/app-lock-gate.tsx).
+let prompts = 0;
+export function authPromptShowing(): boolean {
+  return prompts > 0;
+}
+
+export async function confirmIdentity(
+  promptMessage: string,
+  cancelLabel: string,
+  /** iOS: the label of the passcode button the prompt shows after a failed match. */
+  options: { fallbackLabel?: string } = {},
+): Promise<GateDecision> {
   // The web build has no local authenticator; the server check still applies.
   if (Platform.OS === "web") return "proceed";
   let level: number;
@@ -28,14 +42,18 @@ export async function confirmIdentity(promptMessage: string, cancelLabel: string
     return "failed";
   }
   if (level === SECURITY_LEVEL_NONE) return gateDecision(level, null);
+  prompts++;
   try {
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage,
       cancelLabel,
       disableDeviceFallback: false,
+      ...(options.fallbackLabel ? { fallbackLabel: options.fallbackLabel } : {}),
     });
     return gateDecision(level, result);
   } catch {
     return "failed";
+  } finally {
+    prompts--;
   }
 }

@@ -1,6 +1,6 @@
 import { router, type Href } from "expo-router";
 import type { LucideIcon } from "lucide-react-native";
-import { Bell, BookOpen, Info, KeyRound, Palette, Plug, UserPen } from "lucide-react-native";
+import { Bell, BookOpen, Info, KeyRound, Palette, Plug, ShieldCheck, UserPen } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
@@ -15,12 +15,13 @@ import { fonts, metrics, usePalette } from "@/theme";
 // sections replaces the page rather than stacking it, so Back always returns
 // to the index.
 
-export type SettingsSection = "appearance" | "reading" | "notifications" | "profile" | "password" | "connect" | "about";
+export type SettingsSection = "appearance" | "reading" | "notifications" | "security" | "profile" | "password" | "connect" | "about";
 
 export const SECTIONS: { key: SettingsSection; label: TKey; href: Href; Icon: LucideIcon }[] = [
   { key: "appearance", label: "settings.appearance", href: "/settings/appearance", Icon: Palette },
   { key: "reading", label: "settings.x.reading", href: "/settings/reading", Icon: BookOpen },
   { key: "notifications", label: "settings.x.notifications", href: "/settings/notifications", Icon: Bell },
+  { key: "security", label: "security.title", href: "/settings/security", Icon: ShieldCheck },
   { key: "profile", label: "account.profile", href: "/account/profile", Icon: UserPen },
   { key: "password", label: "account.password", href: "/account/password", Icon: KeyRound },
   { key: "connect", label: "settings.x.connect", href: "/settings/connect", Icon: Plug },

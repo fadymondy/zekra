@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastHost } from "@/components/kit";
 import { ExportHost } from "@/features/editor/export-host";
 import { PushBannerHost, usePushNotifications } from "@/features/push";
+import { AppLockGate } from "@/features/security/app-lock-gate";
 import { useWidgetSync } from "@/features/widgets";
 import { useScreenTracking } from "@/lib/analytics";
 import { initCrashReporting } from "@/lib/crash";
@@ -71,6 +72,8 @@ function Shell() {
       <ToastHost />
       <PushBannerHost />
       <ExportHost />
+      {/* Biometric app lock: over the app and its banners, under the splash. */}
+      <AppLockGate />
       {!splashDone ? <AnimatedSplash ready={ready && fontsLoaded} onDone={onSplashDone} /> : null}
     </View>
   );

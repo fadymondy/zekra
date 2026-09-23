@@ -155,6 +155,16 @@ export const authApi = {
     request<{ status?: string }>("/api/auth/password/forgot", { csrf: true, json: { email, locale } }),
   challenge: (challenge: string, answer: { code?: string; recovery_code?: string }) =>
     request<AuthAnswer>("/api/auth/2fa/challenge", { csrf: true, json: { challenge, ...answer } }),
+  // Social sign-in (internal/account/oauth_*.go). Each answers exactly what
+  // login answers — {token, user}, or a 401 2fa_required challenge.
+  providers: () => request<unknown>("/api/auth/providers"),
+  methods: () => request<unknown>("/api/auth/methods"),
+  google: (idToken: string) => request<AuthAnswer>("/api/auth/google/token", { json: { id_token: idToken } }),
+  apple: (body: { identity_token: string; nonce: string; full_name?: string }) =>
+    request<AuthAnswer>("/api/auth/apple/token", { json: body }),
+  /** Trade an auth session's one-time code (GitHub / Google app flow). */
+  socialExchange: (provider: "github" | "google", code: string, verifier: string) =>
+    request<AuthAnswer>(`/api/auth/${provider}/exchange`, { json: { code, code_verifier: verifier } }),
   me: (token: string) => request<{ user?: User } | User>("/api/auth/me", { token }),
   logout: (token: string) => request<{ status: string }>("/api/auth/logout", { token, json: {} }),
 };

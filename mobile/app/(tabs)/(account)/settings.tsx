@@ -5,6 +5,9 @@ import { Pressable, View } from "react-native";
 
 import { ForwardChevron, Tile } from "@/components/kit";
 import { AppText, Header, Row, Rows, Screen, SecondaryButton } from "@/components/ui";
+import { KIND_KEY } from "@/features/security/app-lock-gate";
+import { useBiometricInfo } from "@/features/security/biometrics";
+import { useAppLock } from "@/features/security/lock-store";
 import { SECTIONS, SettingsItem, type SettingsSection } from "@/features/settings/settings-nav";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { useI18n } from "@/lib/i18n";
@@ -22,11 +25,16 @@ export default function SettingsScreen() {
   const reading = useReadingSettings();
   const { user, signOut } = useAuth();
   const version = Constants.expoConfig?.version || "development";
+  const lock = useAppLock();
+  const biometric = useBiometricInfo();
 
   const modeLabel = t(mode === "system" ? "settings.themeSystem" : mode === "light" ? "settings.themeLight" : "settings.themeDark");
   const details: Partial<Record<SettingsSection, string>> = {
     appearance: `${modeLabel} · ${locale === "ar" ? "العربية" : "English"}`,
     reading: t("settings.x.readingDetail", { theme: readingTheme(reading.theme)?.label ?? t("settings.x.readingOwn"), size: reading.fontSize }),
+    security: lock.settings.enabled
+      ? t("security.detailOn", { kind: t(KIND_KEY[biometric?.kind ?? "biometrics"]), after: t(`security.after.${lock.settings.after}`) })
+      : t("security.detailOff"),
     profile: user?.email,
     connect: t("settings.x.connectDetail"),
     about: t("settings.x.aboutDetail", { version }),
@@ -67,7 +75,8 @@ export default function SettingsScreen() {
           <View>
             {item("appearance")}
             {item("reading")}
-            {item("notifications", true)}
+            {item("notifications")}
+            {item("security", true)}
           </View>
         </Row>
 

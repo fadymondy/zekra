@@ -1,5 +1,6 @@
 import type { DictKey } from "@/i18n/define";
 
+import auth from "./auth";
 import brains from "./brains";
 import editor from "./editor";
 import kit from "./kit";
@@ -14,7 +15,7 @@ import widgets from "./widgets";
 
 // Each feature owns one dictionary file; they are merged over the base
 // dictionary in src/lib/i18n.tsx.
-export const FEATURE_DICTS = [kit, brains, notes, editor, presentations, vault, push, settings, nav, widgets, notify];
+export const FEATURE_DICTS = [kit, brains, notes, editor, presentations, vault, push, settings, nav, widgets, notify, auth];
 
 export type FeatureKey =
   | DictKey<typeof kit>
@@ -27,4 +28,5 @@ export type FeatureKey =
   | DictKey<typeof push>
   | DictKey<typeof settings>
   | DictKey<typeof widgets>
-  | DictKey<typeof notify>;
+  | DictKey<typeof notify>
+  | DictKey<typeof auth>;

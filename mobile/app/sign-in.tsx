@@ -5,8 +5,12 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "rea
 
 import { ErrorLine, StackHeader, TextButton, Tile } from "@/components/kit";
 import { AppText, CodeField, Field, PrimaryButton, Row, Rows, Screen, Segmented } from "@/components/ui";
+import { SocialSignInError } from "@/features/social/browser-flow";
+import { PROVIDER_NAME, SocialButtons, useSocialProviders } from "@/features/social/social-buttons";
+import { socialErrorKey, type SocialProvider } from "@/features/social/social-core";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { ApiError, authApi } from "@/lib/api";
+import { reportError } from "@/lib/crash";
 import { useI18n, type Locale } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { fonts, metrics, usePalette } from "@/theme";
@@ -127,7 +131,9 @@ function SwitchLine({ prompt, action, onPress }: { prompt: string; action: strin
 export default function SignInScreen() {
   const p = usePalette();
   const { t, locale, setLocale, isRtl } = useI18n();
-  const { token, signIn, register, finishChallenge } = useAuth();
+  const { token, signIn, register, finishChallenge, signInWith } = useAuth();
+  const social = useSocialProviders();
+  const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -163,8 +169,45 @@ export default function SignInScreen() {
           ? caught.message
           : t("auth.failed");
 
+  /** A 2FA challenge answer: switch to the code step. True when handled. */
+  function takeChallenge(caught: unknown) {
+    if (caught instanceof ApiError && caught.code === "2fa_required") {
+      const payload = caught.payload as ErrorPayload;
+      if (payload?.challenge) {
+        setChallenge(payload.challenge);
+        setCode("");
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Google / Apple / GitHub. Closing the provider's sheet is not an error:
+  // nothing is shown. A 2FA challenge continues on the same code step as a
+  // password sign-in.
+  // The button shows its spinner (and the others dim) while the provider's
+  // sheet is open; every failure lands on the error line.
+  async function signInWithProvider(provider: SocialProvider) {
+    if (busy || socialBusy) return;
+    setSocialBusy(provider);
+    setError("");
+    setNotice("");
+    try {
+      if (await signInWith(provider, social?.google ?? "browser")) router.replace("/brains");
+    } catch (caught) {
+      if (takeChallenge(caught)) return;
+      if (!(caught instanceof ApiError) && !(caught instanceof SocialSignInError)) reportError(caught, `social sign-in ${provider}`);
+      const key = socialErrorKey(provider, caught instanceof ApiError
+        ? { status: caught.status, code: caught.code, message: caught.message }
+        : caught instanceof SocialSignInError ? { reason: caught.reason } : {});
+      setError(t(key, { provider: PROVIDER_NAME[provider] }));
+    } finally {
+      setSocialBusy(null);
+    }
+  }
+
   async function submit(codeNow?: string) {
-    if (busy) return;
+    if (busy || socialBusy) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -183,14 +226,7 @@ export default function SignInScreen() {
       }
       router.replace("/brains");
     } catch (caught) {
-      if (caught instanceof ApiError && caught.code === "2fa_required") {
-        const payload = caught.payload as ErrorPayload;
-        if (payload?.challenge) {
-          setChallenge(payload.challenge);
-          setCode("");
-          return;
-        }
-      }
+      if (takeChallenge(caught)) return;
       setError(describe(caught));
     } finally {
       setBusy(false);
@@ -365,9 +401,12 @@ export default function SignInScreen() {
               </View>
             }
             loading={busy}
-            disabled={!email.includes("@") || !password}
+            disabled={!email.includes("@") || !password || !!socialBusy}
             onPress={() => void submit()}
           />
+          {social?.providers.length ? (
+            <SocialButtons providers={social.providers} running={socialBusy} disabled={busy} onPress={(provider) => void signInWithProvider(provider)} />
+          ) : null}
         </Row>
         <Row style={{ paddingVertical: 10 }}>
           <SwitchLine prompt={t("auth.noAccountPrompt")} action={t("auth.createOne")} onPress={() => switchMode("register")} />

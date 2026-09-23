@@ -14,7 +14,7 @@
       "bundleIdentifier": "com.fadymondy.zekra",
       "buildNumber": "1",
       "supportsTablet": false,
-      "icon": "./assets/icon.png",
+      "icon": "./assets/zekra.icon",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -177,7 +177,7 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Zekra uses Face ID to confirm it is you before revealing a vault secret."
+          "faceIDPermission": "Zekra uses Face ID to unlock the app and to confirm it is you before revealing a vault secret."
         }
       ],
       "./plugins/with-gradle-jvmargs",
