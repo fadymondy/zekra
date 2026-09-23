@@ -194,10 +194,10 @@ type noteBody struct {
 	Category  *string   `json:"category"`
 	// Appearance overrides (MH-308). Empty string clears the override and
 	// returns the note to its derived icon/colour.
-	Icon      *string   `json:"icon"`
-	Color     *string   `json:"color"`
-	Source    string    `json:"source"`
-	Version   int       `json:"version"`
+	Icon    *string `json:"icon"`
+	Color   *string `json:"color"`
+	Source  string  `json:"source"`
+	Version int     `json:"version"`
 }
 
 func decodeNoteBody(w http.ResponseWriter, r *http.Request) (*noteBody, bool) {
@@ -605,10 +605,12 @@ func (s *Service) SetMember(w http.ResponseWriter, r *http.Request) {
 	if in.Role == "" {
 		in.Role = "editor"
 	}
+	notifyNewMember := s.notifyBeforeMemberSet(r.Context(), in.Namespace, in.UserID, s.identify(r).userID) // MH-360/373: inbox + push (notifications.go)
 	if err := s.Store.SetMember(r.Context(), in.Namespace, in.UserID, in.Role, s.identify(r).userID); err != nil {
 		writeErr(w, err)
 		return
 	}
+	notifyNewMember()
 	s.hub.publish("member", map[string]any{"namespace": in.Namespace, "userId": in.UserID, "role": in.Role})
 	writeJSON(w, http.StatusOK, Membership{Namespace: in.Namespace, UserID: in.UserID, Role: in.Role})
 }

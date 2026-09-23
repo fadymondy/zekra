@@ -238,6 +238,23 @@ https:// {
 }
 ```
 
+## Mobile push notifications (FCM, MH-373)
+
+The brain plugin sends push notifications to the mobile app through FCM HTTP v1: when
+a brain is shared with a user, and the first time a customer opens a presentation link.
+Devices register through `POST /api/me/device_tokens`; tokens FCM reports dead are pruned.
+With no credentials set, push is a no-op and says so once in the log.
+
+| Env | Example | Notes |
+|---|---|---|
+| `FCM_SERVICE_ACCOUNT_JSON` | raw JSON or base64 | Firebase service-account key (Project settings → Service accounts) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `/run/secrets/fcm.json` | path alternative, used only when the var above is unset |
+| `FCM_PROJECT_ID` | `zekra-mobile` | optional; defaults to the key's `project_id` |
+| `FCM_DRY_RUN` | `1` | optional; FCM validates but delivers nothing |
+
+The `device_tokens` and `push_once` tables are in the brain plugin's `schema.sql` — run
+`zekractl migrate` after deploying. App-side setup: `docs/mobile-release.md`.
+
 ## Redis L1 working-memory cache (SPEC §2.1, D4)
 
 Recall does **cache-aside over the kernel `Cache`** (driver-agnostic), keyed by a

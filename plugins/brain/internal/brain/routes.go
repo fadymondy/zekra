@@ -78,6 +78,21 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/datasources/rotate-secret", sec(s.RotateDatasourceSecret))
 	r.Post("/api/brain/ingest/{id}", s.IngestWebhook)
 
+	// Push notifications (MH-373; devices_handlers.go): the signed-in user's
+	// devices. Session users only; /api/me/* is also behind RequireSession.
+	r.Get("/api/me/device_tokens", sec(s.ListDeviceTokens))
+	r.Post("/api/me/device_tokens", sec(s.RegisterDeviceToken))
+	r.Post("/api/me/device_tokens/unregister", sec(s.UnregisterDeviceToken))
+	r.Post("/api/me/device_tokens/test", sec(s.TestPush))
+
+	// Notification center (MH-360; notifications_handlers.go): the signed-in
+	// user's persisted inbox. Same caller rules as the device tokens above;
+	// live updates ride GET /api/brain/events as the user-scoped "notification".
+	r.Get("/api/me/notifications", sec(s.ListNotifications))
+	r.Get("/api/me/notifications/unread", sec(s.UnreadNotificationCount))
+	r.Post("/api/me/notifications/read", sec(s.MarkNotificationsRead))
+	r.Delete("/api/me/notifications/{id}", sec(s.DeleteNotification))
+
 	// Presentations (presentations_handlers.go), incl. the public share view.
 	s.mountPresentations(r, sec)
 

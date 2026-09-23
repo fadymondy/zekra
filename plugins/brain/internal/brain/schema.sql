@@ -783,3 +783,53 @@ CREATE TABLE IF NOT EXISTS public.note_github_sync (
   updated_at    timestamptz NOT NULL DEFAULT now(),
   updated_by    text
 );
+
+-- ── Push notifications: device tokens (MH-373) ────────────────────────────────
+-- One row per device FCM token (devices.go). A token is ONE device: when another
+-- account registers it, the row moves to that account (upsert on token), so a
+-- phone that changed hands stops receiving the old account's pushes. `locale`
+-- picks the notification text language (en | ar). Rows FCM reports dead
+-- (UNREGISTERED, SENDER_ID_MISMATCH) are pruned at send time. Idempotent.
+CREATE TABLE IF NOT EXISTS public.device_tokens (
+  id            text        PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id       text        NOT NULL,
+  token         text        NOT NULL UNIQUE CHECK (length(token) BETWEEN 1 AND 4096),
+  platform      text        NOT NULL CHECK (platform IN ('ios', 'android')),
+  user_agent    text        NOT NULL DEFAULT '',
+  locale        text        NOT NULL DEFAULT 'en' CHECK (locale IN ('en', 'ar')),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  last_seen_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS device_tokens_user_idx ON public.device_tokens (user_id, last_seen_at DESC);
+
+-- "Notify once" ledger: a key (e.g. presentation_share_viewed:<share id>) is
+-- inserted by the first sender; ON CONFLICT DO NOTHING makes the claim atomic.
+CREATE TABLE IF NOT EXISTS public.push_once (
+  key         text        PRIMARY KEY,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── Notification center: per-user inbox (MH-360) ──────────────────────────────
+-- Every notification a user is sent (notifications.go: Service.notify) is kept
+-- here, whether or not push is configured or reached a device. `kind` is the
+-- push data "type" (brain_access, presentation_viewed, …), `route` the in-app
+-- route it opens. `title`/`body` are in the recipient's language at send time;
+-- `texts` keeps every language ({"en":{"title","body"},"ar":{…}}) so a reader can
+-- ask for another. `read_at` NULL = unread. Capped per user in code (oldest go).
+-- Idempotent.
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id          text        PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id     text        NOT NULL,
+  kind        text        NOT NULL CHECK (length(kind) BETWEEN 1 AND 64),
+  title       text        NOT NULL,
+  body        text        NOT NULL DEFAULT '',
+  texts       jsonb       NOT NULL DEFAULT '{}'::jsonb,
+  route       text        NOT NULL DEFAULT '',
+  data        jsonb       NOT NULL DEFAULT '{}'::jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  read_at     timestamptz
+);
+-- The inbox page (keyset on created_at, id) and the unread badge.
+CREATE INDEX IF NOT EXISTS notifications_user_created_idx ON public.notifications (user_id, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS notifications_user_unread_idx ON public.notifications (user_id) WHERE read_at IS NULL;
