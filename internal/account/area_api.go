@@ -98,10 +98,12 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		Summary: "Update your display name, avatar and timezone", Tags: tags, Errors: []int{401, 403, 422},
 	}, func(ctx context.Context, in *struct {
 		CSRFIn
+		// Each field is optional: one left out keeps its saved value (the apps
+		// edit name + timezone only and must not wipe the avatar).
 		Body struct {
-			Name     string `json:"name" maxLength:"80"`
-			Avatar   string `json:"avatar" maxLength:"500"`
-			Timezone string `json:"timezone" maxLength:"64"`
+			Name     *string `json:"name,omitempty" maxLength:"80"`
+			Avatar   *string `json:"avatar,omitempty" maxLength:"500"`
+			Timezone *string `json:"timezone,omitempty" maxLength:"64"`
 		}
 	}) (*struct{ Body accountProfile }, error) {
 		id, err := sessionAccount(ctx)
@@ -111,7 +113,14 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		if !in.ok() {
 			return nil, huma.Error403Forbidden("invalid csrf token")
 		}
-		name, avatar, tz := strings.TrimSpace(in.Body.Name), strings.TrimSpace(in.Body.Avatar), strings.TrimSpace(in.Body.Timezone)
+		cur := s.loadProfile(ctx, id.ID)
+		pick := func(v *string, keep string) string {
+			if v == nil {
+				return keep
+			}
+			return strings.TrimSpace(*v)
+		}
+		name, avatar, tz := pick(in.Body.Name, cur.Name), pick(in.Body.Avatar, cur.Avatar), pick(in.Body.Timezone, cur.Timezone)
 		if avatar != "" {
 			if u, err := url.Parse(avatar); err != nil || u.Scheme != "https" || u.Host == "" {
 				return nil, huma.Error422UnprocessableEntity("the avatar must be an https address")

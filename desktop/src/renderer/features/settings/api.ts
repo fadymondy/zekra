@@ -16,7 +16,7 @@ export type DeleteState = {
 
 export const accountApi = {
   profile: (token: string) => request<AccountProfile>("/api/me/account/profile", { token }),
-  updateProfile: (token: string, body: { name?: string; timezone?: string }) =>
+  updateProfile: (token: string, body: { name?: string; avatar?: string; timezone?: string }) =>
     request<AccountProfile>("/api/me/account/profile", { method: "PUT", token, json: body }),
   deleteState: (token: string) => request<DeleteState>("/api/me/delete", { token }),
   deleteAccount: (token: string, password: string) => request<DeleteState>("/api/me/delete", { token, csrf: true, json: { password } }),

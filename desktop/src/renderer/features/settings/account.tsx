@@ -91,7 +91,8 @@ function ProfileGroup() {
     setSaving(true);
     setError("");
     try {
-      const next = await accountApi.updateProfile(token, { name: name.trim(), timezone: timezone.trim() });
+      // The live API requires every field — send the saved avatar along.
+      const next = await accountApi.updateProfile(token, { name: name.trim(), avatar: profile?.avatar ?? "", timezone: timezone.trim() });
       setProfile({ ...profile, ...next, name: next.name ?? name.trim(), timezone: next.timezone ?? timezone.trim() });
       toast.success(t("account.saved"));
     } catch (e) {

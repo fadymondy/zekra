@@ -31,7 +31,9 @@ export default function ProfileScreen() {
   }, [profile.data]);
 
   const save = useMutation({
-    mutationFn: () => zekraApi.updateProfile(token!, { name: name.trim(), timezone: timezone.trim() }),
+    // The live API requires every field — send the saved avatar along.
+    mutationFn: () =>
+      zekraApi.updateProfile(token!, { name: name.trim(), avatar: profile.data?.avatar ?? "", timezone: timezone.trim() }),
     onSuccess: () => {
       setError("");
       toast(t("account.saved"), "ok");
