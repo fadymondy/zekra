@@ -187,6 +187,7 @@
         }
       ],
       "./plugins/with-gradle-jvmargs",
+      "./plugins/with-android-workmanager",
       "./plugins/with-release-signing",
       [
         "./plugins/with-notification-icon",
