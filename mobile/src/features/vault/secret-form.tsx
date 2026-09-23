@@ -101,7 +101,7 @@ export function SecretForm({ target, namespace, onClose, onSaved }: {
       maxHeight={0.92}
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: metrics.padX, paddingBottom: 12, gap: 16 }}>
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: metrics.padX, paddingBottom: 12, gap: 16 }}>
           <View style={{ gap: 6 }}>
             <Field
               {...MACHINE_INPUT}

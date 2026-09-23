@@ -194,7 +194,7 @@ export function BrainVault({ brain }: { brain: Brain }) {
 
   return (
     <>
-      <ScrollView
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         refreshControl={refresh}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ gap: metrics.gap, paddingBottom: metrics.gap * 2 }}

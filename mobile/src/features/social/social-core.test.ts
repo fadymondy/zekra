@@ -7,12 +7,15 @@ import {
   authReturn,
   base64ToBase64Url,
   browserModulesPresent,
+  BROWSER_SIGNIN_TTL_MS,
   bytesToBase64Url,
   GITHUB_RETURN,
   GOOGLE_RETURN,
   isFresh,
   joinName,
   NO_SERVER_SUPPORT,
+  parsePending,
+  pendingMatches,
   planSocial,
   PROVIDERS_TTL_MS,
   queryOf,
@@ -220,4 +223,18 @@ test("socialErrorKey maps server answers and auth-session reasons", () => {
   assert.equal(socialErrorKey("google", { reason: "failed" }), "social.failed");
   assert.equal(socialErrorKey("google", { status: 500 }), "social.failed");
   assert.equal(socialErrorKey("google", {}), "social.failed");
+});
+
+test("pending browser sign-in: parse and match", () => {
+  const verifier = "v".repeat(43);
+  const raw = JSON.stringify({ provider: "github", verifier, startedAt: 1_000 });
+  const p = parsePending(raw);
+  assert.deepEqual(p, { provider: "github", verifier, startedAt: 1_000 });
+  assert.equal(parsePending("nope"), null);
+  assert.equal(parsePending(JSON.stringify({ provider: "apple", verifier, startedAt: 1 })), null);
+  assert.equal(parsePending(JSON.stringify({ provider: "github", verifier: "short", startedAt: 1 })), null);
+  assert.equal(pendingMatches(p, "github", 2_000), true);
+  assert.equal(pendingMatches(p, "google", 2_000), false);
+  assert.equal(pendingMatches(p, "github", 1_000 + BROWSER_SIGNIN_TTL_MS), false);
+  assert.equal(pendingMatches(null, "github", 2_000), false);
 });

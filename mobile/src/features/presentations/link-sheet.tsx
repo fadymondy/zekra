@@ -81,7 +81,7 @@ export function LinkSheet({ state, onClose, docId, title, locales, defaultLocale
       subtitle={title}
       maxHeight={0.9}
     >
-      <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         {result ? (
           <LinkResult created={result} onDone={onClose} />
         ) : (

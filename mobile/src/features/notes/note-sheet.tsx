@@ -224,7 +224,7 @@ export function NoteSheet({ note, brain, open, onClose, onOpenNote, actions }: {
           <AppText variant="rowTitle">{v.title || t("notes.x.untitled")}</AppText>
           <Meta items={[formatStamp(v.createdAt, locale), v.authorAgent || v.source, v.deleted && t("notes.x.deletedTag")]} />
           <View style={[styles.preview, { borderColor: p.line, backgroundColor: p.bg }]}>
-            <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 12 }}>
+            <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} nestedScrollEnabled contentContainerStyle={{ padding: 12 }}>
               <AppText variant="body" selectable>{v.body || t("notes.x.emptyVersion")}</AppText>
             </ScrollView>
           </View>
@@ -259,7 +259,7 @@ export function NoteSheet({ note, brain, open, onClose, onOpenNote, actions }: {
       title={note.title.trim() || t("notes.x.untitled")}
       subtitle={`${note.namespace} · ${t("notes.x.updated", { when: formatStamp(note.updatedAt, locale) })}`}
     >
-      <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={{ paddingBottom: 8 }} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} style={{ flexShrink: 1 }} contentContainerStyle={{ paddingBottom: 8 }} keyboardShouldPersistTaps="handled">
         {error ? (
           <View style={{ paddingHorizontal: metrics.padX, paddingVertical: 8 }}>
             <ErrorLine text={error} />

@@ -126,7 +126,7 @@ export default function BrainsScreen() {
         />
       }
     >
-      <FlatList
+      <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         data={list.loading ? [] : shown}
         keyExtractor={(b) => b.namespace}
         renderItem={({ item }) => <BrainCard brain={item} onOpen={onOpen} onMenu={onMenu} />}

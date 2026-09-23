@@ -100,7 +100,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
 
   return (
     <BottomSheet open={open} onClose={onClose} title={t("presentations.fb.title")} subtitle={brain.displayName || brain.namespace} maxHeight={0.94}>
-      <ScrollView
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         style={{ flexGrow: 0 }}
         contentContainerStyle={styles.body}
         keyboardShouldPersistTaps="handled"
@@ -128,7 +128,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
           {form.mode === "notes" ? (
             <>
               <Field value={noteSearch} onChangeText={setNoteSearch} placeholder={t("presentations.fb.notesSearch")} returnKeyType="search" autoCorrect={false} />
-              <ScrollView
+              <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
                 style={[styles.noteBox, { borderColor: p.line, backgroundColor: p.bg }]}
                 nestedScrollEnabled
                 keyboardShouldPersistTaps="handled"

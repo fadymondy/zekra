@@ -232,7 +232,7 @@ export function BrainNotes({ brain }: { brain: Brain }) {
         ]}
       />
 
-      <FlatList
+      <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         data={notes}
         keyExtractor={keyOf}
         renderItem={renderItem}

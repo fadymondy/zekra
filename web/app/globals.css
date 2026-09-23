@@ -8,6 +8,7 @@
 @import "tw-animate-css";
 @import "./styles/grid-tokens.css";
 @import "./styles/inter.css";
+@import "./styles/scrollbars.css";
 @import "./styles/grid.css";
 @import "./styles/grid-tailwind.css";
 

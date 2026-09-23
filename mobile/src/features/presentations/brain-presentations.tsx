@@ -109,7 +109,7 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
+      <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         data={list.error ? [] : items}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={header}

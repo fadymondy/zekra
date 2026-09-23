@@ -262,3 +262,30 @@ export function socialErrorKey(provider: SocialProvider, failure: { status?: num
   if (failure.reason === "unavailable") return "social.unavailable";
   return "social.failed";
 }
+
+// ─── External-browser sign-in (always the system browser) ───────────────────
+
+/** A sign-in handed to the system browser: which provider, and the PKCE
+ *  verifier the returning code is bound to. Kept in secure storage so the
+ *  sign-in can finish even if the OS closed the app while the user was away. */
+export type PendingBrowserSignIn = { provider: BrowserProvider; verifier: string; startedAt: number };
+
+/** How long a browser sign-in may take before its verifier is thrown away. */
+export const BROWSER_SIGNIN_TTL_MS = 10 * 60 * 1000;
+
+export function parsePending(raw: string | null | undefined): PendingBrowserSignIn | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as Partial<PendingBrowserSignIn>;
+    if ((v.provider === "github" || v.provider === "google") && typeof v.verifier === "string" && v.verifier.length >= 43 && typeof v.startedAt === "number") {
+      return { provider: v.provider, verifier: v.verifier, startedAt: v.startedAt };
+    }
+  } catch {}
+  return null;
+}
+
+/** A returning code may only be redeemed against a fresh pending sign-in for
+ *  the same provider — so an outside zekra://auth link can do nothing. */
+export function pendingMatches(pending: PendingBrowserSignIn | null, provider: string, now: number): pending is PendingBrowserSignIn {
+  return !!pending && pending.provider === provider && now >= pending.startedAt && now - pending.startedAt < BROWSER_SIGNIN_TTL_MS;
+}

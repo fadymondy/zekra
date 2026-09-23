@@ -128,7 +128,7 @@ export function NewBrainSheet({ open, onClose, onCreated }: { open: boolean; onC
   return (
     <BottomSheet open={open} onClose={onClose} title={t("brains.new.title")} maxHeight={0.92}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
           <AppText style={{ fontFamily: fonts.light, fontSize: 13, lineHeight: 22, color: p.muted }}>{t("brains.new.description")}</AppText>
 
           <Field

@@ -13,7 +13,8 @@ reading and typing look the same.
 
 export const CSS = String.raw`
 :root{--zk-font:system-ui,sans-serif;--zk-size:16px;--zk-maxw:none;--zk-padx:28px;--zk-code-font:${CODE_FONT_STACK}}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;scrollbar-width:none}
+*::-webkit-scrollbar{display:none;width:0;height:0}
 html,body{margin:0;padding:0;background:var(--grid-bg);color:var(--grid-fg)}
 body{font-family:var(--zk-font);font-size:var(--zk-size);line-height:1.65;-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-wrap:break-word;word-wrap:break-word}
 #zk-root{max-width:var(--zk-maxw);margin:0 auto;padding:6px var(--zk-padx) 40vh}

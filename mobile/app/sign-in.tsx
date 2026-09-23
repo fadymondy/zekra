@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "rea
 
 import { ErrorLine, StackHeader, TextButton, Tile } from "@/components/kit";
 import { AppText, CodeField, Field, PrimaryButton, Row, Rows, Screen, Segmented } from "@/components/ui";
-import { SocialSignInError } from "@/features/social/browser-flow";
+import { cancelBrowserSignIn, SocialSignInError } from "@/features/social/browser-flow";
 import { PROVIDER_NAME, SocialButtons, useSocialProviders } from "@/features/social/social-buttons";
 import { socialErrorKey, type SocialProvider } from "@/features/social/social-core";
 import { ZekraMark } from "@/features/splash/zekra-mark";
@@ -185,8 +185,8 @@ export default function SignInScreen() {
   // Google / Apple / GitHub. Closing the provider's sheet is not an error:
   // nothing is shown. A 2FA challenge continues on the same code step as a
   // password sign-in.
-  // The button shows its spinner (and the others dim) while the provider's
-  // sheet is open; every failure lands on the error line.
+  // The button shows its spinner (and the others dim) while the sign-in is in
+  // the system browser; every failure lands on the error line.
   async function signInWithProvider(provider: SocialProvider) {
     if (busy || socialBusy) return;
     setSocialBusy(provider);
@@ -406,6 +406,15 @@ export default function SignInScreen() {
           />
           {social?.providers.length ? (
             <SocialButtons providers={social.providers} running={socialBusy} disabled={busy} onPress={(provider) => void signInWithProvider(provider)} />
+          ) : null}
+          {socialBusy === "github" || socialBusy === "google" ? (
+            // Sign-in continues in the system browser; it returns via zekra://.
+            <View style={{ alignItems: "center", gap: 2 }}>
+              <AppText variant="meta" style={{ textAlign: "center" }}>
+                {t("social.inBrowser", { provider: PROVIDER_NAME[socialBusy] })}
+              </AppText>
+              <TextButton label={t("social.cancelBrowser")} onPress={cancelBrowserSignIn} />
+            </View>
           ) : null}
         </Row>
         <Row style={{ paddingVertical: 10 }}>

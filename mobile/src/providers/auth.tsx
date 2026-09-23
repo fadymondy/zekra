@@ -46,6 +46,8 @@ type AuthContextValue = {
    *  password sign-in. `googleVia` picks Google's browser flow (default) or its
    *  native SDK (useSocialProviders decides). */
   signInWith(provider: SocialProvider, googleVia?: GoogleVia): Promise<AuthAnswer | null>;
+  /** Adopt a session obtained elsewhere (a browser sign-in finished after a cold start). */
+  acceptSession(answer: AuthAnswer): Promise<AuthAnswer>;
   signOut(): Promise<void>;
 };
 
@@ -127,8 +129,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [token]);
 
   const value = useMemo(
-    () => ({ ready, token, user, signIn, register, finishChallenge, signInWith, signOut }),
-    [ready, token, user, signIn, register, finishChallenge, signInWith, signOut],
+    () => ({ ready, token, user, signIn, register, finishChallenge, signInWith, acceptSession: accept, signOut }),
+    [ready, token, user, signIn, register, finishChallenge, signInWith, accept, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

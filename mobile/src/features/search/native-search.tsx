@@ -137,7 +137,7 @@ export function NativeSearchScreen() {
           UIScrollView, so an RTL scroll view drew "البحث" glyph-mirrored.
           Pinned LTR there is no transform at all; the content container still
           lays out right-to-left for Arabic. */}
-      <ScrollView
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

@@ -27,7 +27,7 @@ export default function PreviewWebView({ url, onOpenExternal }: { url: string; o
     );
   }
   return (
-    <WebView
+    <WebView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
       key={`${url}#${attempt}`}
       source={{ uri: url }}
       style={{ flex: 1, backgroundColor: p.bg }}

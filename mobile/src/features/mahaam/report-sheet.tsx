@@ -92,7 +92,7 @@ export function ReportSheet({ open, onClose, request }: { open: boolean; onClose
   return (
     <BottomSheet open={open} onClose={busy ? () => {} : onClose} title={sheetTitle} subtitle={t("mahaam.subtitle")} maxHeight={0.92}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
           <Segmented<FeedbackKind>
             value={kind}
             onChange={setKind}

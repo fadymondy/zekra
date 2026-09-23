@@ -9,6 +9,8 @@ import { defineDict } from "@/i18n/define";
 export default defineDict({
   en: {
     "social.or": "or",
+    "social.inBrowser": "Finish signing in with {provider} in your browser — you'll come right back here.",
+    "social.cancelBrowser": "Cancel",
     "social.apple": "Continue with Apple",
     "social.google": "Continue with Google",
     "social.github": "Continue with GitHub",
@@ -63,6 +65,8 @@ export default defineDict({
   },
   ar: {
     "social.or": "أو",
+    "social.inBrowser": "أكمل تسجيل الدخول عبر {provider} في المتصفح، وستعود إلى هنا مباشرة.",
+    "social.cancelBrowser": "إلغاء",
     "social.apple": "المتابعة باستخدام Apple",
     "social.google": "المتابعة باستخدام Google",
     "social.github": "المتابعة باستخدام GitHub",

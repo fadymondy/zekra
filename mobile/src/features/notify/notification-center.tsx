@@ -175,7 +175,7 @@ export function NotificationCenter() {
         />
       }
     >
-      <FlatList
+      <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         data={sections}
         keyExtractor={keyOf}
         renderItem={renderItem}

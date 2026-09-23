@@ -288,7 +288,7 @@ export function Screen({ header, footer, children, scroll = false, refreshContro
       <View style={{ flex: 1 }}>
         <HatchFill />
         {scroll ? (
-          <ScrollView
+          <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
             contentContainerStyle={[{ paddingBottom: metrics.gap + (footer ? 0 : 8) }, contentStyle]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"

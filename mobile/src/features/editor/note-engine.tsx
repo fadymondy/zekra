@@ -204,6 +204,8 @@ export const NoteEngine = forwardRef<NoteEngineHandle, Props>(function NoteEngin
   return (
     <View style={[styles.fill, { backgroundColor: p.bg }, props.style]}>
       <WebView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         ref={web}
         source={SOURCE}
         originWhitelist={["*"]}

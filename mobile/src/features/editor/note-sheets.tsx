@@ -52,7 +52,7 @@ export function NoteMenuSheet({ open, onClose, canWrite, saved, pinned, archived
   const icon = (I: typeof Pin, color = p.muted) => <I size={19} color={color} strokeWidth={1.7} />;
   return (
     <BottomSheet open={open} onClose={onClose} title={t("editor.menuTitle")}>
-      <ScrollView bounces={false}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} bounces={false}>
         <SheetItem icon={icon(BookOpen)} label={t("editor.readingSettings")} onPress={onReading} />
         {canWrite ? <SheetItem icon={icon(Tag)} label={t("editor.tags")} onPress={onTags} /> : null}
         {canWrite ? (
@@ -79,7 +79,7 @@ export function ReadingSheet({ open, onClose }: { open: boolean; onClose: () => 
   const { t } = useI18n();
   return (
     <BottomSheet open={open} onClose={onClose} title={t("editor.readingSettings")} maxHeight={0.9}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: metrics.padX, paddingBottom: 12 }}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: metrics.padX, paddingBottom: 12 }}>
         <ReadingSettings />
       </ScrollView>
     </BottomSheet>
@@ -105,7 +105,7 @@ export function ExportSheet({ open, onClose, busy, onPick }: {
   const { t } = useI18n();
   return (
     <BottomSheet open={open} onClose={onClose} title={t("editor.export")}>
-      <ScrollView bounces={false}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} bounces={false}>
         {FORMATS.map(({ format, icon: I }) => (
           <SheetItem
             key={format}
