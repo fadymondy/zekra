@@ -1,80 +1,39 @@
-import type { ComponentType, ReactNode } from "react";
-import {
-  Archive,
-  ArchiveRestore,
-  Columns2,
-  Copy,
-  Download,
-  ExternalLink,
-  FileCode,
-  FileDown,
-  FileImage,
-  FileText,
-  FileType,
-  Hash,
-  History,
-  Palette,
-  Pin,
-  PinOff,
-  SquarePlus,
-  Trash2,
-} from "lucide-react";
-
-import {
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-} from "@/components/ui/context-menu";
-import {
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu";
-import { NoteAppearancePicker, type AppearancePatch } from "@/components/notes/note-appearance-picker";
+import type { AppearancePatch } from "@/components/notes/note-appearance-picker";
 
 import type { Note } from "../../lib/api";
-import { useI18n, type TKey } from "../../lib/i18n";
+import type { TFn } from "../../lib/i18n";
+import { SEP, type NativeMenuItem } from "../../lib/native-menu";
 import { EXPORT_FORMATS, type ExportFormat } from "../editor/export";
 
 /*
 Every action a note has, in the order the mobile note sheet lists them
-(mobile/src/features/notes/note-sheet.tsx) plus the desktop's tab actions:
+(mobile/src/features/notes/note-sheet.tsx) plus the desktop's own:
 
-  open · open in new tab · open to the side
-  pin/unpin · archive/unarchive · icon & colour · version history
+  open · open in new tab · open to the side · open in new window
+  pin/unpin · archive/unarchive · icon & colour… · version history…
   copy markdown · export ▸ md/html/pdf/docx/png/txt
-  delete
+  delete…
 
-Rendered as a right-click menu (sidebar rows, tabs) or a "…" dropdown (the
-editor header) from ONE definition, so the two cannot drift.
+ONE definition, shown as a NATIVE menu (lib/native-menu.ts) from a list row
+(right-click), a tab, or the editor's "…" button — and mirrored by the app
+menu bar's Note menu (commands note:*).
 */
 
 export type NoteMenuAction =
   | { kind: "open" }
   | { kind: "open-new-tab" }
   | { kind: "open-side" }
+  | { kind: "open-window" }
   | { kind: "pin" }
   | { kind: "archive" }
   | { kind: "appearance"; patch: AppearancePatch }
+  | { kind: "appearance-picker" }
   | { kind: "versions" }
   | { kind: "copy" }
   | { kind: "export"; format: ExportFormat }
   | { kind: "delete" };
 
-const FORMAT_ICONS: Record<ExportFormat, ComponentType<{ className?: string }>> = {
-  md: Hash,
-  html: FileCode,
-  pdf: FileDown,
-  docx: FileType,
-  png: FileImage,
-  txt: FileText,
-};
-
-const FORMAT_LABELS: Record<ExportFormat, TKey> = {
+const FORMAT_LABELS: Record<ExportFormat, Parameters<TFn>[0]> = {
   md: "notes.x.fmt.md",
   html: "notes.x.fmt.html",
   pdf: "notes.x.fmt.pdf",
@@ -83,124 +42,55 @@ const FORMAT_LABELS: Record<ExportFormat, TKey> = {
   txt: "notes.x.fmt.txt",
 };
 
-type Kit = {
-  Item: ComponentType<{ onClick?: () => void; variant?: "default" | "destructive"; children?: ReactNode; disabled?: boolean }>;
-  Separator: ComponentType;
-  Sub: ComponentType<{ children?: ReactNode }>;
-  SubTrigger: ComponentType<{ children?: ReactNode }>;
-  SubContent: ComponentType<{ children?: ReactNode; className?: string }>;
-};
-
-const CONTEXT: Kit = {
-  Item: ContextMenuItem as Kit["Item"],
-  Separator: ContextMenuSeparator as Kit["Separator"],
-  Sub: ContextMenuSub as Kit["Sub"],
-  SubTrigger: ContextMenuSubTrigger as Kit["SubTrigger"],
-  SubContent: ContextMenuSubContent as Kit["SubContent"],
-};
-
-const DROPDOWN: Kit = {
-  Item: DropdownMenuItem as Kit["Item"],
-  Separator: DropdownMenuSeparator as Kit["Separator"],
-  Sub: DropdownMenuSub as Kit["Sub"],
-  SubTrigger: DropdownMenuSubTrigger as Kit["SubTrigger"],
-  SubContent: DropdownMenuSubContent as Kit["SubContent"],
-};
-
-export function NoteMenuItems({ note, kind, canWrite, onAction, showOpen = true }: {
-  note: Note;
-  kind: "context" | "dropdown";
+export function noteMenuItems(note: Note, t: TFn, { canWrite, showOpen = true, canOpenWindow = true }: {
   canWrite: boolean;
-  onAction: (a: NoteMenuAction) => void;
   /** The open actions make no sense for the note already in the editor. */
   showOpen?: boolean;
-}) {
-  const { t } = useI18n();
-  const K = kind === "context" ? CONTEXT : DROPDOWN;
+  canOpenWindow?: boolean;
+}): NativeMenuItem[] {
+  const items: NativeMenuItem[] = [];
+  if (showOpen) {
+    items.push(
+      { id: "open", label: t("notes.x.open") },
+      { id: "open-new-tab", label: t("ws.openNewTab") },
+      { id: "open-side", label: t("ws.openToSide") },
+    );
+  }
+  if (canOpenWindow) items.push({ id: "open-window", label: t("sb.openWindow"), accelerator: "Alt+CmdOrCtrl+O" });
+  items.push(SEP);
+  if (canWrite) {
+    items.push(
+      { id: "pin", label: note.pinned ? t("notes.x.unpin") : t("notes.x.pin") },
+      { id: "archive", label: note.archived ? t("notes.x.unarchive") : t("notes.x.archive") },
+      { id: "appearance-picker", label: `${t("notes.x.appearance")}…` },
+    );
+  }
+  items.push({ id: "versions", label: `${t("notes.x.versions")}…` }, SEP, { id: "copy", label: t("notes.x.copy") });
+  items.push({
+    type: "submenu",
+    label: t("notes.x.export"),
+    submenu: EXPORT_FORMATS.map((f) => ({ id: `export:${f}`, label: t(FORMAT_LABELS[f]) })),
+  });
+  if (canWrite) items.push(SEP, { id: "delete", label: `${t("notes.x.delete")}…` });
+  return items;
+}
 
-  return (
-    <>
-      {showOpen ? (
-        <>
-          <K.Item onClick={() => onAction({ kind: "open" })}>
-            <ExternalLink />
-            {t("notes.x.open")}
-          </K.Item>
-          <K.Item onClick={() => onAction({ kind: "open-new-tab" })}>
-            <SquarePlus />
-            {t("ws.openNewTab")}
-          </K.Item>
-          <K.Item onClick={() => onAction({ kind: "open-side" })}>
-            <Columns2 />
-            {t("ws.openToSide")}
-          </K.Item>
-          <K.Separator />
-        </>
-      ) : null}
-
-      {canWrite ? (
-        <>
-          <K.Item onClick={() => onAction({ kind: "pin" })}>
-            {note.pinned ? <PinOff /> : <Pin />}
-            {note.pinned ? t("notes.x.unpin") : t("notes.x.pin")}
-          </K.Item>
-          <K.Item onClick={() => onAction({ kind: "archive" })}>
-            {note.archived ? <ArchiveRestore /> : <Archive />}
-            {note.archived ? t("notes.x.unarchive") : t("notes.x.archive")}
-          </K.Item>
-          <K.Sub>
-            <K.SubTrigger>
-              <Palette />
-              {t("notes.x.appearance")}
-            </K.SubTrigger>
-            <K.SubContent>
-              <NoteAppearancePicker
-                icon={note.icon}
-                color={note.color}
-                category={note.category}
-                onChange={(patch) => onAction({ kind: "appearance", patch })}
-              />
-            </K.SubContent>
-          </K.Sub>
-        </>
-      ) : null}
-      <K.Item onClick={() => onAction({ kind: "versions" })}>
-        <History />
-        {t("notes.x.versions")}
-      </K.Item>
-
-      <K.Separator />
-      <K.Item onClick={() => onAction({ kind: "copy" })}>
-        <Copy />
-        {t("notes.x.copy")}
-      </K.Item>
-      <K.Sub>
-        <K.SubTrigger>
-          <Download />
-          {t("notes.x.export")}
-        </K.SubTrigger>
-        <K.SubContent className="min-w-44">
-          {EXPORT_FORMATS.map((f) => {
-            const Icon = FORMAT_ICONS[f];
-            return (
-              <K.Item key={f} onClick={() => onAction({ kind: "export", format: f })}>
-                <Icon />
-                {t(FORMAT_LABELS[f])}
-              </K.Item>
-            );
-          })}
-        </K.SubContent>
-      </K.Sub>
-
-      {canWrite ? (
-        <>
-          <K.Separator />
-          <K.Item variant="destructive" onClick={() => onAction({ kind: "delete" })}>
-            <Trash2 />
-            {t("notes.x.delete")}
-          </K.Item>
-        </>
-      ) : null}
-    </>
-  );
+/** A chosen menu id back to the action it stands for. */
+export function noteMenuAction(id: string): NoteMenuAction | null {
+  if (id.startsWith("export:")) return { kind: "export", format: id.slice(7) as ExportFormat };
+  switch (id) {
+    case "open":
+    case "open-new-tab":
+    case "open-side":
+    case "open-window":
+    case "pin":
+    case "archive":
+    case "appearance-picker":
+    case "versions":
+    case "copy":
+    case "delete":
+      return { kind: id } as NoteMenuAction;
+    default:
+      return null;
+  }
 }

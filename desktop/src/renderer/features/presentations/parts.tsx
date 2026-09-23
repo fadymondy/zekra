@@ -15,7 +15,7 @@ export function KindIcon({ kind, className }: { kind: string; className?: string
 export function KindTile({ kind, size = 36 }: { kind: string; size?: number }) {
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-md border border-line bg-grid-bg text-grid-body"
+      className="flex shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-foreground/85"
       style={{ width: size, height: size }}
     >
       <KindIcon kind={kind} />
@@ -24,10 +24,10 @@ export function KindTile({ kind, size = 36 }: { kind: string; size?: number }) {
 }
 
 const TONE: Record<Tone | "danger" | "gold", string> = {
-  muted: "border-line text-grid-muted",
+  muted: "border-border/60 text-muted-foreground",
   ok: "border-grid-ok/50 text-grid-ok",
   warn: "border-grid-warn/50 text-grid-warn",
-  danger: "border-grid-danger/50 text-grid-danger",
+  danger: "border-grid-danger/50 text-destructive",
   gold: "border-grid-gold/60 text-grid-gold",
 };
 
@@ -57,7 +57,7 @@ export function LocaleChips({ locales }: { locales: string[] | null | undefined 
 export function Micro({ children, end }: { children: ReactNode; end?: ReactNode }) {
   return (
     <div className="flex min-h-6 items-center gap-2">
-      <h3 className="grid-micro flex-1 text-grid-muted">{children}</h3>
+      <h3 className="grid-micro flex-1 text-muted-foreground">{children}</h3>
       {end}
     </div>
   );
@@ -72,7 +72,7 @@ export function Segmented<T extends string>({ value, onChange, options, disabled
   label?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex w-fit overflow-hidden rounded-md border border-line bg-grid-bg">
+    <div role="radiogroup" aria-label={label} className="inline-flex w-fit overflow-hidden rounded-md border border-border/60 bg-background">
       {options.map((o, i) => (
         <button
           key={o.value}
@@ -83,8 +83,8 @@ export function Segmented<T extends string>({ value, onChange, options, disabled
           onClick={() => onChange(o.value)}
           className={cn(
             "px-3 py-1 text-xs transition-colors disabled:opacity-50",
-            i > 0 && "border-s border-line",
-            value === o.value ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg",
+            i > 0 && "border-s border-border/60",
+            value === o.value ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >
           {o.label}
@@ -103,8 +103,8 @@ export function ToggleChip({ on, onClick, children, disabled }: { on: boolean; o
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors disabled:opacity-50",
-        on ? "border-grid-gold bg-grid-gold/10 text-grid-fg" : "border-line text-grid-muted hover:bg-grid-soft hover:text-grid-fg",
+        "inline-flex h-6 items-center gap-1.5 rounded-md px-2.5 text-ui-sm font-medium transition-colors disabled:opacity-50",
+        on ? "bg-selected text-foreground" : "text-muted-foreground hover:bg-hover hover:text-foreground",
       )}
     >
       {children}
@@ -117,7 +117,7 @@ export function ErrorLines({ lines }: { lines: string[] }) {
   return (
     <div role="alert" className="flex flex-col gap-1">
       {lines.map((m, i) => (
-        <p key={i} className="text-xs whitespace-pre-line text-grid-danger">
+        <p key={i} className="text-xs whitespace-pre-line text-destructive">
           {m}
         </p>
       ))}

@@ -138,10 +138,10 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
       <Pane onClose={onClose}>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
           {loading ? (
-            <Loader2 className="size-5 animate-spin text-grid-muted" />
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
           ) : (
             <>
-              <p className="max-w-sm text-sm text-grid-muted">{loadError}</p>
+              <p className="max-w-sm text-sm text-muted-foreground">{loadError}</p>
               <Button variant="outline" size="sm" onClick={() => void load()}>
                 {t("kit.retry")}
               </Button>
@@ -223,10 +223,10 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
         <>
           <KindTile kind={doc.kind} size={32} />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-medium text-grid-fg" style={{ unicodeBidi: "plaintext" }}>
+            <h2 className="truncate text-sm font-medium text-foreground" style={{ unicodeBidi: "plaintext" }}>
               {doc.title || t("notes.untitled")}
             </h2>
-            <p className="grid-micro truncate text-grid-muted">
+            <p className="grid-micro truncate text-muted-foreground">
               {f.kind(doc.kind)} · {f.status(doc.status)}
             </p>
           </div>
@@ -250,9 +250,9 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
           <Micro>{t("presentations.section.summary")}</Micro>
           <div className="grid grid-cols-2 gap-4">
             <KV label={t("presentations.sum.customer")}>
-              <p className="text-sm text-grid-fg">{customerLine(doc.customer) || "—"}</p>
+              <p className="text-sm text-foreground">{customerLine(doc.customer) || "—"}</p>
               {doc.customer?.email ? (
-                <p dir="ltr" className="text-start text-xs text-grid-muted" style={{ unicodeBidi: "isolate" }}>
+                <p dir="ltr" className="text-start text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
                   {doc.customer.email}
                 </p>
               ) : null}
@@ -299,10 +299,10 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
           >
             {t("presentations.section.preview")}
           </Micro>
-          <div className="max-h-[70vh] overflow-auto rounded-md border border-line">
+          <div className="max-h-[70vh] overflow-auto rounded-md border border-border/60">
             <PresentationPreview key={`${doc.id}:${shownLocale}:${doc.updated_at}`} token={token} doc={doc} locale={shownLocale} />
           </div>
-          <p className="text-xs text-grid-muted">{t("desk.pres.previewHelp")}</p>
+          <p className="text-xs text-muted-foreground">{t("desk.pres.previewHelp")}</p>
         </Card>
 
         {/* Share links */}
@@ -319,10 +319,10 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
           >
             {t("presentations.section.links")}
           </Micro>
-          {archived ? <p className="text-xs text-grid-muted">{t("presentations.archivedNote")}</p> : null}
-          {shares.length === 0 ? <p className="text-xs text-grid-muted">{t("presentations.share.none")}</p> : null}
+          {archived ? <p className="text-xs text-muted-foreground">{t("presentations.archivedNote")}</p> : null}
+          {shares.length === 0 ? <p className="text-xs text-muted-foreground">{t("presentations.share.none")}</p> : null}
           {shares.length ? (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-border/60">
               {shares.map((s) => (
                 <ShareItem
                   key={s.id}
@@ -371,18 +371,18 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
               {t("presentations.section.downloads")}
             </Micro>
             {archived ? (
-              <p className="text-xs text-grid-muted">{t("presentations.archivedNote")}</p>
+              <p className="text-xs text-muted-foreground">{t("presentations.archivedNote")}</p>
             ) : (
               <>
-                <ul className="divide-y divide-line">
+                <ul className="divide-y divide-border/60">
                   {formats.map((fmt) => (
                     <li key={fmt} className="flex items-center gap-3 py-2">
-                      <span className="flex size-8 items-center justify-center rounded-md border border-line text-grid-body">
+                      <span className="flex size-8 items-center justify-center rounded-md border border-border/60 text-foreground/85">
                         <Download className="size-4" strokeWidth={1.6} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-grid-fg">{fmt === "docx" ? t("presentations.dl.docx") : t("presentations.dl.pdf")}</p>
-                        <p className="text-xs text-grid-muted">{f.language(fileLocale)}</p>
+                        <p className="text-sm text-foreground">{fmt === "docx" ? t("presentations.dl.docx") : t("presentations.dl.pdf")}</p>
+                        <p className="text-xs text-muted-foreground">{f.language(fileLocale)}</p>
                       </div>
                       <Button variant="ghost" size="sm" disabled={!!busy} onClick={() => void onFile(fmt, "open")}>
                         {busy === `file:${fmt}:open` ? <Loader2 className="animate-spin" /> : <ExternalLink />}
@@ -395,7 +395,7 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
                     </li>
                   ))}
                 </ul>
-                <p className="text-xs text-grid-muted">{t("presentations.dl.help")}</p>
+                <p className="text-xs text-muted-foreground">{t("presentations.dl.help")}</p>
               </>
             )}
           </Card>
@@ -418,9 +418,9 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
               }}
               options={STATUSES.map((s) => ({ value: s, label: f.status(s) }))}
             />
-            <p className="text-xs text-grid-muted">{t("presentations.status.help")}</p>
+            <p className="text-xs text-muted-foreground">{t("presentations.status.help")}</p>
             {missing ? (
-              <div className="flex flex-col gap-2 border-t border-line pt-3">
+              <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
                 <div>
                   <Button
                     variant="outline"
@@ -445,21 +445,21 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
                     {t("presentations.translate.action", { lang: f.language(missing) })}
                   </Button>
                 </div>
-                <p className="text-xs text-grid-muted">{t("presentations.translate.help")}</p>
+                <p className="text-xs text-muted-foreground">{t("presentations.translate.help")}</p>
                 {translateError ? <ErrorLines lines={[translateError]} /> : null}
               </div>
             ) : null}
           </Card>
         ) : (
           <Card>
-            <p className="text-xs text-grid-muted">{t("desk.pres.readOnly")}</p>
+            <p className="text-xs text-muted-foreground">{t("desk.pres.readOnly")}</p>
           </Card>
         )}
 
         {/* Manage */}
         <Card>
           <Micro>{t("presentations.section.manage")}</Micro>
-          <p className="text-xs text-grid-muted">{t("presentations.edit.help")}</p>
+          <p className="text-xs text-muted-foreground">{t("presentations.edit.help")}</p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => void bridge().openExternal(editUrl(webOrigin, locale, doc.namespace, doc.id))}>
               <ExternalLink />
@@ -469,7 +469,7 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
               <Button
                 variant="outline"
                 size="sm"
-                className="text-grid-danger"
+                className="text-destructive"
                 disabled={busy === "revokeAll"}
                 onClick={() =>
                   ask(t("presentations.share.revokeAllConfirm"), t("presentations.share.revokeBody"), t("presentations.share.revokeAll"), () =>
@@ -487,7 +487,7 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
               <Button
                 variant="outline"
                 size="sm"
-                className="text-grid-danger"
+                className="text-destructive"
                 disabled={busy === "delete"}
                 onClick={() =>
                   ask(t("presentations.deleteConfirm"), t("presentations.deleteBody"), t("action.delete"), () =>
@@ -533,7 +533,7 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
               />
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-auto rounded-md border border-line">
+          <div className="min-h-0 flex-1 overflow-auto rounded-md border border-border/60">
             <PresentationPreview key={`full:${doc.id}:${shownLocale}:${doc.updated_at}`} token={token} doc={doc} locale={shownLocale} fill />
           </div>
         </DialogContent>
@@ -559,26 +559,26 @@ export function PresentationDetail({ id, token, canWrite, onClose, onChanged, on
 function Pane({ header, onClose, children }: { header?: ReactNode; onClose: () => void; children: ReactNode }) {
   const { t } = useI18n();
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-grid-bg">
-      <div className="flex h-12 shrink-0 items-center gap-3 border-b border-line px-4">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
+      <div className="flex h-12 shrink-0 items-center gap-3 border-b border-border/60 px-4">
         {header ?? <span className="flex-1" />}
         <Button variant="ghost" size="icon-sm" aria-label={t("desk.pres.close")} title={t("desk.pres.close")} onClick={onClose}>
           <X />
         </Button>
       </div>
-      <div className="grid-hatch flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
     </section>
   );
 }
 
 function Card({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-3 rounded-md border border-line bg-grid-card p-4">{children}</div>;
+  return <div className="flex flex-col gap-3 rounded-md border border-border/60 bg-pane-raised p-4">{children}</div>;
 }
 
 function KV({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span className="grid-micro text-grid-muted">{label}</span>
+      <span className="grid-micro text-muted-foreground">{label}</span>
       {children}
     </div>
   );
@@ -586,7 +586,7 @@ function KV({ label, children }: { label: string; children: ReactNode }) {
 
 function Meta({ items }: { items: (string | null | undefined)[] }) {
   const list = items.filter(Boolean) as string[];
-  return <p className="text-xs text-grid-muted">{list.join(" · ")}</p>;
+  return <p className="text-xs text-muted-foreground">{list.join(" · ")}</p>;
 }
 
 function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
@@ -605,8 +605,8 @@ function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
   return (
     <li className={cn("flex flex-col gap-1.5 py-3", !active && "opacity-60")}>
       <div className="flex items-center gap-2">
-        <Link2 className={cn("size-4 shrink-0", active ? "text-grid-gold" : "text-grid-muted")} strokeWidth={1.8} />
-        <span className="min-w-0 flex-1 truncate text-sm text-grid-fg" style={{ unicodeBidi: "plaintext" }}>
+        <Link2 className={cn("size-4 shrink-0", active ? "text-grid-gold" : "text-muted-foreground")} strokeWidth={1.8} />
+        <span className="min-w-0 flex-1 truncate text-sm text-foreground" style={{ unicodeBidi: "plaintext" }}>
           {share.label === PREVIEW_LABEL ? t("presentations.share.previewLabel") : share.label || t("presentations.share.unnamed")}
         </span>
         <Chip>{f.short(share.locale)}</Chip>
@@ -621,12 +621,12 @@ function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
         ]}
       />
       {active && url ? (
-        <p dir="ltr" className="truncate text-start font-mono text-[11px] text-grid-body select-text">
+        <p dir="ltr" className="truncate text-start font-mono text-[11px] text-foreground/85 select-text">
           {url.replace(/^https?:\/\//, "")}
         </p>
       ) : null}
       {active && !url ? (
-        <p className="flex items-start gap-2 text-xs text-grid-muted">
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
           <KeyRound className="mt-px size-3.5 shrink-0" />
           {canWrite ? t("presentations.share.sealed") : t("presentations.share.sealedReader")}
         </p>
@@ -651,7 +651,7 @@ function ShareItem({ share, url, canWrite, busy, onReissue, onRevoke }: {
                 {busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}
                 {busy ? t("presentations.working") : t("presentations.share.reissue")}
               </Button>
-              <Button variant="ghost" size="xs" disabled={busy} onClick={onRevoke} className="text-grid-danger">
+              <Button variant="ghost" size="xs" disabled={busy} onClick={onRevoke} className="text-destructive">
                 {t("presentations.share.revoke")}
               </Button>
             </>

@@ -21,6 +21,8 @@ import { KindTile } from "../features/notify/kinds";
 import { routeForNotification } from "../features/notify/routes";
 import { notifyStore, useNotifyState } from "../features/notify/store";
 import { ApiError } from "../lib/api";
+import { IconButton } from "../components/chrome";
+import { ToolbarActions, WindowTitle } from "../shell/toolbar";
 import { useI18n } from "../lib/i18n";
 import { useRouter } from "../shell/router";
 import { useAuthed } from "../shell/session";
@@ -143,32 +145,22 @@ export function NotificationsRoute() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-line px-6">
-        <h1 className="text-sm font-medium text-grid-fg">{t("notify.title")}</h1>
+      <WindowTitle
+        title={t("notify.title")}
+        subtitle={status === "ready" && unread > 0 ? t("notify.unreadCount", { count: unread }) : undefined}
+      />
+      <ToolbarActions>
         {status === "ready" && unread > 0 ? (
-          <span className="grid-micro rounded-sm bg-grid-gold/15 px-1.5 py-0.5 text-grid-gold">
-            {t("notify.unreadCount", { count: unread })}
-          </span>
+          <IconButton label={t("notify.markAllRead")} onClick={() => void markRead({ all: true })}>
+            <CheckCheck />
+          </IconButton>
         ) : null}
-        <div className="ms-auto flex items-center gap-1">
-          {status === "ready" && unread > 0 ? (
-            <Button variant="ghost" size="sm" onClick={() => void markRead({ all: true })}>
-              <CheckCheck />
-              {t("notify.markAllRead")}
-            </Button>
-          ) : null}
-          {status !== "unavailable" ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={<Button variant="ghost" size="icon-sm" aria-label={t("action.refresh")} onClick={() => void loadFirst()} />}
-              >
-                <RefreshCw />
-              </TooltipTrigger>
-              <TooltipContent>{t("action.refresh")}</TooltipContent>
-            </Tooltip>
-          ) : null}
-        </div>
-      </header>
+        {status !== "unavailable" ? (
+          <IconButton label={t("action.refresh")} onClick={() => void loadFirst()}>
+            <RefreshCw />
+          </IconButton>
+        ) : null}
+      </ToolbarActions>
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto w-full max-w-3xl px-6 py-4">
@@ -188,7 +180,7 @@ export function NotificationsRoute() {
             <Empty icon={BellOff} title={t("notify.unavailableTitle")} body={t("notify.unavailableBody")} />
           ) : status === "error" ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <p className="text-sm text-grid-danger">{t("notify.failed")}</p>
+              <p className="text-sm text-destructive">{t("notify.failed")}</p>
               <Button variant="outline" size="sm" onClick={() => void loadFirst()}>
                 {t("action.retry")}
               </Button>
@@ -199,29 +191,29 @@ export function NotificationsRoute() {
             <>
               {sections.map((section) => (
                 <section key={section.key} className="mb-6">
-                  <h2 className="grid-micro mb-2 text-grid-muted">{dayLabel(section.day, section.date)}</h2>
-                  <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-grid-card">
+                  <h2 className="list-group-header mb-1.5 px-1">{dayLabel(section.day, section.date)}</h2>
+                  <ul className="flex flex-col divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-pane-raised">
                     {section.items.map((n) => (
                       <li key={n.id} className={cn("group relative flex items-start", !n.readAt && "bg-grid-gold/[0.04]")}>
                         <button
                           type="button"
                           onClick={() => open(n)}
-                          className="flex min-w-0 flex-1 items-start gap-3 px-3 py-3 text-start hover:bg-grid-soft focus-visible:outline-2 focus-visible:outline-grid-action"
+                          className="flex min-w-0 flex-1 items-start gap-3 px-3 py-3 text-start hover:bg-hover focus-visible:outline-2 focus-visible:outline-ring"
                         >
                           <KindTile kind={n.kind} />
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-2">
                               {!n.readAt ? <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-grid-gold" /> : null}
                               <span
-                                className={cn("truncate text-sm", n.readAt ? "text-grid-body" : "font-medium text-grid-fg")}
+                                className={cn("truncate text-sm", n.readAt ? "text-foreground/85" : "font-medium text-foreground")}
                                 style={{ unicodeBidi: "plaintext" }}
                               >
                                 {n.title}
                               </span>
-                              <span className="ms-auto shrink-0 font-grid-mono text-[11px] text-grid-muted">{timeOf(n.createdAt)}</span>
+                              <span className="ms-auto shrink-0 font-grid-mono text-[11px] text-muted-foreground">{timeOf(n.createdAt)}</span>
                             </span>
                             {n.body ? (
-                              <span className="mt-0.5 line-clamp-2 block text-xs text-grid-muted" style={{ unicodeBidi: "plaintext" }}>
+                              <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground" style={{ unicodeBidi: "plaintext" }}>
                                 {n.body}
                               </span>
                             ) : null}
@@ -264,8 +256,8 @@ function Empty({ icon: Icon, title, body }: { icon: typeof Bell; title: string; 
       <span className="flex size-12 items-center justify-center rounded-md border border-grid-gold/60 bg-grid-gold/10 text-grid-gold">
         <Icon className="size-5" />
       </span>
-      <p className="text-sm font-medium text-grid-fg">{title}</p>
-      <p className="max-w-sm text-sm text-grid-muted">{body}</p>
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="max-w-sm text-sm text-muted-foreground">{body}</p>
     </div>
   );
 }

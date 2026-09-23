@@ -10,7 +10,9 @@ import { App } from "./app";
   const root = document.documentElement;
   root.classList.toggle("dark", dark);
   root.dataset.theme = dark ? "dark" : "light";
-  root.dataset.platform = window.zekra ? (/Mac/i.test(navigator.platform) ? "darwin" : "other") : "browser";
+  // A first guess for the pre-mount paint; lib/platform.ts sets the real
+  // platform / material from the main process before the first render.
+  root.dataset.platform = /Mac/i.test(navigator.platform) ? "darwin" : /Win/i.test(navigator.platform) ? "win32" : "linux";
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

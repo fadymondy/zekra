@@ -1,4 +1,5 @@
-// Generates the macOS app icon and the menubar template icon.
+// Generates the app icons (macOS .icns, Windows .ico, Linux PNG set) and the
+// macOS menubar template icon.
 //
 //   npm run icons
 //
@@ -41,6 +42,16 @@ for (const base of [16, 32, 128, 256, 512]) {
 run("iconutil", ["-c", "icns", iconset, "-o", path.join(BUILD, "icon.icns")]);
 fs.rmSync(iconset, { recursive: true, force: true });
 
+/* --------------------------------------------- Windows + Linux icons */
+
+// Windows: a multi-size .ico (installer, exe, taskbar, the tray).
+// Linux: the hicolor PNG set electron-builder installs (build/icons/NxN.png).
+run("magick", [master, "-define", "icon:auto-resize=256,128,64,48,32,24,16", path.join(BUILD, "icon.ico")]);
+fs.mkdirSync(path.join(BUILD, "icons"), { recursive: true });
+for (const px of [16, 24, 32, 48, 64, 128, 256, 512, 1024]) {
+  run("magick", [master, "-resize", `${px}x${px}`, "-define", "png:color-type=6", path.join(BUILD, "icons", `${px}x${px}.png`)]);
+}
+
 /* ------------------------------------------------------ tray template */
 
 // The mark's lattice (5 cols x 4 rows, cells at [col,row]) in black on
@@ -62,4 +73,4 @@ function tray(scale, file) {
 tray(1, "trayTemplate.png");
 tray(2, "trayTemplate@2x.png");
 
-console.log("icons written: build/icon.png, build/icon.icns, build/trayTemplate.png, build/trayTemplate@2x.png");
+console.log("icons written: build/icon.png, build/icon.icns, build/icon.ico, build/icons/*.png, build/trayTemplate.png, build/trayTemplate@2x.png");

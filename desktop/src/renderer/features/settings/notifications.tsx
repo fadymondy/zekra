@@ -34,7 +34,7 @@ export function NotificationSettings() {
       <SettingsHeader title={t("settings.section.notifications")} description={t("push.offBody")} />
 
       {available === false ? (
-        <p className="rounded-md border border-line bg-grid-card px-4 py-3 text-sm text-grid-muted">{t("notify.unavailableBody")}</p>
+        <p className="rounded-md border border-border/60 bg-pane-raised px-4 py-3 text-sm text-muted-foreground">{t("notify.unavailableBody")}</p>
       ) : null}
 
       <Group>

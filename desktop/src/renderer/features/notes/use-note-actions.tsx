@@ -1,6 +1,8 @@
 import { useCallback, useState, type ReactNode } from "react";
 
-import { ConfirmDialog } from "../../components/confirm-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { NoteAppearancePicker } from "@/components/notes/note-appearance-picker";
+
 import { ApiError, type Brain, type Note, type NotePatch } from "../../lib/api";
 import { bridge } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
@@ -27,7 +29,6 @@ and retries once for the metadata-only changes (pin/archive/appearance), which
 cannot clobber anyone's text.
 */
 
-type Pending = { note: Note; action: "archive" | "delete" };
 
 export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onOpen }: {
   token: string;
@@ -39,8 +40,8 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
   onOpen: (note: Note, how: "open" | "open-new-tab" | "open-side") => void;
 }): { run: (note: Note, action: NoteMenuAction) => void; dialogs: ReactNode } {
   const { t, dir } = useI18n();
-  const [pending, setPending] = useState<Pending | null>(null);
   const [history, setHistory] = useState<Note | null>(null);
+  const [styling, setStyling] = useState<Note | null>(null);
 
   const fail = useCallback(
     (e: unknown) => {
@@ -85,7 +86,13 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
           return;
         case "archive":
         case "delete":
-          setPending({ note, action: action.kind });
+          void confirmThen(note, action.kind);
+          return;
+        case "open-window":
+          void bridge().openNoteWindow?.({ namespace: note.namespace || brain.namespace, id: note.id, title: note.title });
+          return;
+        case "appearance-picker":
+          setStyling(latest(note));
           return;
         case "versions":
           setHistory(latest(note));
@@ -112,15 +119,24 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
         }
       }
     },
-    [onOpen, patchNote, latest, onChanged, fail, t, dir],
+    [onOpen, patchNote, latest, onChanged, fail, t, dir, brain.namespace],
   );
 
-  async function confirm() {
-    if (!pending) return;
-    const { note, action } = pending;
-    setPending(null);
+  // Archive / delete: the OS's own confirmation (sheet-attached on macOS).
+  async function confirmThen(note: Note, action: "archive" | "delete") {
+    const archived = latest(note).archived;
+    const del = action === "delete";
+    const { response } = await bridge().confirm({
+      type: del ? "warning" : "question",
+      message: del ? t("notes.x.deleteTitle") : archived ? t("notes.x.unarchiveTitle") : t("notes.x.archiveTitle"),
+      detail: del ? t("notes.x.deleteBody") : archived ? t("notes.x.unarchiveBody") : t("notes.x.archiveBody"),
+      buttons: [del ? t("notes.x.delete") : archived ? t("notes.x.unarchive") : t("notes.x.archive"), t("action.cancel")],
+      defaultId: del ? 1 : 0,
+      cancelId: 1,
+    });
+    if (response !== 0) return;
     try {
-      if (action === "delete") {
+      if (del) {
         await notesApi.remove(token, latest(note));
         onRemoved(note);
         toast.success(t("notes.x.deleted"));
@@ -134,22 +150,28 @@ export function useNoteActions({ token, brain, latest, onChanged, onRemoved, onO
     }
   }
 
-  const archived = pending ? latest(pending.note).archived : false;
   const dialogs = (
     <>
-      <ConfirmDialog
-        open={!!pending}
-        destructive={pending?.action === "delete"}
-        title={
-          pending?.action === "delete" ? t("notes.x.deleteTitle") : archived ? t("notes.x.unarchiveTitle") : t("notes.x.archiveTitle")
-        }
-        body={pending?.action === "delete" ? t("notes.x.deleteBody") : archived ? t("notes.x.unarchiveBody") : t("notes.x.archiveBody")}
-        confirmLabel={
-          pending?.action === "delete" ? t("notes.x.delete") : archived ? t("notes.x.unarchive") : t("notes.x.archive")
-        }
-        onConfirm={() => void confirm()}
-        onCancel={() => setPending(null)}
-      />
+      <Dialog open={!!styling} onOpenChange={(o) => !o && setStyling(null)}>
+        <DialogContent className="w-auto max-w-[360px] p-4">
+          <DialogHeader>
+            <DialogTitle className="text-[13px] font-semibold">{t("sheet.appearance")}</DialogTitle>
+            <DialogDescription className="sr-only">{styling?.title}</DialogDescription>
+          </DialogHeader>
+          {styling ? (
+            <NoteAppearancePicker
+              icon={styling.icon}
+              color={styling.color}
+              category={styling.category}
+              onChange={(patch) => {
+                const target = styling;
+                setStyling((s) => (s ? { ...s, ...patch } : s));
+                void patchNote(target, patch).then(onChanged).catch(fail);
+              }}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
       <VersionHistoryDialog
         note={history}
         token={token}

@@ -10,6 +10,9 @@
 //   authUser      SessionUser|null  who is signed in (not secret)
 //   windowBounds  WindowBounds|null owned by main (window-state.ts)
 //   lock          LockSettings      app-lock placeholder (Touch ID)
+//   quickCaptureShortcut / quickCaptureBrain / launchAtLogin /
+//   openAtLoginHidden / syncIntervalMinutes / offlineCacheEnabled
+//                                   desktop services (services.ts)
 //
 // The session token is NOT stored in plain JSON. It is encrypted with
 // Electron safeStorage (macOS: a key held in the login Keychain under
@@ -50,6 +53,13 @@ interface StoredSettings {
   authToken?: string | null;
   /** True when authToken above is a deliberate plain-text fallback. */
   authTokenPlain?: boolean;
+  // Desktop services (services.ts) — see AppSettings.
+  quickCaptureShortcut: string | null;
+  quickCaptureBrain: string | null;
+  launchAtLogin: boolean;
+  openAtLoginHidden: boolean;
+  syncIntervalMinutes: number;
+  offlineCacheEnabled: boolean;
 }
 
 const { authToken: _t, ...STORED_DEFAULTS } = DEFAULT_SETTINGS;
@@ -147,7 +157,20 @@ export function getSettings(): AppSettings {
     authUser: s.get("authUser", DEFAULT_SETTINGS.authUser),
     windowBounds: s.get("windowBounds", null),
     lock: { ...DEFAULT_SETTINGS.lock, ...(s.get("lock") ?? {}) },
+    quickCaptureShortcut: s.get("quickCaptureShortcut", DEFAULT_SETTINGS.quickCaptureShortcut) ?? null,
+    quickCaptureBrain: s.get("quickCaptureBrain", DEFAULT_SETTINGS.quickCaptureBrain) ?? null,
+    launchAtLogin: Boolean(s.get("launchAtLogin", DEFAULT_SETTINGS.launchAtLogin)),
+    openAtLoginHidden: Boolean(s.get("openAtLoginHidden", DEFAULT_SETTINGS.openAtLoginHidden)),
+    syncIntervalMinutes: clampInterval(s.get("syncIntervalMinutes", DEFAULT_SETTINGS.syncIntervalMinutes)),
+    offlineCacheEnabled: s.get("offlineCacheEnabled", DEFAULT_SETTINGS.offlineCacheEnabled) !== false,
   };
+}
+
+/** 0 (launch / focus / edits only) or 1–120 minutes. */
+function clampInterval(v: unknown): number {
+  const n = Math.floor(Number(v));
+  if (!Number.isFinite(n) || n < 0) return DEFAULT_SETTINGS.syncIntervalMinutes;
+  return Math.min(n, 120);
 }
 
 export function patchSettings(patch: SettingsPatch): AppSettings {

@@ -1,16 +1,11 @@
 import { useState, type DragEvent } from "react";
 import { Columns2, X } from "lucide-react";
 
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { noteIcon } from "@/lib/notes/note-icon";
 import { cn } from "@/lib/utils";
 
+import { IconButton } from "../../components/chrome";
+import { SEP, showMenu } from "../../lib/native-menu";
 import { NOTE_DRAG_MIME } from "../../components/note-row";
 import { useI18n } from "../../lib/i18n";
 import type { DeskTab } from "./tab-groups";
@@ -46,6 +41,8 @@ export function TabStrip({
   onDropNote,
   onSplit,
   onUnsplit,
+  actionsRef,
+  onOpenWindow,
 }: {
   group: number;
   groups: number;
@@ -60,6 +57,11 @@ export function TabStrip({
   onDropNote: (note: DroppedNote, group: number, beforeKey: string | null) => void;
   onSplit: (key?: string) => void;
   onUnsplit: () => void;
+  /** Host for the open editor's own controls (mode switch, note menu), so the
+   *  pane has ONE header row: tabs at the start, editor controls at the end. */
+  actionsRef?: (el: HTMLElement | null) => void;
+  /** "Open in New Window" from the tab's menu. */
+  onOpenWindow?: (key: string) => void;
 }) {
   const { t } = useI18n();
   const [over, setOver] = useState<string | "end" | null>(null);
@@ -91,24 +93,40 @@ export function TabStrip({
     <div
       role="tablist"
       aria-label={t("ws.tabs.label")}
-      className={cn("flex h-9 shrink-0 items-stretch border-b border-line bg-grid-soft/60", !focused && groups > 1 && "opacity-90")}
+      className={cn("app-chrome flex h-10 shrink-0 items-center gap-1 border-b border-border/60 bg-background ps-2 pe-2", !focused && groups > 1 && "[&_[aria-selected=true]]:bg-hover")}
       onDragOver={(e) => {
         if (!accepts(e)) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
       }}
     >
-      <div className="flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none]">
+      <div className="flex h-full min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
         {tabs.map((tab) => {
           const isActive = tab.key === active;
           const isDirty = dirty.has(tab.key);
-          const { Icon, color } = noteIcon({ category: tab.category, icon: tab.icon, color: tab.color });
+          const { Icon } = noteIcon({ category: tab.category, icon: tab.icon, color: tab.color });
           return (
-            <ContextMenu key={tab.key}>
-              <ContextMenuTrigger
-                render={
-                  <div
+            <div
+                    key={tab.key}
                     role="tab"
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      void showMenu(
+                        [
+                          { id: "close", label: t("ws.tabs.close"), accelerator: "CmdOrCtrl+W" },
+                          { id: "others", label: t("ws.tabs.closeOthers"), enabled: tabs.length > 1 },
+                          SEP,
+                          { id: "side", label: t("ws.openToSide") },
+                          ...(tab.id ? [{ id: "window", label: t("sb.openWindow") }] : []),
+                        ],
+                        e,
+                      ).then((id) => {
+                        if (id === "close") onClose(tab.key);
+                        else if (id === "others") onCloseOthers(tab.key);
+                        else if (id === "side") (groups > 1 ? onMove(tab.key, other, null) : onSplit(tab.key));
+                        else if (id === "window") onOpenWindow?.(tab.key);
+                      });
+                    }}
                     aria-selected={isActive}
                     tabIndex={isActive ? 0 : -1}
                     draggable
@@ -137,19 +155,14 @@ export function TabStrip({
                       }
                     }}
                     className={cn(
-                      "group relative flex max-w-56 min-w-0 shrink-0 cursor-default items-center gap-1.5 border-e border-line ps-3 pe-1.5 text-xs transition-colors select-none",
+                      "group relative flex h-7 max-w-52 min-w-0 shrink-0 cursor-default items-center gap-1.5 rounded-md ps-2.5 pe-1 text-[12px] transition-colors select-none",
                       isActive
-                        ? "bg-grid-bg text-grid-fg"
-                        : "text-grid-muted hover:bg-grid-bg/60 hover:text-grid-fg",
-                      over === tab.key && "shadow-[inset_2px_0_0_var(--grid-action)] rtl:shadow-[inset_-2px_0_0_var(--grid-action)]",
+                        ? "bg-selected font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-hover hover:text-foreground",
+                      over === tab.key && "shadow-[inset_2px_0_0_var(--ring)] rtl:shadow-[inset_-2px_0_0_var(--ring)]",
                     )}
-                  />
-                }
               >
-                {isActive ? (
-                  <span aria-hidden className={cn("absolute inset-x-0 top-0 h-0.5", focused ? "bg-grid-action" : "bg-grid-muted/50")} />
-                ) : null}
-                <Icon className="size-3.5 shrink-0" style={{ color: isActive ? color : undefined }} />
+                <Icon className="size-3.5 shrink-0 stroke-[1.75] opacity-70" />
                 <span className={cn("min-w-0 flex-1 truncate", !tab.id && "italic")} style={{ unicodeBidi: "plaintext" }}>
                   {tab.title || (tab.id ? t("notes.x.untitled") : t("editor.newNote"))}
                 </span>
@@ -161,35 +174,23 @@ export function TabStrip({
                     e.stopPropagation();
                     onClose(tab.key);
                   }}
-                  className="relative flex size-5 shrink-0 items-center justify-center rounded-sm text-grid-muted hover:bg-grid-line hover:text-grid-fg"
+                  className="relative flex size-[18px] shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-hover hover:text-foreground"
                 >
                   {isDirty ? (
                     <>
-                      <span aria-hidden className="size-2 rounded-full bg-grid-fg/70 group-hover:hidden" />
+                      <span aria-hidden className="size-1.5 rounded-full bg-foreground/70 group-hover:hidden" />
                       <X className="hidden size-3 group-hover:block" />
                     </>
                   ) : (
                     <X className={cn("size-3", !isActive && "opacity-0 group-hover:opacity-100")} />
                   )}
                 </button>
-              </ContextMenuTrigger>
-              <ContextMenuContent className="min-w-48">
-                <ContextMenuItem onClick={() => onClose(tab.key)}>{t("ws.tabs.close")}</ContextMenuItem>
-                <ContextMenuItem disabled={tabs.length < 2} onClick={() => onCloseOthers(tab.key)}>
-                  {t("ws.tabs.closeOthers")}
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => (groups > 1 ? onMove(tab.key, other, null) : onSplit(tab.key))}>
-                  <Columns2 />
-                  {t("ws.openToSide")}
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+              </div>
           );
         })}
         {/* The rest of the strip: drop here to append. */}
         <div
-          className={cn("min-w-8 flex-1", over === "end" && "shadow-[inset_2px_0_0_var(--grid-action)] rtl:shadow-[inset_-2px_0_0_var(--grid-action)]")}
+          className={cn("h-full min-w-8 flex-1", over === "end" && "shadow-[inset_2px_0_0_var(--ring)] rtl:shadow-[inset_-2px_0_0_var(--ring)]")}
           onDragOver={(e) => {
             if (!accepts(e)) return;
             e.preventDefault();
@@ -199,27 +200,16 @@ export function TabStrip({
           onDrop={(e) => drop(e, null)}
         />
       </div>
-      <div className="flex shrink-0 items-center gap-0.5 px-1.5">
+      <div className="flex shrink-0 items-center gap-1">
+        <div ref={actionsRef} className="flex items-center gap-1" />
         {groups > 1 && group === 1 ? (
-          <button
-            type="button"
-            aria-label={t("ws.unsplit")}
-            title={t("ws.unsplit")}
-            onClick={onUnsplit}
-            className="flex size-6 items-center justify-center rounded-md text-grid-muted hover:bg-grid-bg hover:text-grid-fg"
-          >
-            <X className="size-3.5" />
-          </button>
+          <IconButton label={t("ws.unsplit")} onClick={onUnsplit}>
+            <X />
+          </IconButton>
         ) : groups === 1 ? (
-          <button
-            type="button"
-            aria-label={t("ws.split")}
-            title={t("ws.split")}
-            onClick={() => onSplit()}
-            className="flex size-6 items-center justify-center rounded-md text-grid-muted hover:bg-grid-bg hover:text-grid-fg"
-          >
-            <Columns2 className="size-3.5" />
-          </button>
+          <IconButton label={t("ws.split")} onClick={() => onSplit()}>
+            <Columns2 />
+          </IconButton>
         ) : null}
       </div>
     </div>

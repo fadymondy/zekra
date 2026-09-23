@@ -109,12 +109,12 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
   }
 
   const problem = (key: FormProblem) =>
-    problems.includes(key) ? <p className="text-xs text-grid-danger">{t(`presentations.fb.problem.${key}`)}</p> : null;
+    problems.includes(key) ? <p className="text-xs text-destructive">{t(`presentations.fb.problem.${key}`)}</p> : null;
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next && !busy) onClose(); }}>
       <DialogContent className="flex max-h-[88vh] flex-col gap-0 p-0 sm:max-w-xl">
-        <DialogHeader className="border-b border-line p-4">
+        <DialogHeader className="border-b border-border/60 p-4">
           <DialogTitle>{t("presentations.fb.title")}</DialogTitle>
           <DialogDescription>{brain.displayName || brain.namespace}</DialogDescription>
         </DialogHeader>
@@ -127,7 +127,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
             void submit();
           }}
         >
-          <p className="rounded-md border border-dashed border-line px-3 py-2 text-xs text-grid-muted">{t("presentations.fb.draftNote")}</p>
+          <p className="rounded-md border border-dashed border-border/60 px-3 py-2 text-xs text-muted-foreground">{t("presentations.fb.draftNote")}</p>
 
           <Section label={t("presentations.fb.source")}>
             <Segmented<SourceMode>
@@ -140,7 +140,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
                 { value: "notes", label: t("presentations.fb.source.notes") },
               ]}
             />
-            {form.mode === "namespace" ? <p className="text-xs text-grid-muted">{t("presentations.fb.source.namespaceHelp")}</p> : null}
+            {form.mode === "namespace" ? <p className="text-xs text-muted-foreground">{t("presentations.fb.source.namespaceHelp")}</p> : null}
             {form.mode === "query" ? (
               <>
                 <Input value={form.q} onChange={(e) => set({ q: e.target.value })} placeholder={t("presentations.fb.queryPlaceholder")} maxLength={300} />
@@ -150,15 +150,15 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
             {form.mode === "notes" ? (
               <>
                 <Input value={noteSearch} onChange={(e) => setNoteSearch(e.target.value)} placeholder={t("presentations.fb.notesSearch")} spellCheck={false} />
-                <div className="max-h-56 overflow-y-auto rounded-md border border-line bg-grid-bg">
+                <div className="max-h-56 overflow-y-auto rounded-md border border-border/60 bg-background">
                   {notes.loading ? (
-                    <div className="flex justify-center p-4 text-grid-muted">
+                    <div className="flex justify-center p-4 text-muted-foreground">
                       <Loader2 className="size-4 animate-spin" />
                     </div>
                   ) : notes.error ? (
-                    <p className="p-3 text-xs text-grid-danger">{notes.error}</p>
+                    <p className="p-3 text-xs text-destructive">{notes.error}</p>
                   ) : notes.list.length === 0 ? (
-                    <p className="p-3 text-xs text-grid-muted">{t("presentations.fb.noNotes")}</p>
+                    <p className="p-3 text-xs text-muted-foreground">{t("presentations.fb.noNotes")}</p>
                   ) : (
                     notes.list.map((n, i) => {
                       const on = form.noteIds.includes(n.id);
@@ -174,12 +174,12 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
                             setPicked((m) => ({ ...m, [n.id]: n.title }));
                           }}
                           className={cn(
-                            "flex w-full items-center gap-2.5 px-3 py-2 text-start text-sm transition-colors hover:bg-grid-soft",
-                            i > 0 && "border-t border-line",
+                            "flex w-full items-center gap-2.5 px-3 py-2 text-start text-sm transition-colors hover:bg-hover",
+                            i > 0 && "border-t border-border/60",
                           )}
                         >
-                          <Icon className={cn("size-4 shrink-0", on ? "text-grid-gold" : "text-grid-muted")} strokeWidth={1.6} />
-                          <span className={cn("truncate", on ? "text-grid-fg" : "text-grid-body")} style={{ unicodeBidi: "plaintext" }}>
+                          <Icon className={cn("size-4 shrink-0", on ? "text-grid-gold" : "text-muted-foreground")} strokeWidth={1.6} />
+                          <span className={cn("truncate", on ? "text-foreground" : "text-foreground/85")} style={{ unicodeBidi: "plaintext" }}>
                             {n.title || t("notes.untitled")}
                           </span>
                         </button>
@@ -187,11 +187,11 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
                     })
                   )}
                 </div>
-                <span className="grid-micro text-grid-muted">
+                <span className="grid-micro text-muted-foreground">
                   {t("presentations.fb.notesSelected", { n: form.noteIds.length, max: MAX_SOURCE_NOTES })}
                 </span>
                 {form.noteIds.length ? (
-                  <p className="line-clamp-2 text-xs text-grid-muted">
+                  <p className="line-clamp-2 text-xs text-muted-foreground">
                     {form.noteIds.map((id) => picked[id] || t("notes.untitled")).join(" · ")}
                   </p>
                 ) : null}
@@ -204,7 +204,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
             <div className="flex flex-wrap gap-2">
               {KINDS.map((k) => (
                 <ToggleChip key={k} on={form.kinds.includes(k)} onClick={() => set({ kinds: toggleKind(form.kinds, k) })}>
-                  <KindIcon kind={k} className={cn("size-3.5", form.kinds.includes(k) ? "text-grid-gold" : "text-grid-muted")} />
+                  <KindIcon kind={k} className={cn("size-3.5", form.kinds.includes(k) ? "text-grid-gold" : "text-muted-foreground")} />
                   {f.kind(k)}
                 </ToggleChip>
               ))}
@@ -234,7 +234,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
                 { value: "ar", label: t("presentations.locale.ar") },
               ]}
             />
-            <p className="text-xs text-grid-muted">{t("presentations.fb.languageHelp")}</p>
+            <p className="text-xs text-muted-foreground">{t("presentations.fb.languageHelp")}</p>
           </Section>
 
           <Section label={t("presentations.fb.customer")}>
@@ -263,7 +263,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
           <ErrorLines lines={serverErrors} />
         </form>
 
-        <DialogFooter className="m-0 border-t border-line p-4">
+        <DialogFooter className="m-0 border-t border-border/60 p-4">
           <Button variant="outline" disabled={busy} onClick={onClose}>
             {t("action.cancel")}
           </Button>
@@ -280,7 +280,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="grid-micro text-grid-muted">{label}</span>
+      <span className="grid-micro text-muted-foreground">{label}</span>
       {children}
     </div>
   );

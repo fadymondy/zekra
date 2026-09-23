@@ -20,13 +20,18 @@ export function Toaster({ theme }: { theme: "light" | "dark" }) {
       dir={dir}
       // Bottom corner on the reading side's far end, above the status bar.
       position={dir === "rtl" ? "bottom-left" : "bottom-right"}
-      offset={36}
+      offset={16}
+      gap={8}
       toastOptions={{
+        // Theme-derived, like a native HUD: the popover surface, hairline, soft shadow.
         style: {
-          background: "var(--grid-elevated)",
-          color: "var(--grid-fg)",
-          border: "1px solid var(--grid-elevated-line)",
+          background: "var(--popover)",
+          color: "var(--popover-foreground)",
+          border: "1px solid var(--border)",
+          borderRadius: "calc(var(--radius) + 3px)",
           fontFamily: "var(--grid-font-sans)",
+          fontSize: "var(--fs-ui)",
+          boxShadow: "0 10px 30px -10px rgb(0 0 0 / 0.35)",
         },
       }}
     />

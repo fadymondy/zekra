@@ -75,19 +75,19 @@ export function SecuritySettings() {
   return (
     <div className="flex flex-col gap-6">
       {/* The section title comes from the settings route's SettingsHeader. */}
-      <p className="text-xs text-grid-muted">
+      <p className="text-xs text-muted-foreground">
         {lock.enabled ? t("desk.lock.statusOn", { after: afterLabel }) : t("desk.lock.statusOff")}
       </p>
 
-      <div className="flex items-start gap-4 rounded-md border border-line bg-grid-card p-4">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-line text-grid-gold">
+      <div className="flex items-start gap-4 rounded-md border border-border/60 bg-pane-raised p-4">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/60 text-grid-gold">
           <Fingerprint className="size-5" strokeWidth={1.6} />
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Label htmlFor="zekra-lock-switch" className="text-sm font-medium">
             {t("security.unlockWith", { kind })}
           </Label>
-          <p className="text-xs text-grid-muted">{t("desk.lock.unlockBody")}</p>
+          <p className="text-xs text-muted-foreground">{t("desk.lock.unlockBody")}</p>
           {available === false ? <p className="text-xs text-grid-warn">{t("desk.lock.noTouchId")}</p> : null}
         </div>
         <Switch
@@ -100,7 +100,7 @@ export function SecuritySettings() {
 
       <div className={cn("flex flex-col gap-2", !lock.enabled && "opacity-60")}>
         <Label className="text-sm font-medium">{t("security.requireAfter")}</Label>
-        <p className="text-xs text-grid-muted">{t("desk.lock.requireAfterBody")}</p>
+        <p className="text-xs text-muted-foreground">{t("desk.lock.requireAfterBody")}</p>
         <div role="radiogroup" aria-label={t("security.requireAfter")} className="flex flex-wrap gap-2">
           {LOCK_MINUTES.map((m) => (
             <Button

@@ -10,7 +10,7 @@ const VISUALS: Record<KindVisual, { icon: LucideIcon; tone: string }> = {
   presentation: { icon: Presentation, tone: "border-grid-action/60 bg-grid-action/10 text-grid-action" },
   download: { icon: Download, tone: "border-grid-action/60 bg-grid-action/10 text-grid-action" },
   test: { icon: BellRing, tone: "border-grid-ok/60 bg-grid-ok/10 text-grid-ok" },
-  info: { icon: Bell, tone: "border-line text-grid-muted" },
+  info: { icon: Bell, tone: "border-border/60 text-muted-foreground" },
 };
 
 export function KindTile({ kind, className }: { kind: string; className?: string }) {

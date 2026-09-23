@@ -9,11 +9,15 @@ import presentationsVaultLock from "../i18n/presentations-vault-lock";
 import account from "../i18n/account"; // search, notifications, settings, sign-in
 import notesWs from "../i18n/notes"; // brains home, notes workspace, spotlight
 import mid from "../i18n/mid"; // importers, opened documents, markdown extras, updates
+import shell from "../i18n/shell"; // macOS shell: sidebar, toolbar, notes list
 
-const DESKTOP_FEATURE_DICTS = [presentationsVaultLock, account, notesWs, mid];
-type DesktopFeatureKey = DictKey<typeof presentationsVaultLock> | DictKey<typeof account> | DictKey<typeof notesWs> | DictKey<typeof mid>;
+const DESKTOP_FEATURE_DICTS = [presentationsVaultLock, account, notesWs, mid, shell];
+type DesktopFeatureKey = DictKey<typeof presentationsVaultLock> | DictKey<typeof account> | DictKey<typeof notesWs> | DictKey<typeof mid> | DictKey<typeof shell>;
 
 import type { LocaleId } from "./bridge";
+
+/** The translate function, for helpers that build strings outside React. */
+export type TFn = (key: TKey, vars?: TVars) => string;
 
 /*
 Bilingual, same as the web console and the mobile app. The Arabic product

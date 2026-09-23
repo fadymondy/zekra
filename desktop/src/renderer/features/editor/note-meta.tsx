@@ -16,6 +16,7 @@ import { CATEGORY_ICONS } from "@/lib/notes/note-icon-map";
 import { noteIcon } from "@/lib/notes/note-icon";
 import { cn } from "@/lib/utils";
 
+import { showMenu } from "../../lib/native-menu";
 import { useI18n } from "../../lib/i18n";
 import { tagCounts, type TagCount } from "../notes/notes-api";
 
@@ -71,16 +72,16 @@ export function TagEditor({ namespace, token, tags, readOnly, onChange }: {
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-0.5 rounded-md border border-line bg-grid-card py-0.5 ps-1.5 pe-1 text-[11px] text-grid-body"
+          className="inline-flex h-6 items-center gap-0.5 rounded-md bg-muted py-0.5 ps-1.5 pe-1 text-[12px] text-foreground/80"
         >
-          <Hash className="size-3 text-grid-muted" />
+          <Hash className="size-3 text-muted-foreground" />
           <bdi>{tag}</bdi>
           {!readOnly ? (
             <button
               type="button"
               aria-label={t("editor.tagRemove", { tag })}
               onClick={() => toggle(tag)}
-              className="rounded-sm p-px text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
+              className="rounded-sm p-px text-muted-foreground hover:bg-hover hover:text-foreground"
             >
               <X className="size-3" />
             </button>
@@ -99,7 +100,7 @@ export function TagEditor({ namespace, token, tags, readOnly, onChange }: {
             render={
               <button
                 type="button"
-                className="inline-flex items-center gap-0.5 rounded-md border border-dashed border-line px-1.5 py-0.5 text-[11px] text-grid-muted hover:border-grid-action hover:text-grid-fg"
+                className="inline-flex h-6 items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[12px] text-muted-foreground hover:bg-hover hover:text-foreground"
               />
             }
           >
@@ -107,7 +108,7 @@ export function TagEditor({ namespace, token, tags, readOnly, onChange }: {
             {tags.length ? "" : t("editor.tagAdd")}
           </PopoverTrigger>
           <PopoverContent align="start" className="w-64 p-0">
-            <div className="border-b border-line p-2">
+            <div className="border-b border-border/60 p-2">
               <Input
                 autoFocus
                 value={q}
@@ -127,27 +128,27 @@ export function TagEditor({ namespace, token, tags, readOnly, onChange }: {
                 <button
                   type="button"
                   onClick={() => toggle(draft)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-grid-soft"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-hover"
                 >
                   <Plus className="size-3.5 text-grid-action" />
                   <span className="truncate">{t("ws.tags.create", { tag: draft })}</span>
                 </button>
               ) : null}
               {counts === null ? (
-                <p className="px-2 py-1.5 text-xs text-grid-muted">{t("ws.loading")}</p>
+                <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("ws.loading")}</p>
               ) : list.length === 0 && !canCreate ? (
-                <p className="px-2 py-1.5 text-xs text-grid-muted">{t("ws.tags.none")}</p>
+                <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("ws.tags.none")}</p>
               ) : (
                 list.map((x) => (
                   <button
                     key={x.tag}
                     type="button"
                     onClick={() => toggle(x.tag)}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-grid-soft"
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-hover"
                   >
                     <Check className={cn("size-3.5", tags.includes(x.tag) ? "text-grid-action" : "invisible")} />
                     <bdi className="min-w-0 flex-1 truncate">{x.tag}</bdi>
-                    <span dir="ltr" className="font-mono text-[10.5px] text-grid-muted">
+                    <span dir="ltr" className="font-mono text-[10.5px] text-muted-foreground">
                       {x.count}
                     </span>
                   </button>
@@ -179,13 +180,13 @@ export function CategoryPicker({ value, readOnly, onChange }: {
       disabled={readOnly}
       aria-label={t("ws.category")}
       title={t("ws.category")}
-      className="inline-flex items-center gap-1 rounded-md border border-line bg-grid-card px-1.5 py-0.5 text-[11px] text-grid-body hover:bg-grid-soft disabled:opacity-80"
+      className="inline-flex h-6 items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[12px] text-foreground/80 hover:bg-hover disabled:opacity-80"
     />
   );
 
   if (readOnly) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-line bg-grid-card px-1.5 py-0.5 text-[11px] text-grid-body">
+      <span className="inline-flex h-6 items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[12px] text-foreground/80">
         <current.Icon className="size-3" style={{ color: current.color }} />
         {label}
       </span>
@@ -193,28 +194,21 @@ export function CategoryPicker({ value, readOnly, onChange }: {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={trigger}>
-        <current.Icon className="size-3" style={{ color: current.color }} />
-        <bdi>{label}</bdi>
-        <ChevronDown className="size-3 text-grid-muted" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-h-80 min-w-44 overflow-y-auto">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("ws.category")}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={label} onValueChange={(v) => onChange(String(v))}>
-            {options.map((c) => {
-              const { Icon, color } = noteIcon(c);
-              return (
-                <DropdownMenuRadioItem key={c} value={c}>
-                  <Icon className="size-3.5" style={{ color }} />
-                  {c}
-                </DropdownMenuRadioItem>
-              );
-            })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      type="button"
+      aria-label={t("ws.category")}
+      title={t("ws.category")}
+      onClick={(e) =>
+        void showMenu(
+          options.map((c) => ({ id: c, type: "radio" as const, checked: c === label, label: c })),
+          e.currentTarget,
+        ).then((id) => id && onChange(id))
+      }
+      className="inline-flex h-6 items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[12px] text-foreground/80 hover:bg-hover"
+    >
+      <current.Icon className="size-3" style={{ color: current.color }} />
+      <bdi>{label}</bdi>
+      <ChevronDown className="size-3 text-muted-foreground" />
+    </button>
   );
 }

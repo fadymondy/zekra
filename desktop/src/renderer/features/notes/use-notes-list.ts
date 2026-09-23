@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { Note, NotePage } from "../../lib/api";
+import { ApiError, type Note, type NotePage } from "../../lib/api";
+import { cachedNotesPage, isOfflineCursor, nextCachedPage, onSyncChange } from "../../services/offline";
 import { notesApi } from "./notes-api";
 import { applyNote, prependNote, removeNote, visibleNotes, type NoteView } from "./notes-model";
 
@@ -9,6 +10,11 @@ One brain's notes list for one view ({filter, sort, q}): cursor pages loaded
 on demand (infinite scroll), optimistic local edits (a pin moves the row, an
 archive drops it) and a reload. A view change starts over; a response for a
 view the user has already left is dropped.
+
+Desktop: cache-first (services/offline.ts). The first page is painted from
+the offline cache before the network answers; offline, the cached pages stand
+in (their cursors are `offline:<n>`), and background sync changes — pulls,
+pushed edits, conflict copies — are applied to the loaded pages live.
 */
 export function useNotesList(token: string, ns: string, view: NoteView) {
   const [pages, setPages] = useState<NotePage[]>([]);
@@ -23,6 +29,12 @@ export function useNotesList(token: string, ns: string, view: NoteView) {
   const reload = useCallback(async () => {
     const mine = ++gen.current;
     setLoading(true);
+    const cached = await cachedNotesPage(ns, viewRef.current);
+    if (gen.current !== mine) return;
+    if (cached) {
+      setPages([cached]);
+      setLoading(false);
+    }
     try {
       const first = await notesApi.list(token, ns, viewRef.current);
       if (gen.current !== mine) return;
@@ -30,7 +42,9 @@ export function useNotesList(token: string, ns: string, view: NoteView) {
       setError(null);
     } catch (e) {
       if (gen.current !== mine) return;
-      setError(e instanceof Error ? e.message : String(e));
+      // Offline with a cache: the cached list stands; not an error.
+      if (cached && e instanceof ApiError && e.status === 0) setError(null);
+      else setError(e instanceof Error ? e.message : String(e));
     } finally {
       if (gen.current === mine) setLoading(false);
     }
@@ -48,7 +62,9 @@ export function useNotesList(token: string, ns: string, view: NoteView) {
     const mine = gen.current;
     setLoadingMore(true);
     try {
-      const next = await notesApi.list(token, ns, viewRef.current, cursor);
+      const next = isOfflineCursor(cursor)
+        ? await nextCachedPage(ns, viewRef.current, cursor!)
+        : await notesApi.list(token, ns, viewRef.current, cursor);
       if (gen.current !== mine) return;
       setPages((p) => [...p, next]);
     } catch (e) {
@@ -71,6 +87,30 @@ export function useNotesList(token: string, ns: string, view: NoteView) {
     [],
   );
   const remove = useCallback((id: string) => setPages((p) => removeNote(p, id)), []);
+
+  // Background sync (desktop): apply pulled / pushed / conflict changes.
+  useEffect(
+    () =>
+      onSyncChange((e) => {
+        if (e.namespace !== ns || e.reason === "clear") return;
+        const q = viewRef.current.q.trim().toLowerCase();
+        const matches = (n: Note) => !q || n.title.toLowerCase().includes(q) || (n.body ?? "").toLowerCase().includes(q);
+        setPages((p) => {
+          if (!p.length) return p;
+          let next = p;
+          for (const id of e.removed) next = removeNote(next, id);
+          for (const raw of e.upserted) {
+            const n = raw as unknown as Note;
+            const has = next.some((pg) => pg.notes?.some((x) => x.id === n.id));
+            if (has) next = applyNote(next, n, viewRef.current.filter);
+            // New to this list: a first bulk pull only fills the cache.
+            else if (!e.initial && matches(n)) next = prependNote(next, n, viewRef.current.filter);
+          }
+          return next;
+        });
+      }),
+    [ns],
+  );
 
   return { notes, loading, loadingMore, error, hasMore: !!cursor, loadMore, reload, upsert, remove };
 }

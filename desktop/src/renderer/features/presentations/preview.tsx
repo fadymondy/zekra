@@ -65,7 +65,7 @@ export function PresentationPreview({ token, doc, locale, fill = false }: {
   const who = customerLine(doc.customer);
 
   if (!content) {
-    return <p className="px-4 py-10 text-center text-sm text-grid-muted">{t("desk.pres.previewEmpty")}</p>;
+    return <p className="px-4 py-10 text-center text-sm text-muted-foreground">{t("desk.pres.previewEmpty")}</p>;
   }
 
   let body: ReactNode;
@@ -89,7 +89,7 @@ export function PresentationPreview({ token, doc, locale, fill = false }: {
   }
 
   return (
-    <PreviewBoundary fallback={<p className="px-4 py-10 text-center text-sm text-grid-danger">{t("presentations.preview.failed")}</p>}>
+    <PreviewBoundary fallback={<p className="px-4 py-10 text-center text-sm text-destructive">{t("presentations.preview.failed")}</p>}>
       <WebI18nProvider locale={uiLocale}>
         <PresTheme className={fill ? "min-h-full" : undefined}>
           <div lang={locale}>{body}</div>

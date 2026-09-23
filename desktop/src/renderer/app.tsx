@@ -6,6 +6,8 @@ import { ApiError, authApi, setApiBaseUrl, zekraApi, type AuthAnswer, type Brain
 import { clearAuthedImageCache } from "./lib/authed-image";
 import { bridge, type AppSettings, type SettingsPatch, type ThemeChoice } from "./lib/bridge";
 import { I18nProvider } from "./lib/i18n";
+import { loadPlatform, syncWindowChrome, windowKind } from "./lib/platform";
+import { NoteWindow } from "./screens/note-window";
 import { AppLockGate } from "./features/security"; // MH-450 Touch ID app lock
 import { MarkItDownFeatures } from "./features/open-file/host"; // MH-450 importers, opened .md, tray, updates
 import { AppShell } from "./shell/app-shell";
@@ -41,11 +43,15 @@ export function applyTheme(resolved: "light" | "dark") {
   const root = document.documentElement;
   root.classList.toggle("dark", resolved === "dark");
   root.dataset.theme = resolved;
+  syncWindowChrome();
 }
+
 
 function initialRoute(settings: AppSettings): Route {
   return settings.activeBrain ? { name: "brain", ns: settings.activeBrain, tab: "notes" } : { name: "brains" };
 }
+
+const kind = windowKind();
 
 function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (s: AppSettings) => void }) {
   const [user, setUser] = useState<User | null>(settings.authToken ? settings.authUser : null);
@@ -159,12 +165,19 @@ function Root({ settings, setSettings }: { settings: AppSettings; setSettings: (
       {/* Re-keyed per account: signing in/out starts navigation afresh. */}
       <RouterProvider key={user?.id ?? "signed-out"} initial={user ? initialRoute(settings) : { name: "brains" }}>
         <CommandProvider>
-          <OsEventsProvider>
+          <OsEventsProvider announceReady={kind.kind === "main"}>
             <SlotProvider>
               <TooltipProvider delay={400}>
-                <ShellCommands />
-                <MarkItDownFeatures />
-                <AppShell booting={booting} onSignedIn={(a) => void signIn(a)} />
+                {kind.kind === "note" ? (
+                  // A note document window (src/main/native-ui.ts).
+                  <NoteWindow ns={kind.ns} id={kind.id} />
+                ) : (
+                  <>
+                    <ShellCommands />
+                    <MarkItDownFeatures />
+                    <AppShell booting={booting} onSignedIn={(a) => void signIn(a)} />
+                  </>
+                )}
                 <Toaster theme={resolvedTheme} />
                 <AppLockGate />
               </TooltipProvider>
@@ -181,7 +194,7 @@ export function App() {
 
   useEffect(() => {
     void (async () => {
-      const s = await bridge().getSettings();
+      const [s] = await Promise.all([bridge().getSettings(), loadPlatform()]);
       setApiBaseUrl(s.apiBaseUrl);
       applyTheme(resolveTheme(s.theme));
       setSettings(s);

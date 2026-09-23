@@ -76,8 +76,15 @@ export function focusMainWindow(): void {
   win.focus();
 }
 
+/** Windows that must never receive menu commands (the Quick Capture panel). */
+let commandTarget: (win: BrowserWindow) => boolean = () => true;
+export function setCommandTargetFilter(fn: (win: BrowserWindow) => boolean): void {
+  commandTarget = fn;
+}
+
 export function sendCommand(name: CommandName, source: CommandEvent["source"] = "menu"): void {
-  const win = BrowserWindow.getFocusedWindow() ?? getMainWindow();
+  const focused = BrowserWindow.getFocusedWindow();
+  const win = focused && commandTarget(focused) ? focused : getMainWindow();
   if (!win || win.isDestroyed()) return;
   const event: CommandEvent = { name, source };
   win.webContents.send(IPC.evCommand, event);

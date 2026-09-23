@@ -46,6 +46,9 @@ import {
 import { ConfirmDialog } from "../../components/confirm-dialog";
 import { ApiError, type Brain } from "../../lib/api";
 import { bridge } from "../../lib/bridge";
+import { showMenu } from "../../lib/native-menu";
+import { IconButton } from "../../components/chrome";
+import { ToolbarActions } from "../../shell/toolbar";
 import { useI18n } from "../../lib/i18n";
 import { useAuthed } from "../../shell/session";
 import { toast } from "../../shell/toast";
@@ -213,25 +216,24 @@ export function BrainVault({ brain }: { brain: Brain }) {
   }
 
   return (
-    <div className="grid-hatch flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-6">
-        {/* Intro + primary action / read-only explanation */}
-        <div className="flex items-start gap-4 rounded-md border border-line bg-grid-card p-4">
-          <p className="flex-1 text-xs leading-5 text-grid-muted">{t("vault.intro")}</p>
-          <Button variant="ghost" size="icon-sm" aria-label={t("action.refresh")} disabled={loading} onClick={() => void load()}>
+        {/* Actions live in the toolbar; the intro is a quiet caption. */}
+        <ToolbarActions>
+          <IconButton label={t("action.refresh")} disabled={loading} onClick={() => void load()}>
             <RefreshCw className={cn(loading && "animate-spin")} />
-          </Button>
+          </IconButton>
           {canWrite ? (
-            <Button size="sm" onClick={() => setForm({ name: "", kind: "generic" })}>
+            <IconButton label={t("vault.new")} onClick={() => setForm({ name: "", kind: "generic" })}>
               <Plus />
-              {t("vault.new")}
-            </Button>
+            </IconButton>
           ) : null}
-        </div>
+        </ToolbarActions>
+        <p className="px-1 text-ui-sm leading-5 text-muted-foreground">{t("vault.intro")}</p>
         {!canWrite ? (
-          <div className="flex items-start gap-2.5 rounded-md border border-line bg-grid-card px-4 py-3">
-            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-grid-gold" strokeWidth={1.6} />
-            <p className="text-xs leading-5 text-grid-body">{t("vault.readOnlyNote")}</p>
+          <div className="flex items-start gap-2.5 rounded-md border border-border/60 bg-pane-raised px-4 py-3">
+            <LockKeyhole className="mt-0.5 size-4 shrink-0 text-muted-foreground" strokeWidth={1.6} />
+            <p className="text-xs leading-5 text-foreground/85">{t("vault.readOnlyNote")}</p>
           </div>
         ) : null}
 
@@ -245,20 +247,20 @@ export function BrainVault({ brain }: { brain: Brain }) {
               className="max-w-xs"
               spellCheck={false}
             />
-            <span className="grid-micro text-grid-muted">
+            <span className="grid-micro text-muted-foreground">
               {filter.trim() ? t("vault.countFiltered", { n: visible.length, total: all.length }) : t("vault.count", { n: all.length })}
             </span>
           </div>
         ) : null}
 
         {list === null && !loadError ? (
-          <p className="flex items-center gap-2 text-sm text-grid-muted">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
             {t("action.refresh")}
           </p>
         ) : null}
         {loadError ? (
-          <div className="flex items-center gap-3 text-sm text-grid-danger">
+          <div className="flex items-center gap-3 text-sm text-destructive">
             <span>{loadError}</span>
             <Button variant="outline" size="sm" onClick={() => void load()}>
               {t("kit.retry")}
@@ -266,15 +268,15 @@ export function BrainVault({ brain }: { brain: Brain }) {
           </div>
         ) : null}
         {list !== null && all.length === 0 ? (
-          <div className="rounded-md border border-dashed border-line px-4 py-8 text-center">
-            <p className="text-sm text-grid-fg">{t("vault.emptyList")}</p>
-            {canWrite ? <p className="mt-1 text-xs text-grid-muted">{t("vault.emptyHint")}</p> : null}
+          <div className="rounded-md border border-dashed border-border/60 px-4 py-8 text-center">
+            <p className="text-sm text-foreground">{t("vault.emptyList")}</p>
+            {canWrite ? <p className="mt-1 text-xs text-muted-foreground">{t("vault.emptyHint")}</p> : null}
           </div>
         ) : null}
-        {all.length > 0 && visible.length === 0 ? <p className="text-sm text-grid-muted">{t("vault.noMatch")}</p> : null}
+        {all.length > 0 && visible.length === 0 ? <p className="text-sm text-muted-foreground">{t("vault.noMatch")}</p> : null}
 
         {visible.length > 0 ? (
-          <ul className="divide-y divide-line overflow-hidden rounded-md border border-line bg-grid-card">
+          <ul className="divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-pane-raised">
             {visible.map((s) => (
               <SecretRow
                 key={s.name}
@@ -343,7 +345,7 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
       <span
         className={cn(
           "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border",
-          shown ? "border-grid-gold text-grid-gold" : "border-line text-grid-muted",
+          shown ? "border-grid-gold text-grid-gold" : "border-border/60 text-muted-foreground",
         )}
       >
         <Icon className="size-4" strokeWidth={1.6} />
@@ -351,13 +353,13 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <bdi dir="ltr" className="truncate font-mono text-[13px] font-medium text-grid-fg">
+          <bdi dir="ltr" className="truncate font-mono text-[13px] font-medium text-foreground">
             {s.name}
           </bdi>
           <span
             className={cn(
               "rounded-sm border px-1.5 py-px text-[10px] tracking-wide uppercase",
-              shown ? "border-grid-gold/60 text-grid-gold" : "border-line text-grid-muted",
+              shown ? "border-grid-gold/60 text-grid-gold" : "border-border/60 text-muted-foreground",
             )}
           >
             {labelKey ? t(labelKey) : <Ltr>{s.kind}</Ltr>}
@@ -369,7 +371,7 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
             {/* The value itself: selectable, LTR, never isolate-marked (the marks would be copied along). */}
             <pre
               dir="ltr"
-              className="max-h-48 overflow-auto rounded-md border border-grid-gold/40 bg-grid-gold/5 px-3 py-2 text-start font-mono text-xs leading-5 whitespace-pre-wrap break-all text-grid-fg select-text"
+              className="max-h-48 overflow-auto rounded-md border border-grid-gold/40 bg-grid-gold/5 px-3 py-2 text-start font-mono text-xs leading-5 whitespace-pre-wrap break-all text-foreground select-text"
             >
               {shown.value}
             </pre>
@@ -387,12 +389,12 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
             </div>
           </div>
         ) : (
-          <bdi dir="ltr" className="font-mono text-xs tracking-wide text-grid-muted">
+          <bdi dir="ltr" className="font-mono text-xs tracking-wide text-muted-foreground">
             {displayHint(s.hint)}
           </bdi>
         )}
 
-        <p className="text-[11px] text-grid-muted">
+        <p className="text-[11px] text-muted-foreground">
           {[
             s.createdBy ? tLtr(t, "vault.by", "who", s.createdBy) : null,
             when ? t("vault.updated", { when }) : null,
@@ -406,9 +408,9 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
             ))}
         </p>
         {s.sourceRef ? (
-          <p className="truncate text-[11px] text-grid-muted">{tLtr(t, "vault.source", "ref", s.sourceRef)}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{tLtr(t, "vault.source", "ref", s.sourceRef)}</p>
         ) : null}
-        {error ? <p className="text-xs text-grid-danger">{error}</p> : null}
+        {error ? <p className="text-xs text-destructive">{error}</p> : null}
       </div>
 
       {canWrite ? (
@@ -424,35 +426,31 @@ function SecretRow({ s, canWrite, shown, busy, error, onToggle, onCopy, onHide, 
           >
             {busy ? <Loader2 className="animate-spin" /> : shown ? <EyeOff /> : <Eye />}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="ghost" size="icon-sm" aria-label={t("desk.vault.more", { name: s.name })} disabled={busy} />}
-            >
-              <MoreHorizontal />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-52">
-              <DropdownMenuItem onClick={onToggle}>
-                {shown ? <EyeOff /> : <Eye />}
-                {t(shown ? "vault.hide" : "vault.reveal")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onCopy}>
-                <Copy />
-                <span className="flex flex-col">
-                  <span>{t("vault.copyValue")}</span>
-                  <span className="text-[11px] text-grid-muted">{t("vault.copyValueDetail")}</span>
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onUpdate}>
-                <Pencil />
-                {t("vault.update")}
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={onDelete}>
-                <Trash2 />
-                {t("vault.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("desk.vault.more", { name: s.name })}
+            disabled={busy}
+            onClick={(e) =>
+              void showMenu(
+                [
+                  { id: "toggle", label: t(shown ? "vault.hide" : "vault.reveal") },
+                  { id: "copy", label: t("vault.copyValue") },
+                  { type: "separator" },
+                  { id: "update", label: `${t("vault.update")}…` },
+                  { id: "delete", label: `${t("vault.delete")}…` },
+                ],
+                e.currentTarget,
+              ).then((id) => {
+                if (id === "toggle") onToggle();
+                else if (id === "copy") onCopy();
+                else if (id === "update") onUpdate();
+                else if (id === "delete") onDelete();
+              })
+            }
+          >
+            <MoreHorizontal />
+          </Button>
         </div>
       ) : null}
     </li>
@@ -468,5 +466,5 @@ function Countdown({ until }: { until: number }) {
     return () => clearInterval(id);
   }, []);
   const s = Math.max(0, Math.ceil((until - now) / 1000));
-  return <span className="grid-micro text-grid-muted">{t("vault.hidesIn", { s })}</span>;
+  return <span className="grid-micro text-muted-foreground">{t("vault.hidesIn", { s })}</span>;
 }

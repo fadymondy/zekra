@@ -25,11 +25,11 @@ export function NotificationBell() {
       title={t("notify.bell")}
       onClick={() => navigate({ name: "notifications" })}
     >
-      <Bell className={active ? "text-grid-fg" : undefined} />
+      <Bell className={active ? "text-foreground" : undefined} />
       {badge ? (
         <span
           aria-hidden
-          className="absolute -end-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-sm bg-grid-gold px-1 font-grid-mono text-[10px] leading-none text-[#0e1a3c]"
+          className="absolute -end-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-sm bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
         >
           {badge}
         </span>

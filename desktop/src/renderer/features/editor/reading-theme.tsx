@@ -1,5 +1,9 @@
+import { useEffect } from "react";
+
 import { useNoteSettings } from "@/components/notes/note-settings-panel";
 import { NoteThemeStyle } from "@/components/notes/theme-picker";
+
+import { syncWindowChrome } from "../../lib/platform";
 
 /*
 Applies the reading theme (Settings ▸ Reading, web lib/notes/note-settings.ts
@@ -12,5 +16,7 @@ components themselves through useNoteSettings.
 */
 export function ReadingTheme() {
   const { settings } = useNoteSettings();
+  // Windows' native caption buttons follow the repainted title bar.
+  useEffect(() => syncWindowChrome(), [settings.theme]);
   return <NoteThemeStyle id={settings.theme} />;
 }

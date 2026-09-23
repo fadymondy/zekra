@@ -44,8 +44,6 @@ access control. There is no password fallback on a Mac without Touch ID
 available at unlock time (lid closed): the way out is Sign out.
 */
 
-const NAVY = "#0b1429";
-const GOLD = "#c9a227";
 
 // Module-level on purpose: app.tsx re-keys the RouterProvider (and so this
 // gate) per account, and a remount must neither re-run the launch decision
@@ -222,22 +220,20 @@ function LockScreen() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="zekra-lock-title"
-      // Always Zekra's navy, whatever the theme (the splash's ground); the
-      // dark class resolves the grid tokens inside to the dark palette.
-      className="dark fixed inset-0 z-[400] flex flex-col text-grid-fg"
-      style={{ backgroundColor: NAVY }}
+      // The theme's own ground (every colour comes from the theme tokens).
+      className="app-chrome fixed inset-0 z-[400] flex flex-col bg-background text-foreground"
     >
       {/* The window stays draggable by its top edge; the traffic lights sit above. */}
-      <div className="app-drag h-11 shrink-0" />
+      <div className="app-drag shrink-0" style={{ height: "var(--titlebar-h)" }} />
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 pb-6">
         <ZekraMark size={72} />
         <div className="flex max-w-sm flex-col items-center gap-2 text-center">
-          <h1 id="zekra-lock-title" className="text-xl font-semibold text-grid-fg">
+          <h1 id="zekra-lock-title" className="text-xl font-semibold text-foreground">
             {t("lock.title")}
           </h1>
-          <p className="text-sm font-light text-grid-muted">{t("lock.body", { kind })}</p>
+          <p className="text-sm font-light text-muted-foreground">{t("lock.body", { kind })}</p>
           {user?.email ? (
-            <p dir="ltr" className="max-w-full truncate font-mono text-xs text-grid-muted" style={{ unicodeBidi: "isolate" }}>
+            <p dir="ltr" className="max-w-full truncate font-mono text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
               {user.email}
             </p>
           ) : null}
@@ -250,22 +246,22 @@ function LockScreen() {
           disabled={busy}
           onClick={() => void unlock()}
           aria-label={t("lock.unlock", { kind })}
-          className="app-no-drag flex size-[76px] items-center justify-center rounded-full border border-line transition-colors hover:border-grid-gold hover:bg-grid-gold/10 focus-visible:border-grid-gold focus-visible:outline-none disabled:opacity-70"
+          className="app-no-drag flex size-[76px] items-center justify-center rounded-full border border-border/60 transition-colors hover:border-primary hover:bg-accent-tint focus-visible:border-primary focus-visible:outline-none disabled:opacity-70"
         >
           {busy ? (
-            <Loader2 className="size-8 animate-spin" style={{ color: GOLD }} strokeWidth={1.5} />
+            <Loader2 className="size-8 animate-spin" style={{ color: "var(--grid-action)" }} strokeWidth={1.5} />
           ) : (
-            <Fingerprint className="size-9" style={{ color: GOLD }} strokeWidth={1.5} />
+            <Fingerprint className="size-9" style={{ color: "var(--grid-action)" }} strokeWidth={1.5} />
           )}
         </button>
-        <span className="text-sm text-grid-fg">{t("lock.unlock", { kind })}</span>
+        <span className="text-sm text-foreground">{t("lock.unlock", { kind })}</span>
         {error ? (
-          <p role="alert" className="flex max-w-md items-start gap-2 px-6 text-start text-xs text-grid-danger">
+          <p role="alert" className="flex max-w-md items-start gap-2 px-6 text-start text-xs text-destructive">
             <span aria-hidden className="mt-1.5 size-1.5 shrink-0 bg-grid-danger" />
             {error}
           </p>
         ) : null}
-        <Button variant="ghost" size="sm" className="app-no-drag text-grid-muted" onClick={() => void signOut().then(() => lockState.setLocked(false))}>
+        <Button variant="ghost" size="sm" className="app-no-drag text-muted-foreground" onClick={() => void signOut().then(() => lockState.setLocked(false))}>
           {t("action.signOut")}
         </Button>
       </div>
@@ -307,7 +303,7 @@ function EnableOffer({ open, onClose, onAnswer }: { open: boolean; onClose: () =
       <DialogContent showCloseButton={false} className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Fingerprint className="size-5 text-grid-gold" strokeWidth={1.6} />
+            <Fingerprint className="size-5 text-primary" strokeWidth={1.6} />
             {t("lock.offerTitle", { kind })}
           </DialogTitle>
           <DialogDescription>{t("lock.offerBody", { kind })}</DialogDescription>

@@ -40,7 +40,10 @@ type OsEventsValue = {
 
 const OsEventsContext = createContext<OsEventsValue | null>(null);
 
-export function OsEventsProvider({ children }: { children: ReactNode }) {
+/** `announceReady`: only the MAIN window tells main it is ready (main buffers
+ *  deep links / opened files / notification clicks for it); note windows
+ *  must not flush that buffer into the main window early. */
+export function OsEventsProvider({ children, announceReady = true }: { children: ReactNode; announceReady?: boolean }) {
   const stack = useRef(new HandlerStack<OsEventName, OsEvents[OsEventName]>()).current;
 
   useEffect(() => {
@@ -53,9 +56,9 @@ export function OsEventsProvider({ children }: { children: ReactNode }) {
       bridge().onNotificationClick(deliver("notification-click")),
     ];
     // Subscribed — let main flush anything it buffered during launch.
-    void bridge().rendererReady();
+    if (announceReady) void bridge().rendererReady();
     return () => offs.forEach((off) => off());
-  }, [stack]);
+  }, [stack, announceReady]);
 
   const value = useMemo<OsEventsValue>(
     () => ({ register: (name, fn) => stack.register(name, fn as StackHandler<OsEvents[OsEventName]>) }),

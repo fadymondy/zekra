@@ -4,7 +4,6 @@ import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { socialErrorKey, type BrowserProvider, type SocialProvider } from "@mobile/features/social/social-core";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -164,14 +163,14 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
   if (pending) {
     body = (
       <div className="flex flex-col items-center gap-4 py-2 text-center">
-        <span className="flex size-12 items-center justify-center rounded-md border border-line bg-grid-soft text-grid-fg">
+        <span className="flex size-12 items-center justify-center rounded-md border border-border/60 bg-muted text-foreground">
           {pending.provider === "github" ? <GitHubMark size={22} /> : <GoogleMark size={22} />}
         </span>
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-grid-fg">{t("social.waiting", { provider: PROVIDER_NAME[pending.provider] })}</p>
-          <p className="text-xs text-grid-muted">{t("social.waitingHint")}</p>
+          <p className="text-sm font-medium text-foreground">{t("social.waiting", { provider: PROVIDER_NAME[pending.provider] })}</p>
+          <p className="text-xs text-muted-foreground">{t("social.waitingHint")}</p>
         </div>
-        <Loader2 className="size-4 animate-spin text-grid-muted" aria-hidden />
+        <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
         <div className="flex w-full flex-col gap-2">
           <Button variant="outline" onClick={() => void reopenSocial(pending).catch(() => socialError(pending.provider, { reason: "nosheet" }))}>
             {t("social.reopen")}
@@ -186,8 +185,8 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
     body = (
       <form onSubmit={sendReset} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-grid-fg">{t("auth.resetTitle")}</p>
-          <p className="text-sm text-grid-muted">{t("auth.resetIntro")}</p>
+          <p className="text-sm font-medium text-foreground">{t("auth.resetTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("auth.resetIntro")}</p>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="reset-email">{t("auth.email")}</Label>
@@ -204,7 +203,7 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
             autoFocus
           />
         </div>
-        {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {resetSent ? (
           <p className="flex items-center gap-2 text-sm text-grid-ok">
             <span aria-hidden className="size-1.5 shrink-0 bg-grid-ok" />
@@ -283,7 +282,7 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
                   <Label htmlFor="password">{t("auth.password")}</Label>
                   <button
                     type="button"
-                    className="text-xs text-grid-muted underline-offset-4 hover:text-grid-fg hover:underline"
+                    className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                     onClick={() => {
                       setMode("forgot");
                       setError("");
@@ -305,7 +304,7 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
             </>
           )}
 
-          {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <Button type="submit" disabled={busy}>
             {busy ? t("action.signingIn") : challenge ? t("action.verify") : t("action.signIn")}
@@ -314,10 +313,10 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
 
         {!challenge && providers.length ? (
           <div className="mt-5 flex flex-col gap-2">
-            <div className="flex items-center gap-3 text-xs text-grid-muted">
-              <span className="h-px flex-1 bg-line" />
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
               {t("social.or")}
-              <span className="h-px flex-1 bg-line" />
+              <span className="h-px flex-1 bg-border" />
             </div>
             {providers.map((p) => (
               <Button key={p} type="button" variant="outline" disabled={busy} onClick={() => void startProvider(p)}>
@@ -332,29 +331,41 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
   }
 
   return (
-    <div className="grid-hatch flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-8">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <ZekraMark size={40} className="mb-3" />
-          <CardTitle className="text-2xl">{t("app.name")}</CardTitle>
-          <CardDescription>{t("app.tagline")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {body}
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <Button variant="link" size="sm" className="px-0" onClick={onOpenSettings}>
-              {t("settings.title")}
-            </Button>
-            <span className="grid-micro truncate text-grid-muted">
-              {t("auth.connecting")}{" "}
-              <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
-                {getApiBaseUrl()}
-              </span>
-            </span>
+    <div className="app-chrome flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-8">
+      <WindowTitleOnly title={t("app.name")} />
+      <div className="flex w-[340px] flex-col">
+        <div className="mb-7 flex flex-col items-center gap-3 text-center">
+          <div className="flex size-16 items-center justify-center rounded-[18px] bg-pane-raised shadow-sm ring-1 ring-border">
+            <ZekraMark size={34} />
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[22px] font-bold tracking-[-0.01em] text-foreground rtl:tracking-normal">{t("app.name")}</h1>
+            <p className="text-ui text-muted-foreground">{t("app.tagline")}</p>
+          </div>
+        </div>
+
+        {body}
+
+        <div className="mt-8 flex items-center justify-between gap-3 border-t border-border/60 pt-3 text-ui-sm text-muted-foreground">
+          <button type="button" className="shrink-0 hover:text-foreground" onClick={onOpenSettings}>
+            {t("settings.title")}…
+          </button>
+          <span className="truncate">
+            {t("auth.connecting")}{" "}
+            <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
+              {getApiBaseUrl().replace(/^https?:\/\//, "")}
+            </span>
+          </span>
+        </div>
+      </div>
     </div>
   );
+}
+
+/** Names the OS window while signed out (there is no toolbar). */
+function WindowTitleOnly({ title }: { title: string }) {
+  useEffect(() => {
+    document.title = title;
+  }, [title]);
+  return null;
 }

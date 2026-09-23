@@ -16,6 +16,7 @@ import * as path from "node:path";
 
 import { MARKDOWN_EXTENSIONS, type DeepLinkEvent, type OpenFileEvent } from "../shared/ipc";
 import { s } from "./menu-strings";
+import { addRecentDocument } from "./os-integration";
 import { focusMainWindow, getMainWindow, sendDeepLink, sendOpenFile } from "./renderer-events";
 
 export const PROTOCOL = "zekra";
@@ -55,9 +56,16 @@ export function parseDeepLink(url: string): DeepLinkEvent | null {
   };
 }
 
+/** Links main handles itself (services.ts: zekra://app/…, zekra://notification/…). */
+let interceptor: ((e: DeepLinkEvent) => boolean) | null = null;
+export function setDeepLinkInterceptor(fn: ((e: DeepLinkEvent) => boolean) | null): void {
+  interceptor = fn;
+}
+
 export function handleDeepLink(url: string): void {
   const event = parseDeepLink(url);
   if (!event) return;
+  if (interceptor?.(event)) return;
   focusMainWindow();
   sendDeepLink(event);
 }
@@ -83,6 +91,7 @@ export async function handleOpenFile(filePath: string, origin: OpenFileEvent["or
   if (!isMarkdownPath(filePath)) return;
   const event = await readMarkdownFile(filePath, origin);
   if (!event) return;
+  addRecentDocument(filePath); // Open Recent (macOS) / Jump List recent (Windows)
   focusMainWindow();
   sendOpenFile(event);
 }

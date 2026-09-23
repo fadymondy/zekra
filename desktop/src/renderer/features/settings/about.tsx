@@ -53,12 +53,12 @@ export function AboutSettings() {
   return (
     <>
       <div className="flex items-center gap-4">
-        <span className="flex size-14 items-center justify-center rounded-xl border border-line bg-grid-card">
+        <span className="flex size-14 items-center justify-center rounded-xl border border-border/60 bg-pane-raised">
           <ZekraMark size={34} />
         </span>
         <div>
-          <h1 className="text-lg font-medium text-grid-fg">{t("settingsx.appName")}</h1>
-          <p dir="ltr" className="font-grid-mono text-xs text-grid-muted" style={{ unicodeBidi: "isolate" }}>
+          <h1 className="text-lg font-medium text-foreground">{t("settingsx.appName")}</h1>
+          <p dir="ltr" className="font-grid-mono text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
             {version || info?.version}
             {info && info.platform !== "browser" ? ` · ${info.platform} ${info.arch}` : ""}
           </p>
@@ -69,7 +69,7 @@ export function AboutSettings() {
         <Row
           label={t("settings.version")}
           hint={
-            <span className={status === "error" ? "text-grid-danger" : undefined} title={status === "error" ? update?.message : undefined}>
+            <span className={status === "error" ? "text-destructive" : undefined} title={status === "error" ? update?.message : undefined}>
               {statusText}
             </span>
           }
@@ -110,12 +110,12 @@ export function AboutSettings() {
 
 function LinkRow({ icon: Icon, label, onClick, mono }: { icon: typeof Mail; label: string; onClick: () => void; mono?: boolean }) {
   return (
-    <button type="button" onClick={onClick} className="flex items-center gap-3 px-4 py-3 text-start text-sm text-grid-fg hover:bg-grid-soft">
-      <Icon className="size-4 text-grid-muted" />
+    <button type="button" onClick={onClick} className="flex items-center gap-3 px-4 py-3 text-start text-sm text-foreground hover:bg-hover">
+      <Icon className="size-4 text-muted-foreground" />
       <span className={mono ? "font-grid-mono text-xs" : undefined} dir={mono ? "ltr" : undefined}>
         {label}
       </span>
-      <ExternalLink className="ms-auto size-3.5 text-grid-muted" />
+      <ExternalLink className="ms-auto size-3.5 text-muted-foreground" />
     </button>
   );
 }

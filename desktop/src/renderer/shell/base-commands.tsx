@@ -5,6 +5,7 @@ import { useOsEvent } from "./os-events";
 import { routeFromString, useRouter } from "./router";
 import { useSession } from "./session";
 import { toast } from "./toast";
+import { exportBrain } from "../features/brains/brains-data";
 
 /*
 The shell's FALLBACK handlers — the bottom of every command's stack. A screen
@@ -27,7 +28,7 @@ export function ShellCommands() {
   const { t } = useI18n();
   const { navigate } = useRouter();
   const { defer } = useCommands();
-  const { user, settings, signOut } = useSession();
+  const { user, settings, signOut, token } = useSession();
   const signedIn = Boolean(user);
 
   useCommand("settings", () => navigate({ name: "settings", section: "general" }));
@@ -56,6 +57,33 @@ export function ShellCommands() {
     signedIn,
   );
   useCommand("close-tab", () => void bridge().closeWindow());
+
+  // Go ▸ … and Brain ▸ … (the Brain route overrides brain:* for the open brain).
+  const { back } = useRouter();
+  useCommand("go:back", () => back());
+  useCommand("go:brains", () => navigate({ name: "brains" }), signedIn);
+  useCommand("go:search", () => navigate({ name: "search" }), signedIn);
+  useCommand("go:inbox", () => navigate({ name: "notifications" }), signedIn);
+  const toBrain = (tab: "notes" | "presentations" | "vault") => () =>
+    settings.activeBrain ? navigate({ name: "brain", ns: settings.activeBrain, tab }) : navigate({ name: "brains" });
+  useCommand("brain:notes", toBrain("notes"), signedIn);
+  useCommand("brain:presentations", toBrain("presentations"), signedIn);
+  useCommand("brain:vault", toBrain("vault"), signedIn);
+  useCommand(
+    "brain:export",
+    () => {
+      if (!settings.activeBrain || !token) return;
+      void exportBrain(token, settings.activeBrain)
+        .then((path) => path && toast.success(t("brainsx.exported", { name: path.split(/[\\/]/).pop() ?? path })))
+        .catch(() => toast.error(t("brains.export.failed")));
+    },
+    signedIn,
+  );
+  // Owned by the notes workspace / a note window while one is focused.
+  for (const name of ["toggle-list", "open-in-new-window", "note:pin", "note:archive", "note:appearance", "note:versions", "note:copy", "note:delete"] as const) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- fixed list, fixed order
+    useCommand(name, () => undefined);
+  }
 
   // TODO(feature-team): implement; registered so the menu items are typed and discoverable.
   const soon = () => {

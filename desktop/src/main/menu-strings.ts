@@ -94,6 +94,26 @@ const en = {
   updateLater: "Later",
   ok: "OK",
   devBuild: "Updates are disabled in development builds.",
+  // Native shell: Note / Brain / Go menus
+  toggleList: "Toggle Notes List",
+  note: "Note",
+  openInNewWindow: "Open in New Window",
+  pin: "Pin / Unpin",
+  archive: "Archive / Unarchive",
+  appearance: "Icon & Colour…",
+  versions: "Version History…",
+  copyMarkdown: "Copy as Markdown",
+  deleteNote: "Delete Note…",
+  brain: "Brain",
+  brainNotes: "Notes",
+  brainPresentations: "Presentations",
+  brainVault: "Vault",
+  exportBrain: "Export Brain…",
+  go: "Go",
+  back: "Back",
+  allBrains: "All Brains",
+  search: "Search",
+  inbox: "Notifications",
 };
 
 export type MenuStrings = typeof en;
@@ -185,6 +205,26 @@ const ar: MenuStrings = {
   updateLater: "لاحقًا",
   ok: "حسنًا",
   devBuild: "التحديثات معطّلة في نسخ التطوير.",
+  // Native shell: Note / Brain / Go menus
+  toggleList: "إظهار/إخفاء قائمة الملاحظات",
+  note: "ملاحظة",
+  openInNewWindow: "فتح في نافذة جديدة",
+  pin: "تثبيت / إلغاء التثبيت",
+  archive: "أرشفة / إلغاء الأرشفة",
+  appearance: "الأيقونة واللون…",
+  versions: "سجل الإصدارات…",
+  copyMarkdown: "نسخ بصيغة Markdown",
+  deleteNote: "حذف الملاحظة…",
+  brain: "الدماغ",
+  brainNotes: "الملاحظات",
+  brainPresentations: "العروض",
+  brainVault: "الخزنة",
+  exportBrain: "تصدير الدماغ…",
+  go: "انتقال",
+  back: "رجوع",
+  allBrains: "كل الأدمغة",
+  search: "البحث",
+  inbox: "الإشعارات",
 };
 
 let current: LocaleId = "en";

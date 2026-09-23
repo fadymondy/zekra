@@ -1,41 +1,84 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowUpDown, Check, FilePlus2, Network, Search, X } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import { ArrowUpDown, FileText, Network, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
 
+import { IconButton } from "../../components/chrome";
 import { NoteRow, type OpenHow } from "../../components/note-row";
 import type { Note } from "../../lib/api";
 import { useI18n, type TKey } from "../../lib/i18n";
-import { NOTE_FILTERS, NOTE_SORTS, type NoteFilter, type NoteSort } from "./notes-model";
+import { showMenu } from "../../lib/native-menu";
+import { NOTE_SORTS, type NoteSort } from "./notes-model";
 
 /*
-The workspace's start pane: filter field, the All / Pinned / Archived strip,
-sort, and the infinite list (pinned first). Rows are plain buttons, so ↑/↓
-walk the list and Enter opens — like a native source list. The graph
+The workspace's content list — Mail / Notes shape, between the source list
+and the editor:
+
+  [ All Notes           10 ]        list name + count (the sidebar picks it)
+  [ ⌕ Search            ⇅ ]        filter field · sort (a native menu)
+  Pinned
+    rows…
+  Today / Yesterday / Previous 7 Days / Previous 30 Days / <Month> / Earlier
+    rows…                           two lines, date on the trailing side
+
+Rows are plain buttons: ↑/↓ walk the list and Enter opens, right-click pops
+the note's native menu, double-click opens it in its own window. The graph
 explorer (MH-306, `tree`) swaps in for the list behind the network button.
 */
 
-const FILTER_KEYS: Record<NoteFilter, TKey> = {
-  all: "notes.x.filter.all",
-  pinned: "notes.x.filter.pinned",
-  archived: "notes.x.filter.archived",
+export type ListFilter = "all" | "pinned" | "recent" | "archived";
+
+const LIST_KEYS: Record<ListFilter, TKey> = {
+  all: "sb.allNotes",
+  pinned: "sb.pinned",
+  recent: "sb.recentNotes",
+  archived: "sb.archived",
 };
 const SORT_KEYS: Record<NoteSort, TKey> = {
   updated: "notes.x.sort.updated",
   created: "notes.x.sort.created",
   title: "notes.x.sort.title",
 };
+
+type Group = { key: string; label: string; notes: Note[] };
+
+/** Pinned first (in "all"), then date sections by last update. */
+function useGroups(notes: Note[], filter: ListFilter, sort: NoteSort): Group[] {
+  const { t, locale } = useI18n();
+  if (sort === "title") return [{ key: "all", label: "", notes }];
+  const out: Group[] = [];
+  const pinned = filter === "all" ? notes.filter((n) => n.pinned) : [];
+  if (pinned.length) out.push({ key: "pinned", label: t("list.pinned"), notes: pinned });
+  const rest = pinned.length ? notes.filter((n) => !n.pinned) : notes;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const loc = locale === "ar" ? "ar" : "en";
+  const by = new Map<string, Group>();
+  for (const n of rest) {
+    const d = new Date(n.updatedAt);
+    const t0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const days = Math.round((today - t0) / 86_400_000);
+    let key: string;
+    let label: string;
+    if (days <= 0) [key, label] = ["today", t("grp.today")];
+    else if (days === 1) [key, label] = ["yesterday", t("grp.yesterday")];
+    else if (days < 7) [key, label] = ["week", t("grp.week")];
+    else if (days < 30) [key, label] = ["month", t("grp.month")];
+    else if (d.getFullYear() === now.getFullYear()) [key, label] = [`m${d.getMonth()}`, d.toLocaleDateString(loc, { month: "long" })];
+    else [key, label] = [`y${d.getFullYear()}`, String(d.getFullYear())];
+    let g = by.get(key);
+    if (!g) {
+      g = { key, label, notes: [] };
+      by.set(key, g);
+      out.push(g);
+    }
+    g.notes.push(n);
+  }
+  return out;
+}
 
 export function NotesSidebar({
   notes,
@@ -46,17 +89,14 @@ export function NotesSidebar({
   onLoadMore,
   onRetry,
   filter,
-  onFilter,
   sort,
   onSort,
   query,
   onQuery,
   selectedId,
   openIds,
-  canWrite,
-  onNew,
   onOpen,
-  menuFor,
+  onRowMenu,
   tree,
 }: {
   notes: Note[];
@@ -66,25 +106,23 @@ export function NotesSidebar({
   hasMore: boolean;
   onLoadMore: () => void;
   onRetry: () => void;
-  filter: NoteFilter;
-  onFilter: (f: NoteFilter) => void;
+  filter: ListFilter;
   sort: NoteSort;
   onSort: (s: NoteSort) => void;
   query: string;
   onQuery: (q: string) => void;
   selectedId: string | null;
   openIds: Set<string>;
-  canWrite: boolean;
-  onNew: () => void;
-  onOpen: (note: Note, how: OpenHow) => void;
-  menuFor: (note: Note) => ReactNode;
+  onOpen: (note: Note, how: OpenHow | "open-window") => void;
+  onRowMenu: (note: Note, e: MouseEvent) => void;
   /** The brain's entity explorer, shown instead of the list when toggled. */
   tree?: ReactNode;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [showTree, setShowTree] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const sentinel = useRef<HTMLDivElement | null>(null);
+  const groups = useGroups(notes, filter, sort);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -112,6 +150,14 @@ export function NotesSidebar({
     next.focus();
   }
 
+  async function sortMenu(e: MouseEvent<HTMLButtonElement>) {
+    const id = await showMenu(
+      NOTE_SORTS.map((s) => ({ id: s, type: "radio" as const, checked: s === sort, label: t(SORT_KEYS[s]) })),
+      e.currentTarget,
+    );
+    if (id) onSort(id as NoteSort);
+  }
+
   const empty =
     query.trim() !== ""
       ? t("notes.x.noMatches", { q: query.trim() })
@@ -122,140 +168,108 @@ export function NotesSidebar({
           : t("notes.x.empty");
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 px-2.5 pt-2.5 pb-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
-          <Input
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") onQuery("");
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                listRef.current?.querySelector<HTMLElement>("[data-note-row]")?.focus();
-              }
-            }}
-            placeholder={t("notes.x.search")}
-            aria-label={t("notes.x.search")}
-            className="h-8 ps-7 pe-7 text-sm"
-          />
-          {query ? (
-            <button
-              type="button"
-              aria-label={t("notes.x.clearSearch")}
-              onClick={() => onQuery("")}
-              className="absolute end-1.5 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-grid-muted hover:text-grid-fg"
-            >
-              <X className="size-3.5" />
-            </button>
+    <div className="app-chrome flex h-full min-h-0 flex-col">
+      <div className="flex flex-col gap-2 px-3 pt-2.5 pb-1.5">
+        <div className="flex items-center gap-0.5">
+          <InputGroup className="field h-7 rounded-md">
+            <InputGroupAddon className="ps-2 [&>svg]:size-3.5">
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={query}
+              onChange={(e) => onQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") onQuery("");
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  listRef.current?.querySelector<HTMLElement>("[data-note-row]")?.focus();
+                }
+              }}
+              placeholder={t("notes.x.search")}
+              aria-label={t("notes.x.search")}
+              className="h-7 text-[13px]"
+            />
+            {query ? (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton size="icon-xs" aria-label={t("notes.x.clearSearch")} onClick={() => onQuery("")} className="size-5">
+                  <X className="size-3" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            ) : null}
+          </InputGroup>
+          <IconButton label={t("notes.x.sort")} onClick={(e) => void sortMenu(e)}>
+            <ArrowUpDown />
+          </IconButton>
+          {tree ? (
+            <IconButton label={t("tree.title")} active={showTree} onClick={() => setShowTree((v) => !v)}>
+              <Network />
+            </IconButton>
           ) : null}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="ghost" size="icon-sm" aria-label={t("notes.x.sort")} title={t("notes.x.sort")} />}
-          >
-            <ArrowUpDown />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{t("notes.x.sort")}</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={sort} onValueChange={(v) => onSort(v as NoteSort)}>
-                {NOTE_SORTS.map((s) => (
-                  <DropdownMenuRadioItem key={s} value={s}>
-                    {t(SORT_KEYS[s])}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {tree ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("tree.title")}
-            aria-pressed={showTree}
-            title={t("tree.title")}
-            onClick={() => setShowTree((v) => !v)}
-            className={cn(showTree && "bg-grid-soft text-grid-fg")}
-          >
-            <Network />
-          </Button>
-        ) : null}
-        {canWrite ? (
-          <Button variant="ghost" size="icon-sm" aria-label={t("notes.x.new")} title={`${t("notes.x.new")}  ⌘N`} onClick={onNew}>
-            <FilePlus2 />
-          </Button>
-        ) : null}
       </div>
 
       {showTree && tree ? (
-        <div className="min-h-0 flex-1 overflow-y-auto border-t border-line">{tree}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-border/60">{tree}</div>
       ) : (
-        <>
-          {/* FilterStrip: All / Pinned / Archived */}
-          <div role="radiogroup" aria-label={t("notes.x.filter.all")} className="mx-2.5 mb-2 flex rounded-lg border border-line bg-grid-card p-0.5">
-            {NOTE_FILTERS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                role="radio"
-                aria-checked={filter === f}
-                onClick={() => onFilter(f)}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-xs transition-colors",
-                  filter === f ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg",
-                )}
-              >
-                {filter === f ? <Check className="size-3" /> : null}
-                {t(FILTER_KEYS[f])}
-              </button>
-            ))}
-          </div>
-
-          <div ref={listRef} onKeyDown={onListKey} className="min-h-0 flex-1 overflow-y-auto border-t border-line">
-            {loading && notes.length === 0 ? (
-              <div aria-busy className="space-y-px">
-                {Array.from({ length: 7 }, (_, i) => (
-                  <div key={i} className="flex gap-2.5 border-b border-line px-3 py-3">
-                    <span className="size-4 animate-pulse rounded bg-grid-soft" />
-                    <span className="flex-1 space-y-1.5">
-                      <span className="block h-3 w-2/3 animate-pulse rounded bg-grid-soft" />
-                      <span className="block h-2.5 w-full animate-pulse rounded bg-grid-soft" />
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : error && notes.length === 0 ? (
-              <div className="space-y-2 p-4 text-sm">
-                <p className="text-grid-danger">{error}</p>
-                <Button size="sm" variant="outline" onClick={onRetry}>
-                  {t("kit.retry")}
-                </Button>
-              </div>
-            ) : notes.length === 0 ? (
-              <p className="p-4 text-sm text-grid-muted">{empty}</p>
-            ) : (
-              notes.map((note) => (
-                <NoteRow
-                  key={note.id}
-                  note={note}
-                  selected={note.id === selectedId}
-                  open={openIds.has(note.id)}
-                  menu={menuFor(note)}
-                  onOpen={(how) => onOpen(note, how)}
-                />
-              ))
-            )}
-            {hasMore ? (
-              <div ref={sentinel} className="p-3 text-center text-xs text-grid-muted">
-                {loadingMore ? t("notes.loadingMore") : " "}
-              </div>
-            ) : null}
-            {error && notes.length > 0 ? <p className="p-3 text-center text-xs text-grid-danger">{t("notes.x.loadMoreFailed")}</p> : null}
-          </div>
-        </>
+        <div ref={listRef} onKeyDown={onListKey} className="list-pane min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+          {loading && notes.length === 0 ? (
+            <div aria-busy className="flex flex-col gap-1 pt-1">
+              {Array.from({ length: 9 }, (_, i) => (
+                <div key={i} className="flex flex-col gap-1.5 px-2.5 py-2">
+                  <Skeleton className="h-3 rounded-sm" style={{ width: `${55 + ((i * 17) % 35)}%` }} />
+                  <Skeleton className="h-2.5 w-full rounded-sm opacity-70" />
+                </div>
+              ))}
+            </div>
+          ) : error && notes.length === 0 ? (
+            <Empty className="gap-3 p-6">
+              <EmptyHeader>
+                <EmptyTitle className="text-[13px]">{t("notes.x.failed")}</EmptyTitle>
+                <EmptyDescription className="text-xs">{error}</EmptyDescription>
+              </EmptyHeader>
+              <Button size="sm" variant="outline" onClick={onRetry}>
+                {t("kit.retry")}
+              </Button>
+            </Empty>
+          ) : notes.length === 0 ? (
+            <Empty className="gap-2 p-6">
+              <EmptyHeader>
+                <EmptyMedia variant="icon" className="mb-1 size-8 bg-muted text-muted-foreground">
+                  <FileText className="size-4 stroke-[1.5]" />
+                </EmptyMedia>
+                <EmptyDescription className="text-xs">{empty}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            groups.map((g) => (
+              <section key={g.key} aria-label={g.label || undefined}>
+                {g.label ? (
+                  <h3 className="list-group-header sticky top-0 z-10 bg-background/95 px-2.5 pt-2.5 pb-1 backdrop-blur-sm">
+                    {g.label}
+                  </h3>
+                ) : null}
+                <div className="flex flex-col gap-px">
+                  {g.notes.map((note) => (
+                    <NoteRow
+                      key={note.id}
+                      note={note}
+                      selected={note.id === selectedId}
+                      open={openIds.has(note.id)}
+                      onMenu={(e) => onRowMenu(note, e)}
+                      onOpen={(how) => onOpen(note, how)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))
+          )}
+          {hasMore ? (
+            <div ref={sentinel} className="p-3 text-center text-xs text-muted-foreground">
+              {loadingMore ? t("notes.loadingMore") : " "}
+            </div>
+          ) : null}
+          {error && notes.length > 0 ? <p className="p-3 text-center text-xs text-destructive">{t("notes.x.loadMoreFailed")}</p> : null}
+        </div>
       )}
     </div>
   );

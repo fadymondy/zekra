@@ -83,20 +83,20 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
     <>
       <Dialog open={!!note} onOpenChange={onOpenChange}>
         <DialogContent className="flex h-[80vh] flex-col gap-0 p-0 sm:max-w-5xl">
-          <DialogHeader className="border-b border-line px-5 py-4">
+          <DialogHeader className="border-b border-border/60 px-5 py-4">
             <DialogTitle>{t("notes.x.versions")}</DialogTitle>
             <DialogDescription className="truncate" style={{ unicodeBidi: "plaintext" }}>
               {note?.title || t("notes.x.untitled")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex min-h-0 flex-1">
-            <ol className="w-64 shrink-0 overflow-y-auto border-e border-line">
+            <ol className="w-64 shrink-0 overflow-y-auto border-e border-border/60">
               {error ? (
-                <li className="p-4 text-sm text-grid-danger">{error}</li>
+                <li className="p-4 text-sm text-destructive">{error}</li>
               ) : !versions ? (
-                <li className="p-4 text-sm text-grid-muted">{t("ws.versions.loading")}</li>
+                <li className="p-4 text-sm text-muted-foreground">{t("ws.versions.loading")}</li>
               ) : versions.length === 0 ? (
-                <li className="p-4 text-sm text-grid-muted">{t("notes.x.versionsEmpty")}</li>
+                <li className="p-4 text-sm text-muted-foreground">{t("notes.x.versionsEmpty")}</li>
               ) : (
                 versions.map((v, i) => (
                   <li key={v.version}>
@@ -104,24 +104,24 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
                       type="button"
                       onClick={() => setPicked(v.version)}
                       className={cn(
-                        "flex w-full flex-col items-start gap-0.5 border-b border-line px-4 py-2.5 text-start transition-colors",
-                        picked === v.version ? "bg-grid-soft" : "hover:bg-grid-soft/60",
+                        "flex w-full flex-col items-start gap-0.5 border-b border-border/60 px-4 py-2.5 text-start transition-colors",
+                        picked === v.version ? "bg-muted" : "hover:bg-hover",
                       )}
                     >
                       <span className="flex w-full items-center gap-2">
-                        <span dir="ltr" className="font-mono text-xs text-grid-fg">
+                        <span dir="ltr" className="font-mono text-xs text-foreground">
                           {t("notes.x.version", { n: v.version })}
                         </span>
                         {i === 0 ? (
                           <span className="rounded-sm bg-grid-action/15 px-1.5 text-[10px] text-grid-action">{t("notes.x.current")}</span>
                         ) : null}
                         {v.deleted ? (
-                          <span className="rounded-sm bg-grid-danger/15 px-1.5 text-[10px] text-grid-danger">{t("notes.x.deletedTag")}</span>
+                          <span className="rounded-sm bg-grid-danger/15 px-1.5 text-[10px] text-destructive">{t("notes.x.deletedTag")}</span>
                         ) : null}
                       </span>
-                      <span className="text-xs text-grid-muted">{fmt(v.createdAt)}</span>
+                      <span className="text-xs text-muted-foreground">{fmt(v.createdAt)}</span>
                       {v.authorAgent || v.source ? (
-                        <span className="truncate text-[11px] text-grid-muted">
+                        <span className="truncate text-[11px] text-muted-foreground">
                           {t("ws.versions.by", { who: v.authorAgent || v.source })}
                         </span>
                       ) : null}
@@ -133,7 +133,7 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
             <div className="flex min-w-0 flex-1 flex-col">
               <div ref={previewRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                 {!current ? (
-                  <p className="text-sm text-grid-muted">{t("ws.versions.pick")}</p>
+                  <p className="text-sm text-muted-foreground">{t("ws.versions.pick")}</p>
                 ) : (
                   <>
                     <h2 className="mb-3 text-lg font-medium" style={{ unicodeBidi: "plaintext" }}>
@@ -142,13 +142,13 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
                     {current.body.trim() ? (
                       <Markdown text={current.body} />
                     ) : (
-                      <p className="text-sm text-grid-muted">{t("notes.x.emptyVersion")}</p>
+                      <p className="text-sm text-muted-foreground">{t("notes.x.emptyVersion")}</p>
                     )}
                   </>
                 )}
               </div>
               {canWrite && current && versions && current.version !== versions[0]?.version ? (
-                <div className="flex justify-end border-t border-line px-5 py-3">
+                <div className="flex justify-end border-t border-border/60 px-5 py-3">
                   <Button onClick={() => setConfirming(true)} disabled={busy}>
                     <RotateCcw />
                     {t("notes.x.restore")}

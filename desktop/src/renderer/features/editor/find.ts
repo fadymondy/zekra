@@ -17,9 +17,9 @@ export function ensureFindStyles(): void {
   const style = document.createElement("style");
   style.id = STYLE_ID;
   style.textContent = [
-    "::highlight(zk-find){background-color:rgb(201 162 39 / 0.32);}",
-    "::highlight(zk-find-current){background-color:#C9A227;color:#0B1429;}",
-    ".zk-source::selection{background-color:rgb(201 162 39 / 0.45);}",
+    "::highlight(zk-find){background-color:color-mix(in oklab, var(--grid-gold) 32%, transparent);}",
+    "::highlight(zk-find-current){background-color:var(--grid-gold);color:var(--grid-bg);}",
+    ".zk-source::selection{background-color:color-mix(in oklab, var(--grid-action) 35%, transparent);}",
     // The live editor: the web's WYSIWYG draws a bordered box (it sits in a
     // form there); on the desktop the page IS the note, Apple Notes style.
     ".zk-live [data-word-wrap]{border-color:transparent!important;background:transparent!important;padding:0!important;border-radius:0!important;}",

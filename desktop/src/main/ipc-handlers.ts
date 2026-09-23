@@ -42,6 +42,9 @@ import { setTrayStatus } from "./tray";
 import { checkForUpdates, getUpdateState, installUpdate } from "./updater";
 import { installMcp, mcpStatus } from "./mcp-install"; // MH-450 settings ▸ connect
 import { registerMarkItDownIpc } from "./importers/ipc"; // MH-450 importers, reveal, tray recents
+import { chromeInfo } from "./window-chrome";
+import { registerServicesIpc } from "./services"; // offline cache + sync, quick capture, share, login item
+import { setAppBadge } from "./os-integration"; // Dock / taskbar overlay / launcher badge
 
 /** Called after a settings patch so main can react (menu locale, theme). */
 export type SettingsChanged = (next: AppSettings, patch: SettingsPatch) => void;
@@ -74,8 +77,7 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
     platform: process.platform === "darwin" || process.platform === "win32" ? process.platform : "linux",
     arch: process.arch,
     isPackaged: app.isPackaged,
-    windowControls:
-      process.platform === "darwin" ? { side: "left", inset: TITLEBAR_INSET_MAC } : { side: "right", inset: 0 },
+    ...chromeInfo(), // window controls, frame kind, title-bar height, material (window-chrome.ts)
   }));
   ipcMain.handle(IPC.appOpenExternal, async (_e, url: string): Promise<void> => {
     const parsed = new URL(url);
@@ -214,7 +216,7 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
   // Unread notifications on the Dock icon (0 clears it).
   ipcMain.handle(IPC.appSetBadge, (_e, count: number): void => {
     const n = Math.max(0, Math.min(9999, Math.floor(Number(count) || 0)));
-    app.setBadgeCount(n);
+    setAppBadge(n); // macOS Dock, Windows taskbar overlay, Linux launcher (os-integration.ts)
   });
   // Settings ▸ Connect: native confirm + backup + atomic write (mcp-install.ts).
   ipcMain.handle(IPC.mcpInstall, (e, target: McpTarget, url: string) => installMcp(senderWindow(e), target, url));
@@ -222,6 +224,7 @@ export function registerIpc(onSettingsChanged: SettingsChanged): void {
 
   // MH-450 Mark It Down features: importers, reveal in Finder, tray recents.
   registerMarkItDownIpc();
+  registerServicesIpc(); // desktop services (services.ts)
 }
 
 function sanitiseFileName(name: string): string {

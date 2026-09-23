@@ -1,8 +1,13 @@
 import { forwardRef, useCallback, useRef, type ComponentType, type PointerEvent as ReactPointerEvent } from "react";
-import { BookOpen, ChevronDown, ChevronUp, Code2, Columns2, PenLine, X } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, Code2, Columns2, PenLine, Search, X } from "lucide-react";
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
 
+import { IconButton } from "../../components/chrome";
 import { useI18n, type TKey } from "../../lib/i18n";
 import type { OutlineItem } from "./outline";
 
@@ -38,28 +43,36 @@ export function saveMode(m: EditorMode) {
 export function ModeSwitch({ mode, onChange }: { mode: EditorMode; onChange: (m: EditorMode) => void }) {
   const { t } = useI18n();
   return (
-    <div role="radiogroup" aria-label={t("ws.mode.label")} className="flex items-center rounded-lg border border-line bg-grid-card p-0.5">
+    <ToggleGroup
+      value={[mode]}
+      onValueChange={(v: unknown[]) => {
+        const next = v[0] as EditorMode | undefined;
+        if (next) onChange(next);
+      }}
+      spacing={0}
+      aria-label={t("ws.mode.label")}
+      className="rounded-md bg-muted/70 p-0.5"
+    >
       {EDITOR_MODES.map((m) => {
         const { key, Icon } = MODE_META[m];
         return (
-          <button
-            key={m}
-            type="button"
-            role="radio"
-            aria-checked={mode === m}
-            title={t(key)}
-            onClick={() => onChange(m)}
-            className={cn(
-              "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] transition-colors",
-              mode === m ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg",
-            )}
-          >
-            <Icon className="size-3.5" />
-            <span className="hidden lg:inline">{t(key)}</span>
-          </button>
+          <Tooltip key={m}>
+            <TooltipTrigger
+              render={
+                <ToggleGroupItem
+                  value={m}
+                  aria-label={t(key)}
+                  className="h-6 min-w-7 rounded-[5px]! px-1.5 text-muted-foreground hover:bg-transparent hover:text-foreground data-[pressed]:bg-background data-[pressed]:text-foreground data-[pressed]:shadow-sm aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm [&_svg]:size-3.5 [&_svg]:stroke-[1.75]"
+                />
+              }
+            >
+              <Icon />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{t(key)}</TooltipContent>
+          </Tooltip>
         );
       })}
-    </div>
+    </ToggleGroup>
   );
 }
 
@@ -74,37 +87,43 @@ export const FindBar = forwardRef<HTMLInputElement, {
 }>(function FindBar({ query, onQuery, count, index, onNext, onPrev, onClose }, ref) {
   const { t } = useI18n();
   return (
-    <div className="flex items-center gap-1.5 border-b border-line bg-grid-card px-3 py-1.5">
-      <input
-        ref={ref}
-        value={query}
-        onChange={(e) => onQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            if (e.shiftKey) onPrev();
-            else onNext();
-          } else if (e.key === "Escape") {
-            e.preventDefault();
-            onClose();
-          }
-        }}
-        placeholder={t("ws.find.placeholder")}
-        aria-label={t("ws.find.placeholder")}
-        className="h-7 min-w-0 flex-1 rounded-md border border-line bg-grid-bg px-2 text-sm text-grid-fg outline-none focus:border-grid-action"
-      />
-      <span className="w-20 shrink-0 text-center text-[11px] text-grid-muted tabular-nums">
-        {query ? (count ? t("ws.find.count", { i: index + 1, n: count }) : t("ws.find.none")) : ""}
-      </span>
-      <button type="button" aria-label={t("ws.find.prev")} title={t("ws.find.prev")} onClick={onPrev} disabled={!count} className="rounded-sm p-1 text-grid-muted hover:bg-grid-soft hover:text-grid-fg disabled:opacity-40">
-        <ChevronUp className="size-4" />
-      </button>
-      <button type="button" aria-label={t("ws.find.next")} title={t("ws.find.next")} onClick={onNext} disabled={!count} className="rounded-sm p-1 text-grid-muted hover:bg-grid-soft hover:text-grid-fg disabled:opacity-40">
-        <ChevronDown className="size-4" />
-      </button>
-      <button type="button" aria-label={t("ws.find.close")} title={t("ws.find.close")} onClick={onClose} className="rounded-sm p-1 text-grid-muted hover:bg-grid-soft hover:text-grid-fg">
-        <X className="size-4" />
-      </button>
+    <div className="app-chrome flex items-center gap-1 border-b border-border/60 bg-background px-3 py-1.5">
+      <InputGroup className="h-7 max-w-md rounded-md border-border/80 bg-muted/50 dark:bg-muted/50">
+        <InputGroupAddon className="ps-2 [&>svg]:size-3.5">
+          <Search />
+        </InputGroupAddon>
+        <InputGroupInput
+          ref={ref}
+          value={query}
+          onChange={(e) => onQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (e.shiftKey) onPrev();
+              else onNext();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              onClose();
+            }
+          }}
+          placeholder={t("ws.find.placeholder")}
+          aria-label={t("ws.find.placeholder")}
+          className="h-7 text-[13px]"
+        />
+        <InputGroupAddon align="inline-end" className="pe-2 text-[11px] font-normal tabular-nums">
+          {query ? (count ? t("ws.find.count", { i: index + 1, n: count }) : t("ws.find.none")) : ""}
+        </InputGroupAddon>
+      </InputGroup>
+      <IconButton size="icon-xs" label={t("ws.find.prev")} shortcut="⇧↩" onClick={onPrev} disabled={!count}>
+        <ChevronUp />
+      </IconButton>
+      <IconButton size="icon-xs" label={t("ws.find.next")} shortcut="↩" onClick={onNext} disabled={!count}>
+        <ChevronDown />
+      </IconButton>
+      <div className="flex-1" />
+      <IconButton size="icon-xs" label={t("ws.find.close")} shortcut="esc" onClick={onClose}>
+        <X />
+      </IconButton>
     </div>
   );
 });
@@ -113,12 +132,12 @@ export function OutlineRail({ items, active, onPick }: { items: OutlineItem[]; a
   const { t } = useI18n();
   const min = items.reduce((m, it) => Math.min(m, it.depth), 6);
   return (
-    <nav aria-label={t("ws.outline")} className="flex h-full min-h-0 flex-col">
-      <p className="grid-micro shrink-0 px-3 pt-3 pb-2 text-grid-muted">{t("ws.outline")}</p>
+    <nav aria-label={t("ws.outline")} className="app-chrome flex h-full min-h-0 flex-col">
+      <p className="shrink-0 px-4 pt-4 pb-1.5 text-[11px] font-semibold text-muted-foreground">{t("ws.outline")}</p>
       {items.length === 0 ? (
-        <p className="px-3 text-xs text-grid-muted">{t("ws.outline.empty")}</p>
+        <p className="px-4 text-xs text-muted-foreground">{t("ws.outline.empty")}</p>
       ) : (
-        <ol className="min-h-0 flex-1 overflow-y-auto pb-3">
+        <ol className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
           {items.map((it) => (
             <li key={it.index}>
               <button
@@ -126,12 +145,11 @@ export function OutlineRail({ items, active, onPick }: { items: OutlineItem[]; a
                 onClick={() => onPick(it)}
                 title={it.text}
                 className={cn(
-                  "relative block w-full truncate py-1 pe-3 text-start text-xs transition-colors",
-                  it.index === active ? "font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg",
+                  "relative block w-full truncate rounded-md py-1 pe-2 text-start text-[12px] transition-colors",
+                  it.index === active ? "bg-hover font-medium text-foreground" : "text-muted-foreground hover:bg-hover hover:text-foreground",
                 )}
-                style={{ paddingInlineStart: 12 + (it.depth - min) * 12, unicodeBidi: "plaintext" }}
+                style={{ paddingInlineStart: 8 + (it.depth - min) * 12, unicodeBidi: "plaintext" }}
               >
-                {it.index === active ? <span aria-hidden className="absolute inset-y-1 start-0 w-0.5 rounded-full bg-grid-gold" /> : null}
                 {it.text}
               </button>
             </li>
@@ -184,9 +202,9 @@ export function SplitDivider({ container, onRatio, onDone }: {
       role="separator"
       aria-orientation="vertical"
       onPointerDown={onPointerDown}
-      className="group relative z-10 w-px shrink-0 cursor-col-resize bg-line"
+      className="group relative z-10 w-px shrink-0 cursor-col-resize bg-border/60"
     >
-      <span className="absolute inset-y-0 -start-1 -end-1 transition-colors group-hover:bg-grid-action/40" />
+      <span className="absolute inset-y-0 -start-1 -end-1 transition-colors group-hover:bg-ring/40" />
     </div>
   );
 }

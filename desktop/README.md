@@ -91,6 +91,51 @@ older builds are migrated on first launch. A token encrypted by a differently
 signed build (dev Electron vs the signed app) may not decrypt; it is then
 dropped and the user signs in again.
 
+## Desktop services
+
+Main-process services (`src/main/services.ts` wires them; IPC in `src/shared/ipc.ts`,
+payload types in `src/shared/services.ts`). Each has a native form per OS:
+
+| Service | macOS | Windows | Linux |
+|---|---|---|---|
+| Offline cache + sync | all | all | all |
+| Quick Capture panel | NSPanel, `hud` vibrancy, default ⌥⌘N | acrylic (Win 11), default Ctrl+Alt+N | solid, default Ctrl+Alt+N (X11/XWayland) |
+| Capture browser tab | AppleScript (Safari, Chromium family, Arc) | — (clipboard) | — (clipboard) |
+| Launch at login | login item (+ start hidden) | Run key `--hidden` | XDG autostart `.desktop` |
+| App shortcuts | Dock menu (New Note, Quick Capture, recents) | Jump List tasks (`zekra://app/…`) | — |
+| Unread badge | Dock badge | taskbar overlay icon | Unity launcher count |
+| Share a note | `ShareMenu` (Messages, Mail, AirDrop, Notes) | clipboard / `mailto:` | clipboard / `mailto:` |
+| Notification actions | buttons + inline reply | toast buttons (`toastXml`, AUMID) | click only |
+
+Handoff / NSUserActivity, a Services-menu provider and a Share extension are
+out of scope (Electron cannot ship app extensions).
+
+**Offline cache.** Pure-JS, no native module (no electron-rebuild, universal
+builds and hardened runtime unaffected): atomic JSON documents under
+`<userData>/offline-cache/v1/<sha256(api origin + user id)[:16]>/` —
+`brains.json`, `queue.json` (outbox, conflicts, id map), `ns/<brain>.json`
+(every note with its body), `versions/<brain>.json` (version metadata). Files
+are 0600. Sync uses `GET /api/notes?namespace=&since=&cursor=&limit=200`
+(oldest change first, tombstones included; the first page's `serverTime` is
+the next `since`), pushes with `PUT`/`DELETE` + version (409 → 3-way merge;
+title/body changed on both sides keeps both as a "conflicted copy"). It runs
+at launch, on focus, every `syncIntervalMinutes` (×3 on battery; paused on
+sleep, Low Power Mode, thermal pressure), ~1 s after an edit, and on Sync Now.
+
+**Renderer adoption** (`src/renderer/services/offline.ts`):
+
+- Wired: `features/notes/use-notes-list.ts` (cache-first first page, `offline:<n>`
+  cursors, live sync changes) and `features/notes/notes-api.ts` (`saveNote`
+  rebases over the app's own pushes and falls back to the outbox; `create` /
+  `remove` fall back offline). A queued save returns `ok` with `note.pending`.
+- To adopt: show `note.pending` / `useSyncStatus()` in the status bar; follow
+  `SyncChangeEvent.idMap` to re-key an open tab whose `local:` note was pushed;
+  surface `SyncStatus.conflicts`; brains list from `bridge().offlineBrains()`
+  before `zekraApi.brains` (app.tsx); `cachedNote()` before `notesApi.get`
+  (workspace `openById`); `shareNote` / `notifyRich` in the note menu / notify
+  feature; a proper Settings ▸ Services section (`ServicesSettings` is mounted
+  under General for now).
+
 ## Signing, notarisation, updates
 
 - App id `com.fadymondy.zekra.desktop` (distinct from the iOS bundle id).

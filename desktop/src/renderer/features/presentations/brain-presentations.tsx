@@ -14,6 +14,9 @@ import { KINDS, STATUSES, customerLine } from "@mobile/features/presentations/pr
 import type { PKind, PStatus, Summary } from "@mobile/features/presentations/types";
 
 import type { Brain } from "../../lib/api";
+import { showMenu } from "../../lib/native-menu";
+import { IconButton } from "../../components/chrome";
+import { ToolbarActions } from "../../shell/toolbar";
 import { useI18n } from "../../lib/i18n";
 import { useAuthed } from "../../shell/session";
 import { presentationsApi } from "./api";
@@ -77,31 +80,33 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
 
   return (
     <div className="flex min-h-0 flex-1">
-      <aside className={cn("flex min-h-0 flex-col border-e border-line bg-grid-bg", selected ? "w-[380px] shrink-0" : "flex-1")}>
-        <div className="flex flex-col gap-2.5 border-b border-line p-3">
+      <aside className={cn("flex min-h-0 flex-col border-e border-border/60 bg-background", selected ? "w-[380px] shrink-0" : "flex-1")}>
+        <div className="flex flex-col gap-2.5 border-b border-border/60 p-3">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-grid-muted" strokeWidth={1.6} />
+              <Search className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.6} />
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("presentations.search")} className="ps-8" spellCheck={false} />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button variant="outline" size="sm" className={cn(status !== "all" && "border-grid-gold text-grid-gold")} aria-label={t("presentations.filter.status")} />
-                }
-              >
-                <ListFilter />
-                {status === "all" ? t("presentations.status.any") : f.status(status)}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-40">
-                {(["all", ...STATUSES] as StatusFilter[]).map((s) => (
-                  <DropdownMenuItem key={s} onClick={() => setStatus(s)}>
-                    <Check className={cn(s === status ? "text-grid-gold" : "invisible")} />
-                    {s === "all" ? t("presentations.status.any") : f.status(s)}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(status !== "all" && "border-primary/50 text-foreground")}
+              aria-label={t("presentations.filter.status")}
+              onClick={(e) =>
+                void showMenu(
+                  (["all", ...STATUSES] as StatusFilter[]).map((s) => ({
+                    id: s,
+                    type: "radio" as const,
+                    checked: s === status,
+                    label: s === "all" ? t("presentations.status.any") : f.status(s),
+                  })),
+                  e.currentTarget,
+                ).then((id) => id && setStatus(id as StatusFilter))
+              }
+            >
+              <ListFilter />
+              {status === "all" ? t("presentations.status.any") : f.status(status)}
+            </Button>
             <Button variant="ghost" size="icon-sm" aria-label={t("action.refresh")} disabled={loading} onClick={() => void load()}>
               <RefreshCw className={cn(loading && "animate-spin")} />
             </Button>
@@ -114,23 +119,24 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
             ))}
             <span className="flex-1" />
             {brain.canWrite ? (
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                <Plus />
-                {t("presentations.create")}
-              </Button>
+              <ToolbarActions>
+                <IconButton label={t("presentations.create")} onClick={() => setCreateOpen(true)}>
+                  <Plus />
+                </IconButton>
+              </ToolbarActions>
             ) : null}
           </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {items === null && !error ? (
-            <div className="flex justify-center p-6 text-grid-muted">
+            <div className="flex justify-center p-6 text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
             </div>
           ) : null}
           {error ? (
             <div className="flex flex-col items-start gap-2 p-4">
-              <p className="text-sm text-grid-danger">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
               <Button variant="outline" size="sm" onClick={() => void load()}>
                 {t("kit.retry")}
               </Button>
@@ -138,14 +144,14 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
           ) : null}
           {items !== null && !error && list.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-              <span className="flex size-11 items-center justify-center rounded-md border border-line bg-grid-card text-grid-muted">
+              <span className="flex size-11 items-center justify-center rounded-md border border-border/60 bg-pane-raised text-muted-foreground">
                 <Presentation className="size-5" />
               </span>
-              <p className="text-sm text-grid-muted">{filtered ? t("presentations.emptyFiltered") : t("presentations.empty")}</p>
+              <p className="text-sm text-muted-foreground">{filtered ? t("presentations.emptyFiltered") : t("presentations.empty")}</p>
             </div>
           ) : null}
           {list.length ? (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-border/60">
               {list.map((item) => (
                 <PresentationRow key={item.id} item={item} active={item.id === selected} onOpen={() => setSelected(item.id)} />
               ))}
@@ -153,7 +159,7 @@ export function BrainPresentations({ brain }: { brain: Brain }) {
           ) : null}
         </div>
         {list.length ? (
-          <div className="grid-micro border-t border-line px-3 py-1.5 text-grid-muted">{t("desk.pres.count", { n: list.length })}</div>
+          <div className="grid-micro border-t border-border/60 px-3 py-1.5 text-muted-foreground">{t("desk.pres.count", { n: list.length })}</div>
         ) : null}
       </aside>
 
@@ -202,8 +208,8 @@ function PresentationRow({ item, active, onOpen }: { item: Summary; active: bool
         onClick={onOpen}
         aria-current={active ? "true" : undefined}
         className={cn(
-          "relative flex w-full flex-col gap-2 px-3 py-3 text-start transition-colors hover:bg-grid-soft focus-visible:bg-grid-soft focus-visible:outline-none",
-          active && "bg-grid-soft",
+          "relative flex w-full flex-col gap-2 px-3 py-3 text-start transition-colors hover:bg-hover focus-visible:bg-hover focus-visible:outline-none",
+          active && "bg-muted",
         )}
       >
         {/* Gold selection rule on the start edge. */}
@@ -211,20 +217,20 @@ function PresentationRow({ item, active, onOpen }: { item: Summary; active: bool
         <div className="flex items-center gap-3">
           <KindTile kind={item.kind} />
           <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 text-sm font-medium text-grid-fg" style={{ unicodeBidi: "plaintext" }}>
+            <p className="line-clamp-2 text-sm font-medium text-foreground" style={{ unicodeBidi: "plaintext" }}>
               {item.title || t("notes.untitled")}
             </p>
-            <p className="truncate text-xs text-grid-muted">{[f.kind(item.kind), who].filter(Boolean).join(" · ")}</p>
+            <p className="truncate text-xs text-muted-foreground">{[f.kind(item.kind), who].filter(Boolean).join(" · ")}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 ps-12">
           <LocaleChips locales={item.locales} />
           <StatusChip status={item.status} />
-          <span className={cn("inline-flex items-center gap-1 font-mono text-[11px]", item.active_shares ? "text-grid-gold" : "text-grid-muted")}>
+          <span className={cn("inline-flex items-center gap-1 font-mono text-[11px]", item.active_shares ? "text-grid-gold" : "text-muted-foreground")}>
             <Link2 className="size-3" strokeWidth={1.8} />
             {item.active_shares}
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-grid-muted">
+          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
             <Eye className="size-3" strokeWidth={1.8} />
             {viewed ? t("presentations.viewsAgo", { n: item.view_count, when: viewed }) : String(item.view_count)}
           </span>

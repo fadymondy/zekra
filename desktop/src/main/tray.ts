@@ -71,9 +71,11 @@ let installed: McpInstallStatus = { claude: false, cursor: false };
 let recent: TrayRecentNote[] = [];
 let showWindow: () => void = () => undefined;
 
-/** out/assets is populated by build/bundle.mjs from build/trayTemplate*.png. */
+/** out/assets is populated by build/bundle.mjs: the monochrome template on
+ *  macOS, the colour icon on Windows (.ico) and Linux (24px PNG). */
 function trayIconPath(): string {
-  return path.join(__dirname, "..", "assets", "trayTemplate.png");
+  const file = process.platform === "darwin" ? "trayTemplate.png" : process.platform === "win32" ? "icon.ico" : "tray.png";
+  return path.join(__dirname, "..", "assets", file);
 }
 
 export function createTray(onShow: () => void): void {
@@ -106,6 +108,15 @@ export function setTrayRecent(items: TrayRecentNote[]): void {
   if (JSON.stringify(clean) === JSON.stringify(recent)) return;
   recent = clean;
   rebuildTrayMenu();
+  for (const fn of recentListeners) fn(recent);
+}
+
+// The Dock menu (os-integration.ts) shows the same recent notes.
+const recentListeners = new Set<(items: TrayRecentNote[]) => void>();
+export function onTrayRecentChanged(fn: (items: TrayRecentNote[]) => void): () => void {
+  recentListeners.add(fn);
+  fn(recent);
+  return () => recentListeners.delete(fn);
 }
 
 async function refreshMcpStatus(): Promise<void> {

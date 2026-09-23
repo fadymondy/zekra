@@ -218,7 +218,7 @@ export function Spotlight({ brain, notes, onOpenNote, onNewNote, extraCommands =
                       <span className="min-w-0 flex-1 truncate" style={{ unicodeBidi: "plaintext" }}>
                         {r.title || t("notes.untitled")}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-grid-muted">
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <History className="size-3" />
                         <bdi>{nameOf(r.namespace)}</bdi>
                       </span>
@@ -265,7 +265,7 @@ export function Spotlight({ brain, notes, onOpenNote, onNewNote, extraCommands =
                       <span className="line-clamp-2 text-sm" dir="auto">
                         {hit.content.slice(0, 220)}
                       </span>
-                      <span className="block truncate text-xs text-grid-muted">{hitMeta(hit)}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{hitMeta(hit)}</span>
                     </span>
                     <KbdGroup>
                       <Kbd>
@@ -296,9 +296,9 @@ export function Spotlight({ brain, notes, onOpenNote, onNewNote, extraCommands =
                       {brainName(b)}
                     </span>
                     {brainName(b) !== b.namespace ? (
-                      <bdi className="font-mono text-xs text-grid-muted">{b.namespace}</bdi>
+                      <bdi className="font-mono text-xs text-muted-foreground">{b.namespace}</bdi>
                     ) : (
-                      <BrainCircuit className="text-grid-muted" />
+                      <BrainCircuit className="text-muted-foreground" />
                     )}
                   </CommandItem>
                 ))}
@@ -320,7 +320,7 @@ export function Spotlight({ brain, notes, onOpenNote, onNewNote, extraCommands =
           ) : null}
         </CommandList>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line px-3 py-2 text-xs text-grid-muted">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/60 px-3 py-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <KbdGroup>
               <Kbd>↑</Kbd>

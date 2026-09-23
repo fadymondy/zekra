@@ -72,7 +72,7 @@ export function ConnectSettings() {
           </Button>
         </Row>
         <Row label={t("settings.mcpAuth")}>
-          <span className="text-xs text-grid-muted">{t("settings.mcpAuthValue")}</span>
+          <span className="text-xs text-muted-foreground">{t("settings.mcpAuthValue")}</span>
         </Row>
       </Group>
 

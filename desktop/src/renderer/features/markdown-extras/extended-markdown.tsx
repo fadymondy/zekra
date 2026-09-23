@@ -81,27 +81,27 @@ export function FrontmatterPanel({ data }: { data: Record<string, FrontmatterVal
   const entries = Object.entries(data).filter(([, v]) => v !== null && !(Array.isArray(v) && v.length === 0));
   if (!entries.length) return null;
   return (
-    <section className="mb-5 rounded-md border border-line bg-grid-card text-xs">
+    <section className="mb-5 rounded-md border border-border/60 bg-pane-raised text-xs">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center gap-1.5 px-3 py-2 text-start font-medium text-grid-muted hover:text-grid-fg"
+        className="flex w-full items-center gap-1.5 px-3 py-2 text-start font-medium text-muted-foreground hover:text-foreground"
       >
         <ChevronDown className={`size-3.5 transition-transform ${open ? "" : "-rotate-90 rtl:rotate-90"}`} />
         {t("mdx.properties")}
-        <span className="ms-auto tabular-nums text-grid-muted">{entries.length}</span>
+        <span className="ms-auto tabular-nums text-muted-foreground">{entries.length}</span>
       </button>
       {open ? (
-        <dl className="grid grid-cols-[minmax(6rem,max-content)_1fr] gap-x-4 gap-y-1.5 border-t border-line px-3 py-2.5">
+        <dl className="grid grid-cols-[minmax(6rem,max-content)_1fr] gap-x-4 gap-y-1.5 border-t border-border/60 px-3 py-2.5">
           {entries.map(([k, v]) => (
             <div key={k} className="contents">
-              <dt className="font-mono text-grid-muted">{k}</dt>
-              <dd dir="auto" className="min-w-0 break-words text-grid-fg">
+              <dt className="font-mono text-muted-foreground">{k}</dt>
+              <dd dir="auto" className="min-w-0 break-words text-foreground">
                 {Array.isArray(v) ? (
                   <span className="flex flex-wrap gap-1">
                     {v.map((item) => (
-                      <span key={item} className="rounded-sm bg-grid-soft px-1.5 py-0.5">
+                      <span key={item} className="rounded-sm bg-muted px-1.5 py-0.5">
                         {item}
                       </span>
                     ))}

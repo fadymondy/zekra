@@ -16,6 +16,8 @@ import { s } from "./menu-strings";
 import { openMarkdownDialog } from "./deep-links";
 import { sendCommand } from "./renderer-events";
 import { checkForUpdatesInteractive } from "./updater";
+import { captureShortcutState, showQuickCapture } from "./quick-capture";
+import { ss } from "./services-strings";
 
 export const APP_NAME = "Zekra";
 export const APP_NAME_AR = "ذكرة";
@@ -58,6 +60,15 @@ export function buildMenu(): Menu {
       cmd(t.newBrain, "new-brain", "Shift+CmdOrCtrl+N"),
       { type: "separator" },
       { label: t.openMarkdown, accelerator: "CmdOrCtrl+O", click: () => void openMarkdownDialog() },
+      // Desktop services: Open Recent (macOS), Quick Capture (global shortcut
+      // shown as a hint only — globalShortcut owns it, quick-capture.ts).
+      ...(isMac ? ([{ role: "recentDocuments", submenu: [{ role: "clearRecentDocuments" }] }] as MenuItemConstructorOptions[]) : []),
+      {
+        label: ss().quickCapture,
+        accelerator: captureShortcutState().accelerator || undefined,
+        registerAccelerator: false,
+        click: () => void showQuickCapture(),
+      },
       {
         label: t.importFrom,
         submenu: [
@@ -109,7 +120,10 @@ export function buildMenu(): Menu {
   const viewMenu: MenuItemConstructorOptions = {
     label: t.view,
     submenu: [
-      cmd(t.toggleSidebar, "toggle-sidebar", "CmdOrCtrl+\\"),
+      cmd(t.toggleSidebar, "toggle-sidebar", "Alt+CmdOrCtrl+S"),
+      // ⌘\ as well (the shortcut earlier builds taught); hidden, still bound.
+      { ...cmd(t.toggleSidebar, "toggle-sidebar", "CmdOrCtrl+\\"), visible: false },
+      cmd(t.toggleList, "toggle-list", "Alt+CmdOrCtrl+L"),
       cmd(t.toggleOutline, "toggle-outline", "Shift+CmdOrCtrl+L"),
       cmd(t.commandPalette, "spotlight", "CmdOrCtrl+K"),
       { type: "separator" },
@@ -128,6 +142,46 @@ export function buildMenu(): Menu {
             { role: "toggleDevTools", label: t.devtools },
           ] as MenuItemConstructorOptions[])
         : []),
+    ],
+  };
+
+  const noteMenu: MenuItemConstructorOptions = {
+    label: t.note,
+    submenu: [
+      cmd(t.openInNewWindow, "open-in-new-window", "Alt+CmdOrCtrl+O"),
+      { type: "separator" },
+      cmd(t.pin, "note:pin", "Shift+CmdOrCtrl+P"),
+      cmd(t.archive, "note:archive", "Shift+CmdOrCtrl+A"),
+      cmd(t.appearance, "note:appearance"),
+      cmd(t.versions, "note:versions", "Alt+CmdOrCtrl+H"),
+      { type: "separator" },
+      cmd(t.copyMarkdown, "note:copy", "Alt+Shift+CmdOrCtrl+C"),
+      { type: "separator" },
+      // No ⌘⌫: a menu accelerator would steal "delete to line start" from the editor.
+      cmd(t.deleteNote, "note:delete"),
+    ],
+  };
+
+  const brainMenu: MenuItemConstructorOptions = {
+    label: t.brain,
+    submenu: [
+      cmd(t.brainNotes, "brain:notes", "CmdOrCtrl+1"),
+      cmd(t.brainPresentations, "brain:presentations", "CmdOrCtrl+2"),
+      cmd(t.brainVault, "brain:vault", "CmdOrCtrl+3"),
+      { type: "separator" },
+      cmd(t.newBrain, "new-brain"),
+      cmd(t.exportBrain, "brain:export"),
+    ],
+  };
+
+  const goMenu: MenuItemConstructorOptions = {
+    label: t.go,
+    submenu: [
+      cmd(t.back, "go:back", "CmdOrCtrl+["),
+      { type: "separator" },
+      cmd(t.allBrains, "go:brains", "Shift+CmdOrCtrl+B"),
+      cmd(t.search, "go:search", "Shift+CmdOrCtrl+F"),
+      cmd(t.inbox, "go:inbox", "Shift+CmdOrCtrl+I"),
     ],
   };
 
@@ -153,7 +207,9 @@ export function buildMenu(): Menu {
   };
 
   return Menu.buildFromTemplate(
-    isMac ? [appMenu, fileMenu, editMenu, viewMenu, windowMenu, helpMenu] : [fileMenu, editMenu, viewMenu, windowMenu, helpMenu],
+    isMac
+      ? [appMenu, fileMenu, editMenu, viewMenu, noteMenu, brainMenu, goMenu, windowMenu, helpMenu]
+      : [fileMenu, editMenu, viewMenu, noteMenu, brainMenu, goMenu, windowMenu, helpMenu],
   );
 }
 

@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Quick Capture panel (src/main/quick-capture.ts). Built by build/bundle.mjs
+     to out/renderer/capture.html next to app.css (shared design tokens) and
+     capture.js. %CSP% is replaced from src/shared/csp.ts, like index.html. -->
+<html lang="en" dir="ltr" data-brand="cabrain" data-theme="dark" data-capture class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="%CSP%" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Quick Capture</title>
+    <link rel="stylesheet" href="app.css" />
+    <style>
+      /* The window itself is the system material (macOS "hud" vibrancy,
+         Windows 11 acrylic); the page only tints it. Linux / Windows 10 get
+         the solid ground. */
+      /* .grid-surface maps the shadcn tokens (--primary, --border…) onto the
+         grid palette, as on the main window's body. */
+      html[data-capture] body { background: transparent; }
+      html[data-capture][data-material="none"] body { background: var(--grid-bg); }
+      .capture-tint { background: color-mix(in srgb, var(--grid-bg) 55%, transparent); }
+      html[data-material="none"] .capture-tint { background: var(--grid-bg); }
+      .capture-drag { -webkit-app-region: drag; }
+      .capture-drag button, .capture-drag select, .capture-drag input { -webkit-app-region: no-drag; }
+      .capture-field { background: transparent; outline: none; border: 0; width: 100%; color: inherit; font: inherit; resize: none; }
+      .capture-field::placeholder { color: var(--grid-muted); }
+    </style>
+  </head>
+  <body class="grid-surface">
+    <div id="root"></div>
+    <script src="capture.js"></script>
+  </body>
+</html>

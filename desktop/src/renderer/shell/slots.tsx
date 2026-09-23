@@ -23,7 +23,9 @@ Slot kinds:
 */
 
 export type SingleSlot = "titlebar.bell" | "titlebar.account";
-export type ListSlot = "titlebar.start" | "titlebar.end" | "statusbar.start" | "statusbar.end";
+/** "sidebar.status" — the sidebar footer's status line (sync / offline cache
+ *  state from the desktop services; the shell shows "Offline" by itself). */
+export type ListSlot = "titlebar.start" | "titlebar.end" | "statusbar.start" | "statusbar.end" | "sidebar.status";
 export type SlotName = SingleSlot | ListSlot;
 
 type Entry = { id: number; node: ReactNode; order: number };
@@ -36,6 +38,7 @@ const EMPTY: SlotState = {
   "titlebar.end": [],
   "statusbar.start": [],
   "statusbar.end": [],
+  "sidebar.status": [],
 };
 
 type SlotsApi = {
@@ -111,4 +114,10 @@ export function Slot({ name, fallback = null }: { name: SlotName; fallback?: Rea
       ))}
     </>
   );
+}
+
+/** Whether any of `names` currently has content (e.g. to hide an empty bar). */
+export function useSlotFilled(...names: SlotName[]): boolean {
+  const state = useContext(SlotsStateContext);
+  return names.some((n) => state[n].some((e) => e.node !== null && e.node !== undefined && e.node !== false));
 }

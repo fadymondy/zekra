@@ -4,6 +4,7 @@ import {
   Info,
   Lock,
   Plug,
+  Settings as SettingsIcon,
   SlidersHorizontal,
   UserRound,
   type LucideIcon,
@@ -18,11 +19,13 @@ import { AboutSettings } from "../features/settings/about";
 import { AccountSettings } from "../features/settings/account";
 import { ConnectSettings } from "../features/settings/connect";
 import { GeneralSettings } from "../features/settings/general";
+import { ServicesSettings } from "../features/settings/services";
 import { NotificationSettings } from "../features/settings/notifications";
 import { SettingsHeader } from "../features/settings/ui";
 import { useI18n, type TKey } from "../lib/i18n";
 import { useRouter, type Route, type SettingsSection } from "../shell/router";
 import { useSession } from "../shell/session";
+import { ToolbarHeading, ToolbarTitle } from "../shell/toolbar";
 
 /*
 Settings, in sections (route: { name: "settings", section }) with a section
@@ -62,32 +65,42 @@ export function SettingsRoute({ route }: { route: Extract<Route, { name: "settin
 
   return (
     <div className="flex min-h-0 flex-1">
-      <nav aria-label={t("settings.x.sections")} className="flex w-56 shrink-0 flex-col gap-0.5 border-e border-line p-3">
-        <h2 className="grid-micro mb-2 px-2 text-grid-muted">{t("settings.title")}</h2>
+      <ToolbarTitle>
+        <ToolbarHeading icon={<SettingsIcon />}>{t("settings.title")}</ToolbarHeading>
+      </ToolbarTitle>
+      <nav aria-label={t("settings.x.sections")} className="app-chrome flex w-56 shrink-0 flex-col gap-px border-e border-border/60 bg-pane-raised p-2 pt-3">
         {sections.map((s, i) => {
           const Icon = s.icon;
           const gap = i > 0 && sections[i - 1].group !== s.group;
+          const on = current === s.id;
           return (
             <button
               key={s.id}
               type="button"
               onClick={() => replace({ name: "settings", section: s.id })}
-              aria-current={current === s.id ? "page" : undefined}
+              aria-current={on ? "page" : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-start text-sm transition-colors",
+                "flex h-8 items-center gap-2.5 rounded-md px-2 text-start text-[13px] transition-colors",
                 gap && "mt-3",
-                current === s.id ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:bg-grid-soft hover:text-grid-fg",
+                on ? "bg-selected font-medium text-foreground" : "text-foreground/85 hover:bg-hover",
               )}
             >
-              <Icon className={cn("size-4 shrink-0", current === s.id ? "text-grid-gold" : undefined)} />
+              <span
+                className={cn(
+                  "flex size-5 shrink-0 items-center justify-center rounded-[5px] [&_svg]:size-3.5 [&_svg]:stroke-[2]",
+                  on ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                )}
+              >
+                <Icon />
+              </span>
               {t(s.label)}
             </button>
           );
         })}
       </nav>
-      <ScrollArea className="grid-hatch min-h-0 flex-1">
+      <ScrollArea className="min-h-0 flex-1 bg-background">
         {/* Keyed so a section's local state (forms, fetches) starts fresh. */}
-        <div key={current} className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+        <div key={current} className="mx-auto flex max-w-2xl flex-col gap-6 px-8 py-8">
           <SectionBody section={current} />
         </div>
       </ScrollArea>
@@ -99,7 +112,7 @@ function SectionBody({ section }: { section: SettingsSection }) {
   const { t } = useI18n();
   switch (section) {
     case "general":
-      return <GeneralSettings />;
+      return <><GeneralSettings /><ServicesSettings embedded /></>; // desktop services: sync, Quick Capture, login (own section: TODO UI)
     case "reading":
       return (
         <>

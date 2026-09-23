@@ -183,10 +183,10 @@ export function ImportDialog({ source, onClose }: { source: ImportSource | null;
         </DialogHeader>
 
         {!desktop ? (
-          <p className="text-sm text-grid-muted">{t("imp.desktopOnly")}</p>
+          <p className="text-sm text-muted-foreground">{t("imp.desktopOnly")}</p>
         ) : phase.name === "pick" || phase.name === "preview" ? (
           <div className="grid gap-3">
-            <label className="grid gap-1.5 text-xs text-grid-muted">
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
               {t("imp.brain")}
               {writable.length ? (
                 <Select
@@ -206,33 +206,33 @@ export function ImportDialog({ source, onClose }: { source: ImportSource | null;
                   </SelectContent>
                 </Select>
               ) : (
-                <span className="text-sm text-grid-danger">{t("imp.noWritable")}</span>
+                <span className="text-sm text-destructive">{t("imp.noWritable")}</span>
               )}
             </label>
             {phase.name === "preview" ? <Preview scan={phase.scan} source={source} skipped={skippedList(phase.scan)} /> : null}
           </div>
         ) : phase.name === "scanning" ? (
           <div className="grid gap-2 py-2">
-            <div className="flex items-center gap-2 text-sm text-grid-fg">
+            <div className="flex items-center gap-2 text-sm text-foreground">
               <Loader2 className="size-4 animate-spin text-grid-action" />
               {phase.total ? t("imp.readingCount", { done: phase.done, total: phase.total }) : t("imp.reading")}
             </div>
             {phase.total ? <Progress value={Math.round((phase.done / Math.max(1, phase.total)) * 100)} /> : null}
             {phase.message ? (
-              <p dir="auto" className="truncate text-xs text-grid-muted">
+              <p dir="auto" className="truncate text-xs text-muted-foreground">
                 {phase.message}
               </p>
             ) : null}
           </div>
         ) : phase.name === "running" ? (
           <div className="grid gap-2 py-2">
-            <div className="flex items-center gap-2 text-sm text-grid-fg">
+            <div className="flex items-center gap-2 text-sm text-foreground">
               <Loader2 className="size-4 animate-spin text-grid-action" />
               {t("imp.importing", { done: phase.done, total: phase.scan.total })}
             </div>
             <Progress value={Math.round((phase.done / Math.max(1, phase.scan.total)) * 100)} />
             {phase.current ? (
-              <p dir="auto" className="truncate text-xs text-grid-muted">
+              <p dir="auto" className="truncate text-xs text-muted-foreground">
                 {t("imp.current", { title: phase.current })}
               </p>
             ) : null}
@@ -240,9 +240,9 @@ export function ImportDialog({ source, onClose }: { source: ImportSource | null;
         ) : phase.name === "done" ? (
           <Summary tally={phase.tally} />
         ) : (
-          <div className="flex gap-2 rounded-md border border-line bg-grid-soft p-3 text-sm">
+          <div className="flex gap-2 rounded-md border border-border/60 bg-muted p-3 text-sm">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" style={{ color: "var(--grid-warn)" }} />
-            <p className="whitespace-pre-line text-grid-fg">{phase.message}</p>
+            <p className="whitespace-pre-line text-foreground">{phase.message}</p>
           </div>
         )}
 
@@ -307,18 +307,18 @@ function Preview({ scan, source, skipped }: { scan: ImportScanResult; source: Im
   const { t } = useI18n();
   const more = scan.total - scan.sample.length;
   return (
-    <div className="grid gap-2 rounded-md border border-line bg-grid-card p-3 text-sm">
-      <p className="flex items-center gap-2 font-medium text-grid-fg">
+    <div className="grid gap-2 rounded-md border border-border/60 bg-pane-raised p-3 text-sm">
+      <p className="flex items-center gap-2 font-medium text-foreground">
         <CheckCircle2 className="size-4" style={{ color: "var(--grid-ok)" }} />
         <span dir="auto">{t("imp.found", { count: scan.total, label: scan.sourceLabel ?? "" })}</span>
       </p>
-      {scan.images ? <p className="text-xs text-grid-muted">{t("imp.images", { count: scan.images })}</p> : null}
-      {skipped ? <p className="text-xs text-grid-muted">{t("imp.skipped", { list: skipped })}</p> : null}
-      {scan.warnings.length ? <p className="text-xs text-grid-muted">{t("imp.warnings", { count: scan.warnings.length })}</p> : null}
+      {scan.images ? <p className="text-xs text-muted-foreground">{t("imp.images", { count: scan.images })}</p> : null}
+      {skipped ? <p className="text-xs text-muted-foreground">{t("imp.skipped", { list: skipped })}</p> : null}
+      {scan.warnings.length ? <p className="text-xs text-muted-foreground">{t("imp.warnings", { count: scan.warnings.length })}</p> : null}
       {scan.sample.length ? (
-        <div className="text-xs text-grid-muted">
+        <div className="text-xs text-muted-foreground">
           {t("imp.sample")}
-          <ul className="mt-1 list-disc ps-5 text-grid-fg">
+          <ul className="mt-1 list-disc ps-5 text-foreground">
             {scan.sample.map((s, i) => (
               <li key={i} dir="auto" className="truncate">
                 {s}
@@ -328,7 +328,7 @@ function Preview({ scan, source, skipped }: { scan: ImportScanResult; source: Im
           {more > 0 ? <p className="mt-1">{t("imp.more", { count: more })}</p> : null}
         </div>
       ) : null}
-      <p className="text-xs text-grid-muted">{t("imp.tagHint", { tag: source })}</p>
+      <p className="text-xs text-muted-foreground">{t("imp.tagHint", { tag: source })}</p>
     </div>
   );
 }
@@ -337,7 +337,7 @@ function Summary({ tally }: { tally: ImportTally }) {
   const { t } = useI18n();
   return (
     <div className="grid gap-2 text-sm">
-      <p className="flex items-center gap-2 font-medium text-grid-fg">
+      <p className="flex items-center gap-2 font-medium text-foreground">
         {tally.failed.length ? (
           <AlertTriangle className="size-4" style={{ color: "var(--grid-warn)" }} />
         ) : (
@@ -345,17 +345,17 @@ function Summary({ tally }: { tally: ImportTally }) {
         )}
         {tally.stopped ? t("imp.done.stopped") : t("imp.done.title")}
       </p>
-      <p className="text-grid-muted">
+      <p className="text-muted-foreground">
         {t("imp.done.summary", { imported: tally.imported, skipped: tally.skipped, failed: tally.failed.length })}
       </p>
       {tally.failed.length ? (
-        <div className="max-h-40 overflow-y-auto rounded-md border border-line bg-grid-card p-2 text-xs">
-          <p className="mb-1 font-medium text-grid-fg">{t("imp.failedList")}</p>
+        <div className="max-h-40 overflow-y-auto rounded-md border border-border/60 bg-pane-raised p-2 text-xs">
+          <p className="mb-1 font-medium text-foreground">{t("imp.failedList")}</p>
           <ul className="grid gap-1">
             {tally.failed.slice(0, 100).map((f, i) => (
               <li key={i} dir="auto">
-                <span className="text-grid-fg">{f.title}</span>
-                <span className="text-grid-muted"> — {f.error}</span>
+                <span className="text-foreground">{f.title}</span>
+                <span className="text-muted-foreground"> — {f.error}</span>
               </li>
             ))}
           </ul>

@@ -128,9 +128,9 @@ export function SecretForm({ target, namespace, token, onClose, onSaved }: {
               placeholder="OPENAI_API_KEY"
               maxLength={200}
               aria-invalid={!!nameError}
-              className={cn("font-mono text-start", updating && "text-grid-muted")}
+              className={cn("font-mono text-start", updating && "text-muted-foreground")}
             />
-            {nameError ? <p className="text-xs text-grid-danger">{nameError}</p> : null}
+            {nameError ? <p className="text-xs text-destructive">{nameError}</p> : null}
             {nameError && !check.ok && check.suggestion ? (
               <button
                 type="button"
@@ -155,8 +155,8 @@ export function SecretForm({ target, namespace, token, onClose, onSaved }: {
                   className={cn(
                     "rounded-md border px-2 py-1 text-xs transition-colors",
                     kind === k
-                      ? "border-grid-gold bg-grid-gold/10 text-grid-fg"
-                      : "border-line text-grid-muted hover:bg-grid-soft hover:text-grid-fg",
+                      ? "border-grid-gold bg-grid-gold/10 text-foreground"
+                      : "border-border/60 text-muted-foreground hover:bg-hover hover:text-foreground",
                   )}
                 >
                   {isSecretKind(k) ? (
@@ -206,16 +206,16 @@ export function SecretForm({ target, namespace, token, onClose, onSaved }: {
                 </Button>
               </div>
             )}
-            {updating ? <p className="text-xs text-grid-muted">{t("vault.form.replaceHint")}</p> : null}
+            {updating ? <p className="text-xs text-muted-foreground">{t("vault.form.replaceHint")}</p> : null}
             {value ? (
-              <p className="font-mono text-xs text-grid-muted">
+              <p className="font-mono text-xs text-muted-foreground">
                 {tLtr(t, "vault.form.preview", "hint", maskValue(value))}
               </p>
             ) : null}
-            {attempted && !value ? <p className="text-xs text-grid-danger">{t("vault.form.valueRequired")}</p> : null}
+            {attempted && !value ? <p className="text-xs text-destructive">{t("vault.form.valueRequired")}</p> : null}
           </div>
 
-          {error ? <p className="text-xs text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
           <DialogFooter>
             <Button type="button" variant="outline" disabled={busy} onClick={onClose}>

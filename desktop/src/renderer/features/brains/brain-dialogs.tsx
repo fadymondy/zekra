@@ -156,7 +156,7 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: {
                 setSlug(e.target.value.toLowerCase());
               }}
             />
-            <p className={cn("text-xs", namespace.length > 0 && !nsOk ? "text-grid-danger" : "text-grid-muted")}>
+            <p className={cn("text-xs", namespace.length > 0 && !nsOk ? "text-destructive" : "text-muted-foreground")}>
               {namespace.length > 0 && !nsOk ? t("brains.new.namespaceInvalid") : t("brains.new.namespaceHint")}
             </p>
           </div>
@@ -196,7 +196,7 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: {
             </div>
           </div>
 
-          {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
@@ -224,11 +224,11 @@ function Swatch({ label, hex, selected, onClick }: { label: string; hex?: string
       className={cn(
         "flex size-6 items-center justify-center rounded-full border transition",
         selected ? "ring-2 ring-grid-gold ring-offset-1 ring-offset-background" : "hover:scale-110",
-        hex ? "border-transparent" : "border-line bg-grid-soft",
+        hex ? "border-transparent" : "border-border/60 bg-muted",
       )}
       style={hex ? { backgroundColor: hex } : undefined}
     >
-      {selected ? <Check className={cn("size-3.5", hex ? "text-white" : "text-grid-muted")} /> : null}
+      {selected ? <Check className={cn("size-3.5", hex ? "text-white" : "text-muted-foreground")} /> : null}
     </button>
   );
 }
@@ -305,7 +305,7 @@ export function DeleteBrainDialog({ brain, onOpenChange, onDeleted }: {
               onChange={(e) => setTyped(e.target.value)}
             />
           </div>
-          {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               {t("action.cancel")}

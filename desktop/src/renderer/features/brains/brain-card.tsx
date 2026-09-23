@@ -1,8 +1,8 @@
 import { memo, type ReactNode } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
+  Activity,
   CircleCheck,
+  Database,
   CircleHelp,
   Download,
   Ellipsis,
@@ -27,10 +27,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import {
-  brainHex,
   brainName,
   canDelete,
   formatAgo,
@@ -81,25 +81,22 @@ function useActions(brain: BrainListItem): ActionDef[] {
 function Tag({ children, hue, className }: { children: ReactNode; hue?: string; className?: string }) {
   return (
     <span
-      className={cn("inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] leading-4", className)}
-      style={{
-        borderColor: hue ? `${hue}55` : "var(--grid-line)",
-        backgroundColor: hue ? `${hue}1A` : "var(--grid-card)",
-        color: hue ?? "var(--grid-body)",
-      }}
+      className={cn("inline-flex h-5 max-w-full items-center gap-1 rounded-md bg-muted px-1.5 text-[11px] leading-4 text-foreground/80", className)}
+      style={hue ? { backgroundColor: `color-mix(in oklab, ${hue} 16%, transparent)`, color: hue } : undefined}
     >
       {children}
     </span>
   );
 }
 
-function Metric({ value, label }: { value: string; label: string }) {
+function Stat({ icon, value, label }: { icon: ReactNode; value: string; label: string }) {
   return (
-    <span className="min-w-0 px-4 py-2.5 first:ps-4">
-      <span dir="ltr" className="block truncate font-mono text-[15px] text-grid-fg tabular-nums">
+    <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground" title={label}>
+      <span className="flex shrink-0 [&_svg]:size-3.5 [&_svg]:stroke-[1.75]">{icon}</span>
+      <span dir="ltr" className="font-medium text-foreground/85 tabular-nums">
         {value}
       </span>
-      <span className="grid-micro block truncate text-grid-muted">{label}</span>
+      <span className="truncate">{label}</span>
     </span>
   );
 }
@@ -109,14 +106,12 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
   token: string;
   onAction: (brain: BrainListItem, action: BrainAction) => void;
 }) {
-  const { t, locale, isRtl } = useI18n();
+  const { t, locale } = useI18n();
   const detail = useBrainDetail(brain.namespace).data;
-  const hex = brainHex(brain);
   const name = brainName(brain);
   const types = topTypes(detail?.types);
   const roleKey = brain.role ? ROLE_KEYS[brain.role] : undefined;
   const actions = useActions(brain);
-  const Forward = isRtl ? ArrowLeft : ArrowRight;
 
   return (
     <ContextMenu>
@@ -133,30 +128,24 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
                 onAction(brain, "open");
               }
             }}
-            className="group relative flex cursor-default flex-col bg-grid-card text-start transition-colors outline-none hover:bg-grid-soft focus-visible:bg-grid-soft focus-visible:ring-2 focus-visible:ring-grid-action/50 focus-visible:ring-inset"
+            className="group relative flex min-h-44 cursor-default flex-col gap-3 rounded-xl border border-border/70 bg-pane-raised p-4 text-start transition-colors outline-none hover:border-border hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/50 data-popup-open:bg-hover"
           />
         }
       >
-        <span
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-0.5 transition-opacity group-hover:opacity-100"
-          style={{ backgroundColor: hex || "var(--grid-action)", opacity: hex ? 0.85 : 0.5 }}
-        />
-
-        <div className="flex items-start gap-3 p-4 pb-3">
-          <BrainAvatar brain={brain} token={token} size={44} />
+        <div className="flex items-start gap-3">
+          <BrainAvatar brain={brain} token={token} size={36} />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate text-[15px] font-medium text-grid-fg" style={{ unicodeBidi: "plaintext" }}>
+              <span className="truncate text-[14px] font-semibold text-foreground" style={{ unicodeBidi: "plaintext" }}>
                 {name}
               </span>
-              {roleKey ? <Tag>{t(roleKey)}</Tag> : null}
+              {roleKey ? <Tag className="shrink-0">{t(roleKey)}</Tag> : null}
             </div>
-            <div className="mt-0.5 truncate text-[11.5px] text-grid-muted">
+            <div className="mt-0.5 truncate text-[12px] text-muted-foreground">
               {name !== brain.namespace ? (
                 <>
-                  <bdi className="font-mono text-[11px]">{brain.namespace}</bdi>
-                  {"  ·  "}
+                  <bdi>{brain.namespace}</bdi>
+                  {" · "}
                 </>
               ) : null}
               {t("brains.updated", { when: formatAgo(brain.lastAt, locale) })}
@@ -170,7 +159,7 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
                   aria-label={t("brains.menu.label", { brain: name })}
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}
-                  className="flex size-7 shrink-0 items-center justify-center rounded-md border border-line text-grid-muted opacity-70 transition hover:bg-grid-card hover:text-grid-fg group-hover:opacity-100"
+                  className="-me-1 -mt-1 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-selected hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 aria-expanded:bg-selected aria-expanded:opacity-100"
                 />
               }
             >
@@ -191,36 +180,29 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
         </div>
 
         {brain.description ? (
-          <p className="line-clamp-2 px-4 pb-3 text-[13px] leading-5 font-light text-grid-body">{brain.description}</p>
+          <p className="line-clamp-2 text-[13px] leading-5 text-muted-foreground" dir="auto">
+            {brain.description}
+          </p>
         ) : null}
 
-        <div className="mt-auto grid grid-cols-3 divide-x divide-line border-y border-line rtl:divide-x-reverse">
-          <Metric value={formatCount(brain.memories)} label={t("brains.metric.memories")} />
-          <Metric value={detail ? formatCount(detail.recalls) : "—"} label={t("brains.metric.recalls")} />
-          <Metric value={detail ? formatCount(Object.keys(detail.types ?? {}).length) : "—"} label={t("brains.metric.types")} />
-        </div>
-
-        <div className="flex min-h-11 flex-wrap items-center gap-1.5 px-4 py-2.5">
+        <div className="flex min-h-5 flex-wrap items-center gap-1">
           {!detail ? (
             <>
-              <span className="h-5 w-16 animate-pulse rounded-md bg-grid-soft" />
-              <span className="h-5 w-12 animate-pulse rounded-md bg-grid-soft" />
-              <span className="h-5 w-14 animate-pulse rounded-md bg-grid-soft" />
+              <Skeleton className="h-5 w-16 rounded-md" />
+              <Skeleton className="h-5 w-12 rounded-md" />
             </>
-          ) : types.top.length === 0 ? (
-            <span className="text-xs text-grid-muted">{t("brains.noTypes")}</span>
-          ) : (
+          ) : types.top.length === 0 ? null : (
             <>
               {types.top.map(([type, n]) => (
                 <Tag key={type}>
                   <span className="truncate">{type}</span>
-                  <span dir="ltr" className="font-mono text-[10.5px] text-grid-muted">
+                  <span dir="ltr" className="text-muted-foreground tabular-nums">
                     {formatCount(n)}
                   </span>
                 </Tag>
               ))}
               {types.rest > 0 ? (
-                <span dir="ltr" className="font-mono text-[11px] text-grid-muted">
+                <span dir="ltr" className="px-1 text-[11px] text-muted-foreground">
                   +{types.rest}
                 </span>
               ) : null}
@@ -228,24 +210,22 @@ export const BrainCard = memo(function BrainCard({ brain, token, onAction }: {
           )}
         </div>
 
-        <div className="flex items-center gap-2 border-t border-line px-4 py-2.5">
-          <div className="min-w-0 flex-1">
+        <div className="mt-auto flex items-center gap-4 border-t border-border/60 pt-3">
+          <Stat icon={<Database />} value={formatCount(brain.memories)} label={t("brains.metric.memories")} />
+          <Stat icon={<Activity />} value={detail ? formatCount(detail.recalls) : "—"} label={t("brains.metric.recalls")} />
+          <div className="ms-auto">
             {!detail ? null : detail.openGaps > 0 ? (
-              <Tag hue="#C9A227">
+              <Tag hue="var(--grid-warn)">
                 <CircleHelp className="size-3" />
                 {detail.openGaps === 1 ? t("brains.openGapOne") : t("brains.openGapMany", { count: formatCount(detail.openGaps) })}
               </Tag>
             ) : (
-              <span className="flex items-center gap-1.5 text-xs text-grid-muted">
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                 <CircleCheck className="size-3.5 text-grid-ok" />
                 {t("brains.noGaps")}
               </span>
             )}
           </div>
-          <span className="flex items-center gap-1 text-[13px] text-grid-muted transition-colors group-hover:text-grid-fg">
-            {t("brains.open")}
-            <Forward className="size-3.5" />
-          </span>
         </div>
       </ContextMenuTrigger>
 

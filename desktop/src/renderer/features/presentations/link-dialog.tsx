@@ -82,11 +82,11 @@ export function LinkDialog({ state, onClose, token, docId, title, locales, defau
 
         {result ? (
           <>
-            <div dir="ltr" className="rounded-md border border-grid-gold bg-grid-gold/10 px-3 py-2.5 text-start font-mono text-xs break-all text-grid-fg select-text">
+            <div dir="ltr" className="rounded-md border border-grid-gold bg-grid-gold/10 px-3 py-2.5 text-start font-mono text-xs break-all text-foreground select-text">
               {result.url}
             </div>
             {result.recoverable ? (
-              <p className="text-xs text-grid-muted">{t("presentations.share.recoverable")}</p>
+              <p className="text-xs text-muted-foreground">{t("presentations.share.recoverable")}</p>
             ) : (
               <p className="flex items-start gap-2 text-xs font-medium text-grid-warn">
                 <KeyRound className="mt-px size-3.5 shrink-0" />
@@ -129,7 +129,7 @@ export function LinkDialog({ state, onClose, token, docId, title, locales, defau
             </div>
             {locales.length > 1 ? (
               <div className="flex flex-col gap-1.5">
-                <span className="grid-micro text-grid-muted">{t("presentations.share.language")}</span>
+                <span className="grid-micro text-muted-foreground">{t("presentations.share.language")}</span>
                 <Segmented<PLocale>
                   label={t("presentations.share.language")}
                   value={loc}
@@ -139,7 +139,7 @@ export function LinkDialog({ state, onClose, token, docId, title, locales, defau
               </div>
             ) : null}
             <div className="flex flex-col gap-1.5">
-              <span className="grid-micro text-grid-muted">{t("presentations.share.expires")}</span>
+              <span className="grid-micro text-muted-foreground">{t("presentations.share.expires")}</span>
               <div className="flex flex-wrap gap-2">
                 {EXPIRY_PRESETS.map((n) => (
                   <ToggleChip key={n} on={days === n} onClick={() => setDays(n)}>

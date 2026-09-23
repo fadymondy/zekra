@@ -67,6 +67,20 @@ export interface AppSettings {
    *  renderer's point of view (patching it is ignored). */
   windowBounds: WindowBounds | null;
   lock: LockSettings;
+  /* Desktop services (src/main/services.ts). */
+  /** Global Quick Capture accelerator. null = the platform default
+   *  (macOS Alt+Command+N, elsewhere Control+Alt+N); "" = disabled. */
+  quickCaptureShortcut: string | null;
+  /** The brain Quick Capture saved to last. */
+  quickCaptureBrain: string | null;
+  /** Start Zekra when the user logs in (macOS/Windows login item, Linux XDG autostart). */
+  launchAtLogin: boolean;
+  /** …without opening the window: menubar / tray only. */
+  openAtLoginHidden: boolean;
+  /** Background sync period; 0 = only on launch, focus and after edits. */
+  syncIntervalMinutes: number;
+  /** Keep a local copy of brains and notes so the app opens instantly and works offline. */
+  offlineCacheEnabled: boolean;
 }
 
 /** Keys the renderer may patch. windowBounds is owned by main. */
@@ -81,6 +95,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   authUser: null,
   windowBounds: null,
   lock: { enabled: false, touchId: true, timeoutMinutes: 5, offered: false },
+  quickCaptureShortcut: null,
+  quickCaptureBrain: null,
+  launchAtLogin: false,
+  openAtLoginHidden: true,
+  syncIntervalMinutes: 5,
+  offlineCacheEnabled: true,
 };
 
 /* ------------------------------------------------------------ commands */
@@ -120,6 +140,23 @@ export const COMMANDS = [
   "settings",
   "sign-out",
   "about",
+  // Native-shell navigation & object menus (Note / Brain / Go, context menus)
+  "toggle-list",
+  "open-in-new-window",
+  "note:pin",
+  "note:archive",
+  "note:appearance",
+  "note:versions",
+  "note:copy",
+  "note:delete",
+  "brain:notes",
+  "brain:presentations",
+  "brain:vault",
+  "brain:export",
+  "go:back",
+  "go:brains",
+  "go:search",
+  "go:inbox",
 ] as const;
 
 export type CommandName = (typeof COMMANDS)[number];
@@ -303,6 +340,53 @@ export interface AppInfo {
    *  on which PHYSICAL side they sit (macOS traffic lights are always left,
    *  whatever the app's locale). */
   windowControls: { side: "left" | "right"; inset: number };
+  /** OS release (macOS/Darwin, Windows build "10.0.22631", Linux kernel). */
+  osVersion?: string;
+  /** How the window is framed (src/main/window-chrome.ts):
+   *  hidden-inset  macOS: traffic lights over the renderer's unified toolbar
+   *  overlay       Windows: native caption buttons over the renderer's title bar
+   *  frame         Linux: the window manager's own frame */
+  chrome?: "hidden-inset" | "overlay" | "frame";
+  /** Height of the renderer-drawn title bar / toolbar row, CSS px. */
+  titleBarHeight?: number;
+  /** A translucent system material sits behind the window (vibrancy / Mica). */
+  material?: "vibrancy" | "mica" | "none";
+}
+
+/* Native shell (src/main/native-ui.ts). */
+
+/** One item of a native popup menu (Menu.buildFromTemplate().popup()). */
+export interface NativeMenuItem {
+  /** Returned by showContextMenu when this item is chosen. */
+  id?: string;
+  label?: string;
+  type?: "normal" | "separator" | "checkbox" | "radio" | "submenu";
+  checked?: boolean;
+  enabled?: boolean;
+  /** Display-only shortcut hint, e.g. "CmdOrCtrl+Backspace". */
+  accelerator?: string;
+  submenu?: NativeMenuItem[];
+}
+
+export interface PopupMenuRequest {
+  items: NativeMenuItem[];
+  /** Window-relative CSS px; defaults to the mouse position. */
+  x?: number;
+  y?: number;
+}
+
+/** A note opened in its own document window. */
+export interface NoteWindowRequest {
+  namespace: string;
+  id: string;
+  title?: string;
+}
+
+/** Title-bar colours the renderer resolves from the theme tokens (Windows'
+ *  caption-button overlay cannot read CSS). */
+export interface WindowChromeColors {
+  background: string;
+  foreground: string;
 }
 
 /* MH-450 Settings ▸ Connect: write a Zekra remote-MCP entry into an AI tool's
@@ -430,6 +514,12 @@ export const IPC = {
   importCancel: "zekra:import:cancel",
   shellReveal: "zekra:shell:reveal",
   traySetRecent: "zekra:tray:set-recent",
+  // Native shell: popup menus, the app menu as a title-bar button (Windows),
+  // note windows, title-bar overlay colours (src/main/native-ui.ts)
+  menuPopup: "zekra:menu:popup",
+  menuPopupApp: "zekra:menu:popup-app",
+  windowOpenNote: "zekra:window:open-note",
+  windowSetChrome: "zekra:window:set-chrome",
   // events (main -> renderer)
   evCommand: "zekra:command",
   evDeepLink: "zekra:deep-link",
@@ -442,6 +532,33 @@ export const IPC = {
   evAppActivity: "zekra:app-activity",
   // MH-450 importers: scan progress (main -> renderer).
   evImportProgress: "zekra:import-progress",
+  // Desktop services (src/main/services.ts): offline cache + sync, Quick
+  // Capture, login item, share, rich notifications.
+  offlineNotes: "zekra:offline:notes",
+  offlineNote: "zekra:offline:note",
+  offlineBrains: "zekra:offline:brains",
+  offlineVersions: "zekra:offline:versions",
+  offlinePut: "zekra:offline:put",
+  offlineEnqueue: "zekra:offline:enqueue",
+  offlineResolveBase: "zekra:offline:resolve-base",
+  offlineSyncNow: "zekra:offline:sync-now",
+  offlineStatus: "zekra:offline:status",
+  offlineClear: "zekra:offline:clear",
+  offlineDismissConflict: "zekra:offline:dismiss-conflict",
+  captureOpen: "zekra:capture:open",
+  captureInit: "zekra:capture:init",
+  captureSave: "zekra:capture:save",
+  captureClose: "zekra:capture:close",
+  captureClipboard: "zekra:capture:clipboard",
+  captureBrowserTab: "zekra:capture:browser-tab",
+  servicesInfo: "zekra:services:info",
+  servicesSetShortcut: "zekra:services:set-shortcut",
+  shareNote: "zekra:share:note",
+  notifyRich: "zekra:notify:rich",
+  evSyncStatus: "zekra:sync-status",
+  evSyncChange: "zekra:sync-change",
+  evNotificationAction: "zekra:notification-action",
+  evCaptureShow: "zekra:capture-show",
 } as const;
 
 /* --------------------------------------------------------------- bridge */
@@ -507,6 +624,15 @@ export interface ZekraBridge {
   revealInFinder?(path: string): Promise<void>;
   /** The menubar's "Recent Notes" (newest first, max 5). */
   setTrayRecent?(notes: TrayRecentNote[]): Promise<void>;
+  /* Native shell. Optional: absent from the browser preview. */
+  /** Pop a native menu; resolves with the chosen item's id, or null. */
+  showContextMenu?(req: PopupMenuRequest): Promise<string | null>;
+  /** Pop the application menu (Windows/Linux title-bar "…" button). */
+  popupAppMenu?(x: number, y: number): Promise<void>;
+  /** Open (or focus) a note in its own window. */
+  openNoteWindow?(req: NoteWindowRequest): Promise<void>;
+  /** Theme colours for native title-bar parts (Windows caption overlay). */
+  setWindowChrome?(colors: WindowChromeColors): Promise<void>;
 
   // events
   onCommand(cb: (e: CommandEvent) => void): Unsubscribe;
@@ -520,7 +646,74 @@ export interface ZekraBridge {
   onAppActivity(cb: (e: AppActivityEvent) => void): Unsubscribe;
   /** MH-450 importers: scan progress (desktop-only). */
   onImportProgress?(cb: (e: ImportProgressEvent) => void): Unsubscribe;
+
+  /* Desktop services (src/main/services.ts). Optional: absent from the
+   * browser preview bridge — callers use `?.` (src/renderer/services/offline.ts
+   * wraps them). */
+  /** Cached notes of a brain, instantly (no network). */
+  offlineNotes?(namespace: string, query?: OfflineQuery): Promise<OfflineNotesResult>;
+  offlineNote?(namespace: string, id: string): Promise<OfflineNote | null>;
+  offlineBrains?(): Promise<OfflineBrains>;
+  /** Cached version metadata of a note; refreshed in the background when online. */
+  offlineVersions?(namespace: string, id: string): Promise<OfflineVersions>;
+  /** Write-through: a note the renderer just received from the API. */
+  offlinePut?(note: OfflineNote): Promise<void>;
+  /** Queue an edit (works offline); returns the optimistic note. */
+  offlineEnqueue?(edit: OfflineEdit): Promise<OfflineEnqueueResult>;
+  /** The version a PUT based on `version` should send, given this app's own
+   *  queued pushes since (v -> v+1 written by the queue). Also maps a
+   *  pushed `local:` id to its server id. */
+  offlineResolveBase?(id: string, version: number): Promise<{ id: string; version: number; pending: boolean }>;
+  offlineSyncNow?(): Promise<SyncStatus>;
+  offlineStatus?(): Promise<SyncStatus>;
+  /** Drop the local cache (pending edits are kept unless `includeQueue`). */
+  offlineClear?(includeQueue?: boolean): Promise<SyncStatus>;
+  offlineDismissConflict?(id: string): Promise<SyncStatus>;
+  /** Show the Quick Capture panel. */
+  openQuickCapture?(): Promise<void>;
+  captureInit?(): Promise<CaptureInit>;
+  captureSave?(req: CaptureSaveRequest): Promise<CaptureSaveResult>;
+  captureClose?(): Promise<void>;
+  captureClipboard?(): Promise<ClipboardCapture>;
+  captureBrowserTab?(): Promise<BrowserTabResult>;
+  getServicesInfo?(): Promise<ServicesInfo>;
+  /** Validate, register and persist a new Quick Capture accelerator
+   *  (null = platform default, "" = off). */
+  setQuickCaptureShortcut?(accelerator: string | null): Promise<ShortcutResult>;
+  /** macOS share sheet menu; clipboard / mail fallback elsewhere. */
+  shareNote?(req: ShareRequest): Promise<ShareResult>;
+  /** A notification with actions / reply (onNotificationAction). */
+  notifyRich?(req: RichNotifyRequest): Promise<void>;
+  onSyncStatus?(cb: (e: SyncStatus) => void): Unsubscribe;
+  onSyncChange?(cb: (e: SyncChangeEvent) => void): Unsubscribe;
+  onNotificationAction?(cb: (e: NotificationActionEvent) => void): Unsubscribe;
+  /** Capture panel only: it was shown again (reset / focus). */
+  onCaptureShow?(cb: (e: CaptureInit) => void): Unsubscribe;
 }
+
+export * from "./services";
+import type {
+  BrowserTabResult,
+  CaptureInit,
+  CaptureSaveRequest,
+  CaptureSaveResult,
+  ClipboardCapture,
+  NotificationActionEvent,
+  OfflineBrains,
+  OfflineEdit,
+  OfflineEnqueueResult,
+  OfflineNote,
+  OfflineNotesResult,
+  OfflineQuery,
+  OfflineVersions,
+  RichNotifyRequest,
+  ServicesInfo,
+  ShareRequest,
+  ShareResult,
+  ShortcutResult,
+  SyncChangeEvent,
+  SyncStatus,
+} from "./services";
 
 /** File extensions the app opens (fileAssociations + open-file + dialog). */
 export const MARKDOWN_EXTENSIONS = ["md", "markdown", "mdx"] as const;

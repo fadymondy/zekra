@@ -33,6 +33,9 @@ import { getSettings, migrateSettings } from "./settings-store";
 import { createTray, rebuildTrayMenu } from "./tray";
 import { installingUpdate, startUpdater } from "./updater";
 import { initialBounds, MIN_SIZE, trackWindowState } from "./window-state";
+import { windowBackgroundFor, windowChromeFor } from "./window-chrome";
+import { registerNativeUiIpc, restoreNoteWindows } from "./native-ui";
+import { installDesktopServices, servicesOnSettingsChanged, startHidden } from "./services";
 
 const APP_ID = "com.fadymondy.zekra.desktop";
 
@@ -70,13 +73,16 @@ function boot(): void {
   let quitFlushed = false;
   app.on("before-quit", (event) => {
     if (quitFlushed || installingUpdate) return;
-    const win = getMainWindow();
-    if (!win || win.isDestroyed()) return;
+    // Every renderer window (main + note windows) may hold an unsaved edit.
+    const wins = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed());
+    if (!wins.length) return;
     event.preventDefault();
     quitFlushed = true;
-    const flushed = win.webContents
-      .executeJavaScript("window.__zekraFlushAll ? window.__zekraFlushAll() : null", true)
-      .catch(() => undefined);
+    const flushed = Promise.all(
+      wins.map((w) =>
+        w.webContents.executeJavaScript("window.__zekraFlushAll ? window.__zekraFlushAll() : null", true).catch(() => undefined),
+      ),
+    );
     const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
     void Promise.race([flushed, timeout]).finally(() => app.quit());
   });
@@ -107,8 +113,12 @@ function boot(): void {
 
 /* ------------------------------------------------------------- ready */
 
+/** Consumed by the first main window (services.ts startHidden). */
+let hiddenLaunch = false;
+
 function onReady(): void {
   migrateSettings();
+  hiddenLaunch = startHidden();
   const settings = getSettings();
   setMenuLocale(settings.locale);
   applyThemeSource(settings.theme);
@@ -124,14 +134,27 @@ function onReady(): void {
   }
 
   registerIpc(onSettingsChanged);
+  registerNativeUiIpc(); // native popup menus, note windows, title-bar colours
   installAppActivity(); // MH-450 app lock: before the main window exists
   installMenu();
   createMainWindow();
+  restoreNoteWindows(); // note windows open at last quit
   createTray(() => {
     if (!getMainWindow()) createMainWindow();
     focusMainWindow();
   });
   startUpdater();
+  // Offline cache + sync, Quick Capture, login item, Dock menu / Jump List,
+  // share, rich notifications (services.ts). Before handleArgv: it claims
+  // zekra://app/… links (Jump List tasks).
+  installDesktopServices({
+    showMainWindow: () => {
+      if (!getMainWindow()) createMainWindow();
+      focusMainWindow();
+    },
+    appName: APP_NAME,
+    appNameAr: APP_NAME_AR,
+  });
 
   // Windows / Linux deliver the launch URL or file in argv.
   if (process.platform !== "darwin") handleArgv(process.argv);
@@ -147,14 +170,16 @@ function onSettingsChanged(next: AppSettings, patch: Partial<AppSettings>): void
     applyThemeSource(next.theme);
     getMainWindow()?.setBackgroundColor(backgroundFor());
   }
+  servicesOnSettingsChanged(next, patch); // shortcut, login item, sync scope/interval
 }
 
 /* ------------------------------------------------------------ window */
 
-/** The Zekra ground for the resolved theme — painted before the first frame
- *  so there is no white flash: navy #0B1429 dark, ivory #F0EBE1 light. */
+/** The window's own ground — transparent where a system material (vibrancy,
+ *  Mica) shows through, else the Zekra ground for the resolved theme, painted
+ *  before the first frame so there is no white flash (window-chrome.ts). */
 function backgroundFor(): string {
-  return nativeTheme.shouldUseDarkColors ? "#0B1429" : "#F0EBE1";
+  return windowBackgroundFor();
 }
 
 function rendererIndexPath(): string {
@@ -173,7 +198,6 @@ function sendWindowState(win: BrowserWindow): void {
 
 function createMainWindow(): BrowserWindow {
   const bounds = initialBounds();
-  const isMac = process.platform === "darwin";
 
   const win = new BrowserWindow({
     x: bounds.x,
@@ -184,12 +208,10 @@ function createMainWindow(): BrowserWindow {
     minHeight: MIN_SIZE.height,
     title: APP_NAME,
     show: false,
-    backgroundColor: backgroundFor(),
-    // macOS: content runs under the title bar; the traffic lights sit inside
-    // the renderer's 44px title bar, which leaves an 80px inset for them
-    // (shell/title-bar.tsx). Mark It Down uses the same geometry.
-    titleBarStyle: isMac ? "hiddenInset" : "default",
-    trafficLightPosition: isMac ? { x: 16, y: 15 } : undefined,
+    // Native chrome per OS (window-chrome.ts): macOS hiddenInset + traffic
+    // lights over the renderer's unified toolbar + sidebar vibrancy; Windows
+    // caption-button overlay + Mica; Linux the WM's own frame.
+    ...windowChromeFor(),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -204,7 +226,12 @@ function createMainWindow(): BrowserWindow {
   if (bounds.maximized) win.maximize();
   if (bounds.fullscreen) win.setFullScreen(true);
 
-  win.once("ready-to-show", () => win.show());
+  // Launched at login with "open hidden": menubar/tray only until the user
+  // opens it (Dock click -> activate, tray -> Open Zekra).
+  win.once("ready-to-show", () => {
+    if (hiddenLaunch) hiddenLaunch = false;
+    else win.show();
+  });
 
   // Only ever load this app's own bundled renderer. No remote loadURL.
   void win.loadFile(rendererIndexPath());

@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import { Ellipsis, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg";
 import { useNoteSettings } from "@/components/notes/note-settings-panel";
 import { imageFilesFrom } from "@/lib/notes/upload-image";
@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 
 import { Autosaver, type AutosaveStatus } from "@mobile/features/editor/autosave-core";
 
+import { IconButton } from "../../components/chrome";
 import { Markdown } from "../../components/markdown";
 import type { Brain, Note } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
@@ -111,15 +112,19 @@ export type NoteEditorProps = {
   mode: EditorMode;
   onModeChange: (m: EditorMode) => void;
   outlineHost: HTMLElement | null;
+  /** The pane header's end (the group's tab strip): mode switch + note menu
+   *  are portalled there, so the pane has one header row. */
+  chromeHost?: HTMLElement | null;
   onSaved: (tabKey: string, note: Note) => void;
   onCreated: (tabKey: string, note: Note) => void;
   onStatus: (tabKey: string, status: AutosaveStatus) => void;
   /** Dropdown items for the "…" menu of a saved note. */
-  menu: (note: Note) => ReactNode;
+  /** The "…" button: pops the note's native menu under `anchor`. */
+  onMenu: (note: Note, anchor: Element) => void;
 };
 
 export function NoteEditor(props: NoteEditorProps) {
-  const { tab, brain, token, cached, focused, mode, onModeChange, outlineHost, menu } = props;
+  const { tab, brain, token, cached, focused, mode, onModeChange, outlineHost, chromeHost, onMenu } = props;
   const { t, dir } = useI18n();
   const { settings } = useNoteSettings();
   const canWrite = brain.canWrite;
@@ -525,7 +530,7 @@ export function NoteEditor(props: NoteEditorProps) {
               : "";
   const saveTone =
     status === "conflict" || status === "error"
-      ? "text-grid-danger"
+      ? "text-destructive"
       : status === "dirty"
         ? "text-grid-gold"
         : status === "saving"
@@ -539,7 +544,8 @@ export function NoteEditor(props: NoteEditorProps) {
         <span>{t("ws.status.chars", { n: stats.chars.toLocaleString() })}</span>
         {cursor ? <span>{t("ws.status.cursor", { line: cursor.line, col: cursor.col })}</span> : null}
         {saveLabel ? (
-          <span className={cn("font-mono tracking-wider uppercase", saveTone)} title={saveError || undefined}>
+          <span className={cn("flex items-center gap-1.5", saveTone)} title={saveError || undefined}>
+            <span aria-hidden className="size-1.5 rounded-full bg-current opacity-80" />
             {saveLabel}
           </span>
         ) : null}
@@ -552,8 +558,8 @@ export function NoteEditor(props: NoteEditorProps) {
   if (loadError) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-sm">
-        <p className="text-grid-danger">{t("ws.loadFailed")}</p>
-        <p className="text-xs text-grid-muted">{loadError}</p>
+        <p className="text-destructive">{t("ws.loadFailed")}</p>
+        <p className="text-xs text-muted-foreground">{loadError}</p>
       </div>
     );
   }
@@ -580,41 +586,30 @@ export function NoteEditor(props: NoteEditorProps) {
       onPaste={onSourcePaste}
       onDrop={onSourceDrop}
       style={readerFont}
-      className="zk-source h-full w-full resize-none bg-transparent px-8 py-5 font-mono leading-6 text-grid-fg outline-none placeholder:text-grid-muted"
+      className="zk-source h-full w-full resize-none bg-transparent px-10 py-5 font-mono leading-6 text-foreground outline-none placeholder:text-muted-foreground xl:px-14"
     />
   );
   const preview = (
-    <div ref={previewRef} onScroll={recomputeActive} className="h-full min-h-0 overflow-y-auto px-8 py-5 [&>div]:mx-auto">
-      {body.trim() ? <Markdown text={body} /> : <p className="text-sm text-grid-muted">{t("editor.placeholder")}</p>}
+    <div ref={previewRef} onScroll={recomputeActive} className="h-full min-h-0 overflow-y-auto px-10 py-5 xl:px-14 [&>div]:mx-auto">
+      {body.trim() ? <Markdown text={body} /> : <p className="text-sm text-muted-foreground">{t("editor.placeholder")}</p>}
     </div>
   );
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-grid-bg" onBlur={onBlur}>
-      {/* Toolbar */}
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-line px-3">
-        <div className="min-w-0 flex-1 truncate text-[11px] text-grid-muted">
-          {base ? (
-            <span dir="ltr" className="font-mono">
-              {t("notes.x.version", { n: base.version })}
-            </span>
-          ) : canWrite ? (
-            t("ws.draftHint")
-          ) : null}
-          {base && !canWrite ? <span className="ms-2">· {t("editor.readOnly")}</span> : null}
-        </div>
-        <ModeSwitch mode={mode} onChange={onModeChange} />
-        {base ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("notes.x.more")} title={t("notes.x.more")} />}>
-              <Ellipsis />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-56">
-              {menu(base)}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-      </div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background" onBlur={onBlur}>
+      {chromeHost
+        ? createPortal(
+            <>
+              <ModeSwitch mode={mode} onChange={onModeChange} />
+              {base ? (
+                <IconButton label={t("notes.x.more")} onClick={(e) => onMenu(base, e.currentTarget)}>
+                  <Ellipsis />
+                </IconButton>
+              ) : null}
+            </>,
+            chromeHost,
+          )
+        : null}
 
       {findOpen ? (
         <FindBar
@@ -633,11 +628,11 @@ export function NoteEditor(props: NoteEditorProps) {
       ) : null}
 
       {status === "conflict" ? (
-        <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-grid-gold/40 bg-grid-gold/10 px-4 py-2 text-sm">
-          <TriangleAlert className="size-4 shrink-0 text-grid-gold" />
+        <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/60 px-4 py-2 text-[13px]">
+          <TriangleAlert className="size-4 shrink-0 text-grid-warn" />
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-grid-fg">{t("editor.conflictTitle")}</p>
-            <p className="text-xs text-grid-muted">{t("editor.conflictBody")}</p>
+            <p className="font-medium text-foreground">{t("editor.conflictTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("editor.conflictBody")}</p>
           </div>
           <Button size="sm" variant="outline" onClick={() => void reloadTheirs()}>
             {t("editor.reloadTheirs")}
@@ -647,13 +642,13 @@ export function NoteEditor(props: NoteEditorProps) {
           </Button>
         </div>
       ) : status === "error" && saveError ? (
-        <div role="alert" className="border-b border-line bg-grid-danger/10 px-4 py-1.5 text-xs text-grid-danger">
+        <div role="alert" className="border-b border-border/60 bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
           {t("editor.saveFailed", { error: saveError })}
         </div>
       ) : null}
 
       {/* Title + meta */}
-      <div className="shrink-0 px-8 pt-5 pb-3">
+      <div className="shrink-0 px-10 pt-7 pb-2 xl:px-14">
         <textarea
           ref={titleRef}
           rows={1}
@@ -670,23 +665,27 @@ export function NoteEditor(props: NoteEditorProps) {
               else taRef.current?.focus();
             }
           }}
-          className="field-sizing-content w-full resize-none bg-transparent text-2xl leading-tight font-medium text-grid-fg outline-none placeholder:text-grid-muted/70"
+          className="field-sizing-content w-full resize-none bg-transparent text-[26px] leading-tight font-bold tracking-[-0.01em] text-foreground outline-none placeholder:text-muted-foreground/50 rtl:tracking-normal"
         />
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <CategoryPicker value={category} readOnly={!canWrite} onChange={(c) => change({ category: c })} />
           <TagEditor namespace={brain.namespace} token={token} tags={tags} readOnly={!canWrite} onChange={(tg) => change({ tags: tg })} />
+          <span className="ms-auto truncate text-[11px] text-muted-foreground">
+            {base ? t("notes.x.version", { n: base.version }) : canWrite ? t("ws.draftHint") : null}
+            {base && !canWrite ? <span className="ms-2">· {t("editor.readOnly")}</span> : null}
+          </span>
         </div>
       </div>
 
       {/* Body */}
       {loading ? (
-        <div className="space-y-3 px-8 py-4" aria-busy>
+        <div className="space-y-3 px-10 py-4 xl:px-14" aria-busy>
           {[90, 75, 82, 60, 70].map((w, i) => (
-            <div key={i} className="h-3.5 animate-pulse rounded bg-grid-soft" style={{ width: `${w}%` }} />
+            <Skeleton key={i} className="h-3.5 rounded-sm" style={{ width: `${w}%` }} />
           ))}
         </div>
       ) : mode === "live" ? (
-        <div ref={liveRef} onScroll={recomputeActive} className="zk-live min-h-0 flex-1 overflow-y-auto px-8 pt-1 pb-24">
+        <div ref={liveRef} onScroll={recomputeActive} className="zk-live min-h-0 flex-1 overflow-y-auto px-10 pt-1 pb-24 xl:px-14">
           <NoteEditorWysiwyg
             value={body}
             namespace={brain.namespace}
@@ -698,7 +697,7 @@ export function NoteEditor(props: NoteEditorProps) {
       ) : mode === "source" ? (
         <div className="min-h-0 flex-1">{source}</div>
       ) : mode === "split" ? (
-        <div ref={splitRef} className="flex min-h-0 flex-1 border-t border-line">
+        <div ref={splitRef} className="flex min-h-0 flex-1 border-t border-border/60">
           <div className="min-w-0" style={{ flexBasis: `${splitRatio * 100}%`, flexGrow: 0, flexShrink: 0 }}>
             {source}
           </div>
@@ -707,7 +706,7 @@ export function NoteEditor(props: NoteEditorProps) {
             onRatio={setSplitRatio}
             onDone={() => localStorage.setItem(SPLIT_KEY, String(splitRatio))}
           />
-          <div className="min-w-0 flex-1 bg-grid-card/40">{preview}</div>
+          <div className="min-w-0 flex-1 bg-pane-raised">{preview}</div>
         </div>
       ) : (
         <div className="min-h-0 flex-1">{preview}</div>

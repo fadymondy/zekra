@@ -51,20 +51,28 @@ protocols:
       - zekra
 
 # Markdown files open in Zekra (main.ts open-file -> renderer "open-file").
+# role/rank: macOS; mimeType: Linux (.desktop MimeType); icon: Windows (NSIS
+# registers the ProgID with it).
 fileAssociations:
   - ext: md
     name: Markdown Document
     description: Markdown document
     role: Editor
     rank: Alternate
+    mimeType: text/markdown
+    icon: build/icon.ico
   - ext: markdown
     name: Markdown Document
     role: Editor
     rank: Alternate
+    mimeType: text/markdown
+    icon: build/icon.ico
   - ext: mdx
     name: MDX Document
     role: Editor
     rank: Alternate
+    mimeType: text/mdx
+    icon: build/icon.ico
 
 mac:
   category: public.app-category.productivity
@@ -80,8 +88,9 @@ mac:
     NSHumanReadableCopyright: Copyright © 2026 Fady Mondy
     # Touch ID (systemPreferences.promptTouchID) — shown in the system prompt.
     NSFaceIDUsageDescription: Zekra uses Touch ID to unlock the app and reveal vault secrets.
-    # Apple Notes import (AppleScript) — shown in the Automation prompt.
-    NSAppleEventsUsageDescription: Zekra reads your Apple Notes only when you import them into a brain.
+    # Apple Notes import + Quick Capture "From browser" (AppleScript) — shown
+    # in the Automation prompt.
+    NSAppleEventsUsageDescription: Zekra reads your Apple Notes only when you import them into a brain, and the address of your browser's current tab only when you capture it with Quick Capture.
   target:
     - target: dmg
       arch: universal
@@ -91,6 +100,63 @@ mac:
 dmg:
   title: Zekra ${version}
   icon: build/icon.icns
+
+# ─── Windows ────────────────────────────────────────────────────────────────
+#   npx electron-builder --win        NSIS installer (x64 + arm64) + portable zip
+# The NSIS shortcut carries AppUserModelID = appId, which main.ts also sets
+# (app.setAppUserModelId) — required for toast notifications, their action
+# buttons (toastXml, os-integration.ts) and the Jump List tasks. zekra://
+# (protocols above) and .md/.markdown/.mdx (fileAssociations) are registered
+# by the installer. Code signing: set CSC_LINK / CSC_KEY_PASSWORD (or
+# WIN_CSC_LINK) for an Authenticode certificate; unsigned otherwise.
+win:
+  icon: build/icon.ico
+  executableName: Zekra
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Zekra
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  deleteAppDataOnUninstall: false
+
+# ─── Linux ──────────────────────────────────────────────────────────────────
+#   npx electron-builder --linux      AppImage + .deb (x64 + arm64)
+# build/icons/NxN.png is installed into the hicolor theme; the .desktop entry
+# registers zekra:// (x-scheme-handler) and Markdown (MimeType). The login
+# item is an XDG autostart entry written at runtime (os-integration.ts).
+linux:
+  icon: build/icons
+  executableName: zekra-desktop
+  category: Office
+  synopsis: Memory for you and your AI agents
+  description: Zekra (ذكرة) — a native client of the Zekra brain and notes API.
+  maintainer: Fady Mondy <info@3x1.io>
+  vendor: Fady Mondy
+  mimeTypes:
+    - x-scheme-handler/zekra
+    - text/markdown
+  desktop:
+    Name: Zekra
+    StartupWMClass: Zekra
+    Keywords: notes;markdown;memory;brain;ai;
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+
+deb:
+  depends: ["libnotify4", "libxtst6", "libnss3", "libsecret-1-0"]
 
 # electron-updater reads the feed from app-update.yml, generated from this.
 publish:

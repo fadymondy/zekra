@@ -1,13 +1,14 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Columns2, FilePlus2, ListTree, NotebookPen, PanelLeft } from "lucide-react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { Columns2, ListTree, NotebookPen, PanelLeft, SquarePen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Kbd } from "@/components/ui/kbd";
-import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes";
 import { cn } from "@/lib/utils";
 
 import type { AutosaveStatus } from "@mobile/features/editor/autosave-core";
 
+import { IconButton, PaneResizer } from "../components/chrome";
 import { Spotlight, type SpotlightCommand } from "../components/spotlight";
 import type { OpenHow } from "../components/note-row";
 import { NoteTree } from "../components/note-tree";
@@ -33,18 +34,21 @@ import {
   type Layout,
 } from "../features/editor/tab-groups";
 import { TabStrip, type DroppedNote } from "../features/editor/tab-strip";
-import { NoteMenuItems } from "../features/notes/note-menu";
+import { noteMenuAction, noteMenuItems, type NoteMenuAction } from "../features/notes/note-menu";
 import { notesApi } from "../features/notes/notes-api";
 import type { NoteFilter, NoteSort } from "../features/notes/notes-model";
-import { NotesSidebar } from "../features/notes/notes-sidebar";
+import { NotesSidebar, type ListFilter } from "../features/notes/notes-sidebar";
 import { useNoteActions } from "../features/notes/use-note-actions";
 import { useNotesList } from "../features/notes/use-notes-list";
 import type { Brain, Note } from "../lib/api";
 import { bridge } from "../lib/bridge";
+import { showMenu } from "../lib/native-menu";
+import { forgetRecentNote, pushRecentNote } from "../lib/recent";
 import { useI18n } from "../lib/i18n";
 import { useCommand } from "../shell/commands";
 import { useRouter } from "../shell/router";
 import { toast } from "../shell/toast";
+import { ToolbarActions } from "../shell/toolbar";
 
 /*
 The brain route's Notes tab (MH-450) — three panes:
@@ -62,12 +66,15 @@ editor never write from different versions.
 
 Commands owned while mounted:
   new-note ⌘N · close-tab ⌘W · reopen-tab ⇧⌘T · next/prev-tab ⌥⌘→/←
-  toggle-sidebar ⌘\ · toggle-outline ⇧⌘L · spotlight ⌘K (via <Spotlight>)
+  toggle-outline ⇧⌘L · spotlight ⌘K (via <Spotlight>)
+The notes list column toggles from the toolbar (⌘\ is the app sidebar's).
 The focused editor adds find ⌘F, save ⌘S and File ▸ Export.
 */
 
 const PREFS = "zekra.desktop.workspace";
-type Prefs = { sidebar: boolean; outline: boolean; filter: NoteFilter; sort: NoteSort };
+/** `sidebar` is the notes LIST column (the app sidebar is the shell's). */
+type Prefs = { sidebar: boolean; outline: boolean; filter: NoteFilter; sort: NoteSort; listWidth: number };
+const LIST_WIDTH = { min: 220, max: 440, initial: 290 };
 function loadPrefs(): Prefs {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS) ?? "{}") as Partial<Prefs>;
@@ -76,9 +83,11 @@ function loadPrefs(): Prefs {
       outline: p.outline ?? true,
       filter: p.filter === "pinned" || p.filter === "archived" ? p.filter : "all",
       sort: p.sort === "created" || p.sort === "title" ? p.sort : "updated",
+      listWidth:
+        typeof p.listWidth === "number" ? Math.max(LIST_WIDTH.min, Math.min(LIST_WIDTH.max, p.listWidth)) : LIST_WIDTH.initial,
     };
   } catch {
-    return { sidebar: true, outline: true, filter: "all", sort: "updated" };
+    return { sidebar: true, outline: true, filter: "all", sort: "updated", listWidth: LIST_WIDTH.initial };
   }
 }
 
@@ -93,11 +102,13 @@ const tabOf = (n: Pick<Note, "id" | "title" | "category" | "icon" | "color">): D
   ...(n.color ? { color: n.color } : {}),
 });
 
-export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
+export function Workspace({ token, brain, initialNoteId, list: listFilter = "all", onDirtyChange }: {
   token: string;
   brain: Brain;
   /** Open this note (the brain route's noteId: deep links, spotlight). */
   initialNoteId?: string;
+  /** Which list the source list picked (All / Pinned / Recent / Archived). */
+  list?: ListFilter;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
   const { t } = useI18n();
@@ -126,6 +137,17 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
   }, []);
   const closed = useRef<DeskTab[]>([]);
   const [outlineHost, setOutlineHost] = useState<HTMLElement | null>(null);
+  const [chromeHosts, setChromeHosts] = useState<(HTMLElement | null)[]>([null, null]);
+  // Stable per-group ref callbacks (a fresh callback each render would detach
+  // and re-attach the host every render, and loop through setState).
+  const chromeRefs = useMemo(
+    () =>
+      [0, 1].map((gi) => (el: HTMLElement | null) =>
+        setChromeHosts((h) => (h[gi] === el ? h : Object.assign([...h], { [gi]: el }))),
+      ),
+    [],
+  );
+  const [listWidth, setListWidth] = useState(prefs.listWidth);
   const groupsRef = useRef<HTMLElement | null>(null);
 
   // ── notes list ─────────────────────────────────────────────────────────
@@ -135,8 +157,18 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
     const h = setTimeout(() => setServerQ(query.trim()), 250);
     return () => clearTimeout(h);
   }, [query]);
-  const view = useMemo(() => ({ filter: prefs.filter, sort: prefs.sort, q: serverQ }), [prefs.filter, prefs.sort, serverQ]);
+  // "Recent" is the full list, newest first, kept to the last 7 days.
+  const apiFilter: NoteFilter = listFilter === "recent" ? "all" : listFilter;
+  const apiSort: NoteSort = listFilter === "recent" ? "updated" : prefs.sort;
+  const view = useMemo(() => ({ filter: apiFilter, sort: apiSort, q: serverQ }), [apiFilter, apiSort, serverQ]);
   const list = useNotesList(token, ns, view);
+  const shown = useMemo(
+    () =>
+      listFilter === "recent"
+        ? list.notes.filter((n) => Date.now() - new Date(n.updatedAt).getTime() < 7 * 86_400_000)
+        : list.notes,
+    [list.notes, listFilter],
+  );
 
   // Freshest copy of every note we have touched (editor saves, row actions).
   const [cache, setCache] = useState<Record<string, Note>>({});
@@ -181,7 +213,7 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
   const open = useCallback(
     (n: Pick<Note, "id" | "title" | "category" | "icon" | "color">, how: OpenHow = "open", group?: number) => {
       if ("version" in n) remember(n as Note);
-      pushRecent({ id: n.id, namespace: ns, title: n.title, category: n.category });
+      pushRecentNote({ id: n.id, namespace: ns, title: n.title, category: n.category });
       setLayout((l) => {
         if (how === "open-side") {
           // Already split: open in the other group. Otherwise split with it.
@@ -254,7 +286,7 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
     (key: string, n: Note) => {
       remember(n);
       list.upsert(n);
-      pushRecent({ id: n.id, namespace: ns, title: n.title, category: n.category });
+      pushRecentNote({ id: n.id, namespace: ns, title: n.title, category: n.category });
       setLayout((l) => patchTab(l, { key }, { id: n.id, title: n.title, category: n.category }));
     },
     [remember, list, ns],
@@ -272,7 +304,7 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
     },
     onRemoved: (n) => {
       list.remove(n.id);
-      forgetRecent(n.id);
+      forgetRecentNote(n.id);
       setCache((c) => {
         const { [n.id]: _gone, ...rest } = c;
         return rest;
@@ -282,16 +314,46 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
     onOpen: (n, how) => open(n, how),
   });
 
-  const menuFor = useCallback(
-    (n: Note) => <NoteMenuItems note={latest(n)} kind="context" canWrite={brain.canWrite} onAction={(a) => actions.run(n, a)} />,
-    [latest, brain.canWrite, actions],
+  // Native menus (lib/native-menu.ts) from one definition (note-menu.tsx).
+  const runMenu = useCallback(
+    (n: Note, id: string | null) => {
+      const a = id ? noteMenuAction(id) : null;
+      if (a) actions.run(n, a);
+    },
+    [actions],
   );
-  const editorMenu = useCallback(
-    (n: Note) => (
-      <NoteMenuItems note={latest(n)} kind="dropdown" canWrite={brain.canWrite} showOpen={false} onAction={(a) => actions.run(n, a)} />
-    ),
-    [latest, brain.canWrite, actions],
+  const onRowMenu = useCallback(
+    (n: Note, e: ReactMouseEvent) => {
+      e.preventDefault();
+      void showMenu(noteMenuItems(latest(n), t, { canWrite: brain.canWrite }), e).then((id) => runMenu(n, id));
+    },
+    [latest, t, brain.canWrite, runMenu],
   );
+  const onEditorMenu = useCallback(
+    (n: Note, anchor: Element) => {
+      void showMenu(noteMenuItems(latest(n), t, { canWrite: brain.canWrite, showOpen: false }), anchor).then((id) => runMenu(n, id));
+    },
+    [latest, t, brain.canWrite, runMenu],
+  );
+
+  // The focused editor's note, for the app menu's Note ▸ … commands.
+  const focusedNote = (): Note | null => {
+    const tab = activeTab(layout);
+    return tab?.id ? noteFor(tab.id) : null;
+  };
+  const onFocused = (a: NoteMenuAction) => {
+    const n = focusedNote();
+    if (!n) return false;
+    actions.run(n, a);
+  };
+  useCommand("open-in-new-window", () => onFocused({ kind: "open-window" }));
+  useCommand("note:pin", () => (brain.canWrite ? onFocused({ kind: "pin" }) : false));
+  useCommand("note:archive", () => (brain.canWrite ? onFocused({ kind: "archive" }) : false));
+  useCommand("note:appearance", () => (brain.canWrite ? onFocused({ kind: "appearance-picker" }) : false));
+  useCommand("note:versions", () => onFocused({ kind: "versions" }));
+  useCommand("note:copy", () => onFocused({ kind: "copy" }));
+  useCommand("note:delete", () => (brain.canWrite ? onFocused({ kind: "delete" }) : false));
+  useCommand("toggle-list", () => setPref("sidebar", !prefs.sidebar));
 
   // ── commands ───────────────────────────────────────────────────────────
   useCommand("new-note", () => newNote());
@@ -308,11 +370,10 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
   });
   useCommand("next-tab", () => setLayout((l) => cycleTab(l, 1)));
   useCommand("prev-tab", () => setLayout((l) => cycleTab(l, -1)));
-  useCommand("toggle-sidebar", () => setPref("sidebar", !prefs.sidebar));
   useCommand("toggle-outline", () => setPref("outline", !prefs.outline));
 
   const spotlightCommands: SpotlightCommand[] = [
-    { id: "toggle-sidebar", label: t("ws.sidebar.toggle"), icon: <PanelLeft />, shortcut: "⌘\\", run: () => setPref("sidebar", !prefs.sidebar) },
+    { id: "toggle-list", label: t("tb.list"), icon: <PanelLeft />, run: () => setPref("sidebar", !prefs.sidebar) },
     { id: "toggle-outline", label: t("ws.outline.toggle"), icon: <ListTree />, shortcut: "⇧⌘L", run: () => setPref("outline", !prefs.outline) },
     layout.groups.length > 1
       ? { id: "unsplit", label: t("ws.unsplit"), icon: <Columns2 />, run: () => setLayout((l) => unsplit(l)) }
@@ -339,33 +400,52 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
         onNewNote={brain.canWrite ? newNote : undefined}
         extraCommands={spotlightCommands}
       />
+      <ToolbarActions>
+        <IconButton label={t("tb.list")} active={prefs.sidebar} onClick={() => setPref("sidebar", !prefs.sidebar)}>
+          <PanelLeft className="rtl:-scale-x-100" />
+        </IconButton>
+        <IconButton label={t("ws.outline.toggle")} shortcut="⇧⌘L" active={prefs.outline && !!focusedTab} disabled={!focusedTab} onClick={() => setPref("outline", !prefs.outline)}>
+          <ListTree />
+        </IconButton>
+        {brain.canWrite ? (
+          <IconButton label={t("tb.newNote")} shortcut="⌘N" onClick={newNote}>
+            <SquarePen />
+          </IconButton>
+        ) : null}
+      </ToolbarActions>
 
       {prefs.sidebar ? (
-        <aside className="flex w-[300px] min-w-0 shrink-0 flex-col border-e border-line bg-grid-bg">
+        <aside className="relative flex min-w-0 shrink-0 flex-col border-e border-border/60 bg-background" style={{ width: listWidth }}>
           <NotesSidebar
-            notes={list.notes}
+            notes={shown}
             loading={list.loading}
             loadingMore={list.loadingMore}
             error={list.error}
             hasMore={list.hasMore}
             onLoadMore={() => void list.loadMore()}
             onRetry={() => void list.reload()}
-            filter={prefs.filter}
-            onFilter={(f) => setPref("filter", f)}
+            filter={listFilter}
             sort={prefs.sort}
             onSort={(s) => setPref("sort", s)}
             query={query}
             onQuery={setQuery}
             selectedId={selectedId}
             openIds={openIds}
-            canWrite={brain.canWrite}
-            onNew={newNote}
-            onOpen={(n, how) => open(n, how)}
-            menuFor={menuFor}
+            onOpen={(n, how) => (how === "open-window" ? actions.run(n, { kind: "open-window" }) : open(n, how))}
+            onRowMenu={onRowMenu}
             tree={
               // Selecting an entity searches for it: an entity need not be a note.
               <NoteTree token={token} namespace={ns} onSelect={(entity) => navigate({ name: "search", query: entity, ns })} />
             }
+          />
+          <PaneResizer
+            label={t("list.resize")}
+            width={listWidth}
+            min={LIST_WIDTH.min}
+            max={LIST_WIDTH.max}
+            reset={LIST_WIDTH.initial}
+            onWidth={setListWidth}
+            onDone={(w) => setPref("listWidth", w)}
           />
         </aside>
       ) : null}
@@ -388,27 +468,34 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
                 onPointerDownCapture={() => focusGroup(gi)}
                 onFocusCapture={() => focusGroup(gi)}
               >
-                <TabStrip
-                  group={gi}
-                  groups={layout.groups.length}
-                  tabs={g.tabs}
-                  active={g.active}
-                  focused={focused}
-                  dirty={dirty}
-                  onSelect={(key) => setLayout((l) => selectTab(l, key))}
-                  onClose={close}
-                  onCloseOthers={(key) => g.tabs.filter((x) => x.key !== key).forEach((x) => close(x.key))}
-                  onMove={(key, to, before) => setLayout((l) => moveTab(l, key, to, before))}
-                  onDropNote={(n: DroppedNote, to, before) =>
-                    setLayout((l) => {
-                      const at = locate(l, n.id);
-                      if (at) return moveTab(l, at.tab.key, to, before);
-                      return moveTab(openTab(l, tabOf(n), { newTab: true, group: to }), n.id, to, before);
-                    })
-                  }
-                  onSplit={(key) => setLayout((l) => split(l, key))}
-                  onUnsplit={() => setLayout((l) => unsplit(l, 1))}
-                />
+                {g.tabs.length || isSplit ? (
+                  <TabStrip
+                    group={gi}
+                    groups={layout.groups.length}
+                    tabs={g.tabs}
+                    active={g.active}
+                    focused={focused}
+                    dirty={dirty}
+                    onSelect={(key) => setLayout((l) => selectTab(l, key))}
+                    onClose={close}
+                    onCloseOthers={(key) => g.tabs.filter((x) => x.key !== key).forEach((x) => close(x.key))}
+                    onMove={(key, to, before) => setLayout((l) => moveTab(l, key, to, before))}
+                    onDropNote={(n: DroppedNote, to, before) =>
+                      setLayout((l) => {
+                        const at = locate(l, n.id);
+                        if (at) return moveTab(l, at.tab.key, to, before);
+                        return moveTab(openTab(l, tabOf(n), { newTab: true, group: to }), n.id, to, before);
+                      })
+                    }
+                    onSplit={(key) => setLayout((l) => split(l, key))}
+                    onUnsplit={() => setLayout((l) => unsplit(l, 1))}
+                    actionsRef={chromeRefs[gi]}
+                    onOpenWindow={(key) => {
+                      const t0 = g.tabs.find((x) => x.key === key);
+                      if (t0?.id) void bridge().openNoteWindow?.({ namespace: ns, id: t0.id, title: t0.title });
+                    }}
+                  />
+                ) : null}
                 {tab ? (
                   <NoteEditor
                     key={tab.key}
@@ -420,10 +507,11 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
                     mode={mode}
                     onModeChange={setMode}
                     outlineHost={prefs.outline ? outlineHost : null}
+                    chromeHost={chromeHosts[gi]}
                     onSaved={onSaved}
                     onCreated={onCreated}
                     onStatus={onStatus}
-                    menu={editorMenu}
+                    onMenu={onEditorMenu}
                   />
                 ) : (
                   <EmptyGroup second={gi === 1} canWrite={brain.canWrite} onNew={newNote} />
@@ -435,7 +523,7 @@ export function Workspace({ token, brain, initialNoteId, onDirtyChange }: {
       </section>
 
       {prefs.outline ? (
-        <aside ref={setOutlineHost} className={cn("w-56 shrink-0 border-s border-line bg-grid-bg", !focusedTab && "hidden")} />
+        <aside ref={setOutlineHost} className={cn("w-56 shrink-0 border-s border-border/60 bg-background", !focusedTab && "hidden")} />
       ) : null}
 
       {actions.dialogs}
@@ -447,25 +535,29 @@ function EmptyGroup({ second, canWrite, onNew }: { second: boolean; canWrite: bo
   const { t } = useI18n();
   if (second) {
     return (
-      <div className="grid-hatch flex flex-1 items-center justify-center p-6 text-center text-sm text-grid-muted">
-        {t("ws.empty.group")}
-      </div>
+      <Empty className="bg-background">
+        <EmptyDescription className="text-[13px]">{t("ws.empty.group")}</EmptyDescription>
+      </Empty>
     );
   }
   return (
-    <div className="grid-hatch flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-      <NotebookPen className="size-8 text-grid-muted" strokeWidth={1.4} />
-      <div>
-        <p className="text-base font-medium text-grid-fg">{t("ws.empty.title")}</p>
-        <p className="mt-1 text-sm text-grid-muted">{t("ws.empty.body")}</p>
-      </div>
+    <Empty className="gap-5 bg-background">
+      <EmptyHeader className="gap-1.5">
+        <EmptyMedia variant="icon" className="mb-2 size-11 rounded-xl bg-muted text-muted-foreground">
+          <NotebookPen className="size-5 stroke-[1.5]" />
+        </EmptyMedia>
+        <EmptyTitle className="text-[15px] font-semibold">{t("ws.empty.title")}</EmptyTitle>
+        <EmptyDescription className="text-[13px]">{t("ws.empty.body")}</EmptyDescription>
+      </EmptyHeader>
       {canWrite ? (
-        <Button onClick={onNew} className="mt-1">
-          <FilePlus2 />
-          {t("ws.empty.new")}
-          <Kbd className="ms-1">⌘N</Kbd>
-        </Button>
+        <EmptyContent>
+          <Button onClick={onNew} className="h-8 gap-2 px-3 text-[13px]">
+            <SquarePen className="stroke-[1.75]" />
+            {t("ws.empty.new")}
+            <Kbd className="ms-1 bg-primary-foreground/15 text-primary-foreground">⌘N</Kbd>
+          </Button>
+        </EmptyContent>
       ) : null}
-    </div>
+    </Empty>
   );
 }

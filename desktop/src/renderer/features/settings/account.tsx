@@ -35,8 +35,8 @@ export function AccountSettings() {
       <div className="flex items-center gap-4">
         <AccountAvatar size={48} />
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-medium text-grid-fg">{user.name || t("settingsx.account")}</h1>
-          <p dir="ltr" className="truncate font-grid-mono text-xs text-grid-muted" style={{ unicodeBidi: "isolate" }}>
+          <h1 className="truncate text-lg font-medium text-foreground">{user.name || t("settingsx.account")}</h1>
+          <p dir="ltr" className="truncate font-grid-mono text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
             {user.email}
           </p>
         </div>
@@ -104,7 +104,7 @@ function ProfileGroup() {
   return (
     <Group title={t("account.profile")}>
       {loadError ? (
-        <Row label={<span className="text-grid-danger">{t("account.loadFailed")}</span>}>
+        <Row label={<span className="text-destructive">{t("account.loadFailed")}</span>}>
           <Button variant="outline" size="sm" onClick={() => void load()}>
             {t("action.retry")}
           </Button>
@@ -117,7 +117,7 @@ function ProfileGroup() {
       ) : (
         <>
           <Row label={t("account.email")}>
-            <span dir="ltr" className="font-grid-mono text-xs text-grid-muted" style={{ unicodeBidi: "isolate" }}>
+            <span dir="ltr" className="font-grid-mono text-xs text-muted-foreground" style={{ unicodeBidi: "isolate" }}>
               {profile.email ?? user.email}
             </span>
           </Row>
@@ -143,7 +143,7 @@ function ProfileGroup() {
             </datalist>
           </Row>
           <div className="flex items-center gap-3 px-4 py-3">
-            {error ? <p className="flex-1 text-sm text-grid-danger">{error}</p> : <span className="flex-1" />}
+            {error ? <p className="flex-1 text-sm text-destructive">{error}</p> : <span className="flex-1" />}
             <Button onClick={() => void save()} disabled={!dirty || saving}>
               <Check />
               {t("account.saveProfile")}
@@ -193,7 +193,7 @@ function PasswordGroup() {
       {sent || error ? (
         <div className="px-4 py-3 text-sm">
           {error ? (
-            <p className="text-grid-danger">{error}</p>
+            <p className="text-destructive">{error}</p>
           ) : (
             <p className="flex items-center gap-2 text-grid-ok">
               <span aria-hidden className="size-1.5 bg-grid-ok" />
@@ -263,7 +263,7 @@ function DeleteGroup() {
   return (
     <Group title={t("settingsx.danger")} tone="danger">
       {loadError ? (
-        <Row label={<span className="text-grid-danger">{t("account.loadFailed")}</span>}>
+        <Row label={<span className="text-destructive">{t("account.loadFailed")}</span>}>
           <Button variant="outline" size="sm" onClick={() => void load()}>
             {t("action.retry")}
           </Button>
@@ -274,15 +274,15 @@ function DeleteGroup() {
         </div>
       ) : state.status === "scheduled" ? (
         <div className="flex flex-col gap-3 px-4 py-4">
-          <p className="flex items-center gap-2 text-sm font-medium text-grid-fg">
+          <p className="flex items-center gap-2 text-sm font-medium text-foreground">
             <TriangleAlert className="size-4 text-grid-warn" />
             {t("account.deleteScheduled")}
           </p>
-          <p className="text-sm text-grid-muted">{t("account.deleteScheduledBody")}</p>
-          <p className="text-xs text-grid-muted">
+          <p className="text-sm text-muted-foreground">{t("account.deleteScheduledBody")}</p>
+          <p className="text-xs text-muted-foreground">
             {t("account.deleteScheduledFor")} <span className="font-grid-mono text-grid-gold">{when(state.scheduled_for)}</span>
           </p>
-          {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <div>
             <Button variant="outline" onClick={() => void cancel()} disabled={busy}>
               <Undo2 />
@@ -292,8 +292,8 @@ function DeleteGroup() {
         </div>
       ) : (
         <div className="flex flex-col gap-3 px-4 py-4">
-          <p className="text-sm font-medium text-grid-fg">{t("account.delete")}</p>
-          <p className="text-sm text-grid-muted">{t("account.deleteWarn")}</p>
+          <p className="text-sm font-medium text-foreground">{t("account.delete")}</p>
+          <p className="text-sm text-muted-foreground">{t("account.deleteWarn")}</p>
           <form
             className="flex gap-2"
             onSubmit={(e) => {
@@ -315,7 +315,7 @@ function DeleteGroup() {
               {t("account.deleteConfirm")}
             </Button>
           </form>
-          {error ? <p className="text-sm text-grid-danger">{error}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
       )}
       <ConfirmDialog

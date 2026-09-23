@@ -13,12 +13,14 @@ Adding a screen (feature teams):
 */
 
 export type BrainTab = "notes" | "presentations" | "vault";
+export type BrainList = "all" | "pinned" | "recent" | "archived";
 // MH-450 settings: + "notifications" (OS notifications) and "connect" (MCP).
 export type SettingsSection = "general" | "reading" | "notifications" | "security" | "account" | "connect" | "about";
 
 export type Route =
   | { name: "brains" }
-  | { name: "brain"; ns: string; tab: BrainTab; noteId?: string }
+  // `list`: which notes list the source list picked (default "all").
+  | { name: "brain"; ns: string; tab: BrainTab; noteId?: string; list?: BrainList }
   | { name: "search"; query?: string; ns?: string }
   | { name: "notifications" }
   | { name: "settings"; section: SettingsSection };

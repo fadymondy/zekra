@@ -1,24 +1,38 @@
 import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-
-import { BrainAvatar } from "../components/brain-avatar";
-import { useI18n } from "../lib/i18n";
+import { useI18n, type TKey } from "../lib/i18n";
 import { Workspace } from "../screens/workspace";
-import { useRouter, type BrainTab, type Route } from "../shell/router";
+import { useCommand } from "../shell/commands";
+import { useRouter, type BrainList, type Route } from "../shell/router";
 import { useAuthed } from "../shell/session";
+import { WindowTitle } from "../shell/toolbar";
 import { BrainPresentations } from "../features/presentations";
 import { BrainVault } from "../features/vault";
 
 /*
-The Brain route: one brain, three tabs — Notes (the existing workspace),
+The Brain route: one brain, three views — Notes (the workspace),
 Presentations and Vault (src/renderer/features/{presentations,vault}).
-The tab strip is the route's own header; the note tabs live inside Notes.
+The window title is the brain, the subtitle the view (<WindowTitle>); the
+views and lists are picked in the source list (shell/app-sidebar.tsx) and the
+Brain menu (⌘1–3). The note tabs live inside Notes.
 */
+
+const LIST_LABEL: Record<BrainList, TKey> = {
+  all: "sb.allNotes",
+  pinned: "sb.pinned",
+  recent: "sb.recentNotes",
+  archived: "sb.archived",
+};
+
 export function BrainRoute({ route }: { route: Extract<Route, { name: "brain" }> }) {
   const { t } = useI18n();
   const { brains, token, patch, settings } = useAuthed();
   const { navigate, replace } = useRouter();
+  // Brain ▸ Notes / Presentations / Vault (⌘1 / ⌘2 / ⌘3).
+  useCommand("brain:notes", () => navigate({ name: "brain", ns: route.ns, tab: "notes" }));
+  useCommand("brain:presentations", () => navigate({ name: "brain", ns: route.ns, tab: "presentations" }));
+  useCommand("brain:vault", () => navigate({ name: "brain", ns: route.ns, tab: "vault" }));
   const brain = brains?.find((b) => b.namespace === route.ns) ?? null;
 
   // Remember the open brain so the next launch returns to it.
@@ -35,44 +49,24 @@ export function BrainRoute({ route }: { route: Extract<Route, { name: "brain" }>
   }, [brains, brain, patch, replace]);
 
   if (!brain) {
-    return <div className="grid-hatch flex flex-1 items-center justify-center text-sm text-grid-muted">{t("brains.loading")}</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 aria-label={t("brains.loading")} className="size-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
-  const tabs: { id: BrainTab; label: string }[] = [
-    { id: "notes", label: t("brain.tab.notes") },
-    { id: "presentations", label: t("brain.tab.presentations") },
-    { id: "vault", label: t("brain.tab.vault") },
-  ];
+  const name = brain.displayName || brain.namespace;
+  const subtitle =
+    route.tab === "notes" ? t(LIST_LABEL[route.list ?? "all"]) : route.tab === "presentations" ? t("sb.presentations") : t("sb.vault");
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-line bg-grid-bg px-3">
-        <BrainAvatar brain={brain} token={token} size={22} />
-        <span className="truncate text-sm font-medium" style={{ unicodeBidi: "plaintext" }}>
-          {brain.displayName || brain.namespace}
-        </span>
-        <div role="tablist" className="ms-4 flex items-center gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={route.tab === tab.id}
-              onClick={() => navigate({ name: "brain", ns: brain.namespace, tab: tab.id })}
-              className={cn(
-                "rounded-md px-2.5 py-1 text-xs transition-colors",
-                route.tab === tab.id ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <WindowTitle title={name} subtitle={subtitle} />
 
       {route.tab === "notes" ? (
         // keyed by brain: switching brains resets the editor state.
-        <Workspace key={brain.namespace} token={token} brain={brain} initialNoteId={route.noteId} />
+        <Workspace key={brain.namespace} token={token} brain={brain} initialNoteId={route.noteId} list={route.list ?? "all"} />
       ) : route.tab === "presentations" ? (
         // features/presentations (MH-450); keyed by brain like the workspace.
         <BrainPresentations key={brain.namespace} brain={brain} />

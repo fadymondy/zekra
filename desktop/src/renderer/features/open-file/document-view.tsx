@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import type { ExportFormat, OpenFileEvent } from "../../../shared/ipc";
 import { zekraApi } from "../../lib/api";
+import { showMenu } from "../../lib/native-menu";
 import { bridge } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
 import { useCommand } from "../../shell/commands";
@@ -98,21 +99,21 @@ export function DocumentView({
     <div
       role="dialog"
       aria-label={doc.name}
-      className="fixed inset-x-0 bottom-0 top-11 z-40 flex flex-col border-t border-line bg-grid-bg"
+      className="fixed inset-x-0 bottom-0 top-11 z-40 flex flex-col border-t border-border/60 bg-background"
     >
       {docs.length > 1 ? (
-        <div className="flex h-8 shrink-0 items-center gap-1 overflow-x-auto border-b border-line px-2">
+        <div className="flex h-8 shrink-0 items-center gap-1 overflow-x-auto border-b border-border/60 px-2">
           {docs.map((d) => (
             <div
               key={d.path}
               className={`flex h-6 items-center gap-1 rounded-sm ps-2 pe-1 text-xs ${
-                d.path === doc.path ? "bg-grid-soft text-grid-fg" : "text-grid-muted hover:text-grid-fg"
+                d.path === doc.path ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <button type="button" className="max-w-48 truncate" onClick={() => onSelect(d.path)} title={d.path}>
                 {d.name}
               </button>
-              <button type="button" aria-label={t("doc.close")} onClick={() => onClose(d.path)} className="rounded-sm p-0.5 hover:bg-grid-card">
+              <button type="button" aria-label={t("doc.close")} onClick={() => onClose(d.path)} className="rounded-sm p-0.5 hover:bg-hover">
                 <X className="size-3" />
               </button>
             </div>
@@ -120,18 +121,18 @@ export function DocumentView({
         </div>
       ) : null}
 
-      <header className="flex h-11 shrink-0 items-center gap-2 border-b border-line px-3">
+      <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border/60 px-3">
         <FileText className="size-4 shrink-0 text-grid-action" />
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-grid-fg" dir="auto">
+          <div className="truncate text-sm font-medium text-foreground" dir="auto">
             {doc.name}
           </div>
-          <div className="truncate text-[11px] text-grid-muted" dir="ltr" title={doc.path}>
+          <div className="truncate text-[11px] text-muted-foreground" dir="ltr" title={doc.path}>
             {t("doc.local")} · {doc.path}
           </div>
         </div>
         <div className="ms-auto flex items-center gap-1">
-          <div className="me-1 flex rounded-md border border-line p-0.5" role="group">
+          <div className="me-1 flex rounded-md border border-border/60 p-0.5" role="group">
             <Button size="xs" variant={mode === "preview" ? "secondary" : "ghost"} onClick={() => setMode("preview")} aria-pressed={mode === "preview"}>
               <Eye />
               {t("doc.preview")}
@@ -141,19 +142,16 @@ export function DocumentView({
               {t("doc.source")}
             </Button>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
-              <Download />
-              {t("doc.export")}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-36">
-              {EXPORT_FORMATS.map((f) => (
-                <DropdownMenuItem key={f} onClick={() => void doExport(f)}>
-                  .{f}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) =>
+              void showMenu(EXPORT_FORMATS.map((f) => ({ id: f, label: `.${f}` })), e.currentTarget).then((id) => id && void doExport(id as (typeof EXPORT_FORMATS)[number]))
+            }
+          >
+            <Download />
+            {t("doc.export")}
+          </Button>
           {bridge().revealInFinder ? (
             <Button size="sm" variant="ghost" onClick={() => void bridge().revealInFinder?.(doc.path)}>
               <FolderSearch />
@@ -177,14 +175,14 @@ export function DocumentView({
           {mode === "preview" ? (
             <ExtendedMarkdown key={doc.path} text={doc.content} />
           ) : (
-            <pre dir="auto" className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-grid-fg">
+            <pre dir="auto" className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground">
               {doc.content}
             </pre>
           )}
         </div>
       </div>
 
-      <footer className="flex h-6 shrink-0 items-center gap-3 border-t border-line px-3 text-[11px] text-grid-muted">
+      <footer className="flex h-6 shrink-0 items-center gap-3 border-t border-border/60 px-3 text-[11px] text-muted-foreground">
         <span>{t("doc.words", { count: words })}</span>
         <span className="ms-auto">Markdown</span>
       </footer>
@@ -265,11 +263,11 @@ function ImportDocumentDialog({
           <DialogDescription dir="auto">{t("doc.importBody", { title: title.trim() || note.title })}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
-          <label className="grid gap-1.5 text-xs text-grid-muted">
+          <label className="grid gap-1.5 text-xs text-muted-foreground">
             {t("editor.title")}
             <Input dir="auto" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 text-xs text-grid-muted">
+          <label className="grid gap-1.5 text-xs text-muted-foreground">
             {t("imp.brain")}
             {writable.length ? (
               <Select items={writable.map((b) => ({ value: b.namespace, label: brainLabel(b) }))} value={ns} onValueChange={(v) => setNs(String(v ?? ""))}>
@@ -285,7 +283,7 @@ function ImportDocumentDialog({
                 </SelectContent>
               </Select>
             ) : (
-              <span className="text-sm text-grid-danger">{t("imp.noWritable")}</span>
+              <span className="text-sm text-destructive">{t("imp.noWritable")}</span>
             )}
           </label>
         </div>

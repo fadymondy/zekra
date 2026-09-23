@@ -1,5 +1,7 @@
+import type { ReactElement } from "react";
 import { Bell, LogOut, Plug, Settings as SettingsIcon, UserRound } from "lucide-react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,41 +28,52 @@ export function initialsOf(user: { name?: string; email?: string } | null): stri
   return (user?.email?.[0] ?? "").toUpperCase();
 }
 
-/** The signed-in account's monogram (violet, like the web console's user menu). */
+/** The signed-in account's monogram (shadcn Avatar on the theme's primary,
+ *  like the web console's user menu). */
 export function AccountAvatar({ size = 22 }: { size?: number }) {
   const { user } = useSession();
   const initials = initialsOf(user);
   return (
-    <span
-      aria-hidden
-      className="flex shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground"
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}
-    >
-      {initials || <UserRound className="size-3/5" />}
-    </span>
+    <Avatar aria-hidden className="after:hidden" style={{ width: size, height: size }}>
+      <AvatarFallback
+        className="bg-primary font-semibold text-primary-foreground"
+        style={{ fontSize: Math.max(9, Math.round(size * 0.4)) }}
+      >
+        {initials || <UserRound className="size-3/5" />}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
-/** Default occupant of the "titlebar.account" slot (after web's user-menu). */
-export function AccountMenu() {
+/** The account menu (after web's user-menu). By default an avatar button;
+ *  the sidebar footer passes its own full-width row as `trigger`. */
+export function AccountMenu({ trigger, side = "bottom", align = "end" }: {
+  trigger?: ReactElement;
+  side?: "top" | "bottom";
+  align?: "start" | "end";
+}) {
   const { t } = useI18n();
   const { user } = useSession();
   const { navigate } = useRouter();
   const run = useRunCommand();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("shell.account")} title={user?.email} />}>
-        <AccountAvatar />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-60">
+      {trigger ? (
+        <DropdownMenuTrigger render={trigger} />
+      ) : (
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("shell.account")} title={user?.email} />}>
+          <AccountAvatar />
+        </DropdownMenuTrigger>
+      )}
+      <DropdownMenuContent side={side} align={align} className="min-w-60">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-3">
             <AccountAvatar size={32} />
             <span className="min-w-0 flex-1">
-              {user?.name ? <span className="block truncate text-sm font-medium text-grid-fg">{user.name}</span> : null}
+              {user?.name ? <span className="block truncate text-[13px] font-medium text-foreground">{user.name}</span> : null}
               <span
                 dir="ltr"
-                className="block truncate font-grid-mono text-xs text-grid-muted"
+                className="block truncate text-xs font-normal text-muted-foreground"
                 style={{ unicodeBidi: "isolate" }}
               >
                 {user?.email ?? t("shell.signedOut")}
