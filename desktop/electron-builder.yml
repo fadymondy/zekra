@@ -36,7 +36,11 @@ directories:
 # Ship only the UI languages the app has (Electron locale .pak + .lproj; the
 # .lproj set also decides which languages macOS offers native menus/panels in).
 electronLanguages:
+  # macOS names the folder en.lproj, but Windows and Linux ship en-US.pak. With
+  # only "en" listed, a Windows build contained ar.pak alone, so an English
+  # system fell back to Arabic: mirrored title-bar buttons, Arabic context menus.
   - en
+  - en-US
   - ar
 
 files:
