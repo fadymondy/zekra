@@ -5,9 +5,9 @@
 FROM golang:1.26 AS api
 COPY --from=sqlc/sqlc:1.31.1 /workspace/sqlc /usr/local/bin/sqlc
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
+# go.mod replaces the togo plugins with ./plugins/*, so the whole tree is needed before download.
 COPY . .
+RUN go mod download
 RUN sqlc generate && go run github.com/99designs/gqlgen generate
 RUN CGO_ENABLED=0 go build -o /out/zekra ./cmd/api
 
