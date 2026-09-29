@@ -5,6 +5,8 @@
 FROM golang:1.26 AS api
 COPY --from=sqlc/sqlc:1.31.1 /workspace/sqlc /usr/local/bin/sqlc
 WORKDIR /src
+# go.sum lacks gqlgen's own tool deps (the production Dockerfile.api builds the same way).
+ENV GOFLAGS=-mod=mod
 # go.mod replaces the togo plugins with ./plugins/*, so the whole tree is needed before download.
 COPY . .
 RUN go mod download
