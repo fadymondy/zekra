@@ -225,7 +225,7 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
         <div
           ref={menuRef}
           role="menu"
-          className="fixed z-50 min-w-56 -translate-x-full rounded-md border border-line bg-grid-card py-1 text-sm shadow-lg"
+          className="fixed z-50 min-w-56 -translate-x-full rounded-md border border-border bg-card py-1 text-sm shadow-lg"
           style={{ left: menu.x, top: menu.y }}
         >
           <Item icon={<CopyIcon className="size-4" />} label="Copy as Markdown" onClick={() => run("md")} />
@@ -233,9 +233,9 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
           <Item icon={<FileSpreadsheetIcon className="size-4" />} label="Download CSV" onClick={() => run("csv")} />
           <Item icon={<SheetIcon className="size-4" />} label="Download Excel (.xlsx)" onClick={() => run("xlsx")} />
           <Item icon={<FileJsonIcon className="size-4" />} label="Download JSON" onClick={() => run("json")} />
-          <div className="my-1 border-t border-line" />
+          <div className="my-1 border-t border-border" />
           {sorted.col === null ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 text-grid-muted">
+            <div className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground">
               <XIcon className="size-4" />
               <span>No sort active</span>
             </div>
@@ -249,7 +249,7 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
         </div>
       ) : null}
       {toast ? (
-        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md border border-line bg-grid-card px-3 py-1.5 text-sm shadow-lg">
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md border border-border bg-card px-3 py-1.5 text-sm shadow-lg">
           {toast}
         </div>
       ) : null}
@@ -265,7 +265,7 @@ function Item({ icon, label, onClick }: { icon: React.ReactNode; label: string; 
       type="button"
       role="menuitem"
       onClick={onClick}
-      className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-grid-fg hover:bg-grid-soft"
+      className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-foreground hover:bg-nq-surface-soft"
     >
       {icon}
       <span className="flex-1">{label}</span>

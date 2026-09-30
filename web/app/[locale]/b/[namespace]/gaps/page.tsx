@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { CheckIcon, RotateCcwIcon, XIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { ToneSquare } from "@/components/activity/activity-row"
@@ -24,10 +24,10 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
   return (
     <li className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-grid-fg" title={g.query} dir="auto">
+        <p className="truncate font-medium text-foreground" title={g.query} dir="auto">
           {g.query}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-grid-muted">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
           <span>{t(g.hits === 1 ? "gaps.miss" : "gaps.misses", { count: formatNumber(g.hits) })}</span>
           <span>{t("gaps.firstSeen", { date: formatDate(g.firstSeen) })}</span>
           <span>{t("gaps.lastSeen", { date: formatDate(g.lastSeen, { dateStyle: "medium", timeStyle: "short" }) })}</span>
@@ -41,7 +41,7 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
       <div className="flex shrink-0 flex-wrap gap-1.5">
         {g.status !== "indexed" ? (
           <Button variant="outline" size="sm" disabled={busy} onClick={() => onResolve("indexed")}>
-            <CheckIcon className="text-grid-ok" />
+            <CheckIcon className="text-nq-success" />
             {t("gaps.markIndexed")}
           </Button>
         ) : null}
@@ -53,7 +53,7 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
         ) : null}
         {g.status !== "open" ? (
           <Button variant="outline" size="sm" disabled={busy} onClick={() => onResolve("open")}>
-            <RotateCcwIcon className="text-grid-warn" />
+            <RotateCcwIcon className="text-nq-warning" />
             {t("gaps.reopen")}
           </Button>
         ) : null}
@@ -96,7 +96,7 @@ export default function BrainGapsPage() {
   return (
     <>
       <SectionHeader micro={t("gaps.micro")} title={t("gaps.title")} description={t("gaps.description")} />
-      <div className="flex flex-wrap items-center gap-2 border-t border-line px-6 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-border px-6 py-3">
         <ToggleGroup
           aria-label={t("gaps.filter")}
           variant="outline"
@@ -115,7 +115,7 @@ export default function BrainGapsPage() {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        {total > 0 ? <span className="ms-auto text-[12.5px] text-grid-muted">{t("gaps.count", { count: formatNumber(total) })}</span> : null}
+        {total > 0 ? <span className="ms-auto text-[12.5px] text-muted-foreground">{t("gaps.count", { count: formatNumber(total) })}</span> : null}
       </div>
 
       {error ? (
@@ -130,7 +130,7 @@ export default function BrainGapsPage() {
           if (rows.length === 0) return null
           return (
             <section key={s}>
-              <SectionTitle action={<span className="grid-micro">{formatNumber(rows.length)}</span>}>
+              <SectionTitle action={<span className="eyebrow">{formatNumber(rows.length)}</span>}>
                 <span className="inline-flex items-center gap-2">
                   <ToneSquare tone={TONE[s] ?? "muted"} className="size-2" />
                   {t(`gaps.status.${s}`)}

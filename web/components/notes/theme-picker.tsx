@@ -65,7 +65,7 @@ export function ThemePicker({
       <button
         type="button"
         onClick={() => onChange(null)}
-        className="text-sm text-grid-muted underline underline-offset-4 hover:text-grid-fg"
+        className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
       >
         {l.ownPalette}
       </button>
@@ -90,7 +90,7 @@ function Group({
     // full width inside the desktop settings column, which is narrower than
     // the sm: breakpoint however wide the window is.
     <section className="@container">
-      <h3 className="mb-2 font-mono text-xs tracking-wider text-grid-muted uppercase">{title}</h3>
+      <h3 className="mb-2 font-mono text-xs tracking-wider text-muted-foreground uppercase">{title}</h3>
       <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @2xl:grid-cols-3 @4xl:grid-cols-4">
         {themes.map((t) => (
           <Card key={t.id} theme={t} selected={value === t.id} onSelect={() => onChange(t.id)} />
@@ -116,7 +116,7 @@ function Card({
       onClick={onSelect}
       aria-pressed={selected}
       className={`overflow-hidden rounded-md border text-start transition ${
-        selected ? "border-grid-action ring-2 ring-grid-action/40" : "border-line hover:border-grid-muted"
+        selected ? "border-nq-action ring-2 ring-nq-action/40" : "border-border hover:border-muted-foreground"
       }`}
     >
       {/* Miniature of the palette: heading, accent, body, muted. */}
@@ -126,8 +126,8 @@ function Card({
         <span className="mt-1.5 block h-1.5 w-full rounded-sm" style={{ background: p.fgMuted, opacity: 0.45 }} />
         <span className="mt-1.5 block h-1.5 w-1/2 rounded-sm" style={{ background: p.fgMuted, opacity: 0.3 }} />
       </span>
-      <span className="flex items-center justify-between gap-2 border-t border-line bg-grid-card px-2 py-1.5">
-        <span className="truncate text-xs text-grid-fg">{theme.label}</span>
+      <span className="flex items-center justify-between gap-2 border-t border-border bg-card px-2 py-1.5">
+        <span className="truncate text-xs text-foreground">{theme.label}</span>
         <span
           className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] tracking-wide uppercase"
           style={{ background: p.link, color: p.bg }}

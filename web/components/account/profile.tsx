@@ -39,11 +39,11 @@ export function ProfileSection() {
       ) : profile.error ? (
         <div className="flex flex-col gap-2">
           {me.data?.email ? (
-            <p dir="ltr" className="text-sm text-grid-fg rtl:text-end">
+            <p dir="ltr" className="text-sm text-foreground rtl:text-end">
               {me.data.email}
             </p>
           ) : null}
-          <p role="alert" className="text-sm text-grid-danger-text">
+          <p role="alert" className="text-sm text-nq-danger-text">
             {authMessage(profile.error, t)}
           </p>
         </div>
@@ -89,7 +89,7 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
       <FieldGroup>
         <Field>
           <FieldLabel>{t("auth.email")}</FieldLabel>
-          <p dir="ltr" className="text-sm text-grid-fg rtl:text-end">
+          <p dir="ltr" className="text-sm text-foreground rtl:text-end">
             {profile.email}
           </p>
           <FieldDescription>{profile.verified ? t("account.profile.verified") : t("account.profile.unverified")}</FieldDescription>
@@ -147,7 +147,7 @@ export function PasswordSection() {
     return (
       <AccountSection title={t("account.password.title")}>
         <div className="flex max-w-md flex-col gap-3">
-          <p className="text-sm text-pretty text-grid-muted">{t("account.password.none")}</p>
+          <p className="text-sm text-pretty text-muted-foreground">{t("account.password.none")}</p>
           <Button variant="outline" className="self-start" nativeButton={false} render={<Link href={`/${locale}/forgot-password`} />}>
             {t("account.password.setOne")}
           </Button>

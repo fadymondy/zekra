@@ -118,7 +118,7 @@ function ErrorLine({ ctx, path }: { ctx: FormCtx; path: Path }) {
 function Row({ ctx, path, label, hint, children, inline }: { ctx: FormCtx; path: Path; label: string; hint?: string; children: ReactNode; inline?: boolean }) {
   const key = path.join(".")
   return (
-    <div data-field-path={key} className={cn("grid min-w-0 grid-cols-1 gap-1 rounded-md", ctx.active === key && "bg-brand/5 ring-2 ring-brand/40 ring-offset-2 ring-offset-background", inline && "grid-cols-[minmax(0,1fr)_auto] items-center")}>
+    <div data-field-path={key} className={cn("grid min-w-0 grid-cols-1 gap-1 rounded-md", ctx.active === key && "bg-nq-brand/5 ring-2 ring-nq-brand/40 ring-offset-2 ring-offset-background", inline && "grid-cols-[minmax(0,1fr)_auto] items-center")}>
       <label className="text-xs font-medium text-muted-foreground" title={hint}>
         {label}
       </label>
@@ -172,7 +172,7 @@ export function IconPicker({ value, onChange, t }: { value?: string; onChange: (
                 onChange(n)
                 setOpen(false)
               }}
-              className={cn("flex aspect-square items-center justify-center rounded-md border border-transparent hover:bg-muted", n === value && "border-brand bg-brand/10 text-brand")}
+              className={cn("flex aspect-square items-center justify-center rounded-md border border-transparent hover:bg-muted", n === value && "border-nq-brand bg-nq-brand/10 text-nq-brand")}
             >
               <PresIcon name={n} className="size-4" />
             </button>
@@ -548,13 +548,13 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
           const ip = [...path, i]
           return (
             <div key={i} className="grid gap-1" data-field-path={ip.join(".")}>
-              <div className={cn("flex items-center gap-1 rounded-md", (ctx.active === ip.join(".") || ctx.active === `${ip.join(".")}.text`) && "ring-2 ring-brand/40")}>
+              <div className={cn("flex items-center gap-1 rounded-md", (ctx.active === ip.join(".") || ctx.active === `${ip.join(".")}.text`) && "ring-2 ring-nq-brand/40")}>
                 {bulletLike ? (
                   <Popover>
                     <PopoverTrigger
                       render={
                         <Button variant="outline" size="icon-sm" aria-label={t("presentations.field.icon")}>
-                          {icon ? <PresIcon name={icon} className="size-4" /> : <span className="size-1.5 rounded-full bg-brand" />}
+                          {icon ? <PresIcon name={icon} className="size-4" /> : <span className="size-1.5 rounded-full bg-nq-brand" />}
                         </Button>
                       }
                     />

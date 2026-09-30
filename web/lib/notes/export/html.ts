@@ -26,14 +26,14 @@ const escapeHtml = (s: string) =>
 
 /** Fallback palette when no reading theme is chosen: GitHub Light. */
 const NEUTRAL: Record<string, string> = {
-  '--grid-bg': '#ffffff',
-  '--grid-card': '#ffffff',
-  '--grid-soft': '#f6f8fa',
-  '--grid-fg': '#1f2328',
-  '--grid-body': '#1f2328',
-  '--grid-muted': '#656d76',
-  '--grid-line': '#d0d7de',
-  '--grid-action': '#0969da',
+  '--nq-bg': '#ffffff',
+  '--nq-surface': '#ffffff',
+  '--nq-surface-soft': '#f6f8fa',
+  '--nq-fg': '#1f2328',
+  '--nq-fg-body': '#1f2328',
+  '--nq-fg-muted': '#656d76',
+  '--nq-line': '#d0d7de',
+  '--nq-action': '#0969da',
   '--hl-comment': '#6e7781',
   '--hl-keyword': '#cf222e',
   '--hl-string': '#0a3069',
@@ -58,35 +58,35 @@ function baseCss(vars: Record<string, string>): string {
   return `
 :root{${decls}}
 *{box-sizing:border-box}
-body{margin:0;padding:2rem 1.25rem;background:var(--grid-bg);color:var(--grid-fg);
+body{margin:0;padding:2rem 1.25rem;background:var(--nq-bg);color:var(--nq-fg);
   font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 main{max-width:56rem;margin:0 auto}
-a{color:var(--grid-action)}
-h1,h2{border-bottom:1px solid var(--grid-line);padding-bottom:.3em}
-code{background:var(--grid-soft);padding:.1em .3em;border-radius:3px;
+a{color:var(--nq-action)}
+h1,h2{border-bottom:1px solid var(--nq-line);padding-bottom:.3em}
+code{background:var(--nq-surface-soft);padding:.1em .3em;border-radius:3px;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;unicode-bidi:plaintext}
 pre{overflow-x:auto;padding:0;margin:0;direction:ltr}
 pre code{background:none;padding:0}
-blockquote{margin:0;padding-left:1em;border-left:3px solid var(--grid-line);color:var(--grid-muted)}
+blockquote{margin:0;padding-left:1em;border-left:3px solid var(--nq-line);color:var(--nq-fg-muted)}
 table{border-collapse:collapse;width:100%}
-th,td{border:1px solid var(--grid-line);padding:.4em .6em;text-align:start}
-th{background:var(--grid-soft)}
+th,td{border:1px solid var(--nq-line);padding:.4em .6em;text-align:start}
+th{background:var(--nq-surface-soft)}
 img{max-width:100%;height:auto}
-hr{border:0;border-top:1px solid var(--grid-line);margin:2em 0}
-kbd{border:1px solid var(--grid-line);background:var(--grid-soft);padding:.1em .4em;border-radius:3px;font-size:.85em}
-details{border:1px solid var(--grid-line);border-radius:6px;padding:.5em}
+hr{border:0;border-top:1px solid var(--nq-line);margin:2em 0}
+kbd{border:1px solid var(--nq-line);background:var(--nq-surface-soft);padding:.1em .4em;border-radius:3px;font-size:.85em}
+details{border:1px solid var(--nq-line);border-radius:6px;padding:.5em}
 summary{cursor:pointer;font-weight:500}
-.zk-code{margin:.75rem 0;border:1px solid var(--grid-line);border-radius:8px;overflow:hidden;background:var(--zk-code-bg)}
+.zk-code{margin:.75rem 0;border:1px solid var(--nq-line);border-radius:8px;overflow:hidden;background:var(--zk-code-bg)}
 .zk-code-bar{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;
-  border-bottom:1px solid var(--grid-line);background:var(--grid-soft);direction:ltr}
+  border-bottom:1px solid var(--nq-line);background:var(--nq-surface-soft);direction:ltr}
 .zk-code-lights{display:inline-flex;gap:.3rem}
 .zk-code-lights i{width:.65rem;height:.65rem;border-radius:9999px;background:currentColor}
 .zk-code-lights i:nth-child(1){color:#ff5f57}.zk-code-lights i:nth-child(2){color:#febc2e}
 .zk-code-lights i:nth-child(3){color:#28c840}
-.zk-code-name{flex:1;text-align:center;font-size:.75rem;color:var(--grid-muted);
+.zk-code-name{flex:1;text-align:center;font-size:.75rem;color:var(--nq-fg-muted);
   font-family:ui-monospace,monospace}
 .zk-code>pre{padding:.75rem}
-.zk-table{margin:.75rem 0;border:1px solid var(--grid-line);border-radius:8px;overflow:hidden}
+.zk-table{margin:.75rem 0;border:1px solid var(--nq-line);border-radius:8px;overflow:hidden}
 .zk-table-scroll{overflow-x:auto}
 .hljs-comment,.hljs-quote{color:var(--hl-comment);font-style:italic}
 .hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-doctag{color:var(--hl-keyword)}

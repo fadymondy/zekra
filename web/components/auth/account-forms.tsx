@@ -93,9 +93,9 @@ export function RegisterForm() {
         </FieldGroup>
       </form>
       <ProviderButtons methods={methods} returnTo={next ?? `/${locale}/brains`} />
-      <p className="mt-6 text-center text-sm text-grid-muted">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         {t("auth.haveAccount")}{" "}
-        <Link href={`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-grid-fg underline underline-offset-4">
+        <Link href={`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-foreground underline underline-offset-4">
           {t("auth.signIn")}
         </Link>
       </p>
@@ -220,7 +220,7 @@ export function ForgotPasswordForm() {
 
   const loginLink = (
     <p className="mt-6 text-center text-sm">
-      <Link href={`/${locale}/login`} className="text-grid-muted underline underline-offset-4 hover:text-grid-fg">
+      <Link href={`/${locale}/login`} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
         {t("auth.backToLogin")}
       </Link>
     </p>
@@ -230,7 +230,7 @@ export function ForgotPasswordForm() {
     return (
       <Frame title={t("auth.forgotTitle")} description={t("auth.forgotIntro")}>
         <div className="flex flex-col gap-4">
-          <p role="status" className="text-sm text-pretty text-grid-fg">
+          <p role="status" className="text-sm text-pretty text-foreground">
             {t("auth.resetDone")}
           </p>
           <Button size="lg" nativeButton={false} render={<Link href={`/${locale}/login`} />}>

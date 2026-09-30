@@ -56,7 +56,7 @@ export function SiteAnalytics({ gaId, locale }: { gaId: string; locale: string }
         <div
           role="dialog"
           aria-label={t.title}
-          className="fixed start-4 bottom-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-line bg-popover p-4 text-popover-foreground shadow-lg"
+          className="fixed start-4 bottom-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-lg"
         >
           <p className="text-sm font-semibold text-foreground">{t.title}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.body}</p>
@@ -64,14 +64,14 @@ export function SiteAnalytics({ gaId, locale }: { gaId: string; locale: string }
             <button
               type="button"
               onClick={() => choose("denied")}
-              className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/40"
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/40"
             >
               {t.reject}
             </button>
             <button
               type="button"
               onClick={() => choose("granted")}
-              className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-brand-foreground transition-opacity hover:opacity-90"
+              className="rounded-md bg-nq-brand px-3 py-1.5 text-xs font-medium text-nq-on-action transition-opacity hover:opacity-90"
             >
               {t.accept}
             </button>

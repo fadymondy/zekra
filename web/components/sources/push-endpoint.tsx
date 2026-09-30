@@ -13,21 +13,21 @@ export function PushEndpoint({ id, secret }: { id: string; secret?: unknown }) {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <p className="grid-micro">{t("sources.pushUrl")}</p>
+        <p className="eyebrow">{t("sources.pushUrl")}</p>
         <CopyField value={url} label={t("sources.pushUrl")} />
       </div>
       <div className="space-y-1.5">
-        <p className="grid-micro">
+        <p className="eyebrow">
           {t("sources.secretHeader")} · <span dir="ltr">X-Webhook-Secret</span>
         </p>
         {isRedacted(secret) ? (
-          <p className="text-sm text-grid-muted">{t("sources.secretHidden")}</p>
+          <p className="text-sm text-muted-foreground">{t("sources.secretHidden")}</p>
         ) : (
           <CopyField value={String(secret)} label={t("sources.secretHeader")} />
         )}
       </div>
       <div className="space-y-1.5">
-        <p className="grid-micro">{t("sources.example")}</p>
+        <p className="eyebrow">{t("sources.example")}</p>
         <CopyField value={example} label={t("sources.example")} />
       </div>
     </div>

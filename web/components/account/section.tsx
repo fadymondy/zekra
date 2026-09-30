@@ -22,8 +22,8 @@ export function AccountSection({
   return (
     <section>
       <SectionTitle action={action}>{title}</SectionTitle>
-      {description ? <p className="grid-body -mt-1 max-w-2xl px-6 pb-3 text-sm text-pretty">{description}</p> : null}
-      <div className={cn("border-y border-line px-6 py-6", className)}>{children}</div>
+      {description ? <p className="text-nq-fg-body leading-relaxed -mt-1 max-w-2xl px-6 pb-3 text-sm text-pretty">{description}</p> : null}
+      <div className={cn("border-y border-border px-6 py-6", className)}>{children}</div>
     </section>
   )
 }
@@ -32,7 +32,7 @@ export function AccountSection({
 export function StatusLine({ notice }: { notice: { ok: boolean; text: string } | null }) {
   if (!notice) return null
   return (
-    <p role={notice.ok ? "status" : "alert"} className={cn("text-sm", notice.ok ? "text-grid-fg" : "text-grid-danger-text")}>
+    <p role={notice.ok ? "status" : "alert"} className={cn("text-sm", notice.ok ? "text-foreground" : "text-nq-danger-text")}>
       {notice.text}
     </p>
   )

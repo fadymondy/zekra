@@ -35,10 +35,10 @@ function loadHistory(ns: string): Msg[] {
 /** Three squares lighting in turn while the brain recalls and answers. */
 function Thinking({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-grid-muted" role="status">
+    <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
       <span className="flex gap-1" aria-hidden>
         {[0, 1, 2].map((i) => (
-          <span key={i} className="size-2 animate-pulse bg-grid-action" style={{ animationDelay: `${i * 200}ms` }} />
+          <span key={i} className="size-2 animate-pulse bg-nq-action" style={{ animationDelay: `${i * 200}ms` }} />
         ))}
       </span>
       <span>{label}</span>
@@ -136,7 +136,7 @@ export default function BrainChatPage() {
         micro={t("chat.micro")}
         title={
           <>
-            {t("chat.askThe")} <span dir="ltr" className="text-grid-action">{namespace}</span>
+            {t("chat.askThe")} <span dir="ltr" className="text-nq-action">{namespace}</span>
           </>
         }
         description={t("chat.description")}
@@ -149,10 +149,10 @@ export default function BrainChatPage() {
         }
       />
 
-      <div className="flex-1 border-t border-line">
+      <div className="flex-1 border-t border-border">
         {msgs.length === 0 ? (
-          <section className="border-b border-line bg-grid-card px-6 py-8">
-            <p className="grid-micro">{t("chat.suggestions")}</p>
+          <section className="border-b border-border bg-card px-6 py-8">
+            <p className="eyebrow">{t("chat.suggestions")}</p>
             {suggestions.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {suggestions.map((s) => (
@@ -162,7 +162,7 @@ export default function BrainChatPage() {
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-sm text-grid-muted">{t("chat.emptyHint")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("chat.emptyHint")}</p>
             )}
           </section>
         ) : (
@@ -176,17 +176,17 @@ export default function BrainChatPage() {
                 </div>
               ) : (
                 <div key={i} className="flex justify-start">
-                  <div className="w-full max-w-[90%] border border-line bg-grid-card px-4 py-3">
+                  <div className="w-full max-w-[90%] border border-border bg-card px-4 py-3">
                     <div className="mb-2 flex items-center gap-2">
-                      <span aria-hidden className="size-2 bg-grid-action" />
-                      <span dir="ltr" className="grid-micro">
+                      <span aria-hidden className="size-2 bg-nq-action" />
+                      <span dir="ltr" className="eyebrow">
                         {namespace}
                       </span>
                     </div>
                     {m.loading ? (
                       <Thinking label={t("chat.thinking")} />
                     ) : m.error ? (
-                      <p role="alert" className="text-sm text-grid-danger">
+                      <p role="alert" className="text-sm text-nq-danger">
                         {m.error}
                       </p>
                     ) : (
@@ -205,7 +205,7 @@ export default function BrainChatPage() {
       </div>
 
       <form
-        className="sticky bottom-0 border-t border-line bg-background px-6 py-4"
+        className="sticky bottom-0 border-t border-border bg-background px-6 py-4"
         onSubmit={(e) => {
           e.preventDefault()
           void send(input)
@@ -231,7 +231,7 @@ export default function BrainChatPage() {
             <SendIcon className="rtl:-scale-x-100" /> {t("chat.ask")}
           </Button>
         </div>
-        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-grid-muted">{t("chat.footnote")}</p>
+        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">{t("chat.footnote")}</p>
       </form>
     </div>
   )

@@ -23,7 +23,7 @@ export interface CategoryIconSpec {
  * dark navy card.
  */
 export const CATEGORY_ICONS: Record<string, CategoryIconSpec> = {
-  note: { icon: "StickyNote", color: "var(--grid-muted)" },
+  note: { icon: "StickyNote", color: "var(--nq-fg-muted)" },
   doc: { icon: "FileText", color: "#519aba" },
   document: { icon: "FileText", color: "#519aba" },
 

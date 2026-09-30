@@ -100,7 +100,7 @@ export function BrainMindmap({ data, height = 560 }: { data: GraphData; height?:
               y1={a.y}
               x2={b.x}
               y2={b.y}
-              style={{ stroke: lit ? "var(--grid-fg)" : "var(--grid-line)", opacity: neighbors ? (lit ? 0.9 : 0.08) : 0.5 }}
+              style={{ stroke: lit ? "var(--nq-fg)" : "var(--nq-line)", opacity: neighbors ? (lit ? 0.9 : 0.08) : 0.5 }}
               strokeWidth={lit ? 1.5 : 1}
             />
           )
@@ -114,21 +114,21 @@ export function BrainMindmap({ data, height = 560 }: { data: GraphData; height?:
           >
             <rect x={n.x - n.r} y={n.y - n.r} width={n.r * 2} height={n.r * 2} style={{ fill: colorFor(n.group) }} shapeRendering="crispEdges" />
             {isStruct(n.group) ? (
-              <text x={n.x} y={n.y - n.r - 5} textAnchor="middle" style={{ fill: "var(--grid-fg)", fontSize: 11, fontWeight: 500, pointerEvents: "none" }}>
+              <text x={n.x} y={n.y - n.r - 5} textAnchor="middle" style={{ fill: "var(--nq-fg)", fontSize: 11, fontWeight: 500, pointerEvents: "none" }}>
                 {n.name.length > 26 ? n.name.slice(0, 25) + "…" : n.name}
               </text>
             ) : null}
           </g>
         ))}
         {hovered && !isStruct(hovered.group) ? (
-          <text x={hovered.x} y={hovered.y - hovered.r - 5} textAnchor="middle" style={{ fill: "var(--grid-fg)", fontSize: 11, fontWeight: 500, pointerEvents: "none" }}>
+          <text x={hovered.x} y={hovered.y - hovered.r - 5} textAnchor="middle" style={{ fill: "var(--nq-fg)", fontSize: 11, fontWeight: 500, pointerEvents: "none" }}>
             {hovered.name.length > 44 ? hovered.name.slice(0, 43) + "…" : hovered.name}
           </text>
         ) : null}
       </svg>
 
       {legend.length > 0 ? (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 px-6 py-2 text-xs text-grid-muted">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 px-6 py-2 text-xs text-muted-foreground">
           {legend.map((l) => (
             <span key={l.group} className="inline-flex items-center gap-1.5">
               <span aria-hidden className="size-2.5" style={{ background: colorFor(l.group) }} />

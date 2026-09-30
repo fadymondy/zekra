@@ -48,8 +48,8 @@ export function ColorPicker({
               disabled={disabled}
               onClick={() => onChange(p.key)}
               className={cn(
-                "flex size-7 items-center justify-center border border-line outline-offset-2 transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
-                on && "ring-2 ring-grid-fg ring-offset-2 ring-offset-background",
+                "flex size-7 items-center justify-center border border-border outline-offset-2 transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
+                on && "ring-2 ring-foreground ring-offset-2 ring-offset-background",
               )}
               style={{ backgroundColor: p.hex }}
             >
@@ -69,7 +69,7 @@ export function ColorPicker({
               setHex(e.target.value)
               onChange(e.target.value.toLowerCase())
             }}
-            className="h-8 w-10 cursor-pointer border border-line bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-8 w-10 cursor-pointer border border-border bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <Input
             id={`${idPrefix}-hex`}
@@ -95,7 +95,7 @@ export function ColorPicker({
                 setHex("")
                 onChange("")
               }}
-              className="text-xs text-grid-muted underline underline-offset-4 hover:text-grid-fg"
+              className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               {t("brainSettings.color.reset")}
             </button>

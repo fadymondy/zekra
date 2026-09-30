@@ -98,8 +98,8 @@ function NavLink({ item, onNavigate, compact = false }: { item: NavItem; onNavig
         "flex items-center gap-2.5 border-s-2 py-2 text-sm transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
         compact ? "justify-center px-0" : "px-3",
         active
-          ? "border-grid-action bg-grid-soft font-medium text-grid-fg"
-          : "border-transparent text-grid-body hover:bg-grid-soft hover:text-grid-fg",
+          ? "border-nq-action bg-nq-surface-soft font-medium text-foreground"
+          : "border-transparent text-nq-fg-body hover:bg-nq-surface-soft hover:text-foreground",
       )}
     >
       <Icon />
@@ -116,9 +116,9 @@ function ShellNav({ groups, onNavigate, compact = false }: { groups: NavGroup[];
         <div key={g.label ?? i} className="flex flex-col">
           {g.label ? (
             compact ? (
-              i > 0 ? <div className="mx-3 my-3 border-t border-line" aria-hidden /> : null
+              i > 0 ? <div className="mx-3 my-3 border-t border-border" aria-hidden /> : null
             ) : (
-              <p className={cn("grid-micro px-4 pb-1", i > 0 ? "mt-4 border-t border-line pt-4" : "pt-1")}>{t(g.label)}</p>
+              <p className={cn("eyebrow px-4 pb-1", i > 0 ? "mt-4 border-t border-border pt-4" : "pt-1")}>{t(g.label)}</p>
             )
           ) : null}
           {g.items.map((item) => (
@@ -174,14 +174,14 @@ export function AppShell({
     <AppThemeEffect />
     <div className="grid-shell" data-collapsed={sidebar.collapsed ? "true" : undefined}>
       <aside className="grid-shell-nav sticky top-0 hidden h-dvh flex-col overflow-y-auto md:flex">
-        <div className={cn("flex h-14 shrink-0 items-center border-b border-line", sidebar.collapsed ? "justify-center px-0" : "px-4")}>
+        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", sidebar.collapsed ? "justify-center px-0" : "px-4")}>
           <Brand compact={sidebar.collapsed} />
         </div>
         <ShellNav groups={groups} compact={sidebar.collapsed} />
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-line bg-background px-3 sm:px-4">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-background px-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-1">
             <Button
               variant="ghost"
@@ -231,7 +231,7 @@ export function AppShell({
 
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetContent side={isRtl ? "right" : "left"} className="w-72 gap-0 p-0">
-          <SheetTitle className="flex h-14 items-center border-b border-line px-4">
+          <SheetTitle className="flex h-14 items-center border-b border-border px-4">
             <Brand />
           </SheetTitle>
           <ShellNav groups={groups} onNavigate={() => setNavOpen(false)} />

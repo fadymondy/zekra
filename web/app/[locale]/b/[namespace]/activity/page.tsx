@@ -40,14 +40,14 @@ export default function BrainActivityPage() {
           { label: t("activity.stat.writes"), value: v(counts.writes) },
           {
             label: t("activity.stat.errors"),
-            value: <span className={counts.errors ? "text-grid-danger" : undefined}>{v(counts.errors)}</span>,
+            value: <span className={counts.errors ? "text-nq-danger" : undefined}>{v(counts.errors)}</span>,
           },
         ]}
       />
       <SectionTitle
         action={
           rows.length > 0 ? (
-            <span className="grid-micro">{t("activity.liveCount", { count: formatNumber(rows.length) })}</span>
+            <span className="eyebrow">{t("activity.liveCount", { count: formatNumber(rows.length) })}</span>
           ) : null
         }
       >

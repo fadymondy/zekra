@@ -172,7 +172,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
       />
 
       {namespace ? (
-        <div className="flex gap-1 border-b border-line px-3 pb-2">
+        <div className="flex gap-1 border-b border-border px-3 pb-2">
           {(["brain", "all"] as const).map((s) => (
             <button
               key={s}
@@ -181,7 +181,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
               aria-checked={scope === s}
               onClick={() => setScope(s)}
               className={`rounded-md px-2.5 py-1 text-xs transition ${
-                scope === s ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted hover:text-grid-fg"
+                scope === s ? "bg-nq-surface-soft font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {s === "brain" ? t("spotlight.scopeBrain") : t("spotlight.scopeAll")}
@@ -214,7 +214,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
                     <span className="block truncate text-sm" style={{ unicodeBidi: "plaintext" }}>
                       {r.title || t("notes.untitled")}
                     </span>
-                    <span className="block truncate text-xs text-grid-muted">{r.namespace}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{r.namespace}</span>
                   </span>
                 </CommandItem>
               ))}
@@ -231,7 +231,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
                   <StickyNoteIcon />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{hit.content.slice(0, 120)}</span>
-                    <span className="block truncate text-xs text-grid-muted">
+                    <span className="block truncate text-xs text-muted-foreground">
                       {hit.namespace ?? namespace} · {hit.memoryType}
                     </span>
                   </span>
@@ -263,7 +263,7 @@ export function SpotlightPanel({ open, onOpenChange, namespace }: {
 
       {/* Keyboard hints, as in mark-it-down's spotlight. Tab is only listed
           when it does something. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line px-3 py-2 text-xs text-grid-muted">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border px-3 py-2 text-xs text-muted-foreground">
         <Hint keys={["↑", "↓"]} label={t("spotlight.navigate")} />
         <Hint keys={["Enter"]} label={t("spotlight.open")} />
         {namespace ? <Hint keys={["Tab"]} label={t("spotlight.switchScope")} /> : null}

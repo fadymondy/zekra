@@ -49,8 +49,8 @@ export function TwoFactorSettings() {
 
   return (
     <>
-      <div className="flex items-center gap-2 border-y border-line px-6 py-4 text-sm font-medium">
-        {s.enabled ? <ShieldCheckIcon className="size-4 text-grid-fg" /> : <ShieldOffIcon className="size-4 text-grid-muted" />}
+      <div className="flex items-center gap-2 border-y border-border px-6 py-4 text-sm font-medium">
+        {s.enabled ? <ShieldCheckIcon className="size-4 text-foreground" /> : <ShieldOffIcon className="size-4 text-muted-foreground" />}
         {s.enabled
           ? t("account.security.on", { count: formatNumber(s.recovery_codes_left) })
           : t("account.security.off")}
@@ -59,7 +59,7 @@ export function TwoFactorSettings() {
       {codes ? (
         <AccountSection title={t("account.security.codesTitle")} description={t("account.security.codesHelp")}>
           <div className="flex max-w-md flex-col gap-4">
-            <ul dir="ltr" className="grid grid-cols-2 gap-1 border border-line bg-grid-card p-4 font-mono text-sm">
+            <ul dir="ltr" className="grid grid-cols-2 gap-1 border border-border bg-card p-4 font-mono text-sm">
               {codes.map((c) => (
                 <li key={c}>{c}</li>
               ))}
@@ -89,7 +89,7 @@ export function TwoFactorSettings() {
       ) : null}
 
       {!s.enabled && !s.available ? (
-        <p role="alert" className="border-b border-line px-6 py-4 text-sm text-grid-danger-text">
+        <p role="alert" className="border-b border-border px-6 py-4 text-sm text-nq-danger-text">
           {t("account.security.unavailable")}
         </p>
       ) : null}
@@ -123,7 +123,7 @@ export function TwoFactorSettings() {
               {setup.qr ? (
                 // A data: URL from the server; next/image adds nothing for it.
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={setup.qr} alt={t("account.security.qrAlt")} width={200} height={200} className="self-start border border-line bg-white p-2" />
+                <img src={setup.qr} alt={t("account.security.qrAlt")} width={200} height={200} className="self-start border border-border bg-white p-2" />
               ) : null}
               <Field>
                 <FieldLabel>{t("account.security.manual")}</FieldLabel>

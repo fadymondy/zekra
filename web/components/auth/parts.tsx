@@ -101,7 +101,7 @@ export function ErrorLine({ error }: { error: string | null }) {
 
 export function Notice({ children }: { children: React.ReactNode }) {
   return children ? (
-    <p role="status" className="text-sm text-grid-muted">
+    <p role="status" className="text-sm text-muted-foreground">
       {children}
     </p>
   ) : null
@@ -124,7 +124,7 @@ export function OrRule() {
   return (
     <div className="flex items-center gap-3">
       <Separator className="flex-1" />
-      <span className="grid-micro">{t("auth.or")}</span>
+      <span className="eyebrow">{t("auth.or")}</span>
       <Separator className="flex-1" />
     </div>
   )

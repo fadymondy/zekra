@@ -544,7 +544,7 @@ export function SpiderGraphView({
                   width={side}
                   height={side}
                   shapeRendering="crispEdges"
-                  style={{ fill: n.color, stroke: isFocus ? "var(--grid-fg)" : "none", strokeWidth: isFocus ? 2 : 0 }}
+                  style={{ fill: n.color, stroke: isFocus ? "var(--nq-fg)" : "none", strokeWidth: isFocus ? 2 : 0 }}
                 />
                 {n.fx !== null ? (
                   <rect
@@ -565,11 +565,11 @@ export function SpiderGraphView({
                     textAnchor="middle"
                     style={{
                       pointerEvents: "none",
-                      fill: "var(--grid-fg)",
+                      fill: "var(--nq-fg)",
                       fontSize: isFocus ? 12 : 10,
                       fontWeight: 500,
                       paintOrder: "stroke",
-                      stroke: "var(--grid-card)",
+                      stroke: "var(--nq-surface)",
                       strokeWidth: 3,
                       strokeLinejoin: "round",
                     }}
@@ -591,7 +591,7 @@ export function SpiderGraphView({
     <div className="relative flex min-h-0 flex-1">
       <div
         ref={viewportRef}
-        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--grid-line)_1px,transparent_0)] [background-size:22px_22px]"
+        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--nq-line)_1px,transparent_0)] [background-size:22px_22px]"
         style={{ cursor: panning ? "grabbing" : "grab", touchAction: "none" }}
         onPointerDown={onPointerDownBg}
         onPointerMove={onPointerMove}
@@ -614,7 +614,7 @@ export function SpiderGraphView({
           onFit={recenter}
           fitLabel={t("graph.fitReheat")}
         />
-        <div className="pointer-events-none absolute bottom-3 end-3 z-20 hidden border border-line bg-grid-card px-2 py-1 text-[12px] text-grid-muted sm:block">
+        <div className="pointer-events-none absolute bottom-3 end-3 z-20 hidden border border-border bg-card px-2 py-1 text-[12px] text-muted-foreground sm:block">
           {t("graph.spiderHelp")}
         </div>
       </div>

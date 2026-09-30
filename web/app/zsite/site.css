@@ -8,18 +8,18 @@
 @import "@fontsource/ibm-plex-sans-arabic/600.css";
 
 .zsite {
-  --grid-font-sans: "Geist Variable", "Lusail", "IBM Plex Sans Arabic", sans-serif;
-  --grid-line: color-mix(in oklab, #ded5c4 64%, #f0ebe1);
-  --border: var(--grid-line);
+  --nq-font-ui: "Geist Variable", "Lusail", "IBM Plex Sans Arabic", sans-serif;
+  --nq-line: color-mix(in oklab, #ded5c4 64%, #f0ebe1);
+  --border: var(--nq-line);
   /* Button text on the violet, as zekra.dev drew it. */
-  --grid-on-action: #f0ebe1;
-  font-family: var(--grid-font-sans);
+  --nq-on-action: #f0ebe1;
+  font-family: var(--nq-font-ui);
 }
 .dark .zsite {
-  --grid-line: color-mix(in oklab, #25355c 64%, #0b1429);
+  --nq-line: color-mix(in oklab, #25355c 64%, #0b1429);
 }
 html[dir="rtl"] .zsite {
-  --grid-font-sans: "Lusail", "IBM Plex Sans Arabic", "Geist Variable", sans-serif;
+  --nq-font-ui: "Lusail", "IBM Plex Sans Arabic", "Geist Variable", sans-serif;
 }
 
 /* Shiki dual-theme output (components/ui/code-block.tsx): the light theme's colours are inline and

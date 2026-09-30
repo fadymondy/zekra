@@ -1,4 +1,4 @@
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { ApiError } from "@/lib/api"
 import { trans } from "@/lib/i18n"

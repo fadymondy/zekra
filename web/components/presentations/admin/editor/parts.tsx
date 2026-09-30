@@ -151,7 +151,7 @@ export function Gallery({
                     onPick(item)
                     onOpenChange(false)
                   }}
-                  className="group grid gap-1.5 rounded-lg border p-1.5 text-start outline-none hover:border-brand hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  className="group grid gap-1.5 rounded-lg border p-1.5 text-start outline-none hover:border-nq-brand hover:bg-nq-brand/5 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                   <TemplateThumb kind={kind} item={item} dir={dir} locale={locale} />
                   <span className="px-1 text-xs font-medium">{t(`presentations.type.${type}`)}</span>
@@ -237,7 +237,7 @@ export function Rail({
               setDrag(null)
               setOver(null)
             }}
-            className={cn("group relative shrink-0", horizontal && "w-40", over === it.key && drag && drag.key !== it.key && "before:absolute before:-top-1.5 before:right-0 before:left-0 before:h-0.5 before:rounded before:bg-brand")}
+            className={cn("group relative shrink-0", horizontal && "w-40", over === it.key && drag && drag.key !== it.key && "before:absolute before:-top-1.5 before:right-0 before:left-0 before:h-0.5 before:rounded before:bg-nq-brand")}
             style={it.depth ? { paddingInlineStart: `${it.depth * 0.75}rem` } : undefined}
           >
             <div
@@ -264,7 +264,7 @@ export function Rail({
               }}
               className={cn(
                 "grid cursor-pointer gap-1 rounded-lg border-2 p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                active ? "border-brand bg-brand/5" : "border-transparent hover:bg-muted",
+                active ? "border-nq-brand bg-nq-brand/5" : "border-transparent hover:bg-muted",
                 it.invalid && "border-destructive/70",
                 drag?.key === it.key && "opacity-40",
               )}

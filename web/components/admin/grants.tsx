@@ -14,10 +14,10 @@ const COLS = "grid grid-cols-[minmax(0,1fr)_4rem_4rem_2.5rem] items-center gap-x
 export function GrantHeader({ subject }: { subject: string }) {
   const { t } = useTranslations()
   return (
-    <div className={`${COLS} border-b border-line px-6 py-2`}>
-      <span className="grid-micro">{subject}</span>
-      <span className="grid-micro text-center">{t("permissions.read")}</span>
-      <span className="grid-micro text-center">{t("permissions.write")}</span>
+    <div className={`${COLS} border-b border-border px-6 py-2`}>
+      <span className="eyebrow">{subject}</span>
+      <span className="eyebrow text-center">{t("permissions.read")}</span>
+      <span className="eyebrow text-center">{t("permissions.write")}</span>
       <span />
     </div>
   )
@@ -72,7 +72,7 @@ export function GrantRow({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="text-grid-muted hover:text-grid-danger-text"
+            className="text-muted-foreground hover:text-nq-danger-text"
             title={t("permissions.revokeGrant")}
             aria-label={t("permissions.revokeFor", { name: label })}
             onClick={onRevoke}

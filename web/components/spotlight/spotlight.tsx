@@ -52,7 +52,7 @@ export function Spotlight({ namespace }: { namespace?: string }) {
         variant="ghost"
         size="sm"
         aria-label={t("spotlight.label")}
-        className="gap-1.5 border-none px-1.5 text-grid-muted select-none"
+        className="gap-1.5 border-none px-1.5 text-muted-foreground select-none"
         onClick={() => show(true)}
         onPointerEnter={preload}
         onFocus={preload}

@@ -40,13 +40,13 @@ export function NoteTree({
 
   if (roots.isLoading) {
     return (
-      <p className="flex items-center gap-2 px-3 py-4 text-sm text-grid-muted">
+      <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
         <Loader2Icon className="size-3.5 animate-spin" />
       </p>
     )
   }
   if (roots.error) {
-    return <p className="px-3 py-4 text-sm text-grid-danger">{roots.error.message}</p>
+    return <p className="px-3 py-4 text-sm text-nq-danger">{roots.error.message}</p>
   }
 
   return (

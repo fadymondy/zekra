@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDownIcon, Link2Icon, RefreshCwIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { ConfirmButton } from "@/components/confirm-button"
 import { iconFor } from "@/components/sources/kinds"
@@ -47,12 +47,12 @@ export function SourceRow({ s, onChanged }: { s: Datasource; onChanged: () => vo
   return (
     <li className="space-y-3 px-6 py-3">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center border border-line bg-grid-card text-grid-action">
+        <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-card text-nq-action">
           <Icon className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span dir="auto" className="truncate text-sm font-medium text-grid-fg">
+            <span dir="auto" className="truncate text-sm font-medium text-foreground">
               {s.name}
             </span>
             <Badge variant="outline" dir="ltr" className="font-mono">
@@ -60,7 +60,7 @@ export function SourceRow({ s, onChanged }: { s: Datasource; onChanged: () => vo
             </Badge>
             <Badge variant={statusVariant(status)}>{known ? t(`sources.status.${status}`) : status}</Badge>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-grid-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{t("sources.docs", { n: formatNumber(s.docCount ?? 0) })}</span>
             <span title={s.lastSyncAt ? formatDate(s.lastSyncAt, { dateStyle: "medium", timeStyle: "short" }) : undefined}>
               {s.lastSyncAt ? t("sources.lastSync", { when: timeAgo(s.lastSyncAt) }) : t("sources.neverSynced")}
@@ -97,12 +97,12 @@ export function SourceRow({ s, onChanged }: { s: Datasource; onChanged: () => vo
         </div>
       </div>
       {s.lastError ? (
-        <p dir="auto" className="text-sm text-grid-danger-text">
+        <p dir="auto" className="text-sm text-nq-danger-text">
           {s.lastError}
         </p>
       ) : null}
       {isWebhook && showHook ? (
-        <div className="border border-line bg-grid-soft p-3">
+        <div className="border border-border bg-nq-surface-soft p-3">
           <PushEndpoint id={s.id} secret={s.config?.secret} />
         </div>
       ) : null}

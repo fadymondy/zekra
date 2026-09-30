@@ -40,7 +40,7 @@ export function SiteHeader({
   ))
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className={`mx-auto flex h-14 ${maxWidth} items-center gap-6 px-6 sm:px-10`}>
         <Link href={`/${locale}`} className="flex items-center gap-2.5">
           <CubeMark mark={ZEKRA_MARK} size={20} />
@@ -63,7 +63,7 @@ export function SiteHeader({
 
       {/* Narrow screens: the nav moves to its own row rather than vanishing. */}
       <nav
-        className={`mx-auto flex ${maxWidth} items-center gap-5 overflow-x-auto border-t border-line px-6 py-2.5 sm:hidden`}
+        className={`mx-auto flex ${maxWidth} items-center gap-5 overflow-x-auto border-t border-border px-6 py-2.5 sm:hidden`}
       >
         {links}
       </nav>

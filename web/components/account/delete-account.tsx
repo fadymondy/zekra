@@ -54,10 +54,10 @@ export function DeleteAccount() {
   return (
     <>
       <AccountSection title={t("account.delete.whatTitle")}>
-        <ul className="flex max-w-2xl flex-col gap-2 text-sm text-pretty text-grid-body">
+        <ul className="flex max-w-2xl flex-col gap-2 text-sm text-pretty text-nq-fg-body">
           {WHAT.map((key) => (
             <li key={key} className="flex gap-2">
-              <span aria-hidden className="mt-2 size-1.5 shrink-0 bg-grid-danger" />
+              <span aria-hidden className="mt-2 size-1.5 shrink-0 bg-nq-danger" />
               {t(`account.delete.what.${key}`)}
             </li>
           ))}
@@ -66,7 +66,7 @@ export function DeleteAccount() {
 
       {scheduledFor !== null ? (
         <>
-          <div className="flex items-start gap-2 border-b border-line px-6 py-4 text-sm text-pretty text-grid-fg" role="status">
+          <div className="flex items-start gap-2 border-b border-border px-6 py-4 text-sm text-pretty text-foreground" role="status">
             <CheckIcon className="mt-0.5 size-4 shrink-0" />
             {scheduledFor
               ? t("account.delete.scheduled", { date: formatDate(scheduledFor, { dateStyle: "long" }) })
@@ -90,7 +90,7 @@ export function DeleteAccount() {
           <form onSubmit={submit} className="max-w-md">
             <FieldGroup>
               {me.data?.email ? (
-                <p className="text-xs text-grid-muted">
+                <p className="text-xs text-muted-foreground">
                   {t("account.delete.signedInAs")}{" "}
                   <bdi dir="ltr" className="font-mono">
                     {me.data.email}
@@ -109,7 +109,7 @@ export function DeleteAccount() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Field>
-              <label className="flex items-start gap-2 text-sm text-pretty text-grid-body">
+              <label className="flex items-start gap-2 text-sm text-pretty text-nq-fg-body">
                 <input
                   type="checkbox"
                   checked={confirmed}
@@ -157,7 +157,7 @@ export function CancelForm({ initialEmail = "" }: { initialEmail?: string }) {
   return (
     <AccountSection title={t("account.delete.cancelTitle")} description={t("account.delete.cancelHint")}>
       {done ? (
-        <p role="status" className="flex items-start gap-2 text-sm text-pretty text-grid-fg">
+        <p role="status" className="flex items-start gap-2 text-sm text-pretty text-foreground">
           <CheckIcon className="mt-0.5 size-4 shrink-0" />
           {t("account.delete.cancelled")}
         </p>

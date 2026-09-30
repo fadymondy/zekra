@@ -57,14 +57,14 @@ export function DataExport() {
 
   return (
     <>
-      <div className="border-y border-line px-6 py-4">
-        <p role="status" className="text-sm text-grid-fg">
+      <div className="border-y border-border px-6 py-4">
+        <p role="status" className="text-sm text-foreground">
           {line}
         </p>
         {s?.requested_at ? (
-          <p className="text-xs text-grid-muted">{t("account.export.requestedAt", { time: when(s.requested_at) })}</p>
+          <p className="text-xs text-muted-foreground">{t("account.export.requestedAt", { time: when(s.requested_at) })}</p>
         ) : null}
-        {waiting ? <p className="text-xs text-grid-muted">{t("account.export.nextAllowed", { time: when(s?.next_allowed_at) })}</p> : null}
+        {waiting ? <p className="text-xs text-muted-foreground">{t("account.export.nextAllowed", { time: when(s?.next_allowed_at) })}</p> : null}
       </div>
       <div className="flex flex-wrap items-center gap-2 px-6 py-6">
         <Button
@@ -102,7 +102,7 @@ export function ExportDownload({ token }: { token: string }) {
   if (!/^[0-9a-f]{32,128}$/i.test(token)) {
     return (
       <HatchBand>
-        <p className="text-sm text-grid-danger-text">{t("account.export.badLink")}</p>
+        <p className="text-sm text-nq-danger-text">{t("account.export.badLink")}</p>
       </HatchBand>
     )
   }
@@ -130,8 +130,8 @@ export function ExportDownload({ token }: { token: string }) {
   return (
     <HatchBand>
       <div className="flex flex-col gap-3">
-        <p className="text-sm font-medium text-grid-fg">{t("account.export.linkTitle")}</p>
-        <p className="text-sm text-pretty text-grid-muted">{t("account.export.once")}</p>
+        <p className="text-sm font-medium text-foreground">{t("account.export.linkTitle")}</p>
+        <p className="text-sm text-pretty text-muted-foreground">{t("account.export.once")}</p>
         <Button className="self-start" disabled={phase === "busy" || phase === "done" || phase === "gone"} onClick={() => void download()}>
           <DownloadIcon />
           {phase === "busy" ? t("common.working") : t("account.export.download")}
@@ -140,7 +140,7 @@ export function ExportDownload({ token }: { token: string }) {
         {phase === "gone" ? <StatusLine notice={{ ok: false, text: t("account.export.gone") }} /> : null}
         {phase === "error" ? <StatusLine notice={{ ok: false, text: t("common.apiUnavailable") }} /> : null}
         {phase === "gone" ? (
-          <Link href={`/${locale}/account/export`} className="text-sm text-grid-muted underline underline-offset-4 hover:text-grid-fg">
+          <Link href={`/${locale}/account/export`} className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
             {t("account.export.requestNew")}
           </Link>
         ) : null}

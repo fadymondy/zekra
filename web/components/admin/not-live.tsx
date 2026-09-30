@@ -12,8 +12,8 @@ export function AdminErrorState({ error, what }: { error: unknown; what?: string
   if (!isNotLive(error)) return <ErrorState error={error} />
   return (
     <HatchBand>
-      <p className="text-sm font-medium text-grid-fg">{t("admin.notLive.title")}</p>
-      <p className="mt-1 text-sm text-grid-muted">{what ?? t("admin.notLive.body")}</p>
+      <p className="text-sm font-medium text-foreground">{t("admin.notLive.title")}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{what ?? t("admin.notLive.body")}</p>
     </HatchBand>
   )
 }

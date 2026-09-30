@@ -24,7 +24,7 @@ export default function BrainSessionsPage() {
         description={
           <>
             {t("sessions.description")}{" "}
-            <span dir="ltr" className="font-medium text-grid-fg">
+            <span dir="ltr" className="font-medium text-foreground">
               {namespace}
             </span>
           </>
@@ -32,7 +32,7 @@ export default function BrainSessionsPage() {
       />
 
       <SectionTitle>{t(s.result ? "sessions.ready" : "sessions.launch")}</SectionTitle>
-      <section className="border-y border-line px-6 py-6">
+      <section className="border-y border-border px-6 py-6">
         <div className="max-w-2xl">
           {s.result ? (
             <SessionResultView res={s.result} />
@@ -40,7 +40,7 @@ export default function BrainSessionsPage() {
             <div className="space-y-3">
               <WriteToggle write={s.write} onChange={s.setWrite} />
               {s.error ? (
-                <p role="alert" className="text-sm text-grid-danger-text">
+                <p role="alert" className="text-sm text-nq-danger-text">
                   {s.error}
                 </p>
               ) : null}

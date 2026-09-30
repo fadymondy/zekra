@@ -59,8 +59,8 @@ export function TagCombobox({
     >
       <PopoverTrigger render={trigger} />
       <PopoverContent align={align} className="w-64 gap-0 rounded-none p-0">
-        <div className="relative border-b border-line">
-          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
+        <div className="relative border-b border-border">
+          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             autoFocus
             dir="auto"
@@ -84,19 +84,19 @@ export function TagCombobox({
               <button
                 type="button"
                 onClick={() => pick(draft)}
-                className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start text-xs hover:bg-grid-soft"
+                className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start text-xs hover:bg-nq-surface-soft"
               >
-                <PlusIcon className="size-3.5 text-grid-muted" />
+                <PlusIcon className="size-3.5 text-muted-foreground" />
                 {t("notes.tagCreate", { tag: draft })}
               </button>
             </li>
           ) : null}
           {counts.isLoading && !counts.data ? (
-            <li className="flex items-center gap-2 px-2.5 py-2 text-xs text-grid-muted">
+            <li className="flex items-center gap-2 px-2.5 py-2 text-xs text-muted-foreground">
               <Loader2Icon className="size-3.5 animate-spin" /> {t("common.loading")}
             </li>
           ) : list.length === 0 && !canCreate ? (
-            <li className="px-2.5 py-2 text-xs text-grid-muted">{t("notes.tagNone")}</li>
+            <li className="px-2.5 py-2 text-xs text-muted-foreground">{t("notes.tagNone")}</li>
           ) : (
             list.map((x) => {
               const on = selected.includes(x.tag)
@@ -105,19 +105,19 @@ export function TagCombobox({
                   <button
                     type="button"
                     onClick={() => pick(x.tag)}
-                    className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start text-xs hover:bg-grid-soft"
+                    className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start text-xs hover:bg-nq-surface-soft"
                   >
                     <span
                       aria-hidden
                       className={cn(
-                        "flex size-3.5 shrink-0 items-center justify-center border border-line",
+                        "flex size-3.5 shrink-0 items-center justify-center border border-border",
                         on && "border-primary bg-primary text-primary-foreground",
                       )}
                     >
                       {on ? <CheckIcon className="size-3" /> : null}
                     </span>
-                    <bdi className="min-w-0 flex-1 truncate text-grid-fg">{x.tag}</bdi>
-                    {x.count ? <span className="shrink-0 text-[12px] text-grid-muted">{formatNumber(x.count)}</span> : null}
+                    <bdi className="min-w-0 flex-1 truncate text-foreground">{x.tag}</bdi>
+                    {x.count ? <span className="shrink-0 text-[12px] text-muted-foreground">{formatNumber(x.count)}</span> : null}
                   </button>
                 </li>
               )
@@ -125,11 +125,11 @@ export function TagCombobox({
           )}
         </ul>
         {onClear && selected.length ? (
-          <div className="border-t border-line p-1">
+          <div className="border-t border-border p-1">
             <button
               type="button"
               onClick={onClear}
-              className="flex w-full items-center gap-1.5 px-2 py-1 text-start text-xs text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
+              className="flex w-full items-center gap-1.5 px-2 py-1 text-start text-xs text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground"
             >
               <XIcon className="size-3" /> {t("notes.clearSelection")}
             </button>

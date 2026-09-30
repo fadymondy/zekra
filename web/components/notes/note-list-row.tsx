@@ -68,13 +68,13 @@ export const NoteListRow = memo(function NoteListRow({ note, selected, onSelect,
         onClick={onSelect}
         className={cn(
           "group flex w-full min-w-0 items-start gap-2.5 rounded-lg px-2.5 py-2 text-start outline-none transition-colors",
-          "hover:bg-[color-mix(in_oklab,var(--grid-fg)_5%,transparent)] focus-visible:ring-2 focus-visible:ring-grid-action/50",
-          selected && "bg-grid-action text-grid-on-action hover:bg-grid-action",
+          "hover:bg-[color-mix(in_oklab,var(--nq-fg)_5%,transparent)] focus-visible:ring-2 focus-visible:ring-nq-action/50",
+          selected && "bg-nq-action text-nq-on-action hover:bg-nq-action",
         )}
       >
         <NoteTile
           note={note}
-          className={cn("mt-px size-7 rounded-md", selected && "!bg-white/20 !text-grid-on-action")}
+          className={cn("mt-px size-7 rounded-md", selected && "!bg-white/20 !text-nq-on-action")}
           iconClassName="size-3.5"
         />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -82,7 +82,7 @@ export const NoteListRow = memo(function NoteListRow({ note, selected, onSelect,
             <span dir="auto" className="min-w-0 flex-1 truncate text-[14px] leading-5 font-semibold" style={{ unicodeBidi: "plaintext" }}>
               {note.title || t("notes.untitled")}
             </span>
-            <span className={cn("flex shrink-0 items-center gap-1 text-[12.5px] tabular-nums", selected ? "opacity-80" : "text-grid-muted")}>
+            <span className={cn("flex shrink-0 items-center gap-1 text-[12.5px] tabular-nums", selected ? "opacity-80" : "text-muted-foreground")}>
               {note.archived ? <ArchiveIcon aria-label={t("notes.archived")} className="size-3" /> : null}
               {note.indexError ? (
                 <AlertTriangleIcon aria-label={t("notes.notIndexed")} className="size-3" />
@@ -92,7 +92,7 @@ export const NoteListRow = memo(function NoteListRow({ note, selected, onSelect,
               {when}
             </span>
           </span>
-          <span dir="auto" className={cn("truncate text-[13px] leading-[19px]", selected ? "opacity-80" : "text-grid-muted")} style={{ unicodeBidi: "plaintext" }}>
+          <span dir="auto" className={cn("truncate text-[13px] leading-[19px]", selected ? "opacity-80" : "text-muted-foreground")} style={{ unicodeBidi: "plaintext" }}>
             {text || " "}
           </span>
         </span>

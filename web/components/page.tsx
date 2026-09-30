@@ -22,8 +22,8 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 /** Managy's "In development" notice: a hatched band framing a card. */
 export function HatchBand({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("border-y border-line p-3 hatch-band", className)} role="status">
-      <div className="border border-line bg-grid-card px-5 py-4">{children}</div>
+    <div className={cn("border-y border-border p-3 hatch-band", className)} role="status">
+      <div className="border border-border bg-card px-5 py-4">{children}</div>
     </div>
   )
 }
@@ -34,15 +34,15 @@ export function DetailStrip({ items, className }: { items: { label: ReactNode; v
   return (
     <dl
       className={cn(
-        "grid grid-cols-1 divide-y divide-line border-y border-line text-sm sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse",
+        "grid grid-cols-1 divide-y divide-border border-y border-border text-sm sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse",
         cols,
         className,
       )}
     >
       {items.map((it, i) => (
         <div key={i} className="px-6 py-4">
-          <dt className="grid-micro mb-1">{it.label}</dt>
-          <dd className="text-grid-fg">{it.value}</dd>
+          <dt className="eyebrow mb-1">{it.label}</dt>
+          <dd className="text-foreground">{it.value}</dd>
         </div>
       ))}
     </dl>
@@ -52,7 +52,7 @@ export function DetailStrip({ items, className }: { items: { label: ReactNode; v
 /** A hairline list (Managy's activity feed): rows at px-6 py-3 split by hairlines. */
 export function RowList({ children, label, className }: { children: ReactNode; label?: string; className?: string }) {
   return (
-    <ol className={cn("divide-y divide-line border-y border-line", className)} aria-label={label}>
+    <ol className={cn("divide-y divide-border border-y border-border", className)} aria-label={label}>
       {children}
     </ol>
   )

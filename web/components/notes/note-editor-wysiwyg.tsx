@@ -200,26 +200,26 @@ export function NoteEditorWysiwyg({
 
   if (lossy.length > 0 && !override) {
     return (
-      <div className="space-y-3 rounded-md border border-grid-gold/50 bg-grid-soft p-4">
+      <div className="space-y-3 rounded-md border border-nq-accent/50 bg-nq-surface-soft p-4">
         <div>
-          <p className="text-sm font-medium text-grid-fg">
+          <p className="text-sm font-medium text-foreground">
             This note uses markdown the visual editor cannot preserve.
           </p>
-          <p className="mt-1 text-xs text-grid-muted">
+          <p className="mt-1 text-xs text-muted-foreground">
             Editing it here would remove {lossy.map((l) => l.label.toLowerCase()).join(" and ")} when it saves.
           </p>
         </div>
         <ul className="space-y-1">
           {lossy.map((l) => (
-            <li key={l.kind} className="font-mono text-xs text-grid-muted">
-              {l.label}: <span className="text-grid-fg">{l.sample}</span>
+            <li key={l.kind} className="font-mono text-xs text-muted-foreground">
+              {l.label}: <span className="text-foreground">{l.sample}</span>
             </li>
           ))}
         </ul>
         <button
           type="button"
           onClick={() => setOverride(true)}
-          className="rounded-md border border-line px-3 py-1.5 text-sm text-grid-fg hover:bg-grid-card"
+          className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-card"
         >
           Edit anyway and lose them
         </button>
@@ -238,11 +238,11 @@ export function NoteEditorWysiwyg({
         data-word-wrap={settings.wordWrap ? "on" : "off"}
       />
       {uploading > 0 ? (
-        <p className="text-xs text-grid-muted">
+        <p className="text-xs text-muted-foreground">
           Uploading {uploading} image{uploading === 1 ? "" : "s"}…
         </p>
       ) : null}
-      {error ? <p className="text-xs text-grid-danger">{error}</p> : null}
+      {error ? <p className="text-xs text-nq-danger">{error}</p> : null}
     </div>
   )
 }
@@ -253,25 +253,25 @@ switching between them is not jarring, but it is not the same stylesheet: the
 reader's rules target the ported renderer's markup (figure.zk-code and the
 interactive table), which TipTap does not produce.
 */
-const EDITOR_FRAME = "min-h-40 rounded-md border border-line bg-grid-bg p-4 focus-within:border-grid-action focus-within:outline-none [&_.ProseMirror]:min-h-32"
+const EDITOR_FRAME = "min-h-40 rounded-md border border-border bg-background p-4 focus-within:border-nq-action focus-within:outline-none [&_.ProseMirror]:min-h-32"
 const EDITOR_BARE = "[&_.ProseMirror]:min-h-[50vh]"
 const EDITOR_PROSE = [
-  "leading-relaxed text-grid-fg",
+  "leading-relaxed text-foreground",
   "[&_.ProseMirror]:outline-none",
   "[&_h1]:text-xl [&_h1]:font-medium [&_h1]:mt-4 [&_h1]:mb-2",
   "[&_h2]:text-lg [&_h2]:font-medium [&_h2]:mt-4 [&_h2]:mb-2",
   "[&_h3]:font-medium [&_h3]:mt-3",
-  "[&_a]:text-grid-action [&_a]:underline [&_a]:underline-offset-4",
-  "[&_code]:bg-grid-soft [&_code]:px-1 [&_code]:rounded-sm [&_code]:font-mono [&_code]:text-xs",
-  "[&_pre]:bg-grid-card [&_pre]:border [&_pre]:border-line [&_pre]:rounded-md [&_pre]:p-3 [&_pre]:overflow-x-auto",
+  "[&_a]:text-nq-action [&_a]:underline [&_a]:underline-offset-4",
+  "[&_code]:bg-nq-surface-soft [&_code]:px-1 [&_code]:rounded-sm [&_code]:font-mono [&_code]:text-xs",
+  "[&_pre]:bg-card [&_pre]:border [&_pre]:border-border [&_pre]:rounded-md [&_pre]:p-3 [&_pre]:overflow-x-auto",
   "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
   "[&_ul]:list-disc [&_ul]:list-outside [&_ul]:ps-5",
   "[&_ol]:list-decimal [&_ol]:list-outside [&_ol]:ps-5",
-  "[&_blockquote]:border-s-2 [&_blockquote]:border-line [&_blockquote]:ps-3 [&_blockquote]:text-grid-muted",
+  "[&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-3 [&_blockquote]:text-muted-foreground",
   "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
   "[&_table]:w-full [&_table]:border-collapse",
-  "[&_th]:border [&_th]:border-line [&_th]:px-2 [&_th]:py-1 [&_th]:bg-grid-soft",
-  "[&_td]:border [&_td]:border-line [&_td]:px-2 [&_td]:py-1",
+  "[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:bg-nq-surface-soft",
+  "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1",
   // Word wrap off means long lines scroll rather than fold.
   "[&[data-word-wrap=off]_.ProseMirror]:whitespace-pre [&[data-word-wrap=off]]:overflow-x-auto",
 ].join(" ")

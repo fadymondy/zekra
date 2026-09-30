@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon, PinIcon, PlusIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
@@ -23,7 +23,7 @@ import { useDocumentTitle } from "@/lib/title"
 
 function StatLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <Link href={href} className="underline decoration-line underline-offset-4 hover:decoration-grid-fg">
+    <Link href={href} className="underline decoration-line underline-offset-4 hover:decoration-foreground">
       {children}
     </Link>
   )
@@ -53,7 +53,7 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
       <SectionTitle
         action={
           <div className="flex items-center gap-3">
-            <Link href={`${base}/notes`} className="inline-flex items-center gap-1 text-xs text-grid-fg underline underline-offset-4">
+            <Link href={`${base}/notes`} className="inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-4">
               {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
             </Link>
             <Button size="sm" variant="outline" onClick={create} disabled={creating}>
@@ -77,13 +77,13 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
             <li key={n.id}>
               <Link
                 href={`${base}/notes?id=${encodeURIComponent(n.id)}`}
-                className="flex items-center gap-3 px-6 py-3 text-sm transition-colors hover:bg-grid-soft"
+                className="flex items-center gap-3 px-6 py-3 text-sm transition-colors hover:bg-nq-surface-soft"
               >
-                {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-grid-action" /> : null}
-                <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
+                {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-nq-action" /> : null}
+                <span dir="auto" className="min-w-0 flex-1 truncate text-foreground">
                   {n.title || t("notes.untitled")}
                 </span>
-                <span className="shrink-0 text-xs text-grid-muted">{timeAgo(n.updatedAt)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(n.updatedAt)}</span>
               </Link>
             </li>
           ))}
@@ -159,7 +159,7 @@ export default function BrainOverviewPage() {
             label: t("overview.stat.gaps"),
             value: (
               <StatLink href={`${base}/gaps`}>
-                <span className={gaps ? "text-grid-warn" : undefined}>{num(d?.openGaps, detail.isLoading)}</span>
+                <span className={gaps ? "text-nq-warning" : undefined}>{num(d?.openGaps, detail.isLoading)}</span>
               </StatLink>
             ),
           },
@@ -171,22 +171,22 @@ export default function BrainOverviewPage() {
       />
 
       {/* Ask this brain: the recall panel as an invitation, seeded with the brain's own entities. */}
-      <section className="flex flex-col gap-4 border-b border-line bg-grid-card px-6 py-6 sm:flex-row sm:items-center">
+      <section className="flex flex-col gap-4 border-b border-border bg-card px-6 py-6 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <span aria-hidden className="size-2.5 shrink-0 bg-grid-action" />
-            <span className="text-[15px] font-medium text-grid-fg">
+            <span aria-hidden className="size-2.5 shrink-0 bg-nq-action" />
+            <span className="text-[15px] font-medium text-foreground">
               {t("overview.ask.title", { brain: "⁨" + ns + "⁩" })}
             </span>
           </div>
-          <p className="text-sm text-grid-body">{t("overview.ask.body")}</p>
+          <p className="text-sm text-nq-fg-body">{t("overview.ask.body")}</p>
           {suggestions.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 pt-1.5">
               {suggestions.map((s) => (
                 <Link
                   key={s}
                   href={`${base}/chat?q=${encodeURIComponent(t("overview.ask.suggestion", { topic: s }))}`}
-                  className="grid-chip transition-colors hover:text-grid-fg"
+                  className="grid-chip transition-colors hover:text-foreground"
                 >
                   {t("overview.ask.suggestion", { topic: "⁨" + s + "⁩" })}
                 </Link>
@@ -204,16 +204,16 @@ export default function BrainOverviewPage() {
 
       <SectionTitle
         action={
-          graph.data?.derived ? <span className="grid-micro">{t("overview.graph.derived")}</span> : null
+          graph.data?.derived ? <span className="eyebrow">{t("overview.graph.derived")}</span> : null
         }
       >
         {t("overview.graph.title")}
       </SectionTitle>
-      <div ref={graphRef} className="flex h-[680px] flex-col border-y border-line">
+      <div ref={graphRef} className="flex h-[680px] flex-col border-y border-border">
         {graph.error ? (
           <ErrorState error={graph.error} />
         ) : nodes.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-grid-muted">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
             <NetworkIcon className="size-8 opacity-40" />
             <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
           </div>
@@ -226,7 +226,7 @@ export default function BrainOverviewPage() {
 
       <SectionTitle
         action={
-          <Link href={`${base}/activity`} className="inline-flex items-center gap-1 text-xs text-grid-fg underline underline-offset-4">
+          <Link href={`${base}/activity`} className="inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-4">
             {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
           </Link>
         }

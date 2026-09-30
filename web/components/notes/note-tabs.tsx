@@ -55,7 +55,7 @@ export function NoteTabs({
     <div
       role="tablist"
       aria-label={t("openTabs")}
-      className="flex items-stretch gap-px overflow-x-auto border-b border-line bg-grid-soft"
+      className="flex items-stretch gap-px overflow-x-auto border-b border-border bg-nq-surface-soft"
     >
       {tabs.map((tab) => {
         const active = tab.id === activeId
@@ -83,8 +83,8 @@ export function NoteTabs({
             className={cn(
               "group flex min-w-0 max-w-52 shrink-0 cursor-pointer items-center gap-1.5 px-3 py-2 text-xs transition-colors",
               active
-                ? "relative bg-grid-bg text-grid-fg before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-grid-action"
-                : "text-grid-muted hover:bg-grid-bg/50 hover:text-grid-fg",
+                ? "relative bg-background text-foreground before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-nq-action"
+                : "text-muted-foreground hover:bg-background/50 hover:text-foreground",
             )}
           >
             <TabIcon className="size-3.5 shrink-0" style={{ color: active ? tint : undefined }} />
@@ -101,7 +101,7 @@ export function NoteTabs({
                 e.stopPropagation()
                 onClose(tab.id)
               }}
-              className="shrink-0 rounded-sm p-0.5 text-grid-muted hover:bg-grid-line hover:text-grid-fg"
+              className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:bg-border hover:text-foreground"
             >
               <XIcon className="size-3" />
             </button>

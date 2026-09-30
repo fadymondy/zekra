@@ -225,7 +225,7 @@ export function MapView({ part, dir, className, portrait = false }: { part: MapP
               top: Math.max(sv.y, sd.y) < 68 ? `${Math.max(sv.y, sd.y) + 7}%` : undefined,
               bottom: Math.max(sv.y, sd.y) >= 68 ? `${100 - Math.min(sv.y, sd.y) + 9}%` : undefined }}
           >
-            <div className="flex items-center gap-[0.35em] text-[0.8em] font-semibold text-brand">
+            <div className="flex items-center gap-[0.35em] text-[0.8em] font-semibold text-nq-brand">
               <NavigationIcon className="size-[1em]" aria-hidden />
               {t("presentations.map.nearest")}
             </div>

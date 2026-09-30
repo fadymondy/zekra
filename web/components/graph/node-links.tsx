@@ -6,7 +6,7 @@
 // inspector and the notes editor.
 import { useMemo, useState } from "react"
 import { ArrowLeftIcon, ArrowRightIcon, LockIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { normalizeType } from "@/components/graph/category-picker"
@@ -173,7 +173,7 @@ export function NodeLinks({
 
   return (
     <div>
-      <div className="grid-micro mb-2 flex items-center gap-1.5">
+      <div className="eyebrow mb-2 flex items-center gap-1.5">
         {t("graph.links")} <span>{formatNumber(edges.length)}</span>
         {!readOnly && !adding ? (
           <Button variant="ghost" size="xs" className="ms-auto" onClick={() => setAdding(true)}>
@@ -218,14 +218,14 @@ export function NodeLinks({
       ) : null}
 
       {edges.length === 0 ? (
-        <p className="text-xs text-grid-muted">{t("graph.noConnections")}</p>
+        <p className="text-xs text-muted-foreground">{t("graph.noConnections")}</p>
       ) : (
-        <ul className={cn("divide-y divide-line border-y border-line", compact && "max-h-80 overflow-y-auto")}>
+        <ul className={cn("divide-y divide-border border-y border-border", compact && "max-h-80 overflow-y-auto")}>
           {edges.map((e) => {
             const locked = isLockedEdge(e)
             return (
               <li key={e.id} className="flex items-center gap-1.5 py-1.5">
-                <span className="shrink-0 text-grid-muted" title={e.direction === "out" ? t("graph.outgoing") : t("graph.incoming")}>
+                <span className="shrink-0 text-muted-foreground" title={e.direction === "out" ? t("graph.outgoing") : t("graph.incoming")}>
                   {e.direction === "out" ? (
                     <ArrowRightIcon className="size-3.5 rtl:-scale-x-100" aria-label={t("graph.outgoing")} />
                   ) : (
@@ -234,7 +234,7 @@ export function NodeLinks({
                 </span>
                 {locked || readOnly ? (
                   <span
-                    className="inline-flex max-w-[40%] shrink-0 items-center gap-1 truncate font-mono text-[12.5px] text-grid-muted"
+                    className="inline-flex max-w-[40%] shrink-0 items-center gap-1 truncate font-mono text-[12.5px] text-muted-foreground"
                     title={locked ? t("graph.lockedHint") : undefined}
                     dir="ltr"
                   >
@@ -254,13 +254,13 @@ export function NodeLinks({
                   onClick={() =>
                     onOpenNode?.({ id: e.otherId, name: e.otherName, type: e.otherType, noteId: e.otherNoteId })
                   }
-                  className="min-w-0 flex-1 truncate text-start text-xs text-grid-fg hover:underline"
+                  className="min-w-0 flex-1 truncate text-start text-xs text-foreground hover:underline"
                   dir="auto"
                   title={e.fact || e.otherName}
                 >
                   {e.otherName}
                 </button>
-                <span className="shrink-0 text-[12px] text-grid-muted">{e.otherType}</span>
+                <span className="shrink-0 text-[12px] text-muted-foreground">{e.otherType}</span>
                 {!locked && !readOnly ? (
                   <Button
                     variant="ghost"
@@ -277,7 +277,7 @@ export function NodeLinks({
         </ul>
       )}
       {edges.some(isLockedEdge) && !readOnly ? (
-        <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-grid-muted">
+        <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted-foreground">
           <LockIcon className="size-3" /> {t("graph.lockedHint")}
         </p>
       ) : null}
@@ -302,14 +302,14 @@ function AddLink({
   const [outgoing, setOutgoing] = useState(true)
 
   return (
-    <div className="mb-3 space-y-2 border border-line bg-grid-bg p-2">
+    <div className="mb-3 space-y-2 border border-border bg-background p-2">
       <EntityPicker
         namespace={namespace}
         exclude={entityId}
         onPick={setOther}
         trigger={
           <Button variant="outline" size="sm" className="w-full justify-start font-normal">
-            <span dir="auto" className={cn("truncate", !other && "text-grid-muted")}>
+            <span dir="auto" className={cn("truncate", !other && "text-muted-foreground")}>
               {other ? other.name : t("graph.pickNode")}
             </span>
           </Button>

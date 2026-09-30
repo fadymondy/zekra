@@ -55,14 +55,14 @@ export function NotificationPrefs() {
 
   return (
     <>
-      <ul className="divide-y divide-line border-y border-line">
+      <ul className="divide-y divide-border border-y border-border">
         {keys.map((k) => (
           <li key={k} className="flex items-start gap-4 px-6 py-3">
             <div className="min-w-0 flex-1">
-              <label htmlFor={`pref-${k}`} className="text-sm font-medium text-grid-fg first-letter:uppercase">
+              <label htmlFor={`pref-${k}`} className="text-sm font-medium text-foreground first-letter:uppercase">
                 {label(k)}
               </label>
-              {hint(k) ? <p className="text-xs text-pretty text-grid-muted">{hint(k)}</p> : null}
+              {hint(k) ? <p className="text-xs text-pretty text-muted-foreground">{hint(k)}</p> : null}
             </div>
             <Switch id={`pref-${k}`} checked={!!prefs.data?.[k]} onCheckedChange={(v) => void toggle(k, v)} />
           </li>

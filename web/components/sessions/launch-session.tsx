@@ -37,12 +37,12 @@ export function useLaunchSession(namespace: string) {
 export function WriteToggle({ write, onChange }: { write: boolean; onChange: (v: boolean) => void }) {
   const { t } = useTranslations()
   return (
-    <div className="flex items-center justify-between gap-4 border border-line bg-grid-card px-4 py-3">
+    <div className="flex items-center justify-between gap-4 border border-border bg-card px-4 py-3">
       <div className="space-y-0.5">
         <Label htmlFor="launch-write" className="text-sm font-medium">
           {t("sessions.allowWrites")}
         </Label>
-        <p className="text-xs text-grid-muted">{t(write ? "sessions.writeHint" : "sessions.readHint")}</p>
+        <p className="text-xs text-muted-foreground">{t(write ? "sessions.writeHint" : "sessions.readHint")}</p>
       </div>
       <Switch id="launch-write" checked={write} onCheckedChange={onChange} />
     </div>
@@ -61,33 +61,33 @@ export function SessionResultView({ res }: { res: SessionResult }) {
           {res.namespace}
         </Badge>
         <Badge variant={res.write ? "default" : "secondary"}>{t(res.write ? "sessions.readWrite" : "sessions.readOnly")}</Badge>
-        <span className="text-xs text-grid-muted">
+        <span className="text-xs text-muted-foreground">
           {t("sessions.agent")} <span dir="ltr" className="font-mono">{res.agentId}</span>
         </span>
       </div>
 
       <div className="space-y-1.5">
-        <p className="grid-micro">{t("sessions.token")}</p>
+        <p className="eyebrow">{t("sessions.token")}</p>
         <CopyField value={res.token} label={t("sessions.token")} />
-        <p className="text-xs text-grid-warn">{t("sessions.tokenOnce")}</p>
+        <p className="text-xs text-nq-warning">{t("sessions.tokenOnce")}</p>
       </div>
 
       <div className="space-y-1.5">
-        <p className="grid-micro">{t("sessions.mcpConfig")}</p>
+        <p className="eyebrow">{t("sessions.mcpConfig")}</p>
         <div dir="ltr">
-          <CodeBlock code={snippet} language="json" filename=".mcp.json" scrollable maxHeight={280} className="rounded-none border-line" />
+          <CodeBlock code={snippet} language="json" filename=".mcp.json" scrollable maxHeight={280} className="rounded-none border-border" />
         </div>
       </div>
 
       <div className="space-y-2">
-        <p className="grid-micro">{t("sessions.howTo")}</p>
-        <ol className="list-decimal space-y-1 ps-5 text-sm text-grid-body">
+        <p className="eyebrow">{t("sessions.howTo")}</p>
+        <ol className="list-decimal space-y-1 ps-5 text-sm text-nq-fg-body">
           {steps.map((k) => (
             <li key={k}>{t(k)}</li>
           ))}
         </ol>
         {res.howto ? (
-          <p dir="auto" className="text-xs whitespace-pre-wrap text-grid-muted">
+          <p dir="auto" className="text-xs whitespace-pre-wrap text-muted-foreground">
             {res.howto}
           </p>
         ) : null}
@@ -113,7 +113,7 @@ export function LaunchSessionDialog({ namespace, open, onOpenChange }: { namespa
           <DialogTitle>{t("sessions.launch")}</DialogTitle>
           <DialogDescription>
             {t("sessions.launchHint")}{" "}
-            <span dir="ltr" className="font-mono text-grid-fg">
+            <span dir="ltr" className="font-mono text-foreground">
               {namespace}
             </span>
           </DialogDescription>
@@ -124,7 +124,7 @@ export function LaunchSessionDialog({ namespace, open, onOpenChange }: { namespa
           <>
             <WriteToggle write={s.write} onChange={s.setWrite} />
             {s.error ? (
-              <p role="alert" className="text-sm text-grid-danger-text">
+              <p role="alert" className="text-sm text-nq-danger-text">
                 {s.error}
               </p>
             ) : null}

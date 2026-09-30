@@ -20,7 +20,7 @@ const NETWORKS = ["fact", "experience", "belief"]
 /** A toggleable facet chip (aria-pressed). */
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className="grid-chip transition-colors hover:text-grid-fg aria-pressed:text-grid-fg">
+    <button type="button" onClick={onClick} aria-pressed={active} className="grid-chip transition-colors hover:text-foreground aria-pressed:text-foreground">
       {active ? <CheckIcon className="size-3" /> : null}
       {children}
     </button>
@@ -95,10 +95,10 @@ export default function AdminSearchPage() {
     <>
       <SectionHeader micro={t("admin.micro")} title={t("admin.search.title")} description={t("admin.search.hint")} />
 
-      <section className="border-t border-line px-6 py-6">
+      <section className="border-t border-border px-6 py-6">
         <form onSubmit={run} className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-grid-muted" />
+            <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -122,15 +122,15 @@ export default function AdminSearchPage() {
           {(brains.data ?? []).map((b) => (
             <Chip key={b.namespace} active={selected.has(b.namespace)} onClick={() => toggleIn(selected, setSelected, b.namespace)}>
               <Ltr>{b.namespace}</Ltr>
-              <span className="text-grid-muted tabular-nums">{formatNumber(b.memories)}</span>
+              <span className="text-muted-foreground tabular-nums">{formatNumber(b.memories)}</span>
             </Chip>
           ))}
         </div>
       </section>
 
       {raw.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-6 py-3">
-          <span className="grid-micro me-1">{t("admin.search.tune")}</span>
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-border px-6 py-3">
+          <span className="eyebrow me-1">{t("admin.search.tune")}</span>
           {netFacets.map((n) => (
             <Chip key={n} active={fNet.has(n)} onClick={() => toggleIn(fNet, setFNet, n)}>
               {t(`admin.search.network.${n}`)}
@@ -164,25 +164,25 @@ export default function AdminSearchPage() {
       ) : state.error ? (
         <ErrorState error={state.error} />
       ) : state.q === undefined ? null : raw.length === 0 ? (
-        <section className="border-y border-line">
-          <div aria-hidden className="grid-hatch h-3 border-b border-line" />
+        <section className="border-y border-border">
+          <div aria-hidden className="hatch h-3 border-b border-border" />
           <div className="px-6 py-10 text-center">
-            <p className="text-sm font-medium text-grid-fg">{t("admin.search.noResults", { q: state.q })}</p>
-            <p className="mt-1 text-sm text-grid-muted">{t("admin.search.noResultsBody")}</p>
+            <p className="text-sm font-medium text-foreground">{t("admin.search.noResults", { q: state.q })}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("admin.search.noResultsBody")}</p>
           </div>
         </section>
       ) : results.length === 0 ? (
-        <p className="border-y border-line px-6 py-8 text-center text-sm text-grid-muted">
+        <p className="border-y border-border px-6 py-8 text-center text-sm text-muted-foreground">
           {t("admin.search.allFiltered", { n: formatNumber(raw.length) })}
         </p>
       ) : (
         <>
-          <p className="border-t border-line px-6 pt-4 pb-3 text-xs text-grid-muted">
+          <p className="border-t border-border px-6 pt-4 pb-3 text-xs text-muted-foreground">
             {hasFilters
               ? t("admin.search.countFiltered", { n: formatNumber(results.length), total: formatNumber(raw.length) })
               : t("admin.search.count", { n: formatNumber(results.length) })}
           </p>
-          <ul className="mb-8 divide-y divide-line border-y border-line">
+          <ul className="mb-8 divide-y divide-border border-y border-border">
             {results.map((r) => (
               <ResultRow key={`${r.namespace}:${r.id}`} r={r} onSaved={(c) => patch(`${r.namespace}:${r.id}`, c)} />
             ))}
@@ -216,7 +216,7 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
   }
 
   return (
-    <li className="px-6 py-4 hover:bg-grid-soft">
+    <li className="px-6 py-4 hover:bg-nq-surface-soft">
       {editing ? (
         <div className="space-y-2">
           <Textarea dir="auto" value={draft} onChange={(e) => setDraft(e.target.value)} rows={Math.min(8, Math.max(3, draft.split("\n").length))} autoFocus />
@@ -232,20 +232,20 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
       ) : (
         <>
           <div className="flex items-start gap-2">
-            <p dir="auto" className="flex-1 text-sm leading-relaxed whitespace-pre-wrap text-grid-fg">{r.content}</p>
+            <p dir="auto" className="flex-1 text-sm leading-relaxed whitespace-pre-wrap text-foreground">{r.content}</p>
             <Button variant="ghost" size="icon-sm" title={t("admin.search.edit")} aria-label={t("admin.search.edit")} onClick={() => { setDraft(r.content); setEditing(true) }}>
               <PencilIcon />
             </Button>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-grid-muted">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {ns ? <span className="grid-chip"><Ltr>{ns}</Ltr></span> : null}
             <span className="grid-chip"><Ltr>{`${r.network}·${r.memoryType}`}</Ltr></span>
             <Ltr className="truncate">{r.sourceKind}{r.sourceRef ? ` · ${r.sourceRef}` : ""}</Ltr>
             {r.viaEntity ? <span>{t("admin.search.via")} <Ltr>{r.viaEntity}</Ltr></span> : null}
             <span className="ms-auto flex items-center gap-3">
               <span className="inline-flex items-center gap-2" title={t("admin.search.score")}>
-                <span aria-hidden className="block h-1 w-12 bg-grid-soft">
-                  <span className="block h-full bg-grid-action" style={{ width: `${pct}%` }} />
+                <span aria-hidden className="block h-1 w-12 bg-nq-surface-soft">
+                  <span className="block h-full bg-nq-action" style={{ width: `${pct}%` }} />
                 </span>
                 <Ltr className="tabular-nums">{formatNumber(r.score, { maximumFractionDigits: 3, minimumFractionDigits: 3 })}</Ltr>
               </span>

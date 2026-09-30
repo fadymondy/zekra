@@ -35,15 +35,15 @@ describe("theme catalogue", () => {
 describe("theme variables", () => {
   test("a theme sets the variables the markdown CSS consumes", () => {
     const v = themeVars(themeById("dracula")!)
-    for (const k of ["--grid-bg", "--grid-fg", "--grid-line", "--grid-action", "--hl-keyword", "--hl-string", "--hl-comment"]) {
+    for (const k of ["--nq-bg", "--nq-fg", "--nq-line", "--nq-action", "--hl-keyword", "--hl-string", "--hl-comment"]) {
       assert.ok(v[k], `missing ${k}`)
     }
   })
 
   test("links take the theme's link colour, not the brand violet", () => {
     const t = themeById("github-light")!
-    assert.equal(themeVars(t)["--grid-action"], t.palette.link)
-    assert.notEqual(themeVars(t)["--grid-action"].toLowerCase(), "#6d4de6")
+    assert.equal(themeVars(t)["--nq-action"], t.palette.link)
+    assert.notEqual(themeVars(t)["--nq-action"].toLowerCase(), "#6d4de6")
   })
 
   test("no variable comes out undefined", () => {

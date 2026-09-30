@@ -170,10 +170,10 @@ export function NoteExportItems({ input }: { input: NoteExportInput }) {
         >
           {item.icon}
           {item.label}
-          {busy === item.format ? <span className="ms-auto text-xs text-grid-muted">…</span> : null}
+          {busy === item.format ? <span className="ms-auto text-xs text-muted-foreground">…</span> : null}
         </DropdownMenuItem>
       ))}
-      {error ? <p className="px-2 py-1 text-xs text-grid-danger">{error}</p> : null}
+      {error ? <p className="px-2 py-1 text-xs text-nq-danger">{error}</p> : null}
     </>
   )
 }
@@ -196,10 +196,10 @@ export function NoteExportContextItems({ input }: { input: NoteExportInput }) {
         >
           {item.icon}
           {item.label}
-          {busy === item.format ? <span className="ms-auto text-xs text-grid-muted">…</span> : null}
+          {busy === item.format ? <span className="ms-auto text-xs text-muted-foreground">…</span> : null}
         </ContextMenuItem>
       ))}
-      {error ? <p className="px-2 py-1 text-xs text-grid-danger">{error}</p> : null}
+      {error ? <p className="px-2 py-1 text-xs text-nq-danger">{error}</p> : null}
     </>
   )
 }
@@ -207,7 +207,7 @@ export function NoteExportContextItems({ input }: { input: NoteExportInput }) {
 export function NoteExportMenu({ input }: { input: NoteExportInput }) {
   const { run, busy, error } = useNoteExport(input)
   return (
-    <div role="menu" className="min-w-56 rounded-md border border-line bg-grid-card py-1 text-sm">
+    <div role="menu" className="min-w-56 rounded-md border border-border bg-card py-1 text-sm">
       {ITEMS.map((item) => (
         <button
           key={item.format}
@@ -215,14 +215,14 @@ export function NoteExportMenu({ input }: { input: NoteExportInput }) {
           role="menuitem"
           disabled={busy !== null}
           onClick={() => run(item.format)}
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-grid-fg hover:bg-grid-soft disabled:opacity-50"
+          className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-foreground hover:bg-nq-surface-soft disabled:opacity-50"
         >
           {item.icon}
           <span className="flex-1">{item.label}</span>
-          {busy === item.format ? <span className="text-xs text-grid-muted">…</span> : null}
+          {busy === item.format ? <span className="text-xs text-muted-foreground">…</span> : null}
         </button>
       ))}
-      {error ? <p className="px-3 py-1.5 text-xs text-grid-danger">{error}</p> : null}
+      {error ? <p className="px-3 py-1.5 text-xs text-nq-danger">{error}</p> : null}
     </div>
   )
 }

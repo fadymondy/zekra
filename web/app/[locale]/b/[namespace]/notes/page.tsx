@@ -12,7 +12,7 @@ import { useParams } from "next/navigation"
 import useSWRInfinite from "swr/infinite"
 import { useSWRConfig } from "swr"
 import { ArrowDownUpIcon, CheckIcon, Loader2Icon, NetworkIcon, PlusIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { Ltr } from "@/components/copy-field"
 import { CategoryPicker } from "@/components/graph/category-picker"
@@ -285,24 +285,24 @@ export default function NotesPage() {
   }
 
   const iconBtn = (on: boolean) =>
-    cn("size-8 shrink-0 text-grid-muted hover:text-grid-fg", on && "bg-[color-mix(in_oklab,var(--grid-action)_18%,transparent)] text-grid-fg")
+    cn("size-8 shrink-0 text-muted-foreground hover:text-foreground", on && "bg-[color-mix(in_oklab,var(--nq-action)_18%,transparent)] text-foreground")
 
   return (
     <>
       <SectionHeader micro={<Ltr>{ns}</Ltr>} title={t("nav.notes")} action={newButton} />
 
-      <div className="grid border-t border-line lg:grid-cols-[24rem_1fr]">
+      <div className="grid border-t border-border lg:grid-cols-[24rem_1fr]">
         {/* List pane — the desktop's notes column */}
         <aside
           className={cn(
-            "flex min-w-0 flex-col lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:border-e lg:border-line",
+            "flex min-w-0 flex-col lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:border-e lg:border-border",
             selected && "hidden lg:flex",
           )}
         >
           <div className="flex flex-col gap-2 px-3 pt-3 pb-2">
             <div className="flex items-center gap-1">
               <div className="relative min-w-0 flex-1">
-                <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
+                <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   dir="auto"
                   type="search"
@@ -313,7 +313,7 @@ export default function NotesPage() {
                   }}
                   placeholder={t("notes.search")}
                   aria-label={t("notes.search")}
-                  className="h-8 rounded-md border-transparent bg-[color-mix(in_oklab,var(--grid-fg)_6%,transparent)] ps-8 text-[14px] shadow-none"
+                  className="h-8 rounded-md border-transparent bg-[color-mix(in_oklab,var(--nq-fg)_6%,transparent)] ps-8 text-[14px] shadow-none"
                 />
               </div>
 
@@ -344,7 +344,7 @@ export default function NotesPage() {
                     onToggle={(tag) => setTags((cur) => (cur.includes(tag) ? cur.filter((x) => x !== tag) : [...cur, tag]))}
                     onClear={() => setTags([])}
                     trigger={
-                      <Button variant="outline" size="sm" className="w-full justify-start font-normal text-grid-muted">
+                      <Button variant="outline" size="sm" className="w-full justify-start font-normal text-muted-foreground">
                         {tags.length ? tags.join(", ") : t("notes.tags")}
                       </Button>
                     }
@@ -367,7 +367,7 @@ export default function NotesPage() {
             </div>
 
             {/* All · Pinned · Archived */}
-            <div role="radiogroup" aria-label={t("nav.notes")} className="flex rounded-lg bg-[color-mix(in_oklab,var(--grid-fg)_6%,transparent)] p-0.5">
+            <div role="radiogroup" aria-label={t("nav.notes")} className="flex rounded-lg bg-[color-mix(in_oklab,var(--nq-fg)_6%,transparent)] p-0.5">
               {(["all", "pinned", "archived"] as View[]).map((v) => (
                 <button
                   key={v}
@@ -377,7 +377,7 @@ export default function NotesPage() {
                   onClick={() => setView(v)}
                   className={cn(
                     "h-7 flex-1 rounded-md text-[13px] font-medium transition-colors",
-                    view === v ? "bg-grid-card text-grid-fg shadow-sm" : "text-grid-muted hover:text-grid-fg",
+                    view === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {t(`notes.view.${v}`)}
@@ -388,9 +388,9 @@ export default function NotesPage() {
             {category || tags.length ? (
               <div className="flex flex-wrap items-center gap-1">
                 {category ? (
-                  <button type="button" onClick={() => pickCategory("")} className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] px-1.5 text-[12.5px] text-grid-fg">
+                  <button type="button" onClick={() => pickCategory("")} className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] px-1.5 text-[12.5px] text-foreground">
                     <bdi>{category}</bdi>
-                    <XIcon className="size-3 text-grid-muted" />
+                    <XIcon className="size-3 text-muted-foreground" />
                   </button>
                 ) : null}
                 {tags.map((tag) => (
@@ -398,10 +398,10 @@ export default function NotesPage() {
                     key={tag}
                     type="button"
                     onClick={() => setTags((cur) => cur.filter((x) => x !== tag))}
-                    className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] px-1.5 text-[12.5px] text-grid-fg"
+                    className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] px-1.5 text-[12.5px] text-foreground"
                   >
                     #<bdi>{tag}</bdi>
-                    <XIcon className="size-3 text-grid-muted" />
+                    <XIcon className="size-3 text-muted-foreground" />
                   </button>
                 ))}
               </div>
@@ -426,9 +426,9 @@ export default function NotesPage() {
               <LoadingRows rows={6} />
             ) : notes.length === 0 ? (
               filtering ? (
-                <div className="px-6 py-8 text-center text-sm text-grid-muted">
+                <div className="px-6 py-8 text-center text-sm text-muted-foreground">
                   <p>{t("notes.noMatches")}</p>
-                  <button type="button" onClick={clearFilters} className="mt-2 underline underline-offset-4 hover:text-grid-fg">
+                  <button type="button" onClick={clearFilters} className="mt-2 underline underline-offset-4 hover:text-foreground">
                     {t("notes.clearFilters")}
                   </button>
                 </div>
@@ -439,7 +439,7 @@ export default function NotesPage() {
               groups.map((g) => (
                 <section key={g.key} aria-label={groupLabel(g) || undefined}>
                   {g.kind !== "all" ? (
-                    <h3 className="sticky top-0 z-10 bg-grid-bg/95 px-2.5 pt-3 pb-1 text-[12.5px] font-semibold text-grid-muted backdrop-blur-sm">
+                    <h3 className="sticky top-0 z-10 bg-background/95 px-2.5 pt-3 pb-1 text-[12.5px] font-semibold text-muted-foreground backdrop-blur-sm">
                       {groupLabel(g)}
                     </h3>
                   ) : null}
@@ -483,7 +483,7 @@ export default function NotesPage() {
           />
           {!selected ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <p className="text-sm text-grid-muted">{t("notes.pickOne")}</p>
+              <p className="text-sm text-muted-foreground">{t("notes.pickOne")}</p>
               {newButton}
             </div>
           ) : current.error ? (

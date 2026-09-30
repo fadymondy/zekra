@@ -15,7 +15,7 @@ function linkCitations(text: string) {
 export function MarkdownAnswer({ text, onCite }: { text: string; onCite: (n: number) => void }) {
   const { t } = useTranslations()
   return (
-    <div dir="auto" className="space-y-3 text-sm leading-relaxed text-grid-fg">
+    <div dir="auto" className="space-y-3 text-sm leading-relaxed text-foreground">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -28,14 +28,14 @@ export function MarkdownAnswer({ text, onCite }: { text: string; onCite: (n: num
                   type="button"
                   onClick={() => onCite(n)}
                   title={t("chat.sourceN", { n })}
-                  className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center border border-line bg-grid-soft px-1 align-baseline font-mono text-[12.5px] font-medium text-grid-action hover:border-grid-action"
+                  className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center border border-border bg-nq-surface-soft px-1 align-baseline font-mono text-[12.5px] font-medium text-nq-action hover:border-nq-action"
                 >
                   {n}
                 </button>
               )
             }
             return (
-              <a href={href} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-grid-action">
+              <a href={href} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-nq-action">
                 {children}
               </a>
             )
@@ -45,23 +45,23 @@ export function MarkdownAnswer({ text, onCite }: { text: string; onCite: (n: num
           h3: ({ children }) => <h4 className="text-sm font-medium">{children}</h4>,
           ul: ({ children }) => <ul className="list-disc space-y-1 ps-5">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal space-y-1 ps-5">{children}</ol>,
-          blockquote: ({ children }) => <blockquote className="border-s-2 border-line ps-3 text-grid-body">{children}</blockquote>,
+          blockquote: ({ children }) => <blockquote className="border-s-2 border-border ps-3 text-nq-fg-body">{children}</blockquote>,
           code: ({ children, className }) =>
             className ? (
-              <code dir="ltr" className="block overflow-x-auto border border-line bg-grid-soft p-3 font-mono text-xs">
+              <code dir="ltr" className="block overflow-x-auto border border-border bg-nq-surface-soft p-3 font-mono text-xs">
                 {children}
               </code>
             ) : (
-              <code className="bg-grid-soft px-1 font-mono text-[0.85em]">{children}</code>
+              <code className="bg-nq-surface-soft px-1 font-mono text-[0.85em]">{children}</code>
             ),
           pre: ({ children }) => <pre className="whitespace-pre">{children}</pre>,
           table: ({ children }) => (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-line text-xs">{children}</table>
+              <table className="w-full border-collapse border border-border text-xs">{children}</table>
             </div>
           ),
-          th: ({ children }) => <th className="border border-line px-2 py-1 text-start font-medium">{children}</th>,
-          td: ({ children }) => <td className="border border-line px-2 py-1">{children}</td>,
+          th: ({ children }) => <th className="border border-border px-2 py-1 text-start font-medium">{children}</th>,
+          td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
         }}
       >
         {linkCitations(text)}

@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeftIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ export default function AdminUserDetailPage() {
 
   const backLink = (
     <div className="px-6 pt-5">
-      <Link href={back} className="inline-flex items-center gap-1 text-xs text-grid-muted hover:text-grid-fg">
+      <Link href={back} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
         <ChevronLeftIcon className={isRtl ? "size-3.5 rotate-180" : "size-3.5"} />
         {t("nav.users")}
       </Link>
@@ -109,8 +109,8 @@ export default function AdminUserDetailPage() {
       />
 
       <SectionTitle>{t("admin.users.roles")}</SectionTitle>
-      <p className="-mt-1 px-6 pb-3 text-sm text-grid-muted">{isSelf ? t("admin.user.rolesSelf") : t("admin.user.rolesHint")}</p>
-      <ul className="divide-y divide-line border-y border-line">
+      <p className="-mt-1 px-6 pb-3 text-sm text-muted-foreground">{isSelf ? t("admin.user.rolesSelf") : t("admin.user.rolesHint")}</p>
+      <ul className="divide-y divide-border border-y border-border">
         {USER_ROLES.map((r) => {
           const fid = `role-${r}`
           return (
@@ -118,8 +118,8 @@ export default function AdminUserDetailPage() {
               <label htmlFor={fid} className="flex cursor-pointer items-start gap-3 px-6 py-3 text-sm">
                 <Checkbox id={fid} className="mt-0.5" checked={current.includes(r)} disabled={busy || isSelf} onCheckedChange={(v) => toggleRole(r, v === true)} />
                 <span className="min-w-0">
-                  <span className="block font-medium text-grid-fg">{t(`admin.role.${r}`)}</span>
-                  <span className="block text-grid-muted">{t(`admin.roleHint.${r}`)}</span>
+                  <span className="block font-medium text-foreground">{t(`admin.role.${r}`)}</span>
+                  <span className="block text-muted-foreground">{t(`admin.roleHint.${r}`)}</span>
                 </span>
               </label>
             </li>
@@ -138,7 +138,7 @@ export default function AdminUserDetailPage() {
       </div>
 
       <SectionTitle>{t("admin.user.actions")}</SectionTitle>
-      <ul className="mb-8 divide-y divide-line border-y border-line">
+      <ul className="mb-8 divide-y divide-border border-y border-border">
         {!u.email_verified ? (
           <ActionRow title={t("admin.user.resendTitle")} body={t("admin.user.resendBody")}>
             <Button variant="outline" size="sm" disabled={busy} onClick={() => act(() => adminApi.resendVerification(u.id), t("admin.user.resent"))}>
@@ -197,8 +197,8 @@ function ActionRow({ title, body, children }: { title: string; body: string; chi
   return (
     <li className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
       <span className="min-w-0 flex-1">
-        <span className="block font-medium text-grid-fg">{title}</span>
-        <span className="block text-grid-muted">{body}</span>
+        <span className="block font-medium text-foreground">{title}</span>
+        <span className="block text-muted-foreground">{body}</span>
       </span>
       {children}
     </li>

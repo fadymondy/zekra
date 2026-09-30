@@ -49,7 +49,7 @@ export default function AdminActivityPage() {
           { label: t("admin.activity.operations"), value: formatNumber(rows.length) },
           { label: t("admin.activity.recalls"), value: formatNumber(counts.recalls) },
           { label: t("admin.activity.writes"), value: formatNumber(counts.writes) },
-          { label: t("admin.activity.errors"), value: <span className={counts.errors ? "text-grid-danger-text" : undefined}>{formatNumber(counts.errors)}</span> },
+          { label: t("admin.activity.errors"), value: <span className={counts.errors ? "text-nq-danger-text" : undefined}>{formatNumber(counts.errors)}</span> },
         ]}
       />
 
@@ -83,7 +83,7 @@ export default function AdminActivityPage() {
             {t("admin.activity.clear")}
           </Button>
         ) : null}
-        <span className="ms-auto text-xs text-grid-muted">{t("admin.activity.window", { n: formatNumber(items.length) })}</span>
+        <span className="ms-auto text-xs text-muted-foreground">{t("admin.activity.window", { n: formatNumber(items.length) })}</span>
       </div>
 
       {activity.error ? (

@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
       ) : !parsed ? (
         <LoadingRows rows={1} />
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="divide-y divide-border border-y border-border">
           <MethodRow label={t("admin.settings.password")} on={parsed.password} />
           <MethodRow label={t("admin.settings.emailCode")} on={parsed.code} />
           {PROVIDERS.map((p) => (
@@ -86,7 +86,7 @@ export default function AdminSettingsPage() {
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden
-                  className={`size-2 rounded-full ${live === "live" ? "bg-emerald-500" : live === "connecting" ? "bg-amber-500" : "bg-grid-muted"}`}
+                  className={`size-2 rounded-full ${live === "live" ? "bg-emerald-500" : live === "connecting" ? "bg-amber-500" : "bg-muted-foreground"}`}
                 />
                 {t(`shell.live.${live}`)}
               </span>
@@ -103,7 +103,7 @@ function MethodRow({ label, on, ltr }: { label: string; on: boolean; ltr?: boole
   const { t } = useTranslations()
   return (
     <li className="flex items-center gap-3 px-6 py-3 text-sm">
-      <span className="flex-1 text-grid-fg">
+      <span className="flex-1 text-foreground">
         {ltr ? <Ltr>{label}</Ltr> : label}
       </span>
       <Badge variant={on ? "secondary" : "outline"}>{on ? t("admin.settings.enabled") : t("admin.settings.disabled")}</Badge>

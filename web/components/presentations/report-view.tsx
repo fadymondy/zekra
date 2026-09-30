@@ -105,7 +105,7 @@ export function ReportView({
   return (
     <article dir={dir} className="pres-root mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header className="border-b pb-8">
-        <div className="mb-6 h-1 w-16 rounded-full bg-brand" aria-hidden />
+        <div className="mb-6 h-1 w-16 rounded-full bg-nq-brand" aria-hidden />
         <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           <Tx p="title" v={content.title} />
         </h1>

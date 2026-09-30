@@ -55,7 +55,7 @@ export default function BrainSourcesPage() {
       ) : list.length === 0 ? (
         <EmptyState title={t("sources.emptyTitle")} body={t("sources.emptyBody")} action={addButton} />
       ) : (
-        <ol className="divide-y divide-line border-y border-line" aria-label={t("sources.connected")}>
+        <ol className="divide-y divide-border border-y border-border" aria-label={t("sources.connected")}>
           {list.map((s) => (
             <SourceRow key={s.id} s={s} onChanged={reload} />
           ))}

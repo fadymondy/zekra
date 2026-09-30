@@ -143,7 +143,7 @@ export function summarise(markdown: string, max = 160): string | null {
 export const PROSE = `flex flex-col gap-4 text-pretty [overflow-wrap:anywhere]
   [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:[overflow-wrap:normal]
   [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-foreground/30 hover:[&_a]:decoration-foreground
-  [&_blockquote]:border-s-2 [&_blockquote]:border-line [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground
+  [&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground
   [&_:not(pre)>code]:bg-muted/60 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-px [&_:not(pre)>code]:font-mono [&_:not(pre)>code]:text-sm
   [&_h1]:mt-6 [&_h1]:text-2xl [&_h1]:font-medium [&_h1]:tracking-tight
   [&_h2]:mt-6 [&_h2]:scroll-mt-20 [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:tracking-tight
@@ -151,6 +151,6 @@ export const PROSE = `flex flex-col gap-4 text-pretty [overflow-wrap:anywhere]
   [&_li]:ms-5 [&_li]:list-disc [&_ol_li]:list-decimal
   [&_strong]:font-medium [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2
   [&_table]:block [&_table]:overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm
-  [&_td]:border [&_td]:border-line [&_td]:px-3 [&_td]:py-2
-  [&_th]:border [&_th]:border-line [&_th]:bg-muted/40 [&_th]:px-3 [&_th]:py-2 [&_th]:text-start [&_th]:font-medium
-  [&_hr]:border-line [&_img]:max-w-full`
+  [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2
+  [&_th]:border [&_th]:border-border [&_th]:bg-muted/40 [&_th]:px-3 [&_th]:py-2 [&_th]:text-start [&_th]:font-medium
+  [&_hr]:border-border [&_img]:max-w-full`

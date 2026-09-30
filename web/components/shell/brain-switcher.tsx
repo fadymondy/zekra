@@ -46,7 +46,7 @@ export function BrainSwitcher({ namespace }: { namespace: string }) {
         <span dir="auto" className="hidden truncate text-sm font-medium sm:inline">
           {current ? brainName(current) : namespace}
         </span>
-        <ChevronsUpDownIcon className="text-grid-muted" />
+        <ChevronsUpDownIcon className="text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-[70vh] min-w-64 overflow-y-auto">
         <DropdownMenuGroup>
@@ -57,7 +57,7 @@ export function BrainSwitcher({ namespace }: { namespace: string }) {
               <span dir="auto" className="min-w-0 flex-1 truncate">
                 {brainName(b)}
               </span>
-              <span className="text-xs text-grid-muted">{formatNumber(b.memories)}</span>
+              <span className="text-xs text-muted-foreground">{formatNumber(b.memories)}</span>
               {b.namespace === namespace ? <CheckIcon /> : null}
             </DropdownMenuItem>
           ))}

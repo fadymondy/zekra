@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent } from "react"
 import { useParams } from "next/navigation"
 import { EyeIcon, EyeOffIcon, PencilIcon, PlusIcon, SearchIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -55,9 +55,9 @@ export default function SecretsPage() {
       />
 
       {list.length > 5 ? (
-        <div className="flex flex-wrap items-center gap-3 border-t border-line px-6 py-3">
+        <div className="flex flex-wrap items-center gap-3 border-t border-border px-6 py-3">
           <div className="relative w-full max-w-sm">
-            <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
+            <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label={t("secrets.filter")}
               value={filter}
@@ -66,7 +66,7 @@ export default function SecretsPage() {
               className="ps-8"
             />
           </div>
-          <span className="ms-auto text-xs text-grid-muted">
+          <span className="ms-auto text-xs text-muted-foreground">
             {filter
               ? t("secrets.countFiltered", { n: formatNumber(visible.length), total: formatNumber(list.length) })
               : t("secrets.count", { n: formatNumber(list.length) })}
@@ -83,7 +83,7 @@ export default function SecretsPage() {
       ) : visible.length === 0 ? (
         <EmptyState title={t("secrets.noMatch")} />
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="divide-y divide-border border-y border-border">
           {visible.map((s) => (
             <SecretRow key={s.name} s={s} onUpdate={() => setEditing({ name: s.name, kind: s.kind || "generic" })} onDeleted={() => secrets.mutate()} />
           ))}
@@ -134,12 +134,12 @@ function SecretRow({ s, onUpdate, onDeleted }: { s: SecretMeta; onUpdate: () => 
   return (
     <li className="space-y-2 px-6 py-3 text-sm">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <Ltr mono className="truncate font-medium text-grid-fg">{s.name}</Ltr>
+        <Ltr mono className="truncate font-medium text-foreground">{s.name}</Ltr>
         <Badge variant="outline">{(KINDS as readonly string[]).includes(s.kind || "generic") ? t(`secrets.kind.${s.kind || "generic"}`) : <Ltr>{s.kind}</Ltr>}</Badge>
         {value === null ? (
-          <Ltr mono className="border border-line bg-grid-card px-2 py-0.5 text-xs text-grid-muted">{s.hint || "•••"}</Ltr>
+          <Ltr mono className="border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">{s.hint || "•••"}</Ltr>
         ) : null}
-        <span className="ms-auto flex flex-wrap gap-x-3 text-xs text-grid-muted">
+        <span className="ms-auto flex flex-wrap gap-x-3 text-xs text-muted-foreground">
           {s.createdBy ? (
             <span>
               {t("secrets.by")} <Ltr>{s.createdBy}</Ltr>
@@ -176,11 +176,11 @@ function SecretRow({ s, onUpdate, onDeleted }: { s: SecretMeta; onUpdate: () => 
       </div>
       {value !== null ? <CopyField value={value} label={s.name} /> : null}
       {s.sourceRef ? (
-        <p className="text-xs text-grid-muted">
+        <p className="text-xs text-muted-foreground">
           {t("secrets.source")} <Ltr mono>{s.sourceRef}</Ltr>
         </p>
       ) : null}
-      {denied ? <p className="text-xs text-grid-warn-text" role="alert">{denied}</p> : null}
+      {denied ? <p className="text-xs text-nq-warning-text" role="alert">{denied}</p> : null}
     </li>
   )
 }

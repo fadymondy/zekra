@@ -121,7 +121,7 @@ function PageLink({ page, base, activeSlug }: { page: DocPage; base: string; act
         // -ms-px lays the active marker exactly over the section's guide line.
         "-ms-px block border-s py-1.5 ps-3 pe-2 leading-snug transition-colors",
         active
-          ? "border-brand bg-muted/60 font-medium text-foreground"
+          ? "border-nq-brand bg-muted/60 font-medium text-foreground"
           : "border-transparent text-muted-foreground hover:border-foreground/30 hover:text-foreground",
       )}
     >
@@ -186,7 +186,7 @@ function Section({
       </summary>
 
       {/* One guide line per level, inset under the chevron. */}
-      <div className={cn("flex flex-col border-s border-line", top ? "ms-1.5" : "ms-[1.125rem]")}>
+      <div className={cn("flex flex-col border-s border-border", top ? "ms-1.5" : "ms-[1.125rem]")}>
         {node.index ? <PageLink page={node.index} base={base} activeSlug={activeSlug} /> : null}
         {node.pages.map((page) => (
           <PageLink key={page.slug} page={page} base={base} activeSlug={activeSlug} />
@@ -226,7 +226,7 @@ export function DocsSidebar({
     <nav className="flex flex-col gap-4 text-sm">
       {/* Top-level pages first: the overview and anything else at the root. */}
       {tree.pages.length > 0 ? (
-        <div className="flex flex-col border-s border-line">
+        <div className="flex flex-col border-s border-border">
           {tree.pages.map((page) => (
             <PageLink key={page.slug || "index"} page={page} base={base} activeSlug={activeSlug} />
           ))}

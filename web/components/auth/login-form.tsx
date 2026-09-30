@@ -201,7 +201,7 @@ export function LoginForm() {
                     <FieldLabel htmlFor="password">{t("auth.password")}</FieldLabel>
                     <Link
                       href={`/${locale}/forgot-password`}
-                      className="text-xs text-grid-muted underline underline-offset-4 hover:text-grid-fg"
+                      className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
                     >
                       {t("auth.forgotLink")}
                     </Link>
@@ -259,9 +259,9 @@ export function LoginForm() {
 
           <ProviderButtons methods={methods} returnTo={next ?? home} />
 
-          <p className="mt-6 text-center text-sm text-grid-muted">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             {t("auth.noAccount")}{" "}
-            <Link href={registerHref} className="font-medium text-grid-fg underline underline-offset-4">
+            <Link href={registerHref} className="font-medium text-foreground underline underline-offset-4">
               {t("auth.createAccount")}
             </Link>
           </p>

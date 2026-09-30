@@ -11,8 +11,7 @@
      Lusail needs it; size-adjust brings Inter's Latin back to ~14px there, so
      "Royal Legal" reads the same size in either language.
 
-   Zekra-owned: grid-fonts.css / grid-tokens.css are generated from the design
-   repo and must not be edited. */
+   Zekra-owned; grid-fonts.css only carries font files (the tokens are Nasaq's). */
 
 @font-face {
   font-family: "Inter";
@@ -34,7 +33,7 @@
 
 /* English only: Inter first, Lusail for any Arabic glyphs, then the system. */
 html[lang^="en"] {
-  --grid-font-sans: "Inter", "Lusail", system-ui, sans-serif;
+  --nq-font-ui: "Inter", "Lusail", system-ui, sans-serif;
 }
 
 /* Latin inside the Arabic UI (see the header): same files, 15px -> ~14px. */
@@ -62,5 +61,5 @@ html[lang^="en"] {
 
 /* Arabic UI: Inter's Latin first, then Lusail for everything Arabic. */
 html[lang^="ar"] {
-  --grid-font-sans: "Inter AR", "Lusail", "Alexandria", system-ui, sans-serif;
+  --nq-font-ui: "Inter AR", "Lusail", "Alexandria", system-ui, sans-serif;
 }

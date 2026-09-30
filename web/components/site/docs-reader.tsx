@@ -47,8 +47,8 @@ export function DocsReader({
       <SiteHeader spec={spec} locale={locale} path={path} anchorBase={`/${locale}`} maxWidth="max-w-[1280px]" />
 
       <main className="flex max-w-screen flex-1 flex-col overflow-x-clip px-2">
-        <div className="mx-auto grid w-full max-w-[1280px] flex-1 border-x border-line lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_220px]">
-          <aside className="border-line max-lg:hidden lg:border-e">
+        <div className="mx-auto grid w-full max-w-[1280px] flex-1 border-x border-border lg:grid-cols-[250px_minmax(0,1fr)] xl:grid-cols-[250px_minmax(0,1fr)_220px]">
+          <aside className="border-border max-lg:hidden lg:border-e">
             <div className="sticky top-(--header-height) max-h-[calc(100svh-var(--header-height))] overflow-y-auto p-4">
               <p className="mb-4 px-2 text-base font-medium">{bundle.name}</p>
               {sidebar}
@@ -58,7 +58,7 @@ export function DocsReader({
           <article className="min-w-0">
             <div className="h-10" />
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-line p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border p-3">
               <Link
                 href={`/${locale}`}
                 className="flex items-center gap-1.5 px-1 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -74,7 +74,7 @@ export function DocsReader({
                     href={docHref(locale, prev.slug)}
                     aria-label={t.previous}
                     title={t.previous}
-                    className="flex size-8 items-center justify-center border border-line text-muted-foreground transition-colors hover:text-foreground"
+                    className="flex size-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <ArrowLeftIcon className="size-3.5 rtl:-scale-x-100" />
                   </Link>
@@ -84,7 +84,7 @@ export function DocsReader({
                     href={docHref(locale, next.slug)}
                     aria-label={t.next}
                     title={t.next}
-                    className="flex size-8 items-center justify-center border border-line text-muted-foreground transition-colors hover:text-foreground"
+                    className="flex size-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <ArrowRightIcon className="size-3.5 rtl:-scale-x-100" />
                   </Link>
@@ -95,7 +95,7 @@ export function DocsReader({
                   rel="noreferrer"
                   aria-label={t.edit}
                   title={t.edit}
-                  className="flex size-8 items-center justify-center border border-line text-muted-foreground transition-colors hover:text-foreground"
+                  className="flex size-8 items-center justify-center border border-border text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <PencilIcon className="size-3.5" />
                 </a>
@@ -103,14 +103,14 @@ export function DocsReader({
             </div>
 
             {/* Below lg the sidebar is gone, so the tree becomes a disclosure. */}
-            <details className="border-b border-line lg:hidden">
+            <details className="border-b border-border lg:hidden">
               <summary className="cursor-pointer px-4 py-3 font-mono text-xs text-muted-foreground">
                 {t.menu} · {bundle.name}
               </summary>
               <div className="max-h-[60svh] overflow-y-auto px-2 pb-4">{sidebar}</div>
             </details>
 
-            <header className="border-b border-line px-4 py-8" lang="en" dir="ltr">
+            <header className="border-b border-border px-4 py-8" lang="en" dir="ltr">
               <h1 className="text-3xl font-medium tracking-tight text-balance sm:text-4xl">{page.title}</h1>
               {page.description ? (
                 <p className="mt-3 text-lg text-pretty text-muted-foreground">{page.description}</p>
@@ -121,16 +121,16 @@ export function DocsReader({
               <DocMarkdown page={page} bundle={bundle} locale={locale} content={content} />
             </div>
 
-            <nav className="grid grid-cols-2 border-t border-line">
+            <nav className="grid grid-cols-2 border-t border-border">
               {prev ? (
-                <Link href={docHref(locale, prev.slug)} className="flex flex-col gap-1 border-e border-line p-4 hover:bg-muted/40">
+                <Link href={docHref(locale, prev.slug)} className="flex flex-col gap-1 border-e border-border p-4 hover:bg-muted/40">
                   <span className="font-mono text-[12.5px] text-muted-foreground uppercase">{t.previous}</span>
                   <span className="truncate text-sm" lang="en" dir="ltr">
                     {prev.title}
                   </span>
                 </Link>
               ) : (
-                <span className="border-e border-line" />
+                <span className="border-e border-border" />
               )}
               {next ? (
                 <Link href={docHref(locale, next.slug)} className="flex flex-col items-end gap-1 p-4 text-end hover:bg-muted/40">
@@ -145,11 +145,11 @@ export function DocsReader({
             </nav>
           </article>
 
-          <aside className="border-s border-line max-xl:hidden">
+          <aside className="border-s border-border max-xl:hidden">
             {toc.length > 0 ? (
               <div className="sticky top-(--header-height) max-h-[calc(100svh-var(--header-height))] overflow-x-hidden overflow-y-auto p-4">
                 <p className="font-mono text-[12.5px] tracking-wider text-muted-foreground uppercase">{t.onThisPage}</p>
-                <ul lang="en" dir="ltr" className="mt-3 flex flex-col border-s border-line text-sm">
+                <ul lang="en" dir="ltr" className="mt-3 flex flex-col border-s border-border text-sm">
                   {toc.map((h) => (
                     <li key={h.id}>
                       <a

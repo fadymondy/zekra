@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CheckIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { PushEndpoint } from "@/components/sources/push-endpoint"
 import { KINDS, KIND_BY } from "@/components/sources/kinds"
@@ -81,7 +81,7 @@ export function AddSourceDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <CheckIcon className="size-4 text-grid-ok" /> {t("sources.webhookReady")}
+                <CheckIcon className="size-4 text-nq-success" /> {t("sources.webhookReady")}
               </DialogTitle>
               <DialogDescription>{t("sources.webhookReadyHint")}</DialogDescription>
             </DialogHeader>
@@ -102,13 +102,13 @@ export function AddSourceDialog({
               <DialogTitle>{t("sources.addTitle")}</DialogTitle>
               <DialogDescription>
                 {t("sources.addHint")}{" "}
-                <span dir="ltr" className="font-mono text-grid-fg">
+                <span dir="ltr" className="font-mono text-foreground">
                   {namespace}
                 </span>
               </DialogDescription>
             </DialogHeader>
 
-            <div role="radiogroup" aria-label={t("sources.kind")} className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-5">
+            <div role="radiogroup" aria-label={t("sources.kind")} className="grid grid-cols-3 gap-px border border-border bg-border sm:grid-cols-5">
               {KINDS.map((k) => {
                 const Icon = k.icon
                 const active = k.kind === kind
@@ -127,21 +127,21 @@ export function AddSourceDialog({
                     className={cn(
                       "relative flex flex-col items-center gap-1.5 px-2 py-3 text-xs transition-colors",
                       k.soon
-                        ? "cursor-not-allowed bg-grid-card text-grid-muted/50"
+                        ? "cursor-not-allowed bg-card text-muted-foreground/50"
                         : active
-                          ? "bg-grid-soft text-grid-fg"
-                          : "bg-grid-card text-grid-muted hover:bg-grid-soft hover:text-grid-fg",
+                          ? "bg-nq-surface-soft text-foreground"
+                          : "bg-card text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground",
                     )}
                   >
-                    <Icon className={cn("size-4", active && "text-grid-action")} />
+                    <Icon className={cn("size-4", active && "text-nq-action")} />
                     <span className="max-w-full truncate">{t(`sources.kind.${k.kind}`)}</span>
-                    {active ? <span aria-hidden className="absolute end-1.5 top-1.5 size-1.5 bg-grid-action" /> : null}
+                    {active ? <span aria-hidden className="absolute end-1.5 top-1.5 size-1.5 bg-nq-action" /> : null}
                     {k.soon ? <span className="absolute end-1 top-1 text-[12px] leading-none">{t("sources.soon")}</span> : null}
                   </button>
                 )
               })}
             </div>
-            <p className="text-xs text-grid-muted">{t(`sources.blurb.${kind}`)}</p>
+            <p className="text-xs text-muted-foreground">{t(`sources.blurb.${kind}`)}</p>
 
             <Field>
               <FieldLabel htmlFor="src-name">{t("sources.field.name")}</FieldLabel>
@@ -151,7 +151,7 @@ export function AddSourceDialog({
               <Field key={f.key}>
                 <FieldLabel htmlFor={`src-${f.key}`}>
                   {t(f.label)}
-                  {f.optional ? <span className="font-normal text-grid-muted">({t("common.optional")})</span> : null}
+                  {f.optional ? <span className="font-normal text-muted-foreground">({t("common.optional")})</span> : null}
                 </FieldLabel>
                 {f.textarea ? (
                   <Textarea
@@ -177,9 +177,9 @@ export function AddSourceDialog({
                 {f.secret ? <FieldDescription>{t("sources.secretNote")}</FieldDescription> : null}
               </Field>
             ))}
-            {kind === "webhook" ? <p className="border border-line bg-grid-soft px-3 py-2 text-xs text-grid-body">{t("sources.webhookNote")}</p> : null}
+            {kind === "webhook" ? <p className="border border-border bg-nq-surface-soft px-3 py-2 text-xs text-nq-fg-body">{t("sources.webhookNote")}</p> : null}
             {error ? (
-              <p role="alert" className="text-sm text-grid-danger-text">
+              <p role="alert" className="text-sm text-nq-danger-text">
                 {error}
               </p>
             ) : null}

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react"
 import useSWR from "swr"
 import { GithubIcon, Loader2Icon, SaveIcon, UploadIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { toastError } from "@/components/admin/toast-error"
 import { Ltr } from "@/components/copy-field"
@@ -57,10 +57,10 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
   const [saving, setSaving] = useState(false)
   const [pushing, setPushing] = useState(false)
 
-  if (isLoading) return <p className="text-sm text-grid-muted">{t("common.loading")}</p>
+  if (isLoading) return <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
   // A 403 here means "not an admin of this brain", which is a normal state for
   // an editor rather than an error worth a red panel.
-  if (error) return <p className="text-sm text-grid-muted">{t("github.noAccess")}</p>
+  if (error) return <p className="text-sm text-muted-foreground">{t("github.noAccess")}</p>
 
   const cfg = data?.config
   // Uncontrolled until touched, so a value arriving from the server does not
@@ -172,7 +172,7 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
         </Field>
 
         {cfg?.lastPushAt ? (
-          <p className="text-sm text-grid-muted">
+          <p className="text-sm text-muted-foreground">
             {t("github.lastPush", { when: new Date(cfg.lastPushAt).toLocaleString() })}{" "}
             <Ltr className="font-mono text-xs">{cfg.lastCommit?.slice(0, 7)}</Ltr>
           </p>

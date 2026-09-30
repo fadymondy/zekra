@@ -10,17 +10,17 @@ export function LiveIndicator() {
   const { t } = useTranslations()
   return (
     <span
-      className="hidden items-center gap-2 border border-line px-2 py-1 sm:inline-flex"
+      className="hidden items-center gap-2 border border-border px-2 py-1 sm:inline-flex"
       title={t("shell.realtime", { status: t(`shell.live.${status}`) })}
     >
       <span
         aria-hidden
         className={cn(
           "size-2 shrink-0",
-          status === "live" ? "bg-emerald-500" : status === "connecting" ? "bg-amber-500" : "bg-grid-muted",
+          status === "live" ? "bg-emerald-500" : status === "connecting" ? "bg-amber-500" : "bg-muted-foreground",
         )}
       />
-      <span className="grid-micro">{t(`shell.live.${status}`)}</span>
+      <span className="eyebrow">{t(`shell.live.${status}`)}</span>
     </span>
   )
 }

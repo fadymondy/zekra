@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
 import { DownloadIcon, ExternalLinkIcon, TrashIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@fadymondy/nasaq/web"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,7 +33,7 @@ export default function AdminBrainsPage() {
         micro={t("admin.micro")}
         title={t("nav.allBrains")}
         description={t("admin.brains.hint")}
-        action={list.length ? <span className="text-sm text-grid-muted">{t("admin.brains.count", { n: formatNumber(list.length) })}</span> : null}
+        action={list.length ? <span className="text-sm text-muted-foreground">{t("admin.brains.count", { n: formatNumber(list.length) })}</span> : null}
       />
 
       {brains.error ? (
@@ -43,7 +43,7 @@ export default function AdminBrainsPage() {
       ) : list.length === 0 ? (
         <EmptyState title={t("admin.brains.empty")} body={t("admin.brains.emptyBody")} />
       ) : (
-        <div className="border-y border-line">
+        <div className="border-y border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -87,18 +87,18 @@ function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
       <TableCell className="text-end tabular-nums">{formatNumber(d?.memories ?? b.memories)}</TableCell>
       <TableCell className="text-end tabular-nums">{d ? formatNumber(Object.keys(d.types ?? {}).length) : "—"}</TableCell>
       <TableCell className="text-end tabular-nums">{d ? formatNumber(d.recalls) : "—"}</TableCell>
-      <TableCell className="text-grid-muted">
+      <TableCell className="text-muted-foreground">
         <span title={formatDate(last, { dateStyle: "medium", timeStyle: "short" })}>{timeAgo(last)}</span>
       </TableCell>
       <TableCell>
         {!d ? (
           "—"
         ) : d.openGaps > 0 ? (
-          <Badge variant="outline" className="text-grid-warn-text">
+          <Badge variant="outline" className="text-nq-warning-text">
             {t("admin.brains.openGaps", { n: formatNumber(d.openGaps) })}
           </Badge>
         ) : (
-          <span className="text-xs text-grid-muted">{t("admin.brains.noGaps")}</span>
+          <span className="text-xs text-muted-foreground">{t("admin.brains.noGaps")}</span>
         )}
       </TableCell>
       <TableCell className="pe-6">
@@ -111,7 +111,7 @@ function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
             <DownloadIcon />
             {t("admin.brains.export")}
           </Button>
-          <Button variant="ghost" size="sm" className="text-grid-danger-text" onClick={onDelete}>
+          <Button variant="ghost" size="sm" className="text-nq-danger-text" onClick={onDelete}>
             <TrashIcon />
             {t("common.delete")}
           </Button>
@@ -156,12 +156,12 @@ function DeleteBrainDialog({ namespace, onClose, onDeleted }: { namespace: strin
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle className="text-grid-danger-text">{t("admin.brains.deleteTitle")}</DialogTitle>
+            <DialogTitle className="text-nq-danger-text">{t("admin.brains.deleteTitle")}</DialogTitle>
             <DialogDescription>{t("admin.brains.deleteBody")}</DialogDescription>
           </DialogHeader>
           <Field>
             <FieldLabel htmlFor="delete-brain-confirm">
-              {t("admin.brains.typeToConfirm")} <Ltr mono className="text-grid-fg">{namespace}</Ltr>
+              {t("admin.brains.typeToConfirm")} <Ltr mono className="text-foreground">{namespace}</Ltr>
             </FieldLabel>
             <Input
               id="delete-brain-confirm"

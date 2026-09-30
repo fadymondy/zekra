@@ -99,7 +99,7 @@ function Section({
               )}
             >
               {s.eyebrow ? (
-                <p className="pres-eyebrow mb-3 text-sm font-medium text-brand">
+                <p className="pres-eyebrow mb-3 text-sm font-medium text-nq-brand">
                   <Tx p="eyebrow" v={s.eyebrow} />
                 </p>
               ) : null}
@@ -147,8 +147,8 @@ function Section({
               return (
                 <Card key={i} data-reveal className="pres-glow">
                   <CardHeader>
-                    <div className="mb-2 flex size-9 items-center justify-center rounded-lg border bg-muted text-brand">
-                      {it.icon ? <PresIcon name={it.icon} className="size-4" /> : <span className="size-2 rounded-full bg-brand" aria-hidden />}
+                    <div className="mb-2 flex size-9 items-center justify-center rounded-lg border bg-muted text-nq-brand">
+                      {it.icon ? <PresIcon name={it.icon} className="size-4" /> : <span className="size-2 rounded-full bg-nq-brand" aria-hidden />}
                     </div>
                     <CardTitle>
                       <Tx p={`items.${i}.title`} v={it.title} />
@@ -182,7 +182,7 @@ function Section({
           ) : null}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {s.plans.map((p, i) => (
-              <Card key={i} data-reveal className={cn("pres-glow", p.highlighted && "ring-2 ring-brand")}>
+              <Card key={i} data-reveal className={cn("pres-glow", p.highlighted && "ring-2 ring-nq-brand")}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between gap-2">
                     <Tx p={`plans.${i}.name`} v={p.name} />
@@ -209,7 +209,7 @@ function Section({
                     <ul className="space-y-2 text-sm">
                       {p.features.map((f, j) => (
                         <li key={j} className="flex gap-2">
-                          <CheckIcon className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                          <CheckIcon className="mt-0.5 size-4 shrink-0 text-nq-brand" aria-hidden />
                           <span className="min-w-0 flex-1">
                             <Tx p={`plans.${i}.features.${j}`} v={f} list={{ path: `plans.${i}.features`, index: j }} />
                           </span>

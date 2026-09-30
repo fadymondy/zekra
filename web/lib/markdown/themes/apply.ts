@@ -60,16 +60,16 @@ export function themeVars(theme: ThemeDefinition): Record<string, string> {
   const h = hljsTokensFor(theme)
   return {
     // Surface
-    '--grid-bg': p.bg,
-    '--grid-card': p.bg,
-    '--grid-soft': p.inlineCodeBg,
-    '--grid-fg': p.fg,
-    '--grid-body': p.fg,
-    '--grid-muted': p.fgMuted,
-    '--grid-line': p.border,
+    '--nq-bg': p.bg,
+    '--nq-surface': p.bg,
+    '--nq-surface-soft': p.inlineCodeBg,
+    '--nq-fg': p.fg,
+    '--nq-fg-body': p.fg,
+    '--nq-fg-muted': p.fgMuted,
+    '--nq-line': p.border,
     // Links keep the theme's own link colour rather than the brand violet:
     // inside a GitHub-Light note, a violet link looks wrong.
-    '--grid-action': p.link,
+    '--nq-action': p.link,
     // Code
     '--hl-comment': h.comment,
     '--hl-keyword': h.keyword,
