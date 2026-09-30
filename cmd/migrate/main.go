@@ -12,6 +12,7 @@ import (
 
 	accountschema "github.com/fadymondy/zekra/internal/account/schema"
 	"github.com/fadymondy/zekra/internal/app"
+	circlexoschema "github.com/fadymondy/zekra/internal/circlexo"
 	// Registers the installed plugins — including db-postgres, which provides the
 	// "pgx" database/sql driver. Without it k.SQL fails with: unknown driver "pgx".
 	_ "github.com/fadymondy/zekra/internal/plugins"
@@ -51,6 +52,12 @@ func main() {
 			os.Exit(1)
 		}
 		k.Log.Info("applied", "file", "internal/account/schema/schema.sql")
+		// The CircleXO hub tables (internal/circlexo/schema.sql): harmless when the integration is off.
+		if err := circlexoschema.Migrate(ctx, sqlDB); err != nil {
+			k.Log.Error("migrate failed", "file", "circlexo schema", "err", err)
+			os.Exit(1)
+		}
+		k.Log.Info("applied", "file", "internal/circlexo/schema.sql")
 	}
 	k.Log.Info("migrate complete")
 }

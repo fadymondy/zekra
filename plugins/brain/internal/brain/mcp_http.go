@@ -40,6 +40,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/togo-framework/brain/hubapi"
 	"github.com/togo-framework/brain/mcptools"
 )
 
@@ -104,26 +105,29 @@ func (r *recorder) Flush()                      {}
 type mcpCredential struct {
 	principal *Principal
 	token     string
+	hub       *hubapi.Identity // set when the token was issued by the CircleXO hub
 }
 
-func (s *Service) authenticateMCP(r *http.Request, o *oauthServer) (*mcpCredential, bool) {
+func (s *Service) authenticateMCP(r *http.Request, o *oauthServer) (*mcpCredential, *hubapi.Refusal, bool) {
 	if h := r.Header.Get("Authorization"); len(h) > 7 && strings.EqualFold(h[:7], "Bearer ") {
 		tok := strings.TrimSpace(h[7:])
 		if strings.HasPrefix(tok, accessPrefix) {
 			if p, ok := o.authenticateOAuth(r.Context(), tok); ok {
-				return &mcpCredential{principal: p}, true
+				return &mcpCredential{principal: p}, nil, true
 			}
-			return nil, false
+			return nil, nil, false
 		}
 		if s.ValidToken(r.Context(), tok) {
-			return &mcpCredential{token: tok}, true
+			return &mcpCredential{token: tok}, nil, true
 		}
-		return nil, false
+		// Not one of ours: it may be a token the CircleXO hub issued (a no-op when
+		// the integration is off).
+		return s.authenticateHub(r.Context(), tok)
 	}
 	if tok := TokenHeader(r.Header); tok != "" && s.ValidToken(r.Context(), tok) {
-		return &mcpCredential{token: tok}, true
+		return &mcpCredential{token: tok}, nil, true
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 func (cred *mcpCredential) allow() func(mcptools.Access) bool {
@@ -177,7 +181,12 @@ func (s *Service) mcpEndpoint(o *oauthServer) http.HandlerFunc {
 			o.preflight(w, r)
 			return
 		}
-		cred, ok := s.authenticateMCP(r, o)
+		cred, ref, ok := s.authenticateMCP(r, o)
+		if ref != nil {
+			allowAnyOrigin(w)
+			writeRPCError(w, ref.Status, -32001, ref.Message)
+			return
+		}
 		if !ok {
 			s.mcpUnauthorized(w, r)
 			return
@@ -238,6 +247,15 @@ func (s *Service) mcpEndpoint(o *oauthServer) http.HandlerFunc {
 			}
 			if m.Method == "initialize" {
 				initialized = true
+			}
+			if cred.hub != nil && m.Method == "tools/call" {
+				// Pay as you go: one `requests` unit per tool call, taken before the
+				// work runs so an empty wallet stops it.
+				if ref := s.meterHub(r.Context(), cred.hub); ref != nil {
+					out = append(out, &mcptools.Response{JSONRPC: "2.0", ID: m.ID,
+						Error: &mcptools.RPCError{Code: -32002, Message: ref.Message}})
+					continue
+				}
 			}
 			if res := srv.Handle(r.Context(), m); res != nil {
 				out = append(out, res)

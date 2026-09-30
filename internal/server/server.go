@@ -39,7 +39,11 @@ func Boot() *app.App {
 	// Accounts around the togo auth plugin: email verification, password reset,
 	// sign-in codes, 2FA, Google/Apple/GitHub, the account area, deletion, data
 	// export, and the admin API (internal/account). No-op without Postgres.
-	account.Mount(context.Background(), k, api, a.SQLDB)
+	acct := account.Mount(context.Background(), k, api, a.SQLDB)
+
+	// The CircleXO hub (docs/circlexo.md): sign in with the hub, orgs as brains, plan limits, hub
+	// MCP tokens. Off unless CIRCLEXO_ISSUER is set.
+	installCircleXO(k, a, acct)
 
 	gql := handler.NewDefaultServer(graphgen.NewExecutableSchema(graphgen.Config{
 		Resolvers: &resolvers.Resolver{App: a},

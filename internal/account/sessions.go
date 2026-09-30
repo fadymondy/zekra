@@ -156,6 +156,12 @@ func (s *Service) RevokedSessions(next http.Handler) http.Handler {
 			next.ServeHTTP(w, withoutCredentials(r))
 			return
 		}
+		if iat > 0 && s.SessionEnded != nil && s.SessionEnded(r.Context(), userID, iat) {
+			w.Header().Set("X-Account-Status", "revoked")
+			http.SetCookie(w, ClearSessionCookie(secureRequest(r)))
+			next.ServeHTTP(w, withoutCredentials(r))
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

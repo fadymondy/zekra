@@ -51,6 +51,10 @@ type Service struct {
 	Auth *auth.Service
 	Send func(ctx context.Context, msg Message) error
 	Now  func() time.Time
+	// SessionEnded, when set (the CircleXO integration), reports whether a
+	// session issued at iat (unix seconds) for userID was ended elsewhere: the
+	// hub revoked the sign-in it came from. See hub.go.
+	SessionEnded func(ctx context.Context, userID string, iat int64) bool
 }
 
 // ErrUnavailable is returned when the database or the auth service is missing.

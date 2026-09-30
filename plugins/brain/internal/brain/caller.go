@@ -159,7 +159,7 @@ func (s *Service) canWriteOrClaim(r *http.Request, ns string) bool {
 	if !c.session || c.userID == "" {
 		return false
 	}
-	if err := s.Store.ClaimBrain(r.Context(), ns, c.userID); err != nil {
+	if err := s.claimBrain(r.Context(), ns, c.userID); err != nil {
 		return false
 	}
 	return s.canWrite(r, ns)
