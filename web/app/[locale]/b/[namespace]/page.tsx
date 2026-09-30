@@ -184,7 +184,7 @@ export default function BrainOverviewPage() {
                 <Link
                   key={s}
                   href={`${base}/chat?q=${encodeURIComponent(t("overview.ask.suggestion", { topic: s }))}`}
-                  className="grid-chip transition-colors hover:text-foreground"
+                  className="inline-flex h-5 items-center rounded-sm border border-border px-2 text-caption text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {t("overview.ask.suggestion", { topic: "⁨" + s + "⁩" })}
                 </Link>

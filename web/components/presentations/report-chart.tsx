@@ -56,8 +56,6 @@ export function ReportChart({ block, locale, dir }: { block: ChartBlock; locale:
   render order, so colour and position still follow the entity.
   */
   const drawKeys = seriesDrawOrder(keys, rtl, block.chart)
-  const bySlot = <T extends { dataKey?: unknown }>(items?: readonly T[]) =>
-    [...(items ?? [])].sort((a, b) => keys.indexOf(String(a.dataKey)) - keys.indexOf(String(b.dataKey)))
   const axes = (
     <>
       <CartesianGrid vertical={false} strokeOpacity={0.5} />
@@ -65,7 +63,13 @@ export function ReportChart({ block, locale, dir }: { block: ChartBlock; locale:
       <YAxis tickLine={false} axisLine={false} width={56} tickFormatter={(v: number) => nf.format(v)} orientation={rtl ? "right" : "left"} />
       <ChartTooltip itemSorter={(item) => keys.indexOf(String(item.dataKey))} content={<ChartTooltipContent config={config} valueFormat={{ maximumFractionDigits: 2 }} />} />
       {keys.length > 1 ? (
-        <ChartLegend content={<ChartLegendContent config={config} />} />
+        <ChartLegend
+          content={() => (
+            <div dir={dir} data-legend-dir={dir}>
+              <ChartLegendContent config={config} />
+            </div>
+          )}
+        />
       ) : null}
     </>
   )

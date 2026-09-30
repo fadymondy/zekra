@@ -22,7 +22,7 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 /** Managy's "In development" notice: a hatched band framing a card. */
 export function HatchBand({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("border-y border-border p-3 hatch-band", className)} role="status">
+    <div className={cn("hatch border-y border-border p-3", className)} role="status">
       <div className="border border-border bg-card px-5 py-4">{children}</div>
     </div>
   )

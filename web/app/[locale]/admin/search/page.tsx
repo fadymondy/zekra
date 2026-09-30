@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Input, Textarea } from "@fadymondy/nasaq/web"
+import { Badge, Button, Input, Textarea } from "@fadymondy/nasaq/web"
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react"
 import { CheckIcon, PencilIcon, SearchIcon, StarIcon, XIcon } from "lucide-react"
@@ -19,10 +19,10 @@ const NETWORKS = ["fact", "experience", "belief"]
 /** A toggleable facet chip (aria-pressed). */
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className="grid-chip transition-colors hover:text-foreground aria-pressed:text-foreground">
+    <Button type="button" variant={active ? "primary" : "secondary"} size="sm" onClick={onClick} aria-pressed={active}>
       {active ? <CheckIcon className="size-3" /> : null}
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -237,8 +237,8 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
             </Button>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            {ns ? <span className="grid-chip"><Ltr>{ns}</Ltr></span> : null}
-            <span className="grid-chip"><Ltr>{`${r.network}·${r.memoryType}`}</Ltr></span>
+            {ns ? <Badge variant="outline"><Ltr>{ns}</Ltr></Badge> : null}
+            <Badge variant="outline"><Ltr>{`${r.network}·${r.memoryType}`}</Ltr></Badge>
             <Ltr className="truncate">{r.sourceKind}{r.sourceRef ? ` · ${r.sourceRef}` : ""}</Ltr>
             {r.viaEntity ? <span>{t("admin.search.via")} <Ltr>{r.viaEntity}</Ltr></span> : null}
             <span className="ms-auto flex items-center gap-3">

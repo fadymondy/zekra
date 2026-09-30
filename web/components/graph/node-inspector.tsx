@@ -396,9 +396,9 @@ export function NoteView({ note }: { note: Note }) {
       {note.tags?.length ? (
         <div className="flex flex-wrap gap-1">
           {note.tags.map((tag) => (
-            <span key={tag} className="grid-chip">
+            <Badge key={tag} variant="outline">
               <bdi>{tag}</bdi>
-            </span>
+            </Badge>
           ))}
         </div>
       ) : null}

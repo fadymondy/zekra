@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import type { ReactNode } from "react"
+import { AuthFooter, AuthLayout } from "@fadymondy/nasaq/web"
 
 import { cn } from "@/lib/utils"
 import { CubeMark } from "@/components/brand/cube-mark"
@@ -10,20 +10,13 @@ import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { useTranslations } from "@/lib/i18n"
 import { brandName } from "@/lib/brand-name"
 
-/*
-  The signed-out frame, copied from fadymondy.com's /en/login anatomy
-  (web/app/[locale]/login/page.tsx -> PageShell + Panel + LoginForm):
-
-    sticky full-width header: 860px column bounded by hairlines, mark + wordmark, toggles
-    a 40px spacer, then the eyebrow / title / description band between full-bleed rules
-    one Panel with the content centred (forms at max-w-sm, 384px)
-    a filler that keeps the column rules running down to the footer
-    the footer: a hatch band and a title-block row, like the reference's CAD footer
-
-  Full-bleed rules are ::before/::after at z-index -1, so the root isolates a stacking context.
-*/
+/**
+ * The signed-out frame, on Nasaq's AuthLayout: the brand mark, one h1 with its description, the
+ * form, and a footer carrying the product line and the language and theme switches. Used by sign
+ * in, register, recovery, the OAuth consent screen and the not-found page.
+ */
 export function PublicFrame({
-  eyebrow,
+  eyebrow: _eyebrow,
   title,
   description,
   children,
@@ -35,86 +28,33 @@ export function PublicFrame({
 }) {
   const { t, locale } = useTranslations()
   return (
-    <div className="relative isolate flex min-h-dvh flex-col overflow-x-clip">
-      <header className="sticky top-0 z-50 bg-background px-2">
-        <div className="grid-screen-line-top grid-screen-line-bottom mx-auto flex h-14 max-w-[860px] items-center gap-2 border-x border-border ps-4 pe-2">
-          <Link href={`/${locale}`} className="flex items-center gap-2.5" aria-label={brandName(locale)}>
-            <CubeMark mark={ZEKRA_MARK} size={22} />
-            <span className="text-[15px] font-medium">{brandName(locale)}</span>
-          </Link>
-          <div className="flex-1" />
-          <LanguageSwitcher />
-          <ThemeToggle />
+    <AuthLayout
+      mark={<CubeMark mark={ZEKRA_MARK} size={28} />}
+      title={title}
+      description={description}
+      footer={
+        <div className="flex flex-col items-center gap-3">
+          <AuthFooter
+            links={[{ label: brandName(locale), href: `/${locale}` }, { label: "fadymondy.com", href: "https://fadymondy.com", external: true }]}
+            end={
+              <div className="flex items-center gap-1">
+                <LanguageSwitcher />
+                <ThemeToggle />
+              </div>
+            }
+          />
+          <p className="text-xs text-muted-foreground">{t("footer.tagline")}</p>
         </div>
-      </header>
-
-      <main className="flex flex-1 flex-col px-2">
-        <div className="mx-auto flex w-full max-w-[860px] flex-1 flex-col">
-          <div className="h-10 border-x border-border" />
-          {title ? (
-            <div className="border-x border-border" data-slot="page-heading">
-              {eyebrow ? <div className="font-mono px-4 pb-2 text-sm/none tracking-wider text-muted-foreground">{eyebrow}</div> : null}
-              <h1 className="grid-screen-line-top grid-screen-line-bottom px-4 text-3xl font-medium tracking-tight text-balance">
-                {title}
-              </h1>
-              {description ? (
-                <p className="grid-screen-line-bottom p-4 text-base text-pretty text-muted-foreground">{description}</p>
-              ) : null}
-            </div>
-          ) : null}
-          {children}
-          <div className="flex-1 border-x border-border" />
-        </div>
-      </main>
-
-      <footer className="px-2">
-        <div className="mx-auto max-w-[860px] border-x border-border">
-          <div className="grid-screen-line-top grid-screen-line-bottom">
-            <div className="hatch h-12" />
-          </div>
-          <div className="grid-screen-line-bottom flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
-            <span className="font-mono font-medium">{brandName(locale)}</span>
-            <span className="text-muted-foreground">{t("footer.tagline")}</span>
-          </div>
-          <dl className="grid grid-cols-2 md:grid-cols-4">
-            <FooterCell label={t("footer.product")}>{t("footer.productValue")}</FooterCell>
-            <FooterCell label={t("footer.craftedBy")}>
-              <a className="underline-offset-4 hover:underline" href="https://fadymondy.com" dir="ltr">
-                fadymondy.com
-              </a>
-            </FooterCell>
-            <FooterCell label={t("footer.stack")}>
-              <span dir="ltr">Go · Postgres · MCP</span>
-            </FooterCell>
-            <FooterCell label={t("footer.languages")}>English · العربية</FooterCell>
-          </dl>
-          <div className="grid-screen-line-top grid-screen-line-bottom mt-4 flex items-center px-4 py-3 text-muted-foreground">
-            <Link href={`/${locale}`} aria-label={brandName(locale)}>
-              <CubeMark mark={ZEKRA_MARK} size={16} />
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+      }
+    >
+      {children}
+    </AuthLayout>
   )
 }
 
-function FooterCell({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1 border-e border-b border-border px-4 py-3 last:border-e-0 max-md:nth-[2n]:border-e-0">
-      <dt className="eyebrow">{label}</dt>
-      <dd className="text-sm">{children}</dd>
-    </div>
-  )
-}
-
-/** One bordered section between full-bleed rules (the reference's Panel). */
+/** The form's container inside PublicFrame. */
 export function PublicPanel({ className, children }: { className?: string; children: ReactNode }) {
-  return (
-    <section className="grid-screen-line-top grid-screen-line-bottom border-x border-border">
-      <div className={cn("p-4", className)}>{children}</div>
-    </section>
-  )
+  return <section className={cn("flex w-full justify-center", className)}>{children}</section>
 }
 
 /** A section heading row for signed-in pages: title, optional description, optional action. */

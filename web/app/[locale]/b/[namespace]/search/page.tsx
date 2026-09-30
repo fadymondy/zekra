@@ -211,7 +211,7 @@ export default function BrainSearchPage() {
 
       {!pending && ran && !state.error && raw.length === 0 ? (
         <section className="border-b border-border">
-          <div aria-hidden className="hatch-band h-3 border-b border-border" />
+          <div aria-hidden className="hatch h-3 border-b border-border" />
           <div className="px-6 py-10 text-center">
             <p className="text-sm font-medium text-foreground">
               {t("search.noMemoryOf")} <bdi dir="auto">“{state.q}”</bdi>

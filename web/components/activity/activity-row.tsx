@@ -1,5 +1,6 @@
 "use client"
 
+import { Badge } from "@fadymondy/nasaq/web"
 import type { ReactNode } from "react"
 
 import { Ltr } from "@/components/copy-field"
@@ -24,10 +25,10 @@ export function ToneSquare({ tone, className }: { tone: Tone; className?: string
 /** A state tag: a hairline chip with a tone square. The label always carries the meaning. */
 export function ToneTag({ tone, children }: { tone: Tone; children: ReactNode }) {
   return (
-    <span className="grid-chip shrink-0">
+    <Badge variant="outline" className="shrink-0">
       <ToneSquare tone={tone} />
       <span className={tone === "danger" ? "text-nq-danger" : undefined}>{children}</span>
-    </span>
+    </Badge>
   )
 }
 
