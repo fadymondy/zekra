@@ -1,5 +1,7 @@
 "use client"
 
+import { Alert, Badge, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Textarea } from "@fadymondy/nasaq/web"
+
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   AlertCircleIcon,
@@ -27,14 +29,6 @@ import { blankLike, convertType, errorsUnder, getIn, historyOf, insertAt, pathKe
 import { presentationsHref } from "@/lib/presentations/href"
 import { ITEM_TEMPLATES, localized, move, newReportSection } from "@/lib/presentations/templates"
 import { STATUSES, STYLE_KEYS, type Catalog, type DeckContent, type Detail, type FieldError, type PageContent, type PLocale, type ReportContent, type Slide, type Status, type Summary } from "@/lib/presentations/types"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Textarea } from "@/components/ui/textarea"
 import { DeckViewer } from "../deck-viewer"
 import { EditProvider, type EditApi } from "../edit"
 import { PagePreview } from "../page-preview"
@@ -342,9 +336,8 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
   if (loadError) {
     return (
       <div className="p-6">
-        <Alert variant="destructive">
-          <AlertTitle>{t("presentations.loadFailed")}</AlertTitle>
-          <AlertDescription>{loadError}</AlertDescription>
+        <Alert tone="danger" title={t("presentations.loadFailed")}>
+          {loadError}
         </Alert>
       </div>
     )
@@ -542,18 +535,18 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
           </Button>
           <div className="flex rounded-lg border p-0.5" role="group" aria-label={t("presentations.language")}>
             {(["en", "ar"] as PLocale[]).map((l) => (
-              <Button key={l} size="xs" variant={l === lang ? "secondary" : "ghost"} onClick={() => void switchLang(l)} disabled={busy} aria-pressed={l === lang} data-testid={`lang-${l}`} title={doc.content[l] ? t(`presentations.locale.${l}`) : t("presentations.editor.createLocale", { lang: t(`presentations.locale.${l}`) })}>
+              <Button key={l} size="sm" variant={l === lang ? "secondary" : "ghost"} onClick={() => void switchLang(l)} disabled={busy} aria-pressed={l === lang} data-testid={`lang-${l}`} title={doc.content[l] ? t(`presentations.locale.${l}`) : t("presentations.editor.createLocale", { lang: t(`presentations.locale.${l}`) })}>
                 {l.toUpperCase()}
                 {!doc.content[l] ? <span className="text-muted-foreground">+</span> : null}
               </Button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => void translate(lang)} disabled={busy || !doc.content[other]} data-testid="translate">
+          <Button variant="secondary" size="sm" onClick={() => void translate(lang)} disabled={busy || !doc.content[other]} data-testid="translate">
             <LanguagesIcon />
             <span className="max-xl:sr-only">{t("presentations.editor.translateFrom", { lang: t(`presentations.locale.${other}`) })}</span>
           </Button>
           <Select value={meta.status} onValueChange={(v) => setStatus((v as Status) ?? "draft")}>
-            <SelectTrigger size="sm" className="w-28" aria-label={t("presentations.col.status")} data-testid="status">
+            <SelectTrigger className="w-28" aria-label={t("presentations.col.status")} data-testid="status">
               <SelectValue>{(v) => t(`presentations.status.${String(v)}`)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -565,27 +558,27 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
             </SelectContent>
           </Select>
           {meta.status === "draft" ? (
-            <Button size="sm" onClick={() => setStatus("ready")} disabled={errors.length > 0} data-testid="mark-ready">
+            <Button variant="primary" size="sm" onClick={() => setStatus("ready")} disabled={errors.length > 0} data-testid="mark-ready">
               <CheckCircle2Icon />
               {t("presentations.editor.markReady")}
             </Button>
           ) : null}
           {doc.kind === "deck" ? (
-            <Button variant="outline" size="sm" onClick={() => setPresenting(true)} data-testid="present">
+            <Button variant="secondary" size="sm" onClick={() => setPresenting(true)} data-testid="present">
               <PlayIcon className="rtl:-scale-x-100" />
               <span className="max-xl:sr-only">{t("presentations.preview")}</span>
             </Button>
           ) : null}
           {(doc.formats ?? []).map((f) => (
-            <Button key={f} variant="outline" size="sm" nativeButton={false} render={<a href={`${presentationsHref(lang, namespace, doc.id)}/export/${f}`} download />}>
+            <Button key={f} variant="secondary" size="sm" nativeButton={false} render={<a href={`${presentationsHref(lang, namespace, doc.id)}/export/${f}`} download />}>
               <DownloadIcon />
               {t(`presentations.format.${f}`)}
             </Button>
           ))}
-          <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} data-testid="open-share">
+          <Button variant="secondary" size="sm" onClick={() => setShareOpen(true)} data-testid="open-share">
             <Share2Icon />
             {t("presentations.tab.share")}
-            {doc.active_shares ? <Badge variant="secondary">{doc.active_shares}</Badge> : null}
+            {doc.active_shares ? <Badge variant="neutral">{doc.active_shares}</Badge> : null}
           </Button>
           <Button variant="ghost" size="icon-sm" onClick={remove} aria-label={t("presentations.delete")}>
             <Trash2Icon />
@@ -594,9 +587,7 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
       </div>
       {message ? (
         <div aria-live="polite" className="border-b px-3 py-2">
-          <Alert variant={message.tone === "error" ? "destructive" : "default"}>
-            <AlertDescription>{message.text}</AlertDescription>
-          </Alert>
+          <Alert tone={message.tone === "error" ? "danger" : "info"}>{message.text}</Alert>
         </div>
       ) : null}
 
@@ -662,7 +653,7 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
         <aside ref={panel} className="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto border-t p-3 lg:border-s lg:border-t-0" aria-label={t("presentations.editor.properties")} data-testid="properties">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold">{sel.length === 0 ? t("presentations.editor.document") : isReportSection ? t("presentations.sectionHeading") : t("presentations.editor.properties")}</h3>
-            <Button variant={advanced ? "secondary" : "ghost"} size="xs" onClick={() => setAdvanced((v) => !v)} aria-pressed={advanced} data-testid="advanced">
+            <Button variant={advanced ? "secondary" : "ghost"} size="sm" onClick={() => setAdvanced((v) => !v)} aria-pressed={advanced} data-testid="advanced">
               <BracesIcon />
               {t("presentations.editor.advanced")}
             </Button>

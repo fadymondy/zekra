@@ -3,12 +3,8 @@
 import { useMemo, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Field, FieldLabel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SectionHeader, SectionTitle } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -68,7 +64,7 @@ export default function PermissionsPage() {
         description={t("permissions.hint")}
         action={
           isAdmin(me.data) ? (
-            <Button variant="outline" nativeButton={false} render={<Link href={`/${locale}/admin/tokens`} />}>
+            <Button variant="secondary" nativeButton={false} render={<Link href={`/${locale}/admin/tokens`} />}>
               {t("permissions.manageTokens")}
             </Button>
           ) : null
@@ -118,7 +114,7 @@ export default function PermissionsPage() {
                 {admins.map((r) => (
                   <li key={r.agentId} className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
                     <Ltr mono className="font-medium text-foreground">{r.agentId}</Ltr>
-                    <Badge variant="secondary">{t("permissions.admin")}</Badge>
+                    <Badge variant="neutral">{t("permissions.admin")}</Badge>
                     <span className="ms-auto text-xs text-muted-foreground">{t("permissions.adminHint")}</span>
                   </li>
                 ))}
@@ -164,7 +160,7 @@ function AddGrant({
         <p className="text-sm text-muted-foreground">{t("permissions.allGranted")}</p>
       ) : (
         <form onSubmit={onSubmit}>
-          <FieldGroup className="sm:flex-row sm:items-end">
+          <div className="grid gap-4 sm:flex-row sm:items-end">
             <Field className="sm:flex-1">
               <FieldLabel htmlFor="grant-agent">{t("permissions.agent")}</FieldLabel>
               <Select items={agentItems} value={agent || null} onValueChange={(v) => setAgent(String(v ?? ""))}>
@@ -195,10 +191,10 @@ function AddGrant({
                 </SelectContent>
               </Select>
             </Field>
-            <Button type="submit" disabled={disabled || !agent}>
+            <Button variant="primary" type="submit" disabled={disabled || !agent}>
               {t("permissions.grant")}
             </Button>
-          </FieldGroup>
+          </div>
         </form>
       )}
     </section>

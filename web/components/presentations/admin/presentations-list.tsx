@@ -1,5 +1,7 @@
 "use client"
 
+import { Alert, Badge, Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
+
 // A brain's presentations: decks, reports and page previews, filterable by kind, status and
 // customer, with view counts and live links. "New" creates a valid starter document; "From
 // brain" asks the API to draft one from notes, a recall query, a graph entity or the whole
@@ -16,16 +18,6 @@ import { Ltr } from "@/components/copy-field"
 import { EntityResults } from "@/components/graph/entity-picker"
 import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { api, ApiError as ConsoleApiError } from "@/lib/api"
 import type { Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
@@ -179,9 +171,9 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant={i.status === "ready" ? "default" : "outline"}>{t(`presentations.status.${i.status}`)}</Badge>
+                    <Badge variant={i.status === "ready" ? "success" : "outline"}>{t(`presentations.status.${i.status}`)}</Badge>
                     {i.active_shares > 0 ? (
-                      <Badge variant="secondary" title={t("presentations.share.links")}>
+                      <Badge variant="neutral" title={t("presentations.share.links")}>
                         <Link2Icon />
                         {formatNumber(i.active_shares)}
                       </Badge>
@@ -283,9 +275,7 @@ function MetaFields({ meta, set, prefix, withStyle }: { meta: Meta; set: (m: Met
 
 function FormError({ error }: { error: string | null }) {
   return error ? (
-    <Alert variant="destructive">
-      <AlertDescription>{error}</AlertDescription>
-    </Alert>
+    <Alert tone="danger">{error}</Alert>
   ) : null
 }
 
@@ -319,7 +309,7 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant="outline" />}>
+      <DialogTrigger render={<Button variant="secondary" />}>
         <PlusIcon />
         {t("presentations.new")}
       </DialogTrigger>
@@ -329,17 +319,17 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
             <DialogTitle>{t("presentations.new")}</DialogTitle>
             <DialogDescription>{t("presentations.newHelp")}</DialogDescription>
           </DialogHeader>
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field>
               <FieldLabel htmlFor="np-title">{t("presentations.col.title")}</FieldLabel>
               <Input id="np-title" dir="auto" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
             </Field>
             <MetaFields meta={meta} set={setMeta} prefix="np" />
-          </FieldGroup>
+          </div>
           <FormError error={error} />
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" type="button" />}>{t("presentations.cancel")}</DialogClose>
-            <Button type="submit" disabled={busy || (!meta.name.trim() && !meta.company.trim())}>
+            <DialogClose render={<Button variant="secondary" type="button" />}>{t("presentations.cancel")}</DialogClose>
+            <Button variant="primary" type="submit" disabled={busy || (!meta.name.trim() && !meta.company.trim())}>
               {busy ? <Loader2Icon className="animate-spin" /> : null}
               {t("presentations.create")}
             </Button>
@@ -410,7 +400,7 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button variant="primary" />}>
         <SparklesIcon />
         {t("presentations.fromBrain.open")}
       </DialogTrigger>
@@ -421,23 +411,21 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
             <DialogDescription>{t("presentations.fromBrain.help")}</DialogDescription>
           </DialogHeader>
           <div className="max-h-[65dvh] overflow-y-auto pe-1">
-            <FieldGroup>
+            <div className="grid gap-4">
               <Field>
                 <FieldLabel>{t("presentations.fromBrain.source")}</FieldLabel>
                 <ToggleGroup
                   aria-label={t("presentations.fromBrain.source")}
                   variant="outline"
-                  size="sm"
-                  spacing={0}
                   value={[type]}
                   onValueChange={(v: string[]) => v[0] && setType(v[0] as SourceType)}
                   className="flex-wrap"
                 >
                   {SOURCE_TYPES.map(({ type: st, icon: Icon }) => (
-                    <ToggleGroupItem key={st} value={st}>
+                    <Toggle key={st} value={st}>
                       <Icon />
                       {t(`presentations.fromBrain.source.${st}`)}
-                    </ToggleGroupItem>
+                    </Toggle>
                   ))}
                 </ToggleGroup>
               </Field>
@@ -457,13 +445,13 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
               )}
 
               <MetaFields meta={meta} set={setMeta} prefix="fb" withStyle />
-            </FieldGroup>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">{t("presentations.fromBrain.draftNote")}</p>
           <FormError error={error} />
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" type="button" />}>{t("presentations.cancel")}</DialogClose>
-            <Button type="submit" disabled={busy || !source || (!meta.name.trim() && !meta.company.trim())}>
+            <DialogClose render={<Button variant="secondary" type="button" />}>{t("presentations.cancel")}</DialogClose>
+            <Button variant="primary" type="submit" disabled={busy || !source || (!meta.name.trim() && !meta.company.trim())}>
               {busy ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />}
               {busy ? t("presentations.fromBrain.working") : t("presentations.fromBrain.create")}
             </Button>

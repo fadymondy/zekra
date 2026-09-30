@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Progress } from "@fadymondy/nasaq/web"
+
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { animate as animeAnimate } from "animejs"
 import { ChevronLeftIcon, ChevronRightIcon, MaximizeIcon, MinimizeIcon, NotebookTextIcon } from "lucide-react"
@@ -7,8 +9,6 @@ import { cn } from "cn"
 
 import { useTranslations } from "@/lib/i18n"
 import type { DeckContent, PageContent } from "@/lib/presentations/types"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { Md } from "./markdown"
 import { prefersReducedMotion, reveal } from "@/lib/presentations/motion"
 import { SlideView } from "./slide"

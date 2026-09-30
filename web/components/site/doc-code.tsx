@@ -1,8 +1,9 @@
 "use client"
 
+import { CodeBlock } from "@fadymondy/nasaq/web"
+
 import { bundledLanguages } from "shiki"
 
-import { CodeBlock } from "@/components/ui/code-block"
 
 /*
 Fenced code in a doc, highlighted by the registry CodeBlock (shiki, in the browser). A fence

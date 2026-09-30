@@ -1,11 +1,9 @@
 "use client"
 
+import { Button, Field, FieldError, Input, Separator } from "@fadymondy/nasaq/web"
+
 import useSWR from "swr"
 
-import { Button } from "@/components/ui/button"
-import { Field, FieldError } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { parseMethods, PROVIDER_NAMES, type LoginMethods, type Provider } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -111,7 +109,7 @@ export function Submit({ busy, label, disabled }: { busy: boolean; label: string
   const { t } = useTranslations()
   return (
     <Field>
-      <Button type="submit" size="lg" disabled={busy || disabled}>
+      <Button variant="primary" type="submit" size="lg" disabled={busy || disabled}>
         {busy ? t("common.working") : label}
       </Button>
     </Field>
@@ -147,7 +145,7 @@ export function ProviderButtons({ methods, returnTo }: { methods: LoginMethods |
         return (
           <Button
             key={p}
-            variant={p === "apple" ? "default" : "outline"}
+            variant={p === "apple" ? "primary" : "secondary"}
             size="lg"
             className={cn(
               "w-full [&_svg]:size-4",

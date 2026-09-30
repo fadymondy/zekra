@@ -14,7 +14,7 @@ import {
   AlertTriangleIcon, ArchiveIcon, ArchiveRestoreIcon, ArrowLeftIcon, Code2Icon, EllipsisIcon, HashIcon, HistoryIcon, NetworkIcon,
   PinIcon, PinOffIcon, PlusIcon, Trash2Icon, XIcon,
 } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, Popover, PopoverContent, PopoverTrigger, Sheet, SheetContent, SheetHeader, SheetTitle, Textarea, toast } from "@fadymondy/nasaq/web"
 
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { EntityResults } from "@/components/graph/entity-picker"
@@ -24,17 +24,6 @@ import { NoteTile } from "@/components/notes/note-list-row"
 import { NoteExportItems } from "@/components/notes/note-export"
 import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg"
 import { TagCombobox } from "@/components/notes/tag-combobox"
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError } from "@/lib/api"
 import { refreshGraph, type Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
@@ -280,10 +269,10 @@ export function NoteEditor({
             <p className="font-medium text-foreground">{t("notes.conflictTitle")}</p>
             <p className="text-muted-foreground">{t("notes.conflictBody")}</p>
           </div>
-          <Button size="sm" onClick={keepMine}>
+          <Button variant="primary" size="sm" onClick={keepMine}>
             {t("notes.keepMine")}
           </Button>
-          <Button size="sm" variant="outline" onClick={takeTheirs}>
+          <Button size="sm" variant="secondary" onClick={takeTheirs}>
             {t("notes.useTheirs")}
           </Button>
         </div>
@@ -415,7 +404,7 @@ export function NoteEditor({
                 }}
               />
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <DropdownMenuItem variant="danger" onClick={() => setDeleteOpen(true)}>
                 <Trash2Icon />
                 {t("notes.delete")}
               </DropdownMenuItem>
@@ -453,7 +442,7 @@ export function NoteEditor({
             onToggle={toggleTag}
             allowCreate
             trigger={
-              <Button variant="ghost" size="xs" className="h-6 text-[13px] text-muted-foreground">
+              <Button variant="ghost" size="sm" className="h-6 text-[13px] text-muted-foreground">
                 <PlusIcon /> {draft.tags.length ? null : t("notes.addTag")}
               </Button>
             }
@@ -478,7 +467,7 @@ export function NoteEditor({
           <div className={cn("flex items-center gap-2 border-y border-border bg-[color-mix(in_oklab,var(--nq-fg)_4%,transparent)] py-1 text-xs text-muted-foreground", px)}>
             <Code2Icon className="size-3.5" />
             <span className="flex-1">{t("notes.sourceTitle")}</span>
-            <Button size="xs" variant="ghost" onClick={() => setSource(false)}>
+            <Button size="sm" variant="ghost" onClick={() => setSource(false)}>
               {t("notes.sourceDone")}
             </Button>
           </div>
@@ -515,7 +504,7 @@ export function NoteEditor({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={remove}>
+            <AlertDialogAction variant="danger" onClick={remove}>
               {t("notes.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -523,7 +512,7 @@ export function NoteEditor({
       </AlertDialog>
 
       <Sheet open={versionsOpen} onOpenChange={setVersionsOpen}>
-        <SheetContent side={isRtl ? "left" : "right"} className="gap-0 p-0">
+        <SheetContent side="end" className="gap-0 p-0">
           <SheetHeader className="border-b border-border px-6 py-4">
             <SheetTitle>{t("notes.versionsTitle")}</SheetTitle>
           </SheetHeader>
@@ -674,7 +663,7 @@ function VersionList({
           ) : (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               disabled={busy !== null}
               onClick={async () => {
                 setBusy(v.version)

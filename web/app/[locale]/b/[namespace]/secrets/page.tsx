@@ -3,15 +3,8 @@
 import { useMemo, useState, type FormEvent } from "react"
 import { useParams } from "next/navigation"
 import { EyeIcon, EyeOffIcon, PencilIcon, PlusIcon, SearchIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldDescription, FieldError, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { SectionHeader } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { CopyField, Ltr } from "@/components/copy-field"
@@ -47,7 +40,7 @@ export default function SecretsPage() {
         title={t("nav.secrets")}
         description={t("secrets.hint")}
         action={
-          <Button onClick={() => setEditing({ name: "", kind: "generic" })}>
+          <Button variant="primary" onClick={() => setEditing({ name: "", kind: "generic" })}>
             <PlusIcon />
             {t("secrets.add")}
           </Button>
@@ -151,12 +144,12 @@ function SecretRow({ s, onUpdate, onDeleted }: { s: SecretMeta; onUpdate: () => 
         </span>
         <div className="flex items-center gap-1">
           {value === null ? (
-            <Button variant="outline" size="sm" onClick={reveal} disabled={revealing}>
+            <Button variant="secondary" size="sm" onClick={reveal} disabled={revealing}>
               <EyeIcon />
               {revealing ? t("secrets.revealing") : t("secrets.reveal")}
             </Button>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setValue(null)}>
+            <Button variant="secondary" size="sm" onClick={() => setValue(null)}>
               <EyeOffIcon />
               {t("secrets.hide")}
             </Button>
@@ -246,7 +239,7 @@ function SecretDialog({
               {t("secrets.storedIn")} <Ltr mono>{namespace}</Ltr>
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field>
               <FieldLabel htmlFor="secret-name">{t("secrets.name")}</FieldLabel>
               <Input
@@ -292,12 +285,12 @@ function SecretDialog({
               </Select>
             </Field>
             {error ? <FieldError>{error}</FieldError> : null}
-          </FieldGroup>
+          </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={busy || !name.trim() || !value}>
+            <Button variant="primary" type="submit" disabled={busy || !name.trim() || !value}>
               {busy ? t("common.saving") : t("secrets.save")}
             </Button>
           </DialogFooter>

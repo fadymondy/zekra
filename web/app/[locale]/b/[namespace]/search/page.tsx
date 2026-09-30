@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, Input, Skeleton } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -8,10 +10,6 @@ import { CheckIcon, MessagesSquareIcon, SearchIcon, SlidersHorizontalIcon, Spark
 import { SectionHeader } from "@/components/page"
 import { MemoryDialog } from "@/components/search/memory-dialog"
 import { ErrorState } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
 import { brainApi, type Recalled } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -37,7 +35,7 @@ function Grade({ score }: { score: number }) {
 
 function Facet({ label, active, onClick, icon }: { label: ReactNode; active: boolean; onClick: () => void; icon?: ReactNode }) {
   return (
-    <Button type="button" size="xs" variant={active ? "secondary" : "outline"} aria-pressed={active} onClick={onClick}>
+    <Button type="button" size="sm" variant={active ? "primary" : "secondary"} aria-pressed={active} onClick={onClick}>
       {active ? <CheckIcon /> : icon}
       {label}
     </Button>
@@ -125,7 +123,7 @@ export default function BrainSearchPage() {
           </>
         }
         action={
-          <Button variant="outline" nativeButton={false} render={<Link href={`/${locale}/b/${encodeURIComponent(namespace)}/chat`} />}>
+          <Button variant="secondary" nativeButton={false} render={<Link href={`/${locale}/b/${encodeURIComponent(namespace)}/chat`} />}>
             <MessagesSquareIcon /> {t("search.openChat")}
           </Button>
         }
@@ -133,16 +131,16 @@ export default function BrainSearchPage() {
 
       <section className="space-y-4 border-y border-border px-6 py-6">
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("search.mode")}>
-          <Button size="sm" variant={mode === "recall" ? "default" : "outline"} aria-pressed={mode === "recall"} onClick={() => setMode("recall")}>
+          <Button size="sm" variant={mode === "recall" ? "primary" : "secondary"} aria-pressed={mode === "recall"} onClick={() => setMode("recall")}>
             <SparklesIcon /> {t("search.modeRecall")}
           </Button>
-          <Button size="sm" variant={mode === "search" ? "default" : "outline"} aria-pressed={mode === "search"} onClick={() => setMode("search")}>
+          <Button size="sm" variant={mode === "search" ? "primary" : "secondary"} aria-pressed={mode === "search"} onClick={() => setMode("search")}>
             <SearchIcon /> {t("search.modeSearch")}
           </Button>
           <span aria-hidden className="mx-1 h-4 w-px bg-border" />
           <span className="eyebrow">{t("search.limit")}</span>
           {LIMITS.map((n) => (
-            <Button key={n} size="xs" variant={limit === n ? "secondary" : "ghost"} aria-pressed={limit === n} onClick={() => setLimit(n)}>
+            <Button key={n} size="sm" variant={limit === n ? "secondary" : "ghost"} aria-pressed={limit === n} onClick={() => setLimit(n)}>
               {formatNumber(n)}
             </Button>
           ))}
@@ -166,7 +164,7 @@ export default function BrainSearchPage() {
               className="h-10 ps-9"
             />
           </div>
-          <Button type="submit" size="lg" className="h-10 px-5" disabled={pending || !q.trim()}>
+          <Button variant="primary" type="submit" size="lg" className="h-10 px-5" disabled={pending || !q.trim()}>
             <SearchIcon /> {pending ? t("search.searching") : t(mode === "recall" ? "search.modeRecall" : "search.modeSearch")}
           </Button>
         </form>
@@ -193,7 +191,7 @@ export default function BrainSearchPage() {
           <span aria-hidden className="mx-1 h-4 w-px bg-border" />
           <Facet label={t("search.highImportance")} icon={<StarIcon />} active={highImp} onClick={() => setHighImp((v) => !v)} />
           {hasFilters ? (
-            <Button size="xs" variant="ghost" className="ms-auto" onClick={clearTuners}>
+            <Button size="sm" variant="ghost" className="ms-auto" onClick={clearTuners}>
               <XIcon /> {t("search.clear")}
             </Button>
           ) : null}
@@ -241,7 +239,7 @@ export default function BrainSearchPage() {
                   <p dir="auto" className="line-clamp-4 flex-1 text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                     {r.content}
                   </p>
-                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => setOpen(r)}>
+                  <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setOpen(r)}>
                     {t("search.openMemory")}
                   </Button>
                 </div>

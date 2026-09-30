@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Skeleton, Textarea, toast } from "@fadymondy/nasaq/web"
 import useSWR from "swr"
 
 import { ErrorState } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError, brainApi, type Recalled } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { noRetryOn4xx } from "@/lib/queries"
@@ -121,17 +116,17 @@ export function MemoryDialog({
         <DialogFooter>
           {editing ? (
             <>
-              <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>
+              <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>
                 {t("common.cancel")}
               </Button>
-              <Button onClick={save} disabled={saving || !draft.trim() || draft === content}>
+              <Button variant="primary" onClick={save} disabled={saving || !draft.trim() || draft === content}>
                 {saving ? t("common.saving") : t("common.save")}
               </Button>
             </>
           ) : (
             <>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   setDraft(content)
                   setEditing(true)
@@ -139,7 +134,7 @@ export function MemoryDialog({
               >
                 <PencilIcon /> {t("common.edit")}
               </Button>
-              <Button onClick={onClose}>{t("common.close")}</Button>
+              <Button variant="primary" onClick={onClose}>{t("common.close")}</Button>
             </>
           )}
         </DialogFooter>

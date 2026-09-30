@@ -1,13 +1,11 @@
 "use client"
 
+import { Badge, Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, LoadingRows } from "@/components/states"
@@ -110,14 +108,14 @@ export default function AdminUsersPage() {
           </div>
           {pages > 1 ? (
             <div className="flex items-center justify-between gap-2 px-6 py-4">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                 <ChevronLeftIcon className="rtl:rotate-180" />
                 {t("admin.users.prev")}
               </Button>
               <span className="text-xs text-muted-foreground">
                 {t("admin.users.page", { n: formatNumber(page), total: formatNumber(pages) })}
               </span>
-              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+              <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
                 {t("admin.users.next")}
                 <ChevronRightIcon className="rtl:rotate-180" />
               </Button>

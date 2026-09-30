@@ -1,21 +1,13 @@
 "use client"
 
+import { Button, type ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import { useTranslations } from "@/lib/i18n"
 import type { ChartBlock } from "@/lib/presentations/types"
 import { seriesDrawOrder } from "@/lib/presentations/workflow"
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 /*
 A report chart (FM-344), per the dataviz skill:
@@ -71,15 +63,9 @@ export function ReportChart({ block, locale, dir }: { block: ChartBlock; locale:
       <CartesianGrid vertical={false} strokeOpacity={0.5} />
       <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} reversed={rtl} />
       <YAxis tickLine={false} axisLine={false} width={56} tickFormatter={(v: number) => nf.format(v)} orientation={rtl ? "right" : "left"} />
-      <ChartTooltip itemSorter={(item) => keys.indexOf(String(item.dataKey))} content={<ChartTooltipContent formatter={(v, name) => `${config[String(name)]?.label ?? name}: ${tick(Number(v))}`} />} />
+      <ChartTooltip itemSorter={(item) => keys.indexOf(String(item.dataKey))} content={<ChartTooltipContent config={config} valueFormat={{ maximumFractionDigits: 2 }} />} />
       {keys.length > 1 ? (
-        <ChartLegend
-          content={({ payload, verticalAlign }) => (
-            <div dir={dir} data-legend-dir={dir}>
-              <ChartLegendContent payload={bySlot(payload)} verticalAlign={verticalAlign} />
-            </div>
-          )}
-        />
+        <ChartLegend content={<ChartLegendContent config={config} />} />
       ) : null}
     </>
   )
@@ -95,7 +81,7 @@ export function ReportChart({ block, locale, dir }: { block: ChartBlock; locale:
         ) : (
           <span />
         )}
-        <Button variant="outline" size="sm" onClick={() => setTable((v) => !v)} aria-pressed={table}>
+        <Button variant="secondary" size="sm" onClick={() => setTable((v) => !v)} aria-pressed={table}>
           {table ? t("presentations.chart.showChart") : t("presentations.chart.showTable")}
         </Button>
       </div>

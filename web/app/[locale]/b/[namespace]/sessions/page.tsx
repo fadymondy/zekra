@@ -1,11 +1,12 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useParams } from "next/navigation"
 import { RocketIcon, RotateCcwIcon } from "lucide-react"
 
 import { SectionHeader, SectionTitle } from "@/components/page"
 import { SessionResultView, WriteToggle, useLaunchSession } from "@/components/sessions/launch-session"
-import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
 
@@ -50,11 +51,11 @@ export default function BrainSessionsPage() {
       </section>
       <div className="flex flex-wrap gap-2 px-6 py-6">
         {s.result ? (
-          <Button variant="outline" onClick={s.reset}>
+          <Button variant="secondary" onClick={s.reset}>
             <RotateCcwIcon className="rtl:-scale-x-100" /> {t("sessions.another")}
           </Button>
         ) : (
-          <Button onClick={s.launch} disabled={s.busy}>
+          <Button variant="primary" onClick={s.launch} disabled={s.busy}>
             <RocketIcon /> {s.busy ? t("sessions.minting") : t("sessions.mint")}
           </Button>
         )}

@@ -1,6 +1,7 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@fadymondy/nasaq/web"
+
 import { Ltr } from "@/components/copy-field"
 import type { ActivityItem } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
@@ -10,7 +11,7 @@ const OUTCOMES = ["hit", "empty", "error", "running"]
 /** One memory operation in a feed: what, where, who, how long, the outcome and when. */
 export function ActivityRow({ a, showNamespace = true }: { a: ActivityItem; showNamespace?: boolean }) {
   const { t, formatNumber, timeAgo, formatDate } = useTranslations()
-  const tone = a.outcome === "error" ? "destructive" : a.outcome === "hit" ? "secondary" : "outline"
+  const tone = a.outcome === "error" ? "danger" : a.outcome === "hit" ? "success" : "outline"
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3 text-sm">
       <Ltr mono className="font-medium text-foreground">{a.op}</Ltr>

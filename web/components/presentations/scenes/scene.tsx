@@ -1,11 +1,12 @@
 "use client"
 
+import { Skeleton } from "@fadymondy/nasaq/web"
+
 import dynamic from "next/dynamic"
 import { cn } from "cn"
 
 import { CANVAS_SCENES, IFRAME_SCENES, THREE_SCENES } from "@/lib/presentations/scene-params"
 import type { Scene } from "@/lib/presentations/types"
-import { Skeleton } from "@/components/ui/skeleton"
 
 /*
 Scene switch (FM-346). three.js is a client-only chunk loaded on demand, so a

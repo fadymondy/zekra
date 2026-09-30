@@ -1,11 +1,12 @@
 "use client"
 
+import { Switch } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import useSWR from "swr"
 
 import { StatusLine } from "@/components/account/section"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Switch } from "@/components/ui/switch"
 import { getPrefs, savePrefs, type AccountPrefs } from "@/lib/account"
 import { authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"

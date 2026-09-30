@@ -1,8 +1,9 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { useTranslations } from "@/lib/i18n"
@@ -29,7 +30,7 @@ export function NotFoundState({
       <p className="eyebrow">404</p>
       <h1 className="text-foreground font-medium text-2xl">{title ?? t("notFound.title")}</h1>
       <p className="text-nq-fg-body leading-relaxed max-w-md text-sm">{body ?? t("notFound.body")}</p>
-      <Button variant="outline" nativeButton={false} render={<Link href={backHref ?? `/${locale}/workspaces`} />}>
+      <Button variant="secondary" nativeButton={false} render={<Link href={backHref ?? `/${locale}/workspaces`} />}>
         {backLabel ?? t("notFound.back")}
       </Button>
     </div>

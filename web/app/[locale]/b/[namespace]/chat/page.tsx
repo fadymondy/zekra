@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Textarea } from "@fadymondy/nasaq/web"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import { RotateCcwIcon, SendIcon } from "lucide-react"
@@ -8,8 +10,6 @@ import useSWR from "swr"
 import { MarkdownAnswer } from "@/components/chat/markdown-answer"
 import { Provenance } from "@/components/chat/provenance"
 import { SectionHeader } from "@/components/page"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError, brainApi, type ChatAnswer, type ChatTurn } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { noRetryOn4xx } from "@/lib/queries"
@@ -142,7 +142,7 @@ export default function BrainChatPage() {
         description={t("chat.description")}
         action={
           msgs.length > 0 ? (
-            <Button variant="outline" onClick={() => setMsgs([])} disabled={busy}>
+            <Button variant="secondary" onClick={() => setMsgs([])} disabled={busy}>
               <RotateCcwIcon className="rtl:-scale-x-100" /> {t("chat.newChat")}
             </Button>
           ) : null
@@ -156,7 +156,7 @@ export default function BrainChatPage() {
             {suggestions.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {suggestions.map((s) => (
-                  <Button key={s} variant="outline" size="sm" onClick={() => send(t("chat.tellMeAbout", { name: s }))}>
+                  <Button key={s} variant="secondary" size="sm" onClick={() => send(t("chat.tellMeAbout", { name: s }))}>
                     <span dir="auto">{t("chat.tellMeAbout", { name: s })}</span>
                   </Button>
                 ))}
@@ -227,7 +227,7 @@ export default function BrainChatPage() {
             placeholder={t("chat.placeholder", { ns: namespace })}
             className="max-h-40 min-h-11 flex-1 resize-none"
           />
-          <Button type="submit" disabled={busy || !input.trim()} className="h-11">
+          <Button variant="primary" type="submit" disabled={busy || !input.trim()} className="h-11">
             <SendIcon className="rtl:-scale-x-100" /> {t("chat.ask")}
           </Button>
         </div>

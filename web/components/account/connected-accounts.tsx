@@ -1,12 +1,13 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useEffect, useState } from "react"
 import useSWR from "swr"
 
 import { PROVIDER_MARKS, useLoginMethods } from "@/components/auth/parts"
 import { StatusLine } from "@/components/account/section"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
 import { disconnectIdentity, listIdentities, type ConnectedIdentity } from "@/lib/account"
 import { authMessage, AuthError, connectURL, PROVIDER_NAMES, PROVIDERS, type Provider } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -115,11 +116,11 @@ export function ConnectedAccounts({ returnPath }: { returnPath: string }) {
                 ) : null}
               </div>
               {linked ? (
-                <Button variant="outline" size="sm" disabled={!linked.can_unlink || busy !== null} onClick={() => void disconnect(provider)}>
+                <Button variant="secondary" size="sm" disabled={!linked.can_unlink || busy !== null} onClick={() => void disconnect(provider)}>
                   {busy === provider ? t("common.working") : t("account.connections.disconnect")}
                 </Button>
               ) : available ? (
-                <Button size="sm" nativeButton={false} render={<a href={connectURL(provider, returnPath)} />}>
+                <Button variant="primary" size="sm" nativeButton={false} render={<a href={connectURL(provider, returnPath)} />}>
                   {t("account.connections.connect")}
                 </Button>
               ) : null}

@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Field, FieldDescription, FieldLabel } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import useSWR from "swr"
 import { CopyIcon, ShieldCheckIcon, ShieldOffIcon } from "lucide-react"
@@ -8,8 +10,6 @@ import { CodeInput } from "@/components/auth/parts"
 import { AccountSection, StatusLine } from "@/components/account/section"
 import { CopyField } from "@/components/copy-field"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { auth, authMessage, type TwoFactorStatus } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 
@@ -66,7 +66,7 @@ export function TwoFactorSettings() {
             </ul>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   void navigator.clipboard?.writeText(codes.join("\n"))
                   setCopied(true)
@@ -75,7 +75,7 @@ export function TwoFactorSettings() {
                 <CopyIcon />
                 {copied ? t("account.security.copied") : t("account.security.copy")}
               </Button>
-              <Button
+              <Button variant="primary"
                 onClick={() => {
                   setCodes(null)
                   setCopied(false)
@@ -96,7 +96,7 @@ export function TwoFactorSettings() {
 
       {!s.enabled && s.available && !setup ? (
         <div className="flex flex-wrap gap-2 px-6 py-6">
-          <Button disabled={busy} onClick={() => void run(async () => setSetup(await auth.twoFactor.enroll()))}>
+          <Button variant="primary" disabled={busy} onClick={() => void run(async () => setSetup(await auth.twoFactor.enroll()))}>
             <ShieldCheckIcon />
             {busy ? t("common.working") : t("account.security.setUp")}
           </Button>
@@ -119,7 +119,7 @@ export function TwoFactorSettings() {
               })
             }}
           >
-            <FieldGroup>
+            <div className="grid gap-4">
               {setup.qr ? (
                 // A data: URL from the server; next/image adds nothing for it.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -136,7 +136,7 @@ export function TwoFactorSettings() {
               </Field>
               <StatusLine notice={notice} />
               <div className="flex flex-wrap gap-2">
-                <Button type="submit" disabled={busy || code.length !== 6}>
+                <Button variant="primary" type="submit" disabled={busy || code.length !== 6}>
                   {busy ? t("common.working") : t("account.security.confirm")}
                 </Button>
                 <Button
@@ -151,14 +151,14 @@ export function TwoFactorSettings() {
                   {t("common.cancel")}
                 </Button>
               </div>
-            </FieldGroup>
+            </div>
           </form>
         </AccountSection>
       ) : null}
 
       {s.enabled ? (
         <AccountSection title={t("account.security.manageTitle")} description={t("account.security.manageHelp")}>
-          <FieldGroup className="max-w-md">
+          <div className="grid gap-4 max-w-md">
             <Field>
               <FieldLabel htmlFor="totp">{t("auth.appCode")}</FieldLabel>
               <CodeInput id="totp" className="max-w-48" value={code} onChange={setCode} />
@@ -166,7 +166,7 @@ export function TwoFactorSettings() {
             <StatusLine notice={notice} />
             <div className="flex flex-wrap gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 disabled={busy || code.length !== 6}
                 onClick={() =>
                   void run(async () => {
@@ -180,7 +180,7 @@ export function TwoFactorSettings() {
                 {t("account.security.newCodes")}
               </Button>
               <Button
-                variant="destructive"
+                variant="danger"
                 disabled={busy || code.length !== 6}
                 onClick={() =>
                   void run(async () => {
@@ -196,7 +196,7 @@ export function TwoFactorSettings() {
                 {t("account.security.turnOff")}
               </Button>
             </div>
-          </FieldGroup>
+          </div>
         </AccountSection>
       ) : null}
     </>

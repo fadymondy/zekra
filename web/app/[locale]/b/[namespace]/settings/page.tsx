@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DownloadIcon, ImageIcon, Loader2Icon, SaveIcon, Trash2Icon, UploadIcon, UserPlusIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { BrainAvatar } from "@/components/brains/brain-cells"
@@ -20,12 +20,6 @@ import { Ltr } from "@/components/copy-field"
 import { HatchBand, SectionHeader } from "@/components/page"
 import { ShareDomains } from "@/components/presentations/admin/share-domains"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError, brainApi } from "@/lib/api"
 import {
   ACCEPTED_IMAGES,
@@ -168,7 +162,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
   return (
     <Section id="settings-general" title={t("brainSettings.general.title")} hint={t("brainSettings.general.hint")}>
       <form onSubmit={save}>
-        <FieldGroup>
+        <div className="grid gap-4">
           <Field>
             <FieldLabel htmlFor="bs-name">{t("brainSettings.general.displayName")}</FieldLabel>
             <Input
@@ -284,7 +278,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
 
           {canEdit ? (
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={busy || dirty.length === 0}>
+              <Button variant="primary" type="submit" disabled={busy || dirty.length === 0}>
                 {busy ? <Loader2Icon className="animate-spin" /> : <SaveIcon />}
                 {busy ? t("common.saving") : t("common.save")}
               </Button>
@@ -295,7 +289,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
               ) : null}
             </div>
           ) : null}
-        </FieldGroup>
+        </div>
       </form>
     </Section>
   )
@@ -394,7 +388,7 @@ function ImageField({ ns, kind, url, edit, preview }: { ns: string; kind: ImageK
               aria-hidden
               onChange={(e) => void onFile(e.target.files?.[0])}
             />
-            <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
+            <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => input.current?.click()}>
               {busy ? <Loader2Icon className="animate-spin" /> : <UploadIcon />}
               {url ? t("brainSettings.appearance.replace") : t("brainSettings.appearance.upload")}
             </Button>
@@ -457,7 +451,7 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
       ) : (
         <div className="grid gap-6">
           <form onSubmit={add}>
-            <FieldGroup className="sm:flex-row sm:items-end">
+            <div className="grid gap-4 sm:flex-row sm:items-end">
               <Field className="sm:flex-1">
                 <FieldLabel htmlFor="bs-member-email">{t("brainSettings.members.email")}</FieldLabel>
                 <Input
@@ -485,11 +479,11 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
                   </SelectContent>
                 </Select>
               </Field>
-              <Button type="submit" disabled={busy || !email.trim()}>
+              <Button variant="primary" type="submit" disabled={busy || !email.trim()}>
                 <UserPlusIcon />
                 {t("brainSettings.members.add")}
               </Button>
-            </FieldGroup>
+            </div>
           </form>
 
           {members.isLoading ? (
@@ -533,7 +527,7 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
             </ul>
           )}
           <p className="text-xs text-muted-foreground">
-            <Badge variant="secondary" className="me-1.5 font-normal">
+            <Badge variant="neutral" className="me-1.5 font-normal">
               {t("brainSettings.role.editor")}
             </Badge>
             {t("brainSettings.members.rolesHint")}
@@ -574,7 +568,7 @@ function DangerSection({ ns, edit }: { ns: string; edit: EditLevel }) {
             <h3 className="text-sm font-medium">{t("brainSettings.danger.export")}</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{t("brainSettings.danger.exportHint")}</p>
           </div>
-          <Button variant="outline" nativeButton={false} render={<a href={brainApi.exportUrl(ns)} download />}>
+          <Button variant="secondary" nativeButton={false} render={<a href={brainApi.exportUrl(ns)} download />}>
             <DownloadIcon />
             {t("brainSettings.danger.exportButton")}
           </Button>
@@ -601,7 +595,7 @@ function DangerSection({ ns, edit }: { ns: string; edit: EditLevel }) {
               />
             </Field>
             <div>
-              <Button variant="destructive" disabled={busy || confirm !== ns} onClick={() => void destroy()}>
+              <Button variant="danger" disabled={busy || confirm !== ns} onClick={() => void destroy()}>
                 {busy ? <Loader2Icon className="animate-spin" /> : <Trash2Icon />}
                 {t("brainSettings.danger.deleteButton")}
               </Button>

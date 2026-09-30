@@ -5,7 +5,7 @@
 // it read; "Mark all read" clears the badge. Live through the brain events stream.
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Button, Popover, PopoverContent, PopoverTrigger, Skeleton, toast } from "@fadymondy/nasaq/web"
 import {
   BellIcon,
   BellRingIcon,
@@ -17,9 +17,6 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useTranslations } from "@/lib/i18n"
 import {
   consoleHref,
@@ -119,7 +116,7 @@ export function NotificationBell() {
         <div className="flex h-11 items-center justify-between gap-2 border-b border-border ps-3 pe-1.5">
           <p className="text-sm font-medium">{t("notifications.title")}</p>
           {count > 0 ? (
-            <Button variant="ghost" size="xs" onClick={() => void markRead("all")}>
+            <Button variant="ghost" size="sm" onClick={() => void markRead("all")}>
               <CheckCheckIcon />
               {t("notifications.markAllRead")}
             </Button>
@@ -205,7 +202,7 @@ function Row({ n, onOpen, onRemove }: { n: AppNotification; onOpen: (n: AppNotif
       </button>
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         className="absolute end-1.5 top-2 hidden group-focus-within:inline-flex group-hover:inline-flex"
         aria-label={t("notifications.delete")}
         title={t("notifications.delete")}

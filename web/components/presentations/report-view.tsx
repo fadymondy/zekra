@@ -1,9 +1,8 @@
+import { Alert, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
 import { CircleAlertIcon, CircleCheckIcon, InfoIcon, TriangleAlertIcon } from "lucide-react"
 import { cn } from "cn"
 
 import type { Block, ReportContent } from "@/lib/presentations/types"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EditScope, IfSet, Tx, TxMd } from "./edit"
 import { Md } from "./markdown"
 import { ReportChart } from "./report-chart"
@@ -65,18 +64,14 @@ export function BlockView({ block, locale, dir }: { block: Block; locale: string
       const tone = TONES[block.tone] ?? TONES.info
       const Icon = tone.icon
       return (
-        <Alert className={cn("my-5", tone.className)} variant={block.tone === "danger" ? "destructive" : "default"}>
-          <Icon />
-          <IfSet v={block.title}>
-            <AlertTitle>
-              <Tx p="title" v={block.title} />
-            </AlertTitle>
-          </IfSet>
-          <AlertDescription>
-            <TxMd p="text" raw={block.text}>
-              <Md>{block.text}</Md>
-            </TxMd>
-          </AlertDescription>
+        <Alert
+          className={cn("my-5", tone.className)}
+          tone={block.tone === "danger" ? "danger" : block.tone === "warning" ? "warning" : block.tone === "success" ? "success" : "info"}
+          title={block.title ? <Tx p="title" v={block.title} /> : undefined}
+        >
+          <TxMd p="text" raw={block.text}>
+            <Md>{block.text}</Md>
+          </TxMd>
         </Alert>
       )
     }

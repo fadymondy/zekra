@@ -1,14 +1,13 @@
 "use client"
 
+import { Button, Field, FieldLabel, Input } from "@fadymondy/nasaq/web"
+
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { useSWRConfig } from "swr"
 import { CheckIcon } from "lucide-react"
 
 import { AccountSection, StatusLine } from "@/components/account/section"
-import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { cancelDeletion, requestDeletion } from "@/lib/account"
 import { authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -75,7 +74,7 @@ export function DeleteAccount() {
           <CancelForm initialEmail={email} />
           <div className="flex flex-wrap gap-2 px-6 py-6">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={async () => {
                 await mutate("/api/auth/me", null, { revalidate: false })
                 router.replace("/")
@@ -88,7 +87,7 @@ export function DeleteAccount() {
       ) : (
         <AccountSection title={t("account.delete.formTitle")} description={t("account.delete.formHint")}>
           <form onSubmit={submit} className="max-w-md">
-            <FieldGroup>
+            <div className="grid gap-4">
               {me.data?.email ? (
                 <p className="text-xs text-muted-foreground">
                   {t("account.delete.signedInAs")}{" "}
@@ -119,10 +118,10 @@ export function DeleteAccount() {
                 {t("account.delete.confirm")}
               </label>
               <StatusLine notice={error ? { ok: false, text: error } : null} />
-              <Button type="submit" variant="destructive" className="self-start" disabled={!confirmed || !password || busy}>
+              <Button type="submit" variant="danger" className="self-start" disabled={!confirmed || !password || busy}>
                 {busy ? t("common.working") : t("account.delete.submit")}
               </Button>
-            </FieldGroup>
+            </div>
           </form>
         </AccountSection>
       )}
@@ -163,7 +162,7 @@ export function CancelForm({ initialEmail = "" }: { initialEmail?: string }) {
         </p>
       ) : (
         <form onSubmit={submit} className="max-w-md">
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field>
               <FieldLabel htmlFor="cancel-email">{t("auth.email")}</FieldLabel>
               <Input id="cancel-email" type="email" dir="ltr" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -173,10 +172,10 @@ export function CancelForm({ initialEmail = "" }: { initialEmail?: string }) {
               <Input id="cancel-password" type="password" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field>
             <StatusLine notice={error ? { ok: false, text: error } : null} />
-            <Button type="submit" variant="outline" className="self-start" disabled={!email || !password || busy}>
+            <Button type="submit" variant="secondary" className="self-start" disabled={!email || !password || busy}>
               {busy ? t("common.working") : t("account.delete.cancelSubmit")}
             </Button>
-          </FieldGroup>
+          </div>
         </form>
       )}
     </AccountSection>

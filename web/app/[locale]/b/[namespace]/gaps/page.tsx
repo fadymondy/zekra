@@ -3,14 +3,12 @@
 import { useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { CheckIcon, RotateCcwIcon, XIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Button, toast, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { ToneSquare } from "@/components/activity/activity-row"
 import { RowList, SectionHeader, SectionTitle } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { ApiError, brainApi, type Gap, type GapStatus } from "@/lib/api"
 import { useGaps, type Tone } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
@@ -40,7 +38,7 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
       </div>
       <div className="flex shrink-0 flex-wrap gap-1.5">
         {g.status !== "indexed" ? (
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => onResolve("indexed")}>
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => onResolve("indexed")}>
             <CheckIcon className="text-nq-success" />
             {t("gaps.markIndexed")}
           </Button>
@@ -52,7 +50,7 @@ function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: 
           </Button>
         ) : null}
         {g.status !== "open" ? (
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => onResolve("open")}>
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => onResolve("open")}>
             <RotateCcwIcon className="text-nq-warning" />
             {t("gaps.reopen")}
           </Button>
@@ -100,19 +98,17 @@ export default function BrainGapsPage() {
         <ToggleGroup
           aria-label={t("gaps.filter")}
           variant="outline"
-          size="sm"
-          spacing={0}
           value={[status || "all"]}
           onValueChange={(v: string[]) => {
             const next = v[0]
             if (next) setStatus(next === "all" ? "" : (next as GapStatus))
           }}
         >
-          <ToggleGroupItem value="all">{t("gaps.filter.all")}</ToggleGroupItem>
+          <Toggle value="all">{t("gaps.filter.all")}</Toggle>
           {ORDER.map((s) => (
-            <ToggleGroupItem key={s} value={s}>
+            <Toggle key={s} value={s}>
               {t(`gaps.status.${s}`)}
-            </ToggleGroupItem>
+            </Toggle>
           ))}
         </ToggleGroup>
         {total > 0 ? <span className="ms-auto text-[12.5px] text-muted-foreground">{t("gaps.count", { count: formatNumber(total) })}</span> : null}

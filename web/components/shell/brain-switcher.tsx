@@ -1,18 +1,10 @@
 "use client"
 
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@fadymondy/nasaq/web"
+
 import { usePathname, useRouter } from "next/navigation"
 import { ArrowLeftIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { BrainAvatar, brainName } from "@/components/brains/brain-cells"
 import { useTranslations } from "@/lib/i18n"
 import { useBrains } from "@/lib/queries"

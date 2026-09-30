@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, type ChartConfig, ChartContainer, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+
 import { useEffect, useRef } from "react"
 import { BatteryFullIcon, SignalHighIcon, WifiIcon } from "lucide-react"
 import { ArrowDownIcon, ArrowUpIcon, CircleAlertIcon, CircleCheckIcon, CalendarIcon, ChevronDownIcon, InfoIcon, MinusIcon, PaperclipIcon, TriangleAlertIcon } from "lucide-react"
@@ -8,10 +10,6 @@ import { cn } from "cn"
 
 import { reveal, whenVisible } from "@/lib/presentations/motion"
 import type { ScreenBlock, ScreenPart, Tone } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EditScope, Tx, useEditing } from "./edit"
 import { PresIcon } from "./icon"
 import { MapView } from "./map-view"
@@ -201,7 +199,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
               )
             })}
             {part.submit_label ? (
-              <Button size="sm" className="mt-[0.2em] h-auto justify-self-start px-[0.8em] py-[0.35em] text-[0.85em]" tabIndex={-1} aria-disabled>
+              <Button variant="primary" size="sm" className="mt-[0.2em] h-auto justify-self-start px-[0.8em] py-[0.35em] text-[0.85em]" tabIndex={-1} aria-disabled>
                 <Tx p="submit_label" v={part.submit_label} />
               </Button>
             ) : null}
@@ -329,7 +327,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
           {(["left", "right"] as const).map((sideKey) => (
             <div key={sideKey} className="grid content-start gap-[0.6em] rounded-[0.7em] border border-dashed p-[0.6em]">
               {(sideKey === "left" ? part.left_label : part.right_label) ? (
-                <Badge variant={sideKey === "left" ? "outline" : "default"} className="justify-self-start">
+                <Badge variant={sideKey === "left" ? "outline" : "brand"} className="justify-self-start">
                   <Tx p={`${sideKey}_label`} v={sideKey === "left" ? part.left_label : part.right_label} />
                 </Badge>
               ) : null}

@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,11 +11,6 @@ import { BrainCard, BrainRow, brainName } from "@/components/brains/brain-cells"
 import { DeleteBrainDialog, NewBrainDialog } from "@/components/brains/brain-dialogs"
 import { DetailStrip, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useStats } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
 import { isAdmin, useBrains, useMe } from "@/lib/queries"
@@ -54,7 +51,7 @@ export default function BrainsPage() {
   const loading = brainsQ.isLoading
   const v = (n?: number) => (loading || n === undefined ? "—" : formatNumber(n))
   const newButton = (
-    <Button onClick={() => setCreating(true)}>
+    <Button variant="primary" onClick={() => setCreating(true)}>
       <PlusIcon />
       {t("brains.new.button")}
     </Button>
@@ -102,18 +99,16 @@ export default function BrainsPage() {
           </Select>
           <ToggleGroup
             variant="outline"
-            size="sm"
-            spacing={0}
             className="hidden sm:flex"
             value={[view]}
             onValueChange={(val: string[]) => val[0] && setView(val[0] as ViewMode)}
           >
-            <ToggleGroupItem value="grid" aria-label={t("brains.view.grid")}>
+            <Toggle value="grid" aria-label={t("brains.view.grid")}>
               <LayoutGridIcon />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label={t("brains.view.list")}>
+            </Toggle>
+            <Toggle value="list" aria-label={t("brains.view.list")}>
               <ListIcon />
-            </ToggleGroupItem>
+            </Toggle>
           </ToggleGroup>
         </div>
       </div>

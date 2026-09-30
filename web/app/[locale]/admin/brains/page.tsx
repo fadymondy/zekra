@@ -3,14 +3,8 @@
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
 import { DownloadIcon, ExternalLinkIcon, TrashIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldError, FieldLabel, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -175,10 +169,10 @@ function DeleteBrainDialog({ namespace, onClose, onDeleted }: { namespace: strin
             {error ? <FieldError>{error}</FieldError> : null}
           </Field>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={close}>
+            <Button type="button" variant="secondary" onClick={close}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" variant="destructive" disabled={busy || typed !== namespace}>
+            <Button type="submit" variant="danger" disabled={busy || typed !== namespace}>
               {busy ? t("common.working") : t("admin.brains.deleteConfirm")}
             </Button>
           </DialogFooter>

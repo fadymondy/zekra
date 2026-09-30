@@ -1,12 +1,12 @@
 "use client"
 
+import { Input, Popover, PopoverContent, PopoverTrigger } from "@fadymondy/nasaq/web"
+
 // A searchable picker over the brain's graph nodes (GET /api/brain/entities/search). Used by
 // "+ Add link" in the node inspector and the notes editor.
 import { useEffect, useState, type ReactNode } from "react"
 import { Loader2Icon, SearchIcon } from "lucide-react"
 
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useEntitySearch, type Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"

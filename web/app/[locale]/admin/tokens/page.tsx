@@ -2,16 +2,8 @@
 
 import { useMemo, useState, type FormEvent } from "react"
 import { PlusIcon, TriangleAlertIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldDescription, FieldError, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SectionHeader, SectionTitle } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { CopyField, Ltr } from "@/components/copy-field"
@@ -68,7 +60,7 @@ export default function AdminTokensPage() {
         title={t("nav.tokens")}
         description={t("admin.tokens.hint")}
         action={
-          <Button onClick={() => setCreating(true)}>
+          <Button variant="primary" onClick={() => setCreating(true)}>
             <PlusIcon />
             {t("admin.tokens.create")}
           </Button>
@@ -135,7 +127,7 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
       <TableCell className="ps-6">
         <span className="flex items-center gap-2">
           <Ltr mono className="font-medium">{tok.agentId}</Ltr>
-          {tok.isAdmin ? <Badge variant="secondary">{t("admin.tokens.admin")}</Badge> : null}
+          {tok.isAdmin ? <Badge variant="neutral">{t("admin.tokens.admin")}</Badge> : null}
         </span>
       </TableCell>
       <TableCell className="max-w-56 truncate text-muted-foreground" dir="auto">
@@ -156,7 +148,7 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
       </TableCell>
       <TableCell className="pe-6 text-end">
         {tok.revoked ? (
-          <Badge variant="secondary">{t("admin.tokens.revokedBadge")}</Badge>
+          <Badge variant="neutral">{t("admin.tokens.revokedBadge")}</Badge>
         ) : (
           <ConfirmButton
             label={t("common.revoke")}
@@ -203,7 +195,7 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
         <Ltr mono className="text-sm font-medium text-foreground">{agentId}</Ltr>
         {isAdmin ? (
           <>
-            <Badge variant="secondary">{t("admin.tokens.admin")}</Badge>
+            <Badge variant="neutral">{t("admin.tokens.admin")}</Badge>
             <span className="text-xs text-muted-foreground">{t("permissions.adminHint")}</span>
           </>
         ) : null}
@@ -242,7 +234,7 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
             </SelectContent>
           </Select>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             disabled={!addNs || busy}
             onClick={() => {
@@ -319,7 +311,7 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
               <CopyField value={`ZEKRA_TOKEN=${created.token}`} label={t("admin.tokens.envLabel")} />
             </div>
             <DialogFooter>
-              <Button onClick={() => handleOpenChange(false)}>{t("admin.tokens.savedIt")}</Button>
+              <Button variant="primary" onClick={() => handleOpenChange(false)}>{t("admin.tokens.savedIt")}</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -328,7 +320,7 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
               <DialogTitle>{t("admin.tokens.create")}</DialogTitle>
               <DialogDescription>{t("admin.tokens.createHint")}</DialogDescription>
             </DialogHeader>
-            <FieldGroup>
+            <div className="grid gap-4">
               <Field>
                 <FieldLabel htmlFor="tok-agent">{t("admin.tokens.agent")}</FieldLabel>
                 <Input id="tok-agent" dir="ltr" required autoFocus value={agentId} onChange={(e) => setAgentId(e.target.value)} placeholder="alice" className="font-mono" />
@@ -338,20 +330,20 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
                 <FieldLabel htmlFor="tok-label">{t("admin.tokens.label")}</FieldLabel>
                 <Input id="tok-label" dir="auto" value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("admin.tokens.labelPlaceholder")} />
               </Field>
-              <Field orientation="horizontal">
+              <Field className="flex flex-row items-start gap-3">
                 <Switch id="tok-admin" checked={admin} onCheckedChange={(v) => setAdmin(v === true)} />
-                <FieldContent>
+                <div className="grid gap-1">
                   <FieldLabel htmlFor="tok-admin">{t("admin.tokens.adminLabel")}</FieldLabel>
                   <FieldDescription>{t("admin.tokens.adminHint")}</FieldDescription>
-                </FieldContent>
+                </div>
               </Field>
               {error ? <FieldError>{error}</FieldError> : null}
-            </FieldGroup>
+            </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+              <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" disabled={busy || !agentId.trim()}>
+              <Button variant="primary" type="submit" disabled={busy || !agentId.trim()}>
                 {busy ? t("common.working") : t("admin.tokens.create")}
               </Button>
             </DialogFooter>

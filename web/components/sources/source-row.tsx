@@ -2,19 +2,17 @@
 
 import { useState } from "react"
 import { ChevronDownIcon, Link2Icon, RefreshCwIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, toast } from "@fadymondy/nasaq/web"
 
 import { ConfirmButton } from "@/components/confirm-button"
 import { iconFor } from "@/components/sources/kinds"
 import { PushEndpoint } from "@/components/sources/push-endpoint"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { ApiError, brainApi, type Datasource } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 function statusVariant(s: string) {
-  return s === "ok" ? "default" : s === "error" ? "destructive" : s === "syncing" ? "secondary" : "outline"
+  return s === "ok" ? "success" : s === "error" ? "danger" : s === "syncing" ? "info" : "outline"
 }
 
 /** One connector: kind, status, docs, last sync, and sync / delete. Webhooks reveal their push URL. */
@@ -69,12 +67,12 @@ export function SourceRow({ s, onChanged }: { s: Datasource; onChanged: () => vo
         </div>
         <div className="flex items-center gap-2">
           {isWebhook ? (
-            <Button variant="outline" size="sm" aria-expanded={showHook} onClick={() => setShowHook((v) => !v)}>
+            <Button variant="secondary" size="sm" aria-expanded={showHook} onClick={() => setShowHook((v) => !v)}>
               <Link2Icon /> {t("sources.pushUrl")}
               <ChevronDownIcon className={cn("transition-transform", showHook && "rotate-180")} />
             </Button>
           ) : (
-            <Button variant="outline" size="sm" disabled={syncing} onClick={sync}>
+            <Button variant="secondary" size="sm" disabled={syncing} onClick={sync}>
               <RefreshCwIcon className={syncing ? "animate-spin" : undefined} />
               {syncing ? t("sources.syncing") : t("sources.syncNow")}
             </Button>

@@ -4,11 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeftIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Checkbox, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
@@ -127,7 +124,7 @@ export default function AdminUserDetailPage() {
         })}
       </ul>
       <div className="flex flex-wrap gap-2 px-6 py-4">
-        <Button disabled={!dirty || busy || isSelf} onClick={() => act(() => adminApi.setRoles(u.id, current), t("admin.user.rolesSaved")).then(() => setRoles(null))}>
+        <Button variant="primary" disabled={!dirty || busy || isSelf} onClick={() => act(() => adminApi.setRoles(u.id, current), t("admin.user.rolesSaved")).then(() => setRoles(null))}>
           {busy ? t("common.saving") : t("admin.user.saveRoles")}
         </Button>
         {dirty ? (
@@ -141,7 +138,7 @@ export default function AdminUserDetailPage() {
       <ul className="mb-8 divide-y divide-border border-y border-border">
         {!u.email_verified ? (
           <ActionRow title={t("admin.user.resendTitle")} body={t("admin.user.resendBody")}>
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => act(() => adminApi.resendVerification(u.id), t("admin.user.resent"))}>
+            <Button variant="secondary" size="sm" disabled={busy} onClick={() => act(() => adminApi.resendVerification(u.id), t("admin.user.resent"))}>
               {t("admin.user.resend")}
             </Button>
           </ActionRow>
@@ -151,7 +148,7 @@ export default function AdminUserDetailPage() {
           body={u.disabled ? t("admin.user.enableBody") : t("admin.user.disableBody")}
         >
           {u.disabled ? (
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => act(() => adminApi.enable(u.id), t("admin.user.enabled"))}>
+            <Button variant="secondary" size="sm" disabled={busy} onClick={() => act(() => adminApi.enable(u.id), t("admin.user.enabled"))}>
               {t("admin.user.enable")}
             </Button>
           ) : isSelf ? (

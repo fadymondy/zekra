@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Field, FieldLabel, Input } from "@fadymondy/nasaq/web"
+
 import Link from "next/link"
 import { useEffect, useState, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -7,9 +9,6 @@ import { useSWRConfig } from "swr"
 
 import { CodeInput, ErrorLine, Notice, ProviderButtons, Submit, useLoginMethods } from "@/components/auth/parts"
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
-import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { auth, AuthError, authMessage, safeNext } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -114,7 +113,7 @@ export function LoginForm() {
         <PublicPanel className="flex justify-center py-10">
           <div className="w-full max-w-sm">
             <form onSubmit={onSubmit} noValidate>
-              <FieldGroup>
+              <div className="grid gap-4">
                 <Field data-invalid={!!error || undefined}>
                   <FieldLabel htmlFor="second">{useRecovery ? t("auth.recoveryCode") : t("auth.appCode")}</FieldLabel>
                   {useRecovery ? (
@@ -156,7 +155,7 @@ export function LoginForm() {
                 >
                   {t("auth.startOver")}
                 </Button>
-              </FieldGroup>
+              </div>
             </form>
           </div>
         </PublicPanel>
@@ -171,7 +170,7 @@ export function LoginForm() {
       <PublicPanel className="flex justify-center py-10">
         <div className="w-full max-w-sm" data-auth-form>
           <form onSubmit={onSubmit} noValidate>
-            <FieldGroup>
+            <div className="grid gap-4">
               <Field data-invalid={!!error || undefined}>
                 <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
                 <Input
@@ -254,7 +253,7 @@ export function LoginForm() {
                   {mode === "password" ? t("auth.useEmailCode") : t("auth.usePassword")}
                 </Button>
               ) : null}
-            </FieldGroup>
+            </div>
           </form>
 
           <ProviderButtons methods={methods} returnTo={next ?? home} />

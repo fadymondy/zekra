@@ -12,7 +12,7 @@ import { useParams } from "next/navigation"
 import useSWRInfinite from "swr/infinite"
 import { useSWRConfig } from "swr"
 import { ArrowDownUpIcon, CheckIcon, Loader2Icon, NetworkIcon, PlusIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, Popover, PopoverContent, PopoverTrigger, toast } from "@fadymondy/nasaq/web"
 
 import { Ltr } from "@/components/copy-field"
 import { CategoryPicker } from "@/components/graph/category-picker"
@@ -24,12 +24,6 @@ import { NoteTree } from "@/components/notes/note-tree"
 import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { refreshGraph } from "@/lib/graph-edit"
@@ -255,7 +249,7 @@ export default function NotesPage() {
   )
 
   const newButton = (
-    <Button onClick={create} disabled={creating}>
+    <Button variant="primary" onClick={create} disabled={creating}>
       <PlusIcon />
       {creating ? t("common.working") : t("notes.new")}
     </Button>
@@ -344,7 +338,7 @@ export default function NotesPage() {
                     onToggle={(tag) => setTags((cur) => (cur.includes(tag) ? cur.filter((x) => x !== tag) : [...cur, tag]))}
                     onClear={() => setTags([])}
                     trigger={
-                      <Button variant="outline" size="sm" className="w-full justify-start font-normal text-muted-foreground">
+                      <Button variant="secondary" size="sm" className="w-full justify-start font-normal text-muted-foreground">
                         {tags.length ? tags.join(", ") : t("notes.tags")}
                       </Button>
                     }

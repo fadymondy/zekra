@@ -1,28 +1,10 @@
 "use client"
 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import { ArchiveIcon, ArchiveRestoreIcon, PaletteIcon, PinIcon, PinOffIcon, Trash2Icon } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
 import { useTranslations } from "@/lib/i18n"
 import { NoteAppearancePicker, type AppearancePatch } from "./note-appearance-picker"
 import { useSwipe } from "./use-swipe"
@@ -111,7 +93,7 @@ export function NoteRowActions({
             </ContextMenuSub>
           ) : null}
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" onClick={() => setConfirm("delete")}>
+          <ContextMenuItem variant="danger" onClick={() => setConfirm("delete")}>
             <Trash2Icon />
             {t("notes.delete")}
           </ContextMenuItem>

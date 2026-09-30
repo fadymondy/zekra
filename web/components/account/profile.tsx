@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Field, FieldDescription, FieldLabel, Input } from "@fadymondy/nasaq/web"
+
 import Link from "next/link"
 import { useMemo, useState, type FormEvent } from "react"
 import useSWR, { useSWRConfig } from "swr"
@@ -7,9 +9,6 @@ import useSWR, { useSWRConfig } from "swr"
 import { MIN_PASSWORD } from "@/components/auth/parts"
 import { AccountSection, StatusLine } from "@/components/account/section"
 import { LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { getProfile, saveProfile, type AccountProfile } from "@/lib/account"
 import { auth, authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -86,7 +85,7 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
 
   return (
     <form onSubmit={onSubmit} className="max-w-md">
-      <FieldGroup>
+      <div className="grid gap-4">
         <Field>
           <FieldLabel>{t("auth.email")}</FieldLabel>
           <p dir="ltr" className="text-sm text-foreground rtl:text-end">
@@ -125,10 +124,10 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
           ) : null}
         </Field>
         <StatusLine notice={notice} />
-        <Button type="submit" className="self-start" disabled={busy}>
+        <Button variant="primary" type="submit" className="self-start" disabled={busy}>
           {busy ? t("common.working") : t("common.save")}
         </Button>
-      </FieldGroup>
+      </div>
     </form>
   )
 }
@@ -148,7 +147,7 @@ export function PasswordSection() {
       <AccountSection title={t("account.password.title")}>
         <div className="flex max-w-md flex-col gap-3">
           <p className="text-sm text-pretty text-muted-foreground">{t("account.password.none")}</p>
-          <Button variant="outline" className="self-start" nativeButton={false} render={<Link href={`/${locale}/forgot-password`} />}>
+          <Button variant="secondary" className="self-start" nativeButton={false} render={<Link href={`/${locale}/forgot-password`} />}>
             {t("account.password.setOne")}
           </Button>
         </div>
@@ -178,7 +177,7 @@ export function PasswordSection() {
   return (
     <AccountSection title={t("account.password.title")} description={t("account.password.hint")}>
       <form onSubmit={onSubmit} className="max-w-md" noValidate>
-        <FieldGroup>
+        <div className="grid gap-4">
           <Field>
             <FieldLabel htmlFor="current-password">{t("account.password.current")}</FieldLabel>
             <Input id="current-password" type="password" dir="ltr" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} />
@@ -193,10 +192,10 @@ export function PasswordSection() {
             <Input id="confirm-password" type="password" dir="ltr" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </Field>
           <StatusLine notice={notice} />
-          <Button type="submit" className="self-start" disabled={busy || !current || !next || !confirm}>
+          <Button variant="primary" type="submit" className="self-start" disabled={busy || !current || !next || !confirm}>
             {busy ? t("common.working") : t("account.password.submit")}
           </Button>
-        </FieldGroup>
+        </div>
       </form>
     </AccountSection>
   )

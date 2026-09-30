@@ -1,9 +1,10 @@
 "use client"
 
+import { Skeleton } from "@fadymondy/nasaq/web"
+
 import type { ReactNode } from "react"
 import { TriangleAlertIcon } from "lucide-react"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 

@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge } from "@fadymondy/nasaq/web"
+
 import { useId, useLayoutEffect, useRef, useState } from "react"
 import { cn } from "cn"
 
@@ -7,7 +9,6 @@ import { useTranslations } from "@/lib/i18n"
 import { drawPaths, reveal, whenVisible } from "@/lib/presentations/motion"
 import type { WorkflowBlock, WorkflowStep } from "@/lib/presentations/types"
 import { connector, rowsFor, workflowEdges, type Box } from "@/lib/presentations/workflow"
-import { Badge } from "@/components/ui/badge"
 import { EditScope, IfSet, Tx, TxMd } from "./edit"
 import { PresIcon } from "./icon"
 import { Md } from "./markdown"
@@ -68,7 +69,7 @@ function StepCard({ step, highlight, kindLabel }: { step: WorkflowStep; highligh
       {step.owner || kind !== "step" ? (
         <div className="flex flex-wrap items-center gap-[0.35em]">
           {step.owner ? (
-            <Badge variant="secondary" className="h-auto px-[0.5em] py-[0.1em] text-[0.75em]">
+            <Badge variant="neutral" className="h-auto px-[0.5em] py-[0.1em] text-[0.75em]">
               <Tx p="owner" v={step.owner} />
             </Badge>
           ) : null}

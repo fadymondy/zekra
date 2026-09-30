@@ -1,26 +1,17 @@
 "use client"
 
+import { Status } from "@fadymondy/nasaq/web"
+
 import { useLiveStatus } from "@/lib/realtime"
 import { useTranslations } from "@/lib/i18n"
-import { cn } from "@/lib/utils"
 
-/** Realtime status as the grid draws state: a square in the status colour beside a micro-label. */
+/** Realtime status as a Nasaq Status: live is success, connecting is info, down is neutral. */
 export function LiveIndicator() {
   const status = useLiveStatus()
   const { t } = useTranslations()
   return (
-    <span
-      className="hidden items-center gap-2 border border-border px-2 py-1 sm:inline-flex"
-      title={t("shell.realtime", { status: t(`shell.live.${status}`) })}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "size-2 shrink-0",
-          status === "live" ? "bg-emerald-500" : status === "connecting" ? "bg-amber-500" : "bg-muted-foreground",
-        )}
-      />
-      <span className="eyebrow">{t(`shell.live.${status}`)}</span>
+    <span className="hidden sm:inline-flex" title={t("shell.realtime", { status: t(`shell.live.${status}`) })}>
+      <Status tone={status === "live" ? "success" : status === "connecting" ? "info" : "neutral"}>{t(`shell.live.${status}`)}</Status>
     </span>
   )
 }

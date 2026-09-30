@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@fadymondy/nasaq/web"
+
 import { useRef, type ReactNode } from "react"
 import { CheckIcon } from "lucide-react"
 import { cn } from "cn"
@@ -7,9 +9,6 @@ import { cn } from "cn"
 import { useTranslations } from "@/lib/i18n"
 import type { PageContent, PageSection } from "@/lib/presentations/types"
 import { STYLE_KEYS } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { PresTheme } from "./pres-theme"
 import { EditScope, Tx, TxMd } from "./edit"
 import { Md } from "./markdown"
@@ -27,7 +26,7 @@ an http(s) or site URL; otherwise they render as a non-interactive label so a
 concept page never ships a button that does nothing.
 */
 
-function Cta({ label, href, variant = "default", p = "cta_label" }: { label?: string; href?: string; variant?: "default" | "outline"; p?: string }) {
+function Cta({ label, href, variant = "primary", p = "cta_label" }: { label?: string; href?: string; variant?: "primary" | "secondary"; p?: string }) {
   if (!label) return null
   if (!href) {
     return (
@@ -186,7 +185,7 @@ function Section({
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between gap-2">
                     <Tx p={`plans.${i}.name`} v={p.name} />
-                    {p.highlighted ? <Badge>★</Badge> : null}
+                    {p.highlighted ? <Badge variant="brand">★</Badge> : null}
                   </CardTitle>
                   <p className="mt-2">
                     <bdi className="text-3xl font-semibold tabular-nums">

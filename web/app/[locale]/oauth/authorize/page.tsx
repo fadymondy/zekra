@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Checkbox } from "@fadymondy/nasaq/web"
+
 // The MCP OAuth consent screen. Claude.ai, Claude Desktop, ChatGPT and other MCP clients send
 // the user here (the authorization_endpoint); the user picks which brains the app may use, and
 // the API answers with the redirect back to the client. Contract: plugins/brain/internal/brain/oauth.go.
@@ -7,8 +9,6 @@ import { useEffect, useMemo, useState } from "react"
 import { AlertTriangleIcon, ShieldCheckIcon } from "lucide-react"
 
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { LoadingRows } from "@/components/states"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
@@ -212,10 +212,10 @@ export default function AuthorizePage() {
             ) : null}
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button disabled={busy || chosen.length === 0} onClick={() => decide(true)}>
+              <Button variant="primary" disabled={busy || chosen.length === 0} onClick={() => decide(true)}>
                 {busy ? t("common.working") : t("oauth.allow")}
               </Button>
-              <Button variant="outline" disabled={busy} onClick={() => decide(false)}>
+              <Button variant="secondary" disabled={busy} onClick={() => decide(false)}>
                 {t("oauth.deny")}
               </Button>
             </div>

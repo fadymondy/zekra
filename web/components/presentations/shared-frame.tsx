@@ -1,7 +1,7 @@
+import { Button } from "@fadymondy/nasaq/web"
 import { DownloadIcon, LanguagesIcon } from "lucide-react"
 
 import type { T } from "@/lib/i18n-server"
-import { Button } from "@/components/ui/button"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { ThemeToggle } from "@/components/header-controls"
@@ -60,7 +60,7 @@ export function SharedFrame({
           </Button>
         ))}
         {formats.map((f) => (
-          <Button key={f} variant="outline" size="sm" nativeButton={false} render={<a href={`/${locale}/p/${token}/download/${f}`} download />}>
+          <Button key={f} variant="secondary" size="sm" nativeButton={false} render={<a href={`/${locale}/p/${token}/download/${f}`} download />}>
             <DownloadIcon />
             {t(`presentations.format.${f}`)}
           </Button>

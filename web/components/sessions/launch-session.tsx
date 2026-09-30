@@ -1,15 +1,11 @@
 "use client"
 
+import { Badge, Button, CodeBlock, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Switch } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import { RocketIcon } from "lucide-react"
 
 import { CopyField } from "@/components/copy-field"
-import { CodeBlock } from "@/components/ui/code-block"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
 import { ApiError, brainApi, type SessionResult } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 
@@ -39,9 +35,9 @@ export function WriteToggle({ write, onChange }: { write: boolean; onChange: (v:
   return (
     <div className="flex items-center justify-between gap-4 border border-border bg-card px-4 py-3">
       <div className="space-y-0.5">
-        <Label htmlFor="launch-write" className="text-sm font-medium">
+        <label htmlFor="launch-write" className="text-label text-foreground">
           {t("sessions.allowWrites")}
-        </Label>
+        </label>
         <p className="text-xs text-muted-foreground">{t(write ? "sessions.writeHint" : "sessions.readHint")}</p>
       </div>
       <Switch id="launch-write" checked={write} onCheckedChange={onChange} />
@@ -60,7 +56,7 @@ export function SessionResultView({ res }: { res: SessionResult }) {
         <Badge variant="outline" dir="ltr" className="font-mono">
           {res.namespace}
         </Badge>
-        <Badge variant={res.write ? "default" : "secondary"}>{t(res.write ? "sessions.readWrite" : "sessions.readOnly")}</Badge>
+        <Badge variant={res.write ? "brand" : "neutral"}>{t(res.write ? "sessions.readWrite" : "sessions.readOnly")}</Badge>
         <span className="text-xs text-muted-foreground">
           {t("sessions.agent")} <span dir="ltr" className="font-mono">{res.agentId}</span>
         </span>
@@ -75,7 +71,7 @@ export function SessionResultView({ res }: { res: SessionResult }) {
       <div className="space-y-1.5">
         <p className="eyebrow">{t("sessions.mcpConfig")}</p>
         <div dir="ltr">
-          <CodeBlock code={snippet} language="json" filename=".mcp.json" scrollable maxHeight={280} className="rounded-none border-border" />
+          <CodeBlock code={snippet} language="json" filename=".mcp.json" preClassName="max-h-72" className="rounded-none border-border" />
         </div>
       </div>
 
@@ -132,13 +128,13 @@ export function LaunchSessionDialog({ namespace, open, onOpenChange }: { namespa
         )}
         <DialogFooter>
           {s.result ? (
-            <Button onClick={() => onOpenChange(false)}>{t("common.done")}</Button>
+            <Button variant="primary" onClick={() => onOpenChange(false)}>{t("common.done")}</Button>
           ) : (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button variant="secondary" onClick={() => onOpenChange(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button onClick={s.launch} disabled={s.busy}>
+              <Button variant="primary" onClick={s.launch} disabled={s.busy}>
                 <RocketIcon /> {s.busy ? t("sessions.minting") : t("sessions.mint")}
               </Button>
             </>

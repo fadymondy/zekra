@@ -1,11 +1,10 @@
 "use client"
 
+import { Button, Input, Textarea } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState, type FormEvent, type ReactNode } from "react"
 import { CheckIcon, PencilIcon, SearchIcon, StarIcon, XIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { ErrorState, LoadingRows } from "@/components/states"
@@ -109,7 +108,7 @@ export default function AdminSearchPage() {
               className="h-10 ps-9"
             />
           </div>
-          <Button type="submit" size="lg" className="h-10 px-5" disabled={pending || !q.trim()}>
+          <Button variant="primary" type="submit" size="lg" className="h-10 px-5" disabled={pending || !q.trim()}>
             <SearchIcon />
             {pending ? t("admin.search.searching") : t("common.search")}
           </Button>
@@ -151,7 +150,7 @@ export default function AdminSearchPage() {
             {t("admin.search.highImportance")}
           </Chip>
           {hasFilters ? (
-            <Button variant="ghost" size="xs" className="ms-auto" onClick={clearTuners}>
+            <Button variant="ghost" size="sm" className="ms-auto" onClick={clearTuners}>
               <XIcon />
               {t("admin.search.clear")}
             </Button>
@@ -221,10 +220,10 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
         <div className="space-y-2">
           <Textarea dir="auto" value={draft} onChange={(e) => setDraft(e.target.value)} rows={Math.min(8, Math.max(3, draft.split("\n").length))} autoFocus />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => { setDraft(r.content); setEditing(false) }}>
+            <Button variant="secondary" size="sm" onClick={() => { setDraft(r.content); setEditing(false) }}>
               {t("common.cancel")}
             </Button>
-            <Button size="sm" onClick={save} disabled={saving || !draft.trim() || draft === r.content}>
+            <Button variant="primary" size="sm" onClick={save} disabled={saving || !draft.trim() || draft === r.content}>
               {saving ? t("common.saving") : t("common.save")}
             </Button>
           </div>

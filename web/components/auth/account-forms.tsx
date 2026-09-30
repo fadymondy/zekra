@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Field, FieldDescription, FieldLabel, Input } from "@fadymondy/nasaq/web"
+
 import Link from "next/link"
 import { useEffect, useState, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -7,9 +9,6 @@ import { useSWRConfig } from "swr"
 
 import { CodeInput, ErrorLine, MIN_PASSWORD, Notice, ProviderButtons, Submit, useLoginMethods } from "@/components/auth/parts"
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { auth, AuthError, authMessage, safeNext } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -74,7 +73,7 @@ export function RegisterForm() {
   return (
     <Frame title={t("auth.createAccount")} description={t("auth.registerHint")}>
       <form onSubmit={onSubmit} noValidate>
-        <FieldGroup>
+        <div className="grid gap-4">
           <Field>
             <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
             <Input id="email" type="email" dir="ltr" autoComplete="email" placeholder="you@company.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -90,7 +89,7 @@ export function RegisterForm() {
           </Field>
           <ErrorLine error={error} />
           <Submit busy={busy} label={t("auth.createAccount")} disabled={!email || !password || !confirm} />
-        </FieldGroup>
+        </div>
       </form>
       <ProviderButtons methods={methods} returnTo={next ?? `/${locale}/brains`} />
       <p className="mt-6 text-center text-sm text-muted-foreground">
@@ -157,7 +156,7 @@ export function VerifyEmailForm() {
   return (
     <Frame title={t("auth.verifyTitle")} description={t("auth.verifyIntro")}>
       <form onSubmit={onSubmit} noValidate>
-        <FieldGroup>
+        <div className="grid gap-4">
           <Field>
             <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
             <Input id="email" type="email" dir="ltr" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -172,7 +171,7 @@ export function VerifyEmailForm() {
           <Button type="button" variant="ghost" disabled={!email || cooldown > 0} onClick={() => void resend()}>
             {cooldown > 0 ? t("auth.resendIn", { seconds: cooldown }) : t("auth.resend")}
           </Button>
-        </FieldGroup>
+        </div>
       </form>
     </Frame>
   )
@@ -233,7 +232,7 @@ export function ForgotPasswordForm() {
           <p role="status" className="text-sm text-pretty text-foreground">
             {t("auth.resetDone")}
           </p>
-          <Button size="lg" nativeButton={false} render={<Link href={`/${locale}/login`} />}>
+          <Button variant="primary" size="lg" nativeButton={false} render={<Link href={`/${locale}/login`} />}>
             {t("auth.signIn")}
           </Button>
         </div>
@@ -245,18 +244,18 @@ export function ForgotPasswordForm() {
     <Frame title={t("auth.forgotTitle")} description={t("auth.forgotIntro")}>
       {step === "email" ? (
         <form onSubmit={sendCode} noValidate>
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field data-invalid={!!error || undefined}>
               <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
               <Input id="email" type="email" dir="ltr" autoComplete="email" placeholder="you@company.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
             </Field>
             <ErrorLine error={error} />
             <Submit busy={busy} label={t("auth.sendCode")} disabled={!email} />
-          </FieldGroup>
+          </div>
         </form>
       ) : (
         <form onSubmit={reset} noValidate>
-          <FieldGroup>
+          <div className="grid gap-4">
             <Notice>{t("auth.forgotSent", { email: email.trim() })}</Notice>
             <Field>
               <FieldLabel htmlFor="code">{t("auth.code")}</FieldLabel>
@@ -276,7 +275,7 @@ export function ForgotPasswordForm() {
             <Button type="button" variant="ghost" onClick={() => setStep("email")}>
               {t("auth.useAnotherEmail")}
             </Button>
-          </FieldGroup>
+          </div>
         </form>
       )}
       {loginLink}

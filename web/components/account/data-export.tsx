@@ -1,5 +1,7 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
@@ -8,7 +10,6 @@ import { DownloadIcon } from "lucide-react"
 import { StatusLine } from "@/components/account/section"
 import { HatchBand } from "@/components/page"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
 import { exportDownloadURL, getExport, requestExport, type ExportState } from "@/lib/account"
 import { authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -68,7 +69,7 @@ export function DataExport() {
       </div>
       <div className="flex flex-wrap items-center gap-2 px-6 py-6">
         <Button
-          variant="outline"
+          variant="secondary"
           disabled={busy || waiting || s?.status === "queued"}
           onClick={async () => {
             setBusy(true)
@@ -132,7 +133,7 @@ export function ExportDownload({ token }: { token: string }) {
       <div className="flex flex-col gap-3">
         <p className="text-sm font-medium text-foreground">{t("account.export.linkTitle")}</p>
         <p className="text-sm text-pretty text-muted-foreground">{t("account.export.once")}</p>
-        <Button className="self-start" disabled={phase === "busy" || phase === "done" || phase === "gone"} onClick={() => void download()}>
+        <Button variant="primary" className="self-start" disabled={phase === "busy" || phase === "done" || phase === "gone"} onClick={() => void download()}>
           <DownloadIcon />
           {phase === "busy" ? t("common.working") : t("account.export.download")}
         </Button>

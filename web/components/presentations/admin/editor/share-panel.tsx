@@ -1,17 +1,12 @@
 "use client"
 
+import { Alert, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Field, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fadymondy/nasaq/web"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CheckIcon, ExternalLinkIcon, KeyRoundIcon, PencilIcon, RefreshCwIcon, XIcon } from "lucide-react"
 
 import { ApiError, createShare, listDomains, reissueShare, revokeShare, updateShare, type DomainList } from "@/lib/presentations/api"
 import type { Detail, PLocale, Share } from "@/lib/presentations/types"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Field, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CopyButton } from "../copy-button"
 
 /*
@@ -40,10 +35,10 @@ function UrlBox({ url, t }: { url: string; t: T }) {
   return (
     <div className="flex items-center gap-1" data-testid="share-url">
       <Input readOnly value={url} dir="ltr" className="h-8 min-w-0 flex-1 font-mono text-xs" aria-label={t("presentations.share.url")} onFocus={(e) => e.currentTarget.select()} />
-      <CopyButton text={url} variant="outline" size="sm" aria-label={t("presentations.share.copy")}>
+      <CopyButton text={url} variant="secondary" size="sm" aria-label={t("presentations.share.copy")}>
         {t("presentations.share.copy")}
       </CopyButton>
-      <Button variant="outline" size="sm" nativeButton={false} render={<a href={url} target="_blank" rel="noopener noreferrer" />}>
+      <Button variant="secondary" size="sm" nativeButton={false} render={<a href={url} target="_blank" rel="noopener noreferrer" />}>
         <ExternalLinkIcon />
         {t("presentations.share.open")}
       </Button>
@@ -231,7 +226,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                   {usable.map((d) => (
                     <SelectItem key={d.id} value={d.id}>
                       <span dir="ltr">{d.host}</span>
-                      {d.default ? <Badge variant="secondary">{t("presentations.domains.default")}</Badge> : null}
+                      {d.default ? <Badge variant="neutral">{t("presentations.domains.default")}</Badge> : null}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -239,7 +234,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={create} disabled={busy || !doc.content[shareLang]} data-testid="share-create">
+            <Button variant="primary" onClick={create} disabled={busy || !doc.content[shareLang]} data-testid="share-create">
               {t("presentations.share.create")}
             </Button>
             {replacing ? (
@@ -252,17 +247,14 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
             </a>
           </div>
           {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <Alert tone="danger">{error}</Alert>
           ) : null}
           {created ? (
-            <Alert data-testid="share-created">
-              <AlertTitle>{t("presentations.share.created")}</AlertTitle>
-              <AlertDescription className="space-y-2">
+            <Alert tone="success" title={t("presentations.share.created")} data-testid="share-created">
+              <div className="space-y-2">
                 <UrlBox url={created} t={t} />
                 <p>{t("presentations.share.keepIt")}</p>
-              </AlertDescription>
+              </div>
             </Alert>
           ) : null}
         </CardContent>
@@ -287,7 +279,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                         <>
                           <Input className="h-8 w-48" value={editing.label} maxLength={80} aria-label={t("presentations.share.label")} onChange={(e) => setEditing({ ...editing, label: e.target.value })} />
                           <Select value={editing.days} onValueChange={(v) => setEditing({ ...editing, days: String(v) })}>
-                            <SelectTrigger className="w-40" size="sm" aria-label={t("presentations.share.expires")}>
+                            <SelectTrigger className="w-40" aria-label={t("presentations.share.expires")}>
                               <SelectValue>{(v) => (v === "keep" ? t("presentations.share.keepExpiry") : daysLabel(String(v)))}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -301,7 +293,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                           </Select>
                           {usable.length ? (
                             <Select value={editing.domain} onValueChange={(v) => setEditing({ ...editing, domain: String(v ?? APP) })}>
-                              <SelectTrigger className="w-48" size="sm" aria-label={t("presentations.share.domain")}>
+                              <SelectTrigger className="w-48" aria-label={t("presentations.share.domain")}>
                                 <SelectValue>{(v) => <span dir="ltr">{v === APP ? appHost : (usable.find((d) => d.id === v)?.host ?? appHost)}</span>}</SelectValue>
                               </SelectTrigger>
                               <SelectContent>
@@ -316,7 +308,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                               </SelectContent>
                             </Select>
                           ) : null}
-                          <Button size="icon-sm" onClick={saveEdit} disabled={busy} aria-label={t("presentations.save")}>
+                          <Button variant="primary" size="icon-sm" onClick={saveEdit} disabled={busy} aria-label={t("presentations.save")}>
                             <CheckIcon />
                           </Button>
                           <Button size="icon-sm" variant="ghost" onClick={() => setEditing(null)} aria-label={t("common.cancel")}>
@@ -330,9 +322,9 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                           <Badge variant="outline" dir="ltr">
                             {domainName(s)}
                           </Badge>
-                          {s.revoked_at ? <Badge variant="destructive">{t("presentations.share.revoked")}</Badge> : !s.active ? <Badge variant="outline">{t("presentations.share.expired")}</Badge> : null}
+                          {s.revoked_at ? <Badge variant="danger">{t("presentations.share.revoked")}</Badge> : !s.active ? <Badge variant="outline">{t("presentations.share.expired")}</Badge> : null}
                           {s.active && canEdit ? (
-                            <Button variant="ghost" size="icon-xs" onClick={() => setEditing({ id: s.id, label: s.label, days: "keep", domain: s.domain_id || APP })} aria-label={t("presentations.share.edit")}>
+                            <Button variant="ghost" size="icon-sm" onClick={() => setEditing({ id: s.id, label: s.label, days: "keep", domain: s.domain_id || APP })} aria-label={t("presentations.share.edit")}>
                               <PencilIcon />
                             </Button>
                           ) : null}
@@ -368,11 +360,11 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
                             {domainName(s)}/{s.locale}/p/{s.hint}…
                           </bdi>
                         </span>
-                        <Button size="sm" onClick={() => reissue(s)} disabled={busy} data-testid="share-reissue">
+                        <Button variant="primary" size="sm" onClick={() => reissue(s)} disabled={busy} data-testid="share-reissue">
                           <RefreshCwIcon />
                           {t("presentations.share.reissue")}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => replace(s)} data-testid="share-replace">
+                        <Button variant="secondary" size="sm" onClick={() => replace(s)} data-testid="share-replace">
                           {t("presentations.share.replace")}
                         </Button>
                       </div>

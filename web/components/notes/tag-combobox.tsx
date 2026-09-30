@@ -1,12 +1,12 @@
 "use client"
 
+import { Input, Popover, PopoverContent, PopoverTrigger } from "@fadymondy/nasaq/web"
+
 // A searchable tag combobox: the brain's tags sorted by how many notes carry them. Used as the
 // notes list's Tags filter (multi-select) and as the editor's "add tag" picker (can create).
 import { useMemo, useState, type ReactElement } from "react"
 import { CheckIcon, Loader2Icon, PlusIcon, SearchIcon, XIcon } from "lucide-react"
 
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useTranslations } from "@/lib/i18n"
 import { useNoteTagCounts } from "@/lib/notes"
 import { cn } from "@/lib/utils"

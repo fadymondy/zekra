@@ -13,16 +13,12 @@ import {
   ExternalLinkIcon, EyeIcon, FileTextIcon, Link2Icon, Loader2Icon, Maximize2Icon, PencilIcon, PinIcon, PlusIcon,
   Trash2Icon, XIcon,
 } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Input, Sheet, SheetContent, SheetTitle, toast } from "@fadymondy/nasaq/web"
 
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { NodeLinks } from "@/components/graph/node-links"
 import { NoteEditor } from "@/components/notes/note-editor"
 import { NoteMarkdown } from "@/components/notes/note-markdown"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import type { GraphNode } from "@/lib/api"
 import { useMemory } from "@/lib/brains"
 import {
@@ -253,12 +249,12 @@ export function NodeInspector({
 
         {noteId ? (
           <div className="flex flex-wrap items-center gap-1.5">
-            <Button size="sm" nativeButton={false} render={<Link href={noteHref(locale, namespace, noteId)} />} title={t("graph.openNoteHint")}>
+            <Button variant="primary" size="sm" nativeButton={false} render={<Link href={noteHref(locale, namespace, noteId)} />} title={t("graph.openNoteHint")}>
               <ExternalLinkIcon className="rtl:-scale-x-100" />
               {t("graph.openNote")}
             </Button>
             {!readOnly && n ? (
-              <Button size="sm" variant="outline" onClick={() => setMode(mode === "edit" ? "view" : "edit")} aria-pressed={mode === "edit"}>
+              <Button size="sm" variant="secondary" onClick={() => setMode(mode === "edit" ? "view" : "edit")} aria-pressed={mode === "edit"}>
                 {mode === "edit" ? <EyeIcon /> : <PencilIcon />}
                 {mode === "edit" ? t("graph.doneEditing") : t("graph.editInline")}
               </Button>
@@ -326,7 +322,7 @@ export function NodeInspector({
       {/* Expand: the note in a wide sheet over the graph */}
       <Sheet open={expanded} onOpenChange={setExpanded}>
         <SheetContent
-          side={isRtl ? "left" : "right"}
+          side="end"
           className="w-full gap-0 overflow-y-auto p-0 data-[side=left]:sm:max-w-[720px] data-[side=right]:sm:max-w-[720px]"
         >
           <SheetTitle className="sr-only">{name}</SheetTitle>
@@ -531,7 +527,7 @@ function PropertiesEditor({ namespace, entity }: { namespace: string; entity: En
       <div className="eyebrow mb-2 flex items-center gap-1.5">
         {t("graph.properties")} <span>{formatNumber(rows.length)}</span>
         {!readOnly && !adding ? (
-          <Button variant="ghost" size="xs" className="ms-auto" onClick={() => setAdding(true)}>
+          <Button variant="ghost" size="sm" className="ms-auto" onClick={() => setAdding(true)}>
             <PlusIcon /> {t("graph.addProperty")}
           </Button>
         ) : null}
@@ -554,7 +550,7 @@ function PropertiesEditor({ namespace, entity }: { namespace: string; entity: En
                 )}
               </dd>
               {!readOnly ? (
-                <Button variant="ghost" size="icon-xs" onClick={() => save({ [k]: null })} aria-label={t("graph.removeProperty", { key: k })}>
+                <Button variant="ghost" size="icon-sm" onClick={() => save({ [k]: null })} aria-label={t("graph.removeProperty", { key: k })}>
                   <Trash2Icon />
                 </Button>
               ) : null}

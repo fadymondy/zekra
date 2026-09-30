@@ -1,9 +1,9 @@
 "use client"
 
+import { Badge, Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@fadymondy/nasaq/web"
+
 import { ClockIcon, CpuIcon, FileTextIcon, LayersIcon, RouteIcon, TriangleAlertIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import type { ChatAnswer } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -45,7 +45,7 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
           <CollapsibleTrigger className="eyebrow w-full cursor-pointer px-3 py-2 text-start">
             {t(citations.length === 1 ? "chat.citedOne" : "chat.citedMany", { n: formatNumber(citations.length) })}
           </CollapsibleTrigger>
-          <CollapsibleContent>
+          <CollapsiblePanel>
             <ol className="divide-y divide-border border-t border-border">
               {citations.map((c, i) => (
                 <li
@@ -73,7 +73,7 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
                 </li>
               ))}
             </ol>
-          </CollapsibleContent>
+          </CollapsiblePanel>
         </Collapsible>
       ) : null}
     </div>

@@ -6,15 +6,12 @@ import { useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
 import { AppWindowIcon, ChevronDownIcon, PlugZapIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, Collapsible, CollapsiblePanel, CollapsibleTrigger, toast } from "@fadymondy/nasaq/web"
 
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
 import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { noRetryOn4xx } from "@/lib/queries"
@@ -110,7 +107,7 @@ export default function ConnectedAppsPage() {
   }
 
   const connectCta = (
-    <Button nativeButton={false} render={<Link href={`/${locale}/connect`} />}>
+    <Button variant="primary" nativeButton={false} render={<Link href={`/${locale}/connect`} />}>
       <PlugZapIcon />
       {t("apps.connectCta")}
     </Button>
@@ -140,13 +137,13 @@ export default function ConnectedAppsPage() {
             <ChevronDownIcon className={cn("size-4 transition-transform", !showRevoked && "-rotate-90 rtl:rotate-90")} />
             {t("apps.revokedSection", { n: revoked.length })}
           </CollapsibleTrigger>
-          <CollapsibleContent>
+          <CollapsiblePanel>
             <RowList label={t("apps.revokedSection", { n: revoked.length })}>
               {revoked.map((g) => (
                 <GrantRow key={g.id} g={g} />
               ))}
             </RowList>
-          </CollapsibleContent>
+          </CollapsiblePanel>
         </Collapsible>
       ) : null}
     </div>

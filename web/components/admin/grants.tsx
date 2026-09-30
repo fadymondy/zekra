@@ -1,10 +1,10 @@
 "use client"
 
+import { Button, Checkbox } from "@fadymondy/nasaq/web"
+
 import type { ReactNode } from "react"
 import { XIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslations } from "@/lib/i18n"
 
 // Read / write grant rows, shared by a brain's Permissions page (agents for one brain) and the

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon, PinIcon, PlusIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Badge, Button, toast } from "@fadymondy/nasaq/web"
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
@@ -12,8 +12,6 @@ import { BrainDescription, BrainMicro, BrainTitle } from "@/components/brains/br
 import { BrainGraphView, type FocusRequest } from "@/components/graph/graph-view"
 import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { useBrainActivity, useGraph, useSecretCount } from "@/lib/brains"
 import { ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
@@ -56,7 +54,7 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
             <Link href={`${base}/notes`} className="inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-4">
               {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
             </Link>
-            <Button size="sm" variant="outline" onClick={create} disabled={creating}>
+            <Button size="sm" variant="secondary" onClick={create} disabled={creating}>
               <PlusIcon />
               {t("notes.new")}
             </Button>
@@ -194,7 +192,7 @@ export default function BrainOverviewPage() {
             </div>
           ) : null}
         </div>
-        <Button nativeButton={false} render={<Link href={`${base}/chat`} />}>
+        <Button variant="primary" nativeButton={false} render={<Link href={`${base}/chat`} />}>
           <MessagesSquareIcon />
           {t("overview.ask.chat")}
         </Button>

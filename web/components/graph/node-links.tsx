@@ -6,14 +6,11 @@
 // inspector and the notes editor.
 import { useMemo, useState } from "react"
 import { ArrowLeftIcon, ArrowRightIcon, LockIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Button, Input, Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue, toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { normalizeType } from "@/components/graph/category-picker"
 import { EntityPicker } from "@/components/graph/entity-picker"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   entityKey,
   graphApi,
@@ -97,7 +94,7 @@ function RelationSelect({
         else if (s) onChange(s, false)
       }}
     >
-      <SelectTrigger size="sm" aria-label={t("graph.relation")} className={cn("h-7 text-xs", className)}>
+      <SelectTrigger aria-label={t("graph.relation")} className={cn("h-7 text-xs", className)}>
         <SelectValue placeholder={t("graph.relation")} />
       </SelectTrigger>
       <SelectContent>
@@ -176,7 +173,7 @@ export function NodeLinks({
       <div className="eyebrow mb-2 flex items-center gap-1.5">
         {t("graph.links")} <span>{formatNumber(edges.length)}</span>
         {!readOnly && !adding ? (
-          <Button variant="ghost" size="xs" className="ms-auto" onClick={() => setAdding(true)}>
+          <Button variant="ghost" size="sm" className="ms-auto" onClick={() => setAdding(true)}>
             <PlusIcon /> {t("graph.addLink")}
           </Button>
         ) : null}
@@ -264,7 +261,7 @@ export function NodeLinks({
                 {!locked && !readOnly ? (
                   <Button
                     variant="ghost"
-                    size="icon-xs"
+                    size="icon-sm"
                     onClick={() => remove(e)}
                     aria-label={t("graph.removeLink", { name: e.otherName })}
                   >
@@ -308,7 +305,7 @@ function AddLink({
         exclude={entityId}
         onPick={setOther}
         trigger={
-          <Button variant="outline" size="sm" className="w-full justify-start font-normal">
+          <Button variant="secondary" size="sm" className="w-full justify-start font-normal">
             <span dir="auto" className={cn("truncate", !other && "text-muted-foreground")}>
               {other ? other.name : t("graph.pickNode")}
             </span>
@@ -317,7 +314,7 @@ function AddLink({
       />
       <div className="flex items-center gap-1.5">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           className="shrink-0"
           onClick={() => setOutgoing((o) => !o)}
@@ -338,7 +335,7 @@ function AddLink({
         <Button variant="ghost" size="sm" onClick={onCancel}>
           <XIcon /> {t("common.cancel")}
         </Button>
-        <Button size="sm" disabled={!other} onClick={() => other && onAdd(other, relation.name, relation.created, outgoing)}>
+        <Button variant="primary" size="sm" disabled={!other} onClick={() => other && onAdd(other, relation.name, relation.created, outgoing)}>
           <PlusIcon /> {t("graph.addLink")}
         </Button>
       </div>

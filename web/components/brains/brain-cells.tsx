@@ -1,15 +1,13 @@
 "use client"
 
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton } from "@fadymondy/nasaq/web"
+
 import type { CSSProperties } from "react"
 import Link from "next/link"
 import { ArrowRightIcon, CircleCheckIcon, CircleHelpIcon, DownloadIcon, EllipsisIcon, RocketIcon, SettingsIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
 
 import { ToneTag } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
 import { brainApi, type BrainDetail, type NamespaceInfo } from "@/lib/api"
 import { resolveColor, type ProfileSummary } from "@/lib/brain-profile"
 import { useTranslations } from "@/lib/i18n"
@@ -78,7 +76,7 @@ function BrainMenu({ namespace, onDelete }: { namespace: string; onDelete: () =>
           {t("brains.menu.export")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={onDelete}>
+        <DropdownMenuItem variant="danger" onClick={onDelete}>
           <Trash2Icon />
           {t("brains.menu.delete")}
         </DropdownMenuItem>
@@ -97,7 +95,7 @@ function TypeTags({ detail }: { detail?: BrainDetail }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {top.map(([type, n]) => (
-        <Badge key={type} variant="secondary" className="font-normal">
+        <Badge key={type} variant="neutral" className="font-normal">
           {type}
           <span className="ms-1.5 text-muted-foreground">{formatNumber(n)}</span>
         </Badge>

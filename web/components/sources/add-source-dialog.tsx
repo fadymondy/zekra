@@ -2,15 +2,10 @@
 
 import { useState } from "react"
 import { CheckIcon } from "lucide-react"
-import { toast } from "@fadymondy/nasaq/web"
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldDescription, FieldLabel, Input, Textarea, toast } from "@fadymondy/nasaq/web"
 
 import { PushEndpoint } from "@/components/sources/push-endpoint"
 import { KINDS, KIND_BY } from "@/components/sources/kinds"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError, brainApi, type Datasource } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -87,7 +82,7 @@ export function AddSourceDialog({
             </DialogHeader>
             <PushEndpoint id={created.id} secret={created.config?.secret} />
             <DialogFooter>
-              <Button onClick={() => close(false)}>{t("common.done")}</Button>
+              <Button variant="primary" onClick={() => close(false)}>{t("common.done")}</Button>
             </DialogFooter>
           </>
         ) : (
@@ -185,10 +180,10 @@ export function AddSourceDialog({
             ) : null}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => close(false)}>
+              <Button type="button" variant="secondary" onClick={() => close(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" disabled={!canSubmit}>
+              <Button variant="primary" type="submit" disabled={!canSubmit}>
                 {busy ? t("sources.connecting") : t("sources.add")}
               </Button>
             </DialogFooter>

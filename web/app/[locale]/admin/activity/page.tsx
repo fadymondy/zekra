@@ -1,9 +1,9 @@
 "use client"
 
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState } from "react"
 
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DetailStrip, RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ActivityRow } from "@/components/admin/activity-row"

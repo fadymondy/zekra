@@ -1,5 +1,7 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import { PlusIcon } from "lucide-react"
@@ -8,7 +10,6 @@ import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
 import { AddSourceDialog } from "@/components/sources/add-source-dialog"
 import { SourceRow } from "@/components/sources/source-row"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/i18n"
 import { useDatasources } from "@/lib/sources"
 import { useDocumentTitle } from "@/lib/title"
@@ -27,7 +28,7 @@ export default function BrainSourcesPage() {
   const reload = () => void sources.mutate()
 
   const addButton = (
-    <Button onClick={() => setAdding(true)}>
+    <Button variant="primary" onClick={() => setAdding(true)}>
       <PlusIcon /> {t("sources.add")}
     </Button>
   )

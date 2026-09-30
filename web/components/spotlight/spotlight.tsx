@@ -1,70 +1,167 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { useEffect, useState } from "react"
-import { SearchIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import {
+  ActivityIcon,
+  BrainIcon,
+  CircleHelpIcon,
+  MessagesSquareIcon,
+  NetworkIcon,
+  PlugIcon,
+  PlugZapIcon,
+  PresentationIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+  StickyNoteIcon,
+  UserIcon,
+} from "lucide-react"
+import {
+  CommandPalette,
+  SearchTrigger,
+  useCommandPaletteOpen,
+  useRegisterCommandSource,
+  useRegisterCommands,
+  type Command,
+  type CommandSource,
+} from "@fadymondy/nasaq/web"
 
-import { Button } from "@/components/ui/button"
-import { Kbd, KbdGroup } from "@/components/ui/kbd"
+import { brainApi, type Recalled } from "@/lib/api"
+import { noteIcon } from "@/lib/notes/note-icon"
+import { loadRecent, type RecentNote } from "@/lib/notes/recent-notes"
 import { useTranslations } from "@/lib/i18n"
 
 /*
-The spotlight trigger, following fadymondy.com-v2's command-menu: the button
-and the ⌘K shortcut stay in the page bundle so they are instant, while the
-dialog (cmdk + the brain-search client) is fetched the first time someone opens
-it and then kept mounted, so reopening is immediate and a typed query survives
-a close. Hover/focus starts the fetch early.
+Spotlight: Nasaq's CommandPalette (Ctrl/Cmd+K, or the header trigger) fed by this app's data. It
+registers the destinations ("Go to"), the recently opened notes, and brain search through Zekra's
+hybrid recall engine (POST /api/brain/search), so results are semantic, not a title filter. Inside
+a brain the results are split into "This brain" and "All brains" (the other brains only), which
+replaces the old Tab scope toggle.
 */
-const SpotlightPanel = dynamic(() => import("./spotlight-panel").then((m) => m.SpotlightPanel), {
-  ssr: false,
-})
 
-const preload = () => void import("./spotlight-panel")
+const DEBOUNCE_MS = 220
 
 export function Spotlight({ namespace }: { namespace?: string }) {
   const { t } = useTranslations()
-  const [open, setOpen] = useState(false)
-  // Once opened, stays mounted.
-  const [wanted, setWanted] = useState(false)
-
-  const show = (next: boolean) => {
-    if (next) setWanted(true)
-    setOpen(next)
-  }
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== "k" || !(e.metaKey || e.ctrlKey)) return
-      // Leave find-in-page and the address bar alone.
-      if (e.target instanceof HTMLElement && e.target.isContentEditable) return
-      e.preventDefault()
-      setWanted(true)
-      setOpen((v) => !v)
-    }
-    document.addEventListener("keydown", onKeyDown)
-    return () => document.removeEventListener("keydown", onKeyDown)
-  }, [])
-
   return (
     <>
-      <Button
-        data-slot="spotlight-trigger"
-        variant="ghost"
-        size="sm"
-        aria-label={t("spotlight.label")}
-        className="gap-1.5 border-none px-1.5 text-muted-foreground select-none"
-        onClick={() => show(true)}
-        onPointerEnter={preload}
-        onFocus={preload}
-      >
-        <SearchIcon />
-        <span className="font-sans text-sm/4 font-medium sm:hidden">{t("spotlight.label")}</span>
-        <KbdGroup className="hidden gap-0.75 sm:flex">
-          <Kbd className="w-5 min-w-auto">⌘</Kbd>
-          <Kbd>K</Kbd>
-        </KbdGroup>
-      </Button>
-      {wanted ? <SpotlightPanel open={open} onOpenChange={show} namespace={namespace} /> : null}
+      <SearchTrigger variant="icon" label={t("spotlight.label")} />
+      <SpotlightCommands namespace={namespace} />
+      <CommandPalette
+        labels={{ title: t("spotlight.label") }}
+        placeholder={t("spotlight.placeholder")}
+        emptyLabel={t("spotlight.empty")}
+      />
     </>
   )
+}
+
+function SpotlightCommands({ namespace }: { namespace?: string }) {
+  const router = useRouter()
+  const { t, locale } = useTranslations()
+  const [open] = useCommandPaletteOpen()
+  const [recent, setRecent] = useState<RecentNote[]>([])
+
+  // Read on open rather than on mount: notes are opened behind the palette, and a stale
+  // recent list is worse than none.
+  useEffect(() => {
+    if (open) setRecent(loadRecent())
+  }, [open])
+
+  const commands = useMemo<Command[]>(() => {
+    const go = (href: string) => () => router.push(href)
+    const base: Command[] = [
+      { id: "zekra.go.brains", section: "navigation", label: t("nav.brains"), icon: BrainIcon, perform: go(`/${locale}/brains`) },
+      { id: "zekra.go.connect", section: "navigation", label: t("nav.connect"), icon: PlugZapIcon, perform: go(`/${locale}/connect`) },
+      { id: "zekra.go.account", section: "navigation", label: t("nav.account"), icon: UserIcon, perform: go(`/${locale}/account`) },
+      { id: "zekra.go.security", section: "navigation", label: t("nav.security"), icon: ShieldCheckIcon, perform: go(`/${locale}/account/security`) },
+    ]
+    const list: Command[] = []
+    if (namespace) {
+      const b = `/${locale}/b/${namespace}`
+      list.push(
+        { id: "zekra.go.overview", section: "navigation", label: t("nav.overview"), icon: NetworkIcon, perform: go(b) },
+        { id: "zekra.go.notes", section: "navigation", label: t("nav.notes"), icon: StickyNoteIcon, perform: go(`${b}/notes`) },
+        { id: "zekra.go.presentations", section: "navigation", label: t("nav.presentations"), icon: PresentationIcon, perform: go(`${b}/presentations`) },
+        { id: "zekra.go.chat", section: "navigation", label: t("nav.chat"), icon: MessagesSquareIcon, perform: go(`${b}/chat`) },
+        { id: "zekra.go.search", section: "navigation", label: t("nav.search"), icon: SearchIcon, perform: go(`${b}/search`) },
+        { id: "zekra.go.sources", section: "navigation", label: t("nav.sources"), icon: PlugIcon, perform: go(`${b}/sources`) },
+        { id: "zekra.go.gaps", section: "navigation", label: t("nav.gaps"), icon: CircleHelpIcon, perform: go(`${b}/gaps`) },
+        { id: "zekra.go.activity", section: "navigation", label: t("nav.activity"), icon: ActivityIcon, perform: go(`${b}/activity`) },
+      )
+    }
+    list.push(...base)
+    for (const r of recent) {
+      const { Icon } = noteIcon(r.category)
+      list.push({
+        id: `zekra.recent.${r.id}`,
+        section: "recent",
+        sectionLabel: t("spotlight.recent"),
+        sectionOrder: 0.5,
+        label: r.title || t("notes.untitled"),
+        hint: r.namespace,
+        icon: Icon,
+        perform: go(`/${locale}/b/${r.namespace}/notes?id=${encodeURIComponent(r.id)}`),
+      })
+    }
+    return list
+  }, [t, locale, namespace, recent, router])
+  useRegisterCommands(commands)
+
+  const toCommand = useMemo(
+    () => (hit: Recalled, section: string, label: string, order: number): Command => {
+      const ns = hit.namespace ?? namespace
+      // Memories carry their note id in source_ref as note:<id>#<chunk>.
+      const noteId = hit.sourceRef?.startsWith("note:") ? hit.sourceRef.slice(5).split("#")[0] : undefined
+      return {
+        id: `zekra.hit.${hit.id}`,
+        section,
+        sectionLabel: label,
+        sectionOrder: order,
+        label: hit.content.slice(0, 120),
+        hint: `${ns ?? ""} · ${hit.memoryType}`,
+        icon: StickyNoteIcon,
+        perform: () => {
+          if (noteId && ns) router.push(`/${locale}/b/${ns}/notes?note=${encodeURIComponent(noteId)}`)
+          else if (ns) router.push(`/${locale}/b/${ns}/search`)
+        },
+      }
+    },
+    [namespace, router, locale],
+  )
+
+  const source = useMemo<CommandSource>(
+    () => ({
+      id: "zekra.memories",
+      minQuery: 1,
+      debounce: DEBOUNCE_MS,
+      search: async (query, signal) => {
+        const scoped = namespace ? [namespace] : undefined
+        const run = async (namespaces?: string[]) => {
+          const res = await brainApi.search({ query, namespaces, limit: 8 })
+          return res.results ?? []
+        }
+        try {
+          if (!namespace) {
+            const all = await run()
+            if (signal.aborted) return []
+            return all.map((h) => toCommand(h, "memories", t("spotlight.memories"), 1))
+          }
+          const [mine, all] = await Promise.all([run(scoped), run()])
+          if (signal.aborted) return []
+          return [
+            ...mine.map((h) => toCommand(h, "memories-brain", t("spotlight.scopeBrain"), 1)),
+            ...all.filter((h) => h.namespace !== namespace).map((h) => toCommand(h, "memories-all", t("spotlight.scopeAll"), 2)),
+          ]
+        } catch {
+          // A failed search should not replace the action list with an error;
+          // the empty state covers it.
+          return []
+        }
+      },
+    }),
+    [namespace, t, toCommand],
+  )
+  useRegisterCommandSource(source)
+  return null
 }

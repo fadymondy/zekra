@@ -1,5 +1,7 @@
 "use client"
 
+import { ContextMenuItem, DropdownMenuItem } from "@fadymondy/nasaq/web"
+
 import { useCallback, useState } from "react"
 import {
   FileCodeIcon,
@@ -10,8 +12,6 @@ import {
   HashIcon,
 } from "lucide-react"
 
-import { ContextMenuItem } from "@/components/ui/context-menu"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { noteToHtml } from "@/lib/notes/export/html"
 import { markdownToTxt } from "@/lib/notes/export/txt"
 

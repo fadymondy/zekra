@@ -1,8 +1,9 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
 import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ActivityRow } from "@/components/admin/activity-row"

@@ -1,11 +1,12 @@
 "use client"
 
+import { Input } from "@fadymondy/nasaq/web"
+
 // Brain colour picker: the palette as swatches plus a custom hex (text + native colour input).
 // The value is a palette key ("teal") or "#rrggbb"; "" means the brain's default colour.
 import { useEffect, useState } from "react"
 import { CheckIcon } from "lucide-react"
 
-import { Input } from "@/components/ui/input"
 import { HEX_RE, PALETTE, resolveColor, type PaletteColor } from "@/lib/brain-profile"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"

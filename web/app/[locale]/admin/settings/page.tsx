@@ -1,8 +1,9 @@
 "use client"
 
+import { Badge } from "@fadymondy/nasaq/web"
+
 import useSWR from "swr"
 
-import { Badge } from "@/components/ui/badge"
 import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { ErrorState, LoadingRows } from "@/components/states"
@@ -48,7 +49,7 @@ export default function AdminSettingsPage() {
             {
               label: t("admin.settings.status"),
               value: (
-                <Badge variant={ping.data.status === "ok" ? "secondary" : "destructive"}>
+                <Badge variant={ping.data.status === "ok" ? "success" : "danger"}>
                   {ping.data.status === "ok" ? t("admin.settings.healthy") : <Ltr>{ping.data.status}</Ltr>}
                 </Badge>
               ),
@@ -106,7 +107,7 @@ function MethodRow({ label, on, ltr }: { label: string; on: boolean; ltr?: boole
       <span className="flex-1 text-foreground">
         {ltr ? <Ltr>{label}</Ltr> : label}
       </span>
-      <Badge variant={on ? "secondary" : "outline"}>{on ? t("admin.settings.enabled") : t("admin.settings.disabled")}</Badge>
+      <Badge variant={on ? "success" : "outline"}>{on ? t("admin.settings.enabled") : t("admin.settings.disabled")}</Badge>
     </li>
   )
 }
