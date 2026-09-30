@@ -7,7 +7,7 @@ import { useEffect, useState, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSWRConfig } from "swr"
 
-import { CodeInput, ErrorLine, Notice, ProviderButtons, Submit, useLoginMethods } from "@/components/auth/parts"
+import { CircleXOButton, CodeInput, ErrorLine, Notice, OrRule, ProviderButtons, Submit, useCircleXO, useLoginMethods } from "@/components/auth/parts"
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
 import { auth, AuthError, authMessage, safeNext } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -15,6 +15,8 @@ import { useDocumentTitle } from "@/lib/title"
 
 // What the OAuth callbacks may report as /login?error=<provider>_<reason>.
 const OAUTH_REASONS = ["cancelled", "closed", "state", "email"]
+// What the CircleXO callback may report, as /login?error=circlexo_<code> or ?circlexo_error=<code>.
+const CIRCLEXO_CODES = ["failed", "email_unverified", "account_conflict", "suspended", "no_email", "not_member", "unavailable"]
 
 /**
  * Sign in, ported from fadymondy.com-v2's LoginForm: password or an emailed 6-digit code, then the
@@ -26,6 +28,7 @@ export function LoginForm() {
   const params = useSearchParams()
   const { mutate } = useSWRConfig()
   const methods = useLoginMethods()
+  const circlexo = useCircleXO()
   const next = safeNext(params.get("next"))
   const home = `/${locale}/brains`
 
@@ -49,14 +52,16 @@ export function LoginForm() {
 
   // The provider callbacks come back as ?error=<provider>[_<reason>] when they could not finish.
   const oauthError = params.get("error")
+  const circlexoError = params.get("circlexo_error") ?? (oauthError?.startsWith("circlexo_") ? oauthError.slice("circlexo_".length) : null)
   useEffect(() => {
+    if (circlexoError) return setError(t(`auth.circlexo.${CIRCLEXO_CODES.includes(circlexoError) ? circlexoError : "failed"}`))
     if (!oauthError) return
     const m = /^(google|github|apple)(?:_(\w+))?$/.exec(oauthError)
     if (!m) return setError(t("auth.oauth.state"))
     const provider = { google: "Google", github: "GitHub", apple: "Apple" }[m[1] as "google"]
     const reason = m[2] && OAUTH_REASONS.includes(m[2]) ? m[2] : "failed"
     setError(t(`auth.oauth.${reason}`, { provider }))
-  }, [oauthError, t])
+  }, [oauthError, circlexoError, t])
 
   async function finish() {
     await mutate("/api/auth/me")
@@ -257,6 +262,13 @@ export function LoginForm() {
           </form>
 
           <ProviderButtons methods={methods} returnTo={next ?? home} />
+
+          {circlexo ? (
+            <div className="mt-6 space-y-3">
+              {Object.values(methods?.providers ?? {}).some(Boolean) ? null : <OrRule />}
+              <CircleXOButton loginUrl={circlexo.loginUrl} returnTo={next} />
+            </div>
+          ) : null}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {t("auth.noAccount")}{" "}
