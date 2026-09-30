@@ -33,6 +33,8 @@ const nextConfig = {
       { source: "/events", destination: `${API_ORIGIN}/events` },
       { source: "/install.sh", destination: `${API_ORIGIN}/install.sh` },
       { source: "/upgrade.sh", destination: `${API_ORIGIN}/upgrade.sh` },
+      // OAuth discovery for MCP clients (RFC 8414 / RFC 9728) lives on the API.
+      { source: "/.well-known/:path*", destination: `${API_ORIGIN}/.well-known/:path*` },
     ];
   },
 
