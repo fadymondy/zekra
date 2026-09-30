@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, Input, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, Textarea } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState, type ReactNode } from "react"
 import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, CopyIcon, PlusIcon, SearchIcon, Trash2Icon, XIcon } from "lucide-react"
 import { cn } from "cn"
@@ -8,13 +10,6 @@ import { ICON_NAMES } from "@/lib/presentations/icon-names"
 import { blankLike, freshId, getIn, type Path } from "@/lib/presentations/edit-path"
 import { move } from "@/lib/presentations/templates"
 import type { SceneType } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import { PresIcon } from "../../icon"
 
 /*
@@ -118,7 +113,7 @@ function ErrorLine({ ctx, path }: { ctx: FormCtx; path: Path }) {
 function Row({ ctx, path, label, hint, children, inline }: { ctx: FormCtx; path: Path; label: string; hint?: string; children: ReactNode; inline?: boolean }) {
   const key = path.join(".")
   return (
-    <div data-field-path={key} className={cn("grid min-w-0 grid-cols-1 gap-1 rounded-md", ctx.active === key && "bg-brand/5 ring-2 ring-brand/40 ring-offset-2 ring-offset-background", inline && "grid-cols-[minmax(0,1fr)_auto] items-center")}>
+    <div data-field-path={key} className={cn("grid min-w-0 grid-cols-1 gap-1 rounded-md", ctx.active === key && "bg-nq-brand/5 ring-2 ring-nq-brand/40 ring-offset-2 ring-offset-background", inline && "grid-cols-[minmax(0,1fr)_auto] items-center")}>
       <label className="text-xs font-medium text-muted-foreground" title={hint}>
         {label}
       </label>
@@ -144,7 +139,7 @@ export function IconPicker({ value, onChange, t }: { value?: string; onChange: (
       <div className="flex items-center gap-1">
         <PopoverTrigger
           render={
-            <Button variant="outline" size="sm" className="min-w-0 flex-1 justify-start gap-2 font-normal" data-testid="icon-picker">
+            <Button variant="secondary" size="sm" className="min-w-0 flex-1 justify-start gap-2 font-normal" data-testid="icon-picker">
               {value ? <PresIcon name={value} className="size-4 shrink-0" /> : <SearchIcon className="size-4 shrink-0 text-muted-foreground" />}
               <span className="truncate" dir="ltr">
                 {value || t("presentations.editor.pickIcon")}
@@ -172,7 +167,7 @@ export function IconPicker({ value, onChange, t }: { value?: string; onChange: (
                 onChange(n)
                 setOpen(false)
               }}
-              className={cn("flex aspect-square items-center justify-center rounded-md border border-transparent hover:bg-muted", n === value && "border-brand bg-brand/10 text-brand")}
+              className={cn("flex aspect-square items-center justify-center rounded-md border border-transparent hover:bg-muted", n === value && "border-nq-brand bg-nq-brand/10 text-nq-brand")}
             >
               <PresIcon name={n} className="size-4" />
             </button>
@@ -191,7 +186,7 @@ function Choice({ value, options, onChange, t, allowEmpty, labels }: { value: st
   const text = (v: string) => (v === NONE ? t("presentations.editor.default") : (labels?.[v] ?? optionLabel(t, v)))
   return (
     <Select value={value || (allowEmpty ? NONE : "")} onValueChange={(v) => onChange(v === NONE || v == null ? undefined : String(v))}>
-      <SelectTrigger className="w-full" size="sm">
+      <SelectTrigger className="w-full">
         <SelectValue>{(v) => (v ? text(String(v)) : "—")}</SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -335,18 +330,18 @@ function itemSummary(item: unknown, t: T): string {
 function ListTools({ t, i, n, min, onMove, onDup, onRemove, canAdd }: { t: T; i: number; n: number; min: number; onMove: (to: number) => void; onDup?: () => void; onRemove: () => void; canAdd: boolean }) {
   return (
     <span className="flex shrink-0 items-center">
-      <Button variant="ghost" size="icon-xs" disabled={i === 0} onClick={() => onMove(i - 1)} aria-label={t("presentations.moveUp")}>
+      <Button variant="ghost" size="icon-sm" disabled={i === 0} onClick={() => onMove(i - 1)} aria-label={t("presentations.moveUp")}>
         <ArrowUpIcon />
       </Button>
-      <Button variant="ghost" size="icon-xs" disabled={i === n - 1} onClick={() => onMove(i + 1)} aria-label={t("presentations.moveDown")}>
+      <Button variant="ghost" size="icon-sm" disabled={i === n - 1} onClick={() => onMove(i + 1)} aria-label={t("presentations.moveDown")}>
         <ArrowDownIcon />
       </Button>
       {onDup ? (
-        <Button variant="ghost" size="icon-xs" disabled={!canAdd} onClick={onDup} aria-label={t("presentations.editor.duplicate")}>
+        <Button variant="ghost" size="icon-sm" disabled={!canAdd} onClick={onDup} aria-label={t("presentations.editor.duplicate")}>
           <CopyIcon />
         </Button>
       ) : null}
-      <Button variant="ghost" size="icon-xs" disabled={n <= min} onClick={onRemove} aria-label={t("presentations.remove")}>
+      <Button variant="ghost" size="icon-sm" disabled={n <= min} onClick={onRemove} aria-label={t("presentations.remove")}>
         <Trash2Icon />
       </Button>
     </span>
@@ -395,7 +390,7 @@ function Grid({ ctx, path, columns, rows, cellPath, setColumns, setRows, blankRo
                 <th key={j} className="border-b p-1 font-normal">
                   <div className="flex items-center gap-0.5">
                     <Input dir={ctx.dir} className="h-7 min-w-20 px-1.5 text-xs font-semibold" value={c} aria-label={`${fieldLabel(t, "columns")} ${j + 1}`} onChange={(e) => setColumns(columns.map((x, k) => (k === j ? e.target.value : x)))} />
-                    <Button variant="ghost" size="icon-xs" disabled={columns.length <= 1} onClick={() => setColumns(columns.filter((_, k) => k !== j), j)} aria-label={t("presentations.editor.removeColumn")}>
+                    <Button variant="ghost" size="icon-sm" disabled={columns.length <= 1} onClick={() => setColumns(columns.filter((_, k) => k !== j), j)} aria-label={t("presentations.editor.removeColumn")}>
                       <XIcon />
                     </Button>
                   </div>
@@ -424,11 +419,11 @@ function Grid({ ctx, path, columns, rows, cellPath, setColumns, setRows, blankRo
         </table>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" size="xs" onClick={() => setRows([...rows, blankRow()])}>
+        <Button variant="secondary" size="sm" onClick={() => setRows([...rows, blankRow()])}>
           <PlusIcon />
           {t("presentations.editor.addRow")}
         </Button>
-        <Button variant="outline" size="xs" disabled={columns.length >= 8} onClick={() => setColumns([...columns, ""])}>
+        <Button variant="secondary" size="sm" disabled={columns.length >= 8} onClick={() => setColumns([...columns, ""])}>
           <PlusIcon />
           {t("presentations.editor.addColumn")}
         </Button>
@@ -522,11 +517,11 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
           ))}
         </div>
         <div className="flex gap-1">
-          <Button variant="outline" size="xs" disabled={!canAdd} onClick={() => setList([...list, 0])}>
+          <Button variant="secondary" size="sm" disabled={!canAdd} onClick={() => setList([...list, 0])}>
             <PlusIcon />
             {t("presentations.add")}
           </Button>
-          <Button variant="outline" size="xs" disabled={list.length <= min} onClick={() => setList(list.slice(0, -1))}>
+          <Button variant="secondary" size="sm" disabled={list.length <= min} onClick={() => setList(list.slice(0, -1))}>
             <Trash2Icon />
             {t("presentations.remove")}
           </Button>
@@ -548,13 +543,13 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
           const ip = [...path, i]
           return (
             <div key={i} className="grid gap-1" data-field-path={ip.join(".")}>
-              <div className={cn("flex items-center gap-1 rounded-md", (ctx.active === ip.join(".") || ctx.active === `${ip.join(".")}.text`) && "ring-2 ring-brand/40")}>
+              <div className={cn("flex items-center gap-1 rounded-md", (ctx.active === ip.join(".") || ctx.active === `${ip.join(".")}.text`) && "ring-2 ring-nq-brand/40")}>
                 {bulletLike ? (
                   <Popover>
                     <PopoverTrigger
                       render={
-                        <Button variant="outline" size="icon-sm" aria-label={t("presentations.field.icon")}>
-                          {icon ? <PresIcon name={icon} className="size-4" /> : <span className="size-1.5 rounded-full bg-brand" />}
+                        <Button variant="secondary" size="icon-sm" aria-label={t("presentations.field.icon")}>
+                          {icon ? <PresIcon name={icon} className="size-4" /> : <span className="size-1.5 rounded-full bg-nq-brand" />}
                         </Button>
                       }
                     />
@@ -571,7 +566,7 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
             </div>
           )
         })}
-        <Button variant="outline" size="xs" className="justify-self-start" disabled={!canAdd} onClick={() => setList([...list, ""])}>
+        <Button variant="secondary" size="sm" className="justify-self-start" disabled={!canAdd} onClick={() => setList([...list, ""])}>
           <PlusIcon />
           {t("presentations.add")}
         </Button>
@@ -605,7 +600,7 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
             <div className="flex items-center gap-1 p-1">
               <button type="button" className="flex min-w-0 flex-1 items-center gap-1.5 px-1 text-start text-xs" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
                 <ChevronDownIcon className={cn("size-3.5 shrink-0 transition-transform", !isOpen && "-rotate-90 rtl:rotate-90")} />
-                {types.length ? <Badge variant="secondary">{optionLabel(t, String((item as Obj)?.type))}</Badge> : <span className="text-muted-foreground tabular-nums">{i + 1}</span>}
+                {types.length ? <Badge variant="neutral">{optionLabel(t, String((item as Obj)?.type))}</Badge> : <span className="text-muted-foreground tabular-nums">{i + 1}</span>}
                 <span className="truncate" dir="auto">
                   {itemSummary(item, t)}
                 </span>
@@ -639,7 +634,7 @@ function ListField({ ctx, schema, value, rel, name }: { ctx: FormCtx; schema: Sc
             <Choice t={t} value={addType || types[0]} options={types} allowEmpty={false} onChange={(v) => setAddType(v ?? types[0])} />
           </div>
         ) : null}
-        <Button variant="outline" size="xs" disabled={!canAdd} onClick={add} data-testid={`add-${name}`}>
+        <Button variant="secondary" size="sm" disabled={!canAdd} onClick={add} data-testid={`add-${name}`}>
           <PlusIcon />
           {t("presentations.add")}
         </Button>

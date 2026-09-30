@@ -1,10 +1,11 @@
 "use client"
 
+import { Skeleton } from "@fadymondy/nasaq/web"
+
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { cn } from "cn"
 
 import { aspectRatio, codeSceneDocument, codeSceneFrameProps, isReadyMessage } from "@/lib/presentations/code-scene"
-import { Skeleton } from "@/components/ui/skeleton"
 
 /*
 A "code" scene (FM-346): model-written HTML/JS in a sandboxed srcdoc iframe.

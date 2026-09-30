@@ -52,7 +52,7 @@ export function NoteMarkdown({ text, notes }: { text: string; notes?: NoteRef[] 
   if (!mounted) {
     // Pre-mount fallback: the source, wrapped, never raw HTML.
     return (
-      <div dir="auto" className={`${PROSE} whitespace-pre-wrap font-mono text-xs text-grid-muted`}>
+      <div dir="auto" className={`${PROSE} whitespace-pre-wrap font-mono text-xs text-muted-foreground`}>
         {text}
       </div>
     )
@@ -92,14 +92,14 @@ Deliberate choices:
     widening the page.
 */
 const PROSE = [
-  "space-y-3 text-sm leading-relaxed text-grid-fg",
-  "[&_a]:text-grid-action [&_a]:underline [&_a]:underline-offset-4",
-  "[&_h1]:text-xl [&_h1]:font-medium [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:border-b [&_h1]:border-line [&_h1]:pb-2",
-  "[&_h2]:text-lg [&_h2]:font-medium [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:border-b [&_h2]:border-line [&_h2]:pb-1.5",
-  "[&_h3]:font-medium [&_h3]:mt-5 [&_h4]:font-medium [&_h5]:font-medium [&_h6]:font-medium [&_h6]:text-grid-muted",
-  "[&_blockquote]:border-s-2 [&_blockquote]:border-line [&_blockquote]:ps-3 [&_blockquote]:text-grid-muted",
-  "[&_code]:bg-grid-soft [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_code]:rounded-sm",
-  "[&_pre]:overflow-x-auto [&_pre]:border [&_pre]:border-line [&_pre]:bg-grid-card [&_pre]:p-3 [&_pre]:rounded-md",
+  "space-y-3 text-sm leading-relaxed text-foreground",
+  "[&_a]:text-nq-action [&_a]:underline [&_a]:underline-offset-4",
+  "[&_h1]:text-xl [&_h1]:font-medium [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:border-b [&_h1]:border-border [&_h1]:pb-2",
+  "[&_h2]:text-lg [&_h2]:font-medium [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-1.5",
+  "[&_h3]:font-medium [&_h3]:mt-5 [&_h4]:font-medium [&_h5]:font-medium [&_h6]:font-medium [&_h6]:text-muted-foreground",
+  "[&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-3 [&_blockquote]:text-muted-foreground",
+  "[&_code]:bg-nq-surface-soft [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_code]:rounded-sm",
+  "[&_pre]:overflow-x-auto [&_pre]:border [&_pre]:border-border [&_pre]:bg-card [&_pre]:p-3 [&_pre]:rounded-md",
   "[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-xs",
   "[&_ol]:list-decimal [&_ol]:list-outside [&_ol]:ps-5",
   "[&_ul]:list-disc [&_ul]:list-outside [&_ul]:ps-5",
@@ -107,14 +107,14 @@ const PROSE = [
   // GFM task lists: the checkbox is rendered by marked as a disabled input.
   "[&_li:has(>input[type=checkbox])]:list-none [&_li:has(>input[type=checkbox])]:-ms-5",
   "[&_input[type=checkbox]]:me-1.5 [&_input[type=checkbox]]:align-middle",
-  "[&_hr]:border-line [&_hr]:my-6",
+  "[&_hr]:border-border [&_hr]:my-6",
   "[&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:block [&_table]:overflow-x-auto",
-  "[&_th]:border [&_th]:border-line [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_th]:bg-grid-soft",
-  "[&_td]:border [&_td]:border-line [&_td]:px-2 [&_td]:py-1",
+  "[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_th]:bg-nq-surface-soft",
+  "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1",
   "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
-  "[&_details]:border [&_details]:border-line [&_details]:rounded-md [&_details]:p-2",
+  "[&_details]:border [&_details]:border-border [&_details]:rounded-md [&_details]:p-2",
   "[&_summary]:cursor-pointer [&_summary]:font-medium",
-  "[&_kbd]:border [&_kbd]:border-line [&_kbd]:bg-grid-soft [&_kbd]:px-1.5 [&_kbd]:rounded-sm [&_kbd]:font-mono [&_kbd]:text-xs",
+  "[&_kbd]:border [&_kbd]:border-border [&_kbd]:bg-nq-surface-soft [&_kbd]:px-1.5 [&_kbd]:rounded-sm [&_kbd]:font-mono [&_kbd]:text-xs",
   // Codes and identifiers stay LTR inside RTL prose.
   "[&_code]:[unicode-bidi:plaintext] [&_pre]:[direction:ltr]",
 ].join(" ")

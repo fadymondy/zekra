@@ -1,18 +1,9 @@
 "use client"
 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Button } from "@fadymondy/nasaq/web"
+
 import { useState, type ReactNode } from "react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/i18n"
 
 export function ConfirmButton({
@@ -34,7 +25,7 @@ export function ConfirmButton({
 
   return (
     <>
-      <Button variant="ghost" size="sm" className="text-grid-danger-text" onClick={() => setOpen(true)}>
+      <Button variant="ghost" size="sm" className="text-nq-danger-text" onClick={() => setOpen(true)}>
         {label}
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -46,7 +37,7 @@ export function ConfirmButton({
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              variant="danger"
               disabled={busy}
               onClick={async () => {
                 setBusy(true)

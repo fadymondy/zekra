@@ -477,7 +477,7 @@ test("RTL report bars draw the first series on the right, like the legend", () =
   const tsx = readFileSync(join(webRoot, "components", "presentations", "report-chart.tsx"), "utf8")
   assert.ok(tsx.includes("drawKeys = seriesDrawOrder(keys, rtl, block.chart)"))
   assert.match(tsx, /\{drawKeys\.map\(\(k\) => \(\s*<Bar/)
-  assert.ok(tsx.includes("payload={bySlot(payload)}"), "the legend is ordered by series slot")
+  assert.ok(tsx.includes("<ChartLegendContent config={config} />"), "the legend is ordered by series slot (the config's key order)")
   assert.ok(tsx.includes("<div dir={dir} data-legend-dir"), "the legend follows the reading direction")
 })
 

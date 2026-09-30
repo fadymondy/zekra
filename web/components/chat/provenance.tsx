@@ -1,9 +1,9 @@
 "use client"
 
+import { Badge, Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@fadymondy/nasaq/web"
+
 import { ClockIcon, CpuIcon, FileTextIcon, LayersIcon, RouteIcon, TriangleAlertIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import type { ChatAnswer } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -16,7 +16,7 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
   return (
     <div className="mt-4 space-y-3">
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="grid-micro inline-flex items-center gap-1.5">
+        <span className="eyebrow inline-flex items-center gap-1.5">
           <RouteIcon className="size-3" /> {t("chat.tracedFrom")}
         </span>
         <Badge variant="outline" className="gap-1">
@@ -33,28 +33,28 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
           </Badge>
         ) : null}
         {fp.grounded === false ? (
-          <Badge variant="outline" className="gap-1 text-grid-warn">
+          <Badge variant="outline" className="gap-1 text-nq-warning">
             <TriangleAlertIcon className="size-3" /> {t("chat.ungrounded")}
           </Badge>
         ) : fp.grounded ? (
-          <Badge variant="outline" className="gap-1 text-grid-ok">{t("chat.grounded")}</Badge>
+          <Badge variant="outline" className="gap-1 text-nq-success">{t("chat.grounded")}</Badge>
         ) : null}
       </div>
       {citations.length > 0 ? (
-        <Collapsible defaultOpen className="border border-line">
-          <CollapsibleTrigger className="grid-micro w-full cursor-pointer px-3 py-2 text-start">
+        <Collapsible defaultOpen className="border border-border">
+          <CollapsibleTrigger className="eyebrow w-full cursor-pointer px-3 py-2 text-start">
             {t(citations.length === 1 ? "chat.citedOne" : "chat.citedMany", { n: formatNumber(citations.length) })}
           </CollapsibleTrigger>
-          <CollapsibleContent>
-            <ol className="divide-y divide-line border-t border-line">
+          <CollapsiblePanel>
+            <ol className="divide-y divide-border border-t border-border">
               {citations.map((c, i) => (
                 <li
                   key={`${c.id}-${i}`}
                   id={`${idPrefix}-cite-${i + 1}`}
-                  className={cn("p-3 text-xs transition-colors", focusCite === i + 1 && "border-s-2 border-s-grid-action bg-grid-soft")}
+                  className={cn("p-3 text-xs transition-colors", focusCite === i + 1 && "border-s-2 border-s-nq-action bg-nq-surface-soft")}
                 >
-                  <div className="mb-1.5 flex items-center gap-2 text-grid-muted">
-                    <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center bg-grid-soft px-1 font-mono text-[12px] leading-none text-grid-action">{i + 1}</span>
+                  <div className="mb-1.5 flex items-center gap-2 text-muted-foreground">
+                    <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center bg-nq-surface-soft px-1 font-mono text-[12px] leading-none text-nq-action">{i + 1}</span>
                     <FileTextIcon className="size-3 shrink-0" />
                     <span dir="ltr" className="font-mono">
                       {c.network}·{c.memoryType}
@@ -67,13 +67,13 @@ export function Provenance({ answer, focusCite, idPrefix }: { answer: ChatAnswer
                     ) : null}
                     <span className="ms-auto shrink-0 font-mono">{t("chat.score", { n: formatNumber(c.score, { maximumFractionDigits: 3, minimumFractionDigits: 3 }) })}</span>
                   </div>
-                  <div dir="auto" className="whitespace-pre-wrap text-grid-fg">
+                  <div dir="auto" className="whitespace-pre-wrap text-foreground">
                     {c.content}
                   </div>
                 </li>
               ))}
             </ol>
-          </CollapsibleContent>
+          </CollapsiblePanel>
         </Collapsible>
       ) : null}
     </div>

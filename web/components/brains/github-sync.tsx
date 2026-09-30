@@ -3,14 +3,10 @@
 import { useState, type FormEvent } from "react"
 import useSWR from "swr"
 import { GithubIcon, Loader2Icon, SaveIcon, UploadIcon } from "lucide-react"
-import { toast } from "sonner"
+import { Button, Field, FieldDescription, FieldLabel, Input, Switch, toast } from "@fadymondy/nasaq/web"
 
 import { toastError } from "@/components/admin/toast-error"
 import { Ltr } from "@/components/copy-field"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { noRetryOn4xx } from "@/lib/queries"
@@ -57,10 +53,10 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
   const [saving, setSaving] = useState(false)
   const [pushing, setPushing] = useState(false)
 
-  if (isLoading) return <p className="text-sm text-grid-muted">{t("common.loading")}</p>
+  if (isLoading) return <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
   // A 403 here means "not an admin of this brain", which is a normal state for
   // an editor rather than an error worth a red panel.
-  if (error) return <p className="text-sm text-grid-muted">{t("github.noAccess")}</p>
+  if (error) return <p className="text-sm text-muted-foreground">{t("github.noAccess")}</p>
 
   const cfg = data?.config
   // Uncontrolled until touched, so a value arriving from the server does not
@@ -110,7 +106,7 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
 
   return (
     <form onSubmit={save}>
-      <FieldGroup>
+      <div className="grid gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="gh-owner">{t("github.owner")}</FieldLabel>
@@ -166,26 +162,26 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
           <FieldDescription>{data?.hasToken ? t("github.tokenReplace") : t("github.tokenHint")}</FieldDescription>
         </Field>
 
-        <Field orientation="horizontal">
+        <Field className="flex flex-row items-start gap-3">
           <Switch id="gh-enabled" checked={value.enabled} onCheckedChange={(v) => setEnabled(v)} disabled={!canEdit} />
           <FieldLabel htmlFor="gh-enabled">{t("github.enabled")}</FieldLabel>
         </Field>
 
         {cfg?.lastPushAt ? (
-          <p className="text-sm text-grid-muted">
+          <p className="text-sm text-muted-foreground">
             {t("github.lastPush", { when: new Date(cfg.lastPushAt).toLocaleString() })}{" "}
             <Ltr className="font-mono text-xs">{cfg.lastCommit?.slice(0, 7)}</Ltr>
           </p>
         ) : null}
 
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={!canEdit || saving}>
+          <Button variant="primary" type="submit" disabled={!canEdit || saving}>
             {saving ? <Loader2Icon className="animate-spin" /> : <SaveIcon />}
             {t("common.save")}
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             // Pushing an unsaved form would publish the STORED config, not what
             // is on screen — so it is gated on a saved, enabled, tokened setup.
             disabled={!canEdit || pushing || !configured || !cfg?.enabled || !data?.hasToken}
@@ -207,7 +203,7 @@ export function GitHubSync({ namespace, canEdit }: { namespace: string; canEdit:
             </Button>
           ) : null}
         </div>
-      </FieldGroup>
+      </div>
     </form>
   )
 }

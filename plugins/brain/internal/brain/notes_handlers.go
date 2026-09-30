@@ -539,7 +539,7 @@ func (s *Service) CreateBrain(w http.ResponseWriter, r *http.Request) {
 	var err error
 	role := "owner"
 	if sessionUser {
-		err = s.Store.ClaimBrain(r.Context(), in.Namespace, c.userID)
+		err = s.claimBrain(r.Context(), in.Namespace, c.userID)
 	} else {
 		// An admin token has no user to own the brain: the name is reserved by
 		// nothing, and the brain materializes on its first write.
@@ -552,6 +552,10 @@ func (s *Service) CreateBrain(w http.ResponseWriter, r *http.Request) {
 		return
 	case errors.Is(err, ErrInvalidInput):
 		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "a brain name is 1-63 of a-z 0-9 _ . - and starts with a letter or digit"))
+		return
+	case refusal(err) != nil:
+		ref := refusal(err)
+		writeJSON(w, ref.Status, apiErr("plan_limit", ref.Message))
 		return
 	case err != nil:
 		writeErr(w, err)

@@ -14,7 +14,7 @@ import {
   AlertTriangleIcon, ArchiveIcon, ArchiveRestoreIcon, ArrowLeftIcon, Code2Icon, EllipsisIcon, HashIcon, HistoryIcon, NetworkIcon,
   PinIcon, PinOffIcon, PlusIcon, Trash2Icon, XIcon,
 } from "lucide-react"
-import { toast } from "sonner"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, Popover, PopoverContent, PopoverTrigger, Sheet, SheetContent, SheetHeader, SheetTitle, Textarea, toast } from "@fadymondy/nasaq/web"
 
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { EntityResults } from "@/components/graph/entity-picker"
@@ -24,17 +24,6 @@ import { NoteTile } from "@/components/notes/note-list-row"
 import { NoteExportItems } from "@/components/notes/note-export"
 import { NoteEditorWysiwyg } from "@/components/notes/note-editor-wysiwyg"
 import { TagCombobox } from "@/components/notes/tag-combobox"
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError } from "@/lib/api"
 import { refreshGraph, type Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
@@ -274,23 +263,23 @@ export function NoteEditor({
   return (
     <div className="flex min-w-0 flex-col">
       {conflict ? (
-        <div role="alert" className={cn("flex flex-wrap items-center gap-3 border-b border-line bg-amber-500/10 py-3 text-sm", px)}>
+        <div role="alert" className={cn("flex flex-wrap items-center gap-3 border-b border-border bg-amber-500/10 py-3 text-sm", px)}>
           <AlertTriangleIcon className="size-4 shrink-0 text-amber-500" />
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-grid-fg">{t("notes.conflictTitle")}</p>
-            <p className="text-grid-muted">{t("notes.conflictBody")}</p>
+            <p className="font-medium text-foreground">{t("notes.conflictTitle")}</p>
+            <p className="text-muted-foreground">{t("notes.conflictBody")}</p>
           </div>
-          <Button size="sm" onClick={keepMine}>
+          <Button variant="primary" size="sm" onClick={keepMine}>
             {t("notes.keepMine")}
           </Button>
-          <Button size="sm" variant="outline" onClick={takeTheirs}>
+          <Button size="sm" variant="secondary" onClick={takeTheirs}>
             {t("notes.useTheirs")}
           </Button>
         </div>
       ) : null}
 
       {!server.indexed && server.indexError ? (
-        <p className={cn("flex items-start gap-2 border-b border-line py-2 text-xs text-grid-warn", px)}>
+        <p className={cn("flex items-start gap-2 border-b border-border py-2 text-xs text-nq-warning", px)}>
           <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" />
           {t("notes.indexFailed", { error: server.indexError })}
         </p>
@@ -311,7 +300,7 @@ export function NoteEditor({
                   type="button"
                   aria-label={t("notes.changeIcon")}
                   title={t("notes.changeIcon")}
-                  className="mt-0.5 shrink-0 rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-grid-action/50"
+                  className="mt-0.5 shrink-0 rounded-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-nq-action/50"
                 />
               }
             >
@@ -350,7 +339,7 @@ export function NoteEditor({
               placeholder={t("notes.titlePlaceholder")}
               aria-label={t("notes.titlePlaceholder")}
               className={cn(
-                "field-sizing-content w-full resize-none bg-transparent leading-tight font-bold tracking-[-0.01em] text-grid-fg outline-none placeholder:text-grid-muted/50 rtl:tracking-normal",
+                "field-sizing-content w-full resize-none bg-transparent leading-tight font-bold tracking-[-0.01em] text-foreground outline-none placeholder:text-muted-foreground/50 rtl:tracking-normal",
                 embedded ? "text-xl" : "text-[26px]",
               )}
             />
@@ -373,7 +362,7 @@ export function NoteEditor({
               }}
               placeholder={t("notes.descriptionPlaceholder")}
               aria-label={t("notes.descriptionLabel")}
-              className="field-sizing-content max-h-[3lh] w-full resize-none overflow-y-auto bg-transparent text-[15px] leading-snug text-grid-muted outline-none placeholder:text-grid-muted/50"
+              className="field-sizing-content max-h-[3lh] w-full resize-none overflow-y-auto bg-transparent text-[15px] leading-snug text-muted-foreground outline-none placeholder:text-muted-foreground/50"
             />
           </div>
 
@@ -415,7 +404,7 @@ export function NoteEditor({
                 }}
               />
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <DropdownMenuItem variant="danger" onClick={() => setDeleteOpen(true)}>
                 <Trash2Icon />
                 {t("notes.delete")}
               </DropdownMenuItem>
@@ -428,20 +417,20 @@ export function NoteEditor({
             namespace={note.namespace}
             value={draft.category}
             onChange={(c) => edit({ category: c }, true)}
-            className="h-6 w-auto min-w-0 gap-1 rounded-md border-transparent bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] px-1.5 text-[13px] shadow-none"
+            className="h-6 w-auto min-w-0 gap-1 rounded-md border-transparent bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] px-1.5 text-[13px] shadow-none"
           />
           {draft.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex h-6 items-center gap-0.5 rounded-md bg-[color-mix(in_oklab,var(--grid-fg)_7%,transparent)] ps-1.5 pe-1 text-[13px] text-grid-fg/80"
+              className="inline-flex h-6 items-center gap-0.5 rounded-md bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] ps-1.5 pe-1 text-[13px] text-foreground/80"
             >
-              <HashIcon className="size-3 text-grid-muted" />
+              <HashIcon className="size-3 text-muted-foreground" />
               <bdi>{tag}</bdi>
               <button
                 type="button"
                 aria-label={t("notes.removeTag", { tag })}
                 onClick={() => toggleTag(tag)}
-                className="rounded-sm p-px text-grid-muted hover:text-grid-fg"
+                className="rounded-sm p-px text-muted-foreground hover:text-foreground"
               >
                 <XIcon className="size-3" />
               </button>
@@ -453,15 +442,15 @@ export function NoteEditor({
             onToggle={toggleTag}
             allowCreate
             trigger={
-              <Button variant="ghost" size="xs" className="h-6 text-[13px] text-grid-muted">
+              <Button variant="ghost" size="sm" className="h-6 text-[13px] text-muted-foreground">
                 <PlusIcon /> {draft.tags.length ? null : t("notes.addTag")}
               </Button>
             }
           />
-          <span className="ms-auto flex items-center gap-1.5 text-[12.5px] text-grid-muted">
+          <span className="ms-auto flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
             {draft.pinned ? <PinIcon className="size-3" aria-label={t("notes.pinned")} /> : null}
             {draft.archived ? <ArchiveIcon className="size-3" aria-label={t("notes.archived")} /> : null}
-            <span className={cn(state === "error" && "text-grid-danger-text")} aria-live="polite">
+            <span className={cn(state === "error" && "text-nq-danger-text")} aria-live="polite">
               {status}
             </span>
             <span aria-hidden>·</span>
@@ -475,10 +464,10 @@ export function NoteEditor({
       {source ? (
         // The markdown source: a secondary view in place of the live body.
         <div className="flex flex-col">
-          <div className={cn("flex items-center gap-2 border-y border-line bg-[color-mix(in_oklab,var(--grid-fg)_4%,transparent)] py-1 text-xs text-grid-muted", px)}>
+          <div className={cn("flex items-center gap-2 border-y border-border bg-[color-mix(in_oklab,var(--nq-fg)_4%,transparent)] py-1 text-xs text-muted-foreground", px)}>
             <Code2Icon className="size-3.5" />
             <span className="flex-1">{t("notes.sourceTitle")}</span>
-            <Button size="xs" variant="ghost" onClick={() => setSource(false)}>
+            <Button size="sm" variant="ghost" onClick={() => setSource(false)}>
               {t("notes.sourceDone")}
             </Button>
           </div>
@@ -489,7 +478,7 @@ export function NoteEditor({
               onChange={(body) => edit({ body })}
               minHeight={embedded ? "min-h-[40vh]" : "min-h-[55vh]"}
             />
-            <p className="mt-1.5 text-[12.5px] text-grid-muted">{t("notes.wikilinkHint")}</p>
+            <p className="mt-1.5 text-[12.5px] text-muted-foreground">{t("notes.wikilinkHint")}</p>
           </div>
         </div>
       ) : (
@@ -515,7 +504,7 @@ export function NoteEditor({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={remove}>
+            <AlertDialogAction variant="danger" onClick={remove}>
               {t("notes.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -523,8 +512,8 @@ export function NoteEditor({
       </AlertDialog>
 
       <Sheet open={versionsOpen} onOpenChange={setVersionsOpen}>
-        <SheetContent side={isRtl ? "left" : "right"} className="gap-0 p-0">
-          <SheetHeader className="border-b border-line px-6 py-4">
+        <SheetContent side="end" className="gap-0 p-0">
+          <SheetHeader className="border-b border-border px-6 py-4">
             <SheetTitle>{t("notes.versionsTitle")}</SheetTitle>
           </SheetHeader>
           <VersionList id={note.id} open={versionsOpen} current={server.version} onRestore={restore} formatDate={formatDate} />
@@ -616,8 +605,8 @@ function BodyEditor({
         className={cn("resize-y rounded-none font-mono text-sm leading-relaxed", minHeight)}
       />
       {wiki ? (
-        <div className="absolute inset-x-2 bottom-2 z-20 max-w-sm border border-line bg-popover p-1 shadow-md">
-          <p className="grid-micro px-2 pb-1 pt-0.5">{t("notes.wikilinkPick")}</p>
+        <div className="absolute inset-x-2 bottom-2 z-20 max-w-sm border border-border bg-popover p-1 shadow-md">
+          <p className="eyebrow px-2 pb-1 pt-0.5">{t("notes.wikilinkPick")}</p>
           <EntityResults
             namespace={namespace}
             query={wiki.query}
@@ -651,30 +640,30 @@ function VersionList({
   const [busy, setBusy] = useState<number | null>(null)
   const list = [...(q.data ?? [])].sort((a, b) => b.version - a.version)
 
-  if (q.isLoading) return <p className="px-6 py-4 text-sm text-grid-muted">{t("common.loading")}</p>
-  if (list.length <= 1) return <p className="px-6 py-4 text-sm text-grid-muted">{t("notes.versionsEmpty")}</p>
+  if (q.isLoading) return <p className="px-6 py-4 text-sm text-muted-foreground">{t("common.loading")}</p>
+  if (list.length <= 1) return <p className="px-6 py-4 text-sm text-muted-foreground">{t("notes.versionsEmpty")}</p>
   return (
-    <ol className="divide-y divide-line overflow-y-auto">
+    <ol className="divide-y divide-border overflow-y-auto">
       {list.map((v) => (
         <li key={v.version} className="flex items-center gap-3 px-6 py-3">
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="flex items-center gap-2 text-sm">
-              <span className="font-mono text-xs text-grid-muted">{t("notes.version", { n: v.version })}</span>
-              <span dir="auto" className="truncate text-grid-fg">
+              <span className="font-mono text-xs text-muted-foreground">{t("notes.version", { n: v.version })}</span>
+              <span dir="auto" className="truncate text-foreground">
                 {v.title || t("notes.untitled")}
               </span>
             </p>
-            <p className="text-xs text-grid-muted">
+            <p className="text-xs text-muted-foreground">
               {formatDate(v.createdAt, { dateStyle: "medium", timeStyle: "short" })} · <bdi>{v.authorAgent || v.source}</bdi>
               {v.deleted ? ` · ${t("notes.deleted")}` : ""}
             </p>
           </div>
           {v.version === current ? (
-            <span className="grid-micro">{t("notes.current")}</span>
+            <span className="eyebrow">{t("notes.current")}</span>
           ) : (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               disabled={busy !== null}
               onClick={async () => {
                 setBusy(v.version)

@@ -2,14 +2,9 @@
 
 import { useState } from "react"
 import { Loader2Icon, PlusIcon, Trash2Icon } from "lucide-react"
-import { toast } from "sonner"
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Textarea, toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { ColorPicker } from "@/components/brains/color-picker"
 import { ApiError, brainApi } from "@/lib/api"
 import { profileApi } from "@/lib/brain-profile"
@@ -24,7 +19,7 @@ const isBrainKey = (key: unknown) => {
 function ErrorLine({ message }: { message: string | null }) {
   if (!message) return null
   return (
-    <p role="alert" className="border border-grid-danger/30 bg-grid-danger/10 px-3 py-2 text-xs text-grid-danger">
+    <p role="alert" className="border border-nq-danger/30 bg-nq-danger/10 px-3 py-2 text-xs text-nq-danger">
       {message}
     </p>
   )
@@ -100,10 +95,10 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
             <DialogDescription>{t("brains.new.description")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-1.5">
-            <Label htmlFor="brain-name">{t("brains.new.name")}</Label>
+            <label htmlFor="brain-name" className="text-label text-foreground">{t("brains.new.name")}</label>
             <Input id="brain-name" dir="auto" autoFocus maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("brains.new.namePlaceholder")} />
             {name && slug !== name.trim().toLowerCase() ? (
-              <p className="text-xs text-grid-muted">
+              <p className="text-xs text-muted-foreground">
                 {t("brains.new.namespace")}{" "}
                 <code dir="ltr" className="font-mono">
                   {slug || "—"}
@@ -112,9 +107,9 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
             ) : null}
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="brain-desc">
-              {t("brains.new.descriptionLabel")} <span className="text-grid-muted">({t("common.optional")})</span>
-            </Label>
+            <label htmlFor="brain-desc" className="text-label text-foreground">
+              {t("brains.new.descriptionLabel")} <span className="text-muted-foreground">({t("common.optional")})</span>
+            </label>
             <Textarea
               id="brain-desc"
               rows={2}
@@ -125,17 +120,17 @@ export function NewBrainDialog({ open, onOpenChange, onCreated }: { open: boolea
             />
           </div>
           <div className="grid gap-1.5">
-            <Label>
-              {t("brainSettings.general.color")} <span className="text-grid-muted">({t("common.optional")})</span>
-            </Label>
+            <label className="text-label text-foreground">
+              {t("brainSettings.general.color")} <span className="text-muted-foreground">({t("common.optional")})</span>
+            </label>
             <ColorPicker value={color} onChange={setColor} custom={false} idPrefix="new-brain-color" />
           </div>
           <ErrorLine message={error} />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => close(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={!slug || busy}>
+            <Button variant="primary" type="submit" disabled={!slug || busy}>
               {busy ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
               {t("brains.new.submit")}
             </Button>
@@ -183,21 +178,21 @@ export function DeleteBrainDialog({ namespace, onClose }: { namespace: string | 
       <DialogContent className="sm:max-w-md">
         <form onSubmit={del} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle className="text-grid-danger">{t("brains.delete.title")}</DialogTitle>
+            <DialogTitle className="text-nq-danger">{t("brains.delete.title")}</DialogTitle>
             <DialogDescription>{t("brains.delete.description", { brain: "⁨" + (namespace ?? "") + "⁩" })}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-1.5">
-            <Label htmlFor="brain-confirm" className="font-normal text-grid-muted">
+            <label htmlFor="brain-confirm" className="text-label font-normal text-muted-foreground">
               {t("brains.delete.typeToConfirm", { brain: "⁨" + (namespace ?? "") + "⁩" })}
-            </Label>
+            </label>
             <Input id="brain-confirm" dir="ltr" autoFocus autoComplete="off" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={namespace ?? ""} />
           </div>
           <ErrorLine message={error} />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={close}>
+            <Button type="button" variant="secondary" onClick={close}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" variant="destructive" disabled={!match || busy}>
+            <Button type="submit" variant="danger" disabled={!match || busy}>
               {busy ? <Loader2Icon className="animate-spin" /> : <Trash2Icon />}
               {t("brains.delete.submit")}
             </Button>

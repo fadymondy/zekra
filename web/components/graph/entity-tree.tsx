@@ -132,19 +132,19 @@ export function EntityTree({
   )
 
   if (roots.length === 0) {
-    return <p className="px-3 py-4 text-sm text-grid-muted">{l.empty}</p>
+    return <p className="px-3 py-4 text-sm text-muted-foreground">{l.empty}</p>
   }
 
   return (
     <div className="flex min-h-0 flex-col">
-      <div className="flex items-center justify-between border-b border-line px-3 py-2">
-        <span className="font-mono text-xs tracking-wider text-grid-muted uppercase">{l.title}</span>
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <span className="font-mono text-xs tracking-wider text-muted-foreground uppercase">{l.title}</span>
         {onRefresh ? (
           <button
             type="button"
             onClick={onRefresh}
             aria-label={l.refresh}
-            className="rounded-sm p-1 text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
+            className="rounded-sm p-1 text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground"
           >
             <RefreshCwIcon className="size-3.5" />
           </button>
@@ -206,7 +206,7 @@ function Row({
       <div
         className={cn(
           "flex items-center gap-1 py-1 pe-2 text-sm",
-          activeId === node.id ? "bg-grid-action text-grid-on-action" : "hover:bg-grid-soft",
+          activeId === node.id ? "bg-nq-action text-nq-on-action" : "hover:bg-nq-surface-soft",
         )}
         // Indent by depth; the chevron column keeps rows aligned whether or
         // not a node can expand.
@@ -238,15 +238,15 @@ function Row({
 
         {/* A blocked row says why rather than just showing a dead chevron. */}
         {blocked === "cycle" ? (
-          <RotateCcwIcon className="size-3 shrink-0 text-grid-muted" aria-label={l.cycle} />
+          <RotateCcwIcon className="size-3 shrink-0 text-muted-foreground" aria-label={l.cycle} />
         ) : blocked === "depth" ? (
-          <span className="shrink-0 font-mono text-[12px] text-grid-muted">{l.deep}</span>
+          <span className="shrink-0 font-mono text-[12px] text-muted-foreground">{l.deep}</span>
         ) : null}
       </div>
 
       {isOpen && failed[node.id] ? (
         <div
-          className="flex items-center gap-1.5 py-1 text-xs text-grid-danger"
+          className="flex items-center gap-1.5 py-1 text-xs text-nq-danger"
           style={{ paddingInlineStart: `${1.8 + node.depth * 0.85}rem` }}
         >
           <AlertCircleIcon className="size-3" />
@@ -259,7 +259,7 @@ function Row({
 
       {isOpen && !failed[node.id] && edges[node.id] && kids.length === 0 ? (
         <p
-          className="py-1 text-xs text-grid-muted"
+          className="py-1 text-xs text-muted-foreground"
           style={{ paddingInlineStart: `${1.8 + node.depth * 0.85}rem` }}
         >
           {l.noChildren}

@@ -47,12 +47,12 @@ export function SlideView({
       return (
         <div className="flex h-full flex-col items-center justify-center text-center">
           {slide.icon ? (
-            <span data-reveal className="mb-[4cqh] flex size-[max(3rem,9cqh)] items-center justify-center rounded-[22%] border bg-muted text-brand">
+            <span data-reveal className="mb-[4cqh] flex size-[max(3rem,9cqh)] items-center justify-center rounded-[22%] border bg-muted text-nq-brand">
               <PresIcon name={slide.icon} className="size-[55%]" />
             </span>
           ) : null}
           <IfSet v={slide.eyebrow}>
-            <p data-reveal className="pres-slide-body mb-[3cqh] font-medium text-brand">
+            <p data-reveal className="pres-slide-body mb-[3cqh] font-medium text-nq-brand">
               <Tx p="eyebrow" v={slide.eyebrow} />
             </p>
           </IfSet>
@@ -76,11 +76,11 @@ export function SlideView({
               return (
                 <li key={i} data-reveal className="flex items-start gap-[1.5cqw]">
                   {icon ? (
-                    <span aria-hidden className="mt-[0.05em] flex size-[1.45em] shrink-0 items-center justify-center rounded-[0.35em] bg-brand/10 text-brand">
+                    <span aria-hidden className="mt-[0.05em] flex size-[1.45em] shrink-0 items-center justify-center rounded-[0.35em] bg-nq-brand/10 text-nq-brand">
                       <PresIcon name={icon} className="size-[0.85em]" />
                     </span>
                   ) : (
-                    <span aria-hidden className="mt-[0.55em] size-[0.45em] shrink-0 rounded-full bg-brand" />
+                    <span aria-hidden className="mt-[0.55em] size-[0.45em] shrink-0 rounded-full bg-nq-brand" />
                   )}
                   <span className="min-w-0 flex-1">
                     <Tx p={typeof b === "string" ? `bullets.${i}` : `bullets.${i}.text`} v={bulletText(b)} list={{ path: "bullets", index: i }} />
@@ -137,7 +137,7 @@ export function SlideView({
                     </bdi>
                   </div>
                   {m.icon ? (
-                    <span className="flex size-[max(1.8rem,6cqh)] shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <span className="flex size-[max(1.8rem,6cqh)] shrink-0 items-center justify-center rounded-lg bg-nq-brand/10 text-nq-brand">
                       <PresIcon name={m.icon} className="size-[55%]" />
                     </span>
                   ) : null}
@@ -170,7 +170,7 @@ export function SlideView({
                 {c.heading ? (
                   <h3 className="pres-slide-body flex items-center gap-[0.45em] font-semibold">
                     {c.icon ? (
-                      <span className="flex size-[1.6em] shrink-0 items-center justify-center rounded-[0.4em] bg-brand/10 text-brand">
+                      <span className="flex size-[1.6em] shrink-0 items-center justify-center rounded-[0.4em] bg-nq-brand/10 text-nq-brand">
                         <PresIcon name={c.icon} className="size-[0.9em]" />
                       </span>
                     ) : null}
@@ -237,7 +237,7 @@ export function SlideView({
                 <ol className="pres-slide-body grid gap-[1.5cqh]" data-notes>
                   {slide.annotations.map((a, i) => (
                     <li key={i} className="flex items-start gap-[0.5em]">
-                      <span className="flex size-[1.5em] shrink-0 items-center justify-center rounded-full bg-brand text-[0.9em] font-bold text-white">{i + 1}</span>
+                      <span className="flex size-[1.5em] shrink-0 items-center justify-center rounded-full bg-nq-brand text-[0.9em] font-bold text-white">{i + 1}</span>
                       <span className="min-w-0 flex-1">
                         <Tx p={`annotations.${i}.text`} v={a.text} />
                       </span>

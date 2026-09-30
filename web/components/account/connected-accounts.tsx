@@ -1,12 +1,13 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useEffect, useState } from "react"
 import useSWR from "swr"
 
 import { PROVIDER_MARKS, useLoginMethods } from "@/components/auth/parts"
 import { StatusLine } from "@/components/account/section"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Button } from "@/components/ui/button"
 import { disconnectIdentity, listIdentities, type ConnectedIdentity } from "@/lib/account"
 import { authMessage, AuthError, connectURL, PROVIDER_NAMES, PROVIDERS, type Provider } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -75,26 +76,26 @@ export function ConnectedAccounts({ returnPath }: { returnPath: string }) {
   return (
     <>
       {notice ? (
-        <div className="border-t border-line px-6 py-4">
+        <div className="border-t border-border px-6 py-4">
           <StatusLine notice={notice} />
         </div>
       ) : null}
-      <ul className="divide-y divide-line border-y border-line">
+      <ul className="divide-y divide-border border-y border-border">
         {PROVIDERS.map((provider) => {
           const Mark = PROVIDER_MARKS[provider]
           const linked = list.data?.find((i) => i.provider === provider)
           const available = !!methods?.providers[provider]
           return (
             <li key={provider} className="flex flex-wrap items-center gap-3 px-6 py-3">
-              <span className="flex size-9 shrink-0 items-center justify-center border border-line bg-grid-card [&_svg]:size-4">
+              <span className="flex size-9 shrink-0 items-center justify-center border border-border bg-card [&_svg]:size-4">
                 <Mark />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-grid-fg" dir="ltr">
+                <p className="text-sm font-medium text-foreground" dir="ltr">
                   <bdi>{PROVIDER_NAMES[provider]}</bdi>
                 </p>
                 {linked ? (
-                  <p className="text-xs text-grid-muted">
+                  <p className="text-xs text-muted-foreground">
                     {linked.email ? (
                       <bdi dir="ltr" className="font-mono break-all">
                         {linked.email}
@@ -106,20 +107,20 @@ export function ConnectedAccounts({ returnPath }: { returnPath: string }) {
                       : t("account.connections.connectedOn", { date: formatDate(linked.created_at) })}
                   </p>
                 ) : (
-                  <p className="text-xs text-grid-muted">
+                  <p className="text-xs text-muted-foreground">
                     {available ? t("account.connections.notConnected") : t("account.connections.unavailable")}
                   </p>
                 )}
                 {linked && !linked.can_unlink ? (
-                  <p className="mt-1 max-w-[60ch] text-xs text-pretty text-grid-muted">{t("account.connections.lastMethod")}</p>
+                  <p className="mt-1 max-w-[60ch] text-xs text-pretty text-muted-foreground">{t("account.connections.lastMethod")}</p>
                 ) : null}
               </div>
               {linked ? (
-                <Button variant="outline" size="sm" disabled={!linked.can_unlink || busy !== null} onClick={() => void disconnect(provider)}>
+                <Button variant="secondary" size="sm" disabled={!linked.can_unlink || busy !== null} onClick={() => void disconnect(provider)}>
                   {busy === provider ? t("common.working") : t("account.connections.disconnect")}
                 </Button>
               ) : available ? (
-                <Button size="sm" nativeButton={false} render={<a href={connectURL(provider, returnPath)} />}>
+                <Button variant="primary" size="sm" nativeButton={false} render={<a href={connectURL(provider, returnPath)} />}>
                   {t("account.connections.connect")}
                 </Button>
               ) : null}

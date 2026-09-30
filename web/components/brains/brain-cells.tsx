@@ -1,15 +1,13 @@
 "use client"
 
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton } from "@fadymondy/nasaq/web"
+
 import type { CSSProperties } from "react"
 import Link from "next/link"
 import { ArrowRightIcon, CircleCheckIcon, CircleHelpIcon, DownloadIcon, EllipsisIcon, RocketIcon, SettingsIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
 
 import { ToneTag } from "@/components/activity/activity-row"
 import { Ltr } from "@/components/copy-field"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
 import { brainApi, type BrainDetail, type NamespaceInfo } from "@/lib/api"
 import { resolveColor, type ProfileSummary } from "@/lib/brain-profile"
 import { useTranslations } from "@/lib/i18n"
@@ -34,17 +32,17 @@ export function BrainAvatar({
   if (profile?.imageUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- member-only API image, not optimizable
-      <img aria-hidden alt="" src={profile.imageUrl} className="shrink-0 border border-line object-cover" style={{ height: size, width: size }} />
+      <img aria-hidden alt="" src={profile.imageUrl} className="shrink-0 border border-border object-cover" style={{ height: size, width: size }} />
     )
   }
   return (
     <span
       aria-hidden
-      className="relative flex shrink-0 items-center justify-center border border-line bg-grid-soft font-mono font-medium text-grid-fg"
+      className="relative flex shrink-0 items-center justify-center border border-border bg-nq-surface-soft font-mono font-medium text-foreground"
       style={style}
     >
       {profile?.icon ? <span className="font-sans leading-none">{profile.icon}</span> : mono}
-      <span className="absolute -end-px -top-px size-2 bg-grid-action" style={hex ? { backgroundColor: hex } : undefined} />
+      <span className="absolute -end-px -top-px size-2 bg-nq-action" style={hex ? { backgroundColor: hex } : undefined} />
     </span>
   )
 }
@@ -78,7 +76,7 @@ function BrainMenu({ namespace, onDelete }: { namespace: string; onDelete: () =>
           {t("brains.menu.export")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={onDelete}>
+        <DropdownMenuItem variant="danger" onClick={onDelete}>
           <Trash2Icon />
           {t("brains.menu.delete")}
         </DropdownMenuItem>
@@ -91,18 +89,18 @@ function TypeTags({ detail }: { detail?: BrainDetail }) {
   const { t, formatNumber } = useTranslations()
   if (!detail) return <Skeleton className="h-5 w-40" />
   const types = Object.entries(detail.types ?? {}).sort((a, b) => b[1] - a[1])
-  if (types.length === 0) return <span className="text-xs text-grid-muted">{t("brains.noTypes")}</span>
+  if (types.length === 0) return <span className="text-xs text-muted-foreground">{t("brains.noTypes")}</span>
   const top = types.slice(0, 3)
   const rest = types.length - top.length
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {top.map(([type, n]) => (
-        <Badge key={type} variant="secondary" className="font-normal">
+        <Badge key={type} variant="neutral" className="font-normal">
           {type}
-          <span className="ms-1.5 text-grid-muted">{formatNumber(n)}</span>
+          <span className="ms-1.5 text-muted-foreground">{formatNumber(n)}</span>
         </Badge>
       ))}
-      {rest > 0 ? <span className="text-xs text-grid-muted">{t("brains.moreTypes", { count: formatNumber(rest) })}</span> : null}
+      {rest > 0 ? <span className="text-xs text-muted-foreground">{t("brains.moreTypes", { count: formatNumber(rest) })}</span> : null}
     </div>
   )
 }
@@ -121,8 +119,8 @@ function GapState({ detail, compact = false }: { detail?: BrainDetail; compact?:
     )
   if (compact) return null
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-grid-muted">
-      <CircleCheckIcon className="size-3.5 text-grid-ok" /> {t("brains.noGaps")}
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+      <CircleCheckIcon className="size-3.5 text-nq-success" /> {t("brains.noGaps")}
     </span>
   )
 }
@@ -130,8 +128,8 @@ function GapState({ detail, compact = false }: { detail?: BrainDetail; compact?:
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div className="min-w-0 px-4 py-3">
-      <div className="truncate text-[15px] font-medium text-grid-fg">{value}</div>
-      <div className="grid-micro mt-1">{label}</div>
+      <div className="truncate text-[15px] font-medium text-foreground">{value}</div>
+      <div className="eyebrow mt-1">{label}</div>
     </div>
   )
 }
@@ -144,10 +142,10 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
   const name = brainName(b)
   const hex = b.colorHex || resolveColor(b.color)
   return (
-    <div className="group relative flex flex-col bg-grid-card transition-colors hover:bg-grid-soft focus-within:bg-grid-soft">
+    <div className="group relative flex flex-col bg-card transition-colors hover:bg-nq-surface-soft focus-within:bg-nq-surface-soft">
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-0.5 bg-transparent opacity-60 transition-[background-color,opacity] group-hover:bg-grid-action group-hover:opacity-100"
+        className="absolute inset-x-0 top-0 h-0.5 bg-transparent opacity-60 transition-[background-color,opacity] group-hover:bg-nq-action group-hover:opacity-100"
         style={hex ? { backgroundColor: hex } : undefined}
       />
       <Link href={href} aria-label={t("brains.openBrain", { brain: name })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
@@ -155,8 +153,8 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
       <div className="pointer-events-none relative z-10 flex items-start gap-3 p-4">
         <BrainAvatar namespace={b.namespace} profile={b} size={44} />
         <div className="min-w-0 flex-1">
-          <span className="block truncate text-base font-medium text-grid-fg">{name}</span>
-          <div className="mt-1 truncate text-[12.5px] text-grid-muted">
+          <span className="block truncate text-base font-medium text-foreground">{name}</span>
+          <div className="mt-1 truncate text-[12.5px] text-muted-foreground">
             {name !== b.namespace ? (
               <>
                 <Ltr mono>{b.namespace}</Ltr> ·{" "}
@@ -164,14 +162,14 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
             ) : null}
             {t("brains.updated", { when: b.lastAt ? timeAgo(b.lastAt) : t("common.never") })}
           </div>
-          {b.description ? <p className="mt-2 line-clamp-2 text-xs text-grid-muted">{b.description}</p> : null}
+          {b.description ? <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{b.description}</p> : null}
         </div>
         <div className="pointer-events-auto -me-1 -mt-1">
           <BrainMenu namespace={b.namespace} onDelete={onDelete} />
         </div>
       </div>
 
-      <div className="pointer-events-none relative z-10 grid grid-cols-3 divide-x divide-line border-y border-line rtl:divide-x-reverse">
+      <div className="pointer-events-none relative z-10 grid grid-cols-3 divide-x divide-border border-y border-border rtl:divide-x-reverse">
         <Metric value={formatNumber(b.memories)} label={t("brains.metric.memories")} />
         <Metric value={d ? formatNumber(d.recalls) : "—"} label={t("brains.metric.recalls")} />
         <Metric value={d ? formatNumber(Object.keys(d.types ?? {}).length) : "—"} label={t("brains.metric.types")} />
@@ -181,9 +179,9 @@ export function BrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => v
         <TypeTags detail={d} />
       </div>
 
-      <div className="pointer-events-none relative z-10 mt-auto flex items-center justify-between border-t border-line px-4 py-2.5">
+      <div className="pointer-events-none relative z-10 mt-auto flex items-center justify-between border-t border-border px-4 py-2.5">
         <GapState detail={d} />
-        <span className="inline-flex items-center gap-1 text-sm text-grid-muted transition-colors group-hover:text-grid-fg">
+        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors group-hover:text-foreground">
           {t("brains.open")} <ArrowRightIcon className="size-4 rtl:-scale-x-100" />
         </span>
       </div>
@@ -202,14 +200,14 @@ export function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => vo
     [d ? formatNumber(Object.keys(d.types ?? {}).length) : "—", t("brains.metric.types")],
   ]
   return (
-    <li className="group relative flex items-center gap-3 px-6 py-3 transition-colors hover:bg-grid-soft">
+    <li className="group relative flex items-center gap-3 px-6 py-3 transition-colors hover:bg-nq-surface-soft">
       <Link href={href} aria-label={t("brains.openBrain", { brain: brainName(b) })} className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
       <div className="pointer-events-none">
         <BrainAvatar namespace={b.namespace} profile={b} size={36} />
       </div>
       <div className="pointer-events-none min-w-0 flex-1">
-        <span className="block truncate font-medium text-grid-fg">{brainName(b)}</span>
-        <div className="mt-0.5 truncate text-[12.5px] text-grid-muted">
+        <span className="block truncate font-medium text-foreground">{brainName(b)}</span>
+        <div className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
           {brainName(b) !== b.namespace ? (
             <>
               <Ltr mono>{b.namespace}</Ltr> ·{" "}
@@ -223,15 +221,15 @@ export function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => vo
       <div className="pointer-events-none hidden items-center gap-8 sm:flex">
         {stats.map(([v, l]) => (
           <div key={l} className="text-end">
-            <div className="text-sm font-medium text-grid-fg">{v}</div>
-            <div className="grid-micro mt-0.5">{l}</div>
+            <div className="text-sm font-medium text-foreground">{v}</div>
+            <div className="eyebrow mt-0.5">{l}</div>
           </div>
         ))}
       </div>
       <div className="pointer-events-none hidden md:block">
         <GapState detail={d} compact />
       </div>
-      <ArrowRightIcon className="pointer-events-none hidden size-4 shrink-0 text-grid-muted group-hover:text-grid-fg sm:block rtl:-scale-x-100" />
+      <ArrowRightIcon className="pointer-events-none hidden size-4 shrink-0 text-muted-foreground group-hover:text-foreground sm:block rtl:-scale-x-100" />
       <div className="relative z-20">
         <BrainMenu namespace={b.namespace} onDelete={onDelete} />
       </div>

@@ -133,7 +133,7 @@ export function NoteSettingsPanel({ labels }: { labels?: Partial<SettingsLabels>
           <select
             value={settings.fontFamily}
             onChange={(e) => update({ fontFamily: e.target.value as NoteSettings["fontFamily"] })}
-            className="h-9 rounded-md border border-line bg-grid-bg px-2 text-sm text-grid-fg"
+            className="h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
           >
             {FONT_FAMILIES.map((f) => (
               <option key={f.id} value={f.id}>
@@ -204,12 +204,12 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-line">
-      <header className="border-b border-line bg-grid-soft px-4 py-3">
-        <h2 className="font-medium text-grid-fg">{title}</h2>
-        <p className="text-sm text-grid-muted">{description}</p>
+    <section className="overflow-hidden rounded-lg border border-border">
+      <header className="border-b border-border bg-nq-surface-soft px-4 py-3">
+        <h2 className="font-medium text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </header>
-      <div className="divide-y divide-line">{children}</div>
+      <div className="divide-y divide-border">{children}</div>
     </section>
   )
 }
@@ -218,8 +218,8 @@ function Row({ label, hint, children }: { label: string; hint: string; children:
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 px-4 py-4">
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-grid-fg">{label}</div>
-        <p className="text-xs text-grid-muted">{hint}</p>
+        <div className="text-sm text-foreground">{label}</div>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       </div>
       <div className="flex shrink-0 items-center">{children}</div>
     </div>
@@ -255,10 +255,10 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-48 accent-grid-action"
+        className="w-48 accent-nq-action"
       />
       {/* Tabular numerals so the label does not jitter as the value changes. */}
-      <span className="w-20 text-end font-mono text-xs text-grid-muted tabular-nums">{format(value)}</span>
+      <span className="w-20 text-end font-mono text-xs text-muted-foreground tabular-nums">{format(value)}</span>
     </label>
   )
 }
@@ -278,7 +278,7 @@ function Check({
       aria-label={label}
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
-      className="size-4 accent-grid-action"
+      className="size-4 accent-nq-action"
     />
   )
 }
@@ -303,8 +303,8 @@ function Segmented<T extends string>({
           onClick={() => onChange(o.id)}
           className={`h-9 rounded-md border px-4 text-sm transition ${
             value === o.id
-              ? "border-grid-action bg-grid-action text-grid-on-action"
-              : "border-line text-grid-fg hover:bg-grid-soft"
+              ? "border-nq-action bg-nq-action text-nq-on-action"
+              : "border-border text-foreground hover:bg-nq-surface-soft"
           }`}
         >
           {o.label}

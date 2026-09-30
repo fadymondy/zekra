@@ -56,24 +56,24 @@ export const GRAPH_PALETTE_CSS = `
   --zk-series-1: #6d4de6;
   --zk-series-2: #e2661c;
   --zk-series-3: #0891a0;
-  --zk-series-other: color-mix(in oklab, var(--grid-muted) 72%, var(--grid-card));
-  --zk-node-root: var(--grid-fg);
-  --zk-node-structure: var(--grid-body);
-  --zk-node-type: var(--grid-muted);
+  --zk-series-other: color-mix(in oklab, var(--nq-fg-muted) 72%, var(--nq-surface));
+  --zk-node-root: var(--nq-fg);
+  --zk-node-structure: var(--nq-fg-body);
+  --zk-node-type: var(--nq-fg-muted);
 }
 .dark .zk-graph, [data-theme="dark"] .zk-graph {
   --zk-series-1: #8f71f0;
   --zk-series-2: #e06a2b;
   --zk-series-3: #1aa2b0;
 }
-.zk-node:hover .zk-node-core { stroke: var(--grid-fg); stroke-width: 1.5px; }
+.zk-node:hover .zk-node-core { stroke: var(--nq-fg); stroke-width: 1.5px; }
 `
 
 /** A stable colour per note category (outside the graph, where there is no whole-graph palette):
  *  a hashed hue at a fixed lightness/chroma that reads on light and dark cards. */
 export function categoryColor(name: string | undefined | null): string {
   const s = name || "note"
-  if (s === "note") return "var(--grid-muted)"
+  if (s === "note") return "var(--nq-fg-muted)"
   let h = 2166136261
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0
   return `oklch(0.62 0.13 ${h % 360})`

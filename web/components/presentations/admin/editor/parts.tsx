@@ -1,14 +1,13 @@
 "use client"
 
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@fadymondy/nasaq/web"
+
 import { Component, memo, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { CopyIcon, GripVerticalIcon, PlusIcon, SparklesIcon, Trash2Icon } from "lucide-react"
 import { cn } from "cn"
 
 import { ITEM_TEMPLATES, localized } from "@/lib/presentations/templates"
 import type { Block, Kind, PageContent, PageSection, Slide } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { NoEdit } from "../../edit"
 import { PagePreview } from "../../page-preview"
 import { PresTheme } from "../../pres-theme"
@@ -151,7 +150,7 @@ export function Gallery({
                     onPick(item)
                     onOpenChange(false)
                   }}
-                  className="group grid gap-1.5 rounded-lg border p-1.5 text-start outline-none hover:border-brand hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  className="group grid gap-1.5 rounded-lg border p-1.5 text-start outline-none hover:border-nq-brand hover:bg-nq-brand/5 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                   <TemplateThumb kind={kind} item={item} dir={dir} locale={locale} />
                   <span className="px-1 text-xs font-medium">{t(`presentations.type.${type}`)}</span>
@@ -237,7 +236,7 @@ export function Rail({
               setDrag(null)
               setOver(null)
             }}
-            className={cn("group relative shrink-0", horizontal && "w-40", over === it.key && drag && drag.key !== it.key && "before:absolute before:-top-1.5 before:right-0 before:left-0 before:h-0.5 before:rounded before:bg-brand")}
+            className={cn("group relative shrink-0", horizontal && "w-40", over === it.key && drag && drag.key !== it.key && "before:absolute before:-top-1.5 before:right-0 before:left-0 before:h-0.5 before:rounded before:bg-nq-brand")}
             style={it.depth ? { paddingInlineStart: `${it.depth * 0.75}rem` } : undefined}
           >
             <div
@@ -264,7 +263,7 @@ export function Rail({
               }}
               className={cn(
                 "grid cursor-pointer gap-1 rounded-lg border-2 p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                active ? "border-brand bg-brand/5" : "border-transparent hover:bg-muted",
+                active ? "border-nq-brand bg-nq-brand/5" : "border-transparent hover:bg-muted",
                 it.invalid && "border-destructive/70",
                 drag?.key === it.key && "opacity-40",
               )}
@@ -273,16 +272,16 @@ export function Rail({
               <div className="flex min-w-0 items-center gap-1 text-xs">
                 <GripVerticalIcon className="size-3 shrink-0 cursor-grab text-muted-foreground" aria-hidden />
                 <span className="shrink-0 text-muted-foreground tabular-nums">{it.index + 1}</span>
-                {it.type && !it.thumb ? <Badge variant="secondary">{t(`presentations.type.${it.type}`)}</Badge> : null}
+                {it.type && !it.thumb ? <Badge variant="neutral">{t(`presentations.type.${it.type}`)}</Badge> : null}
                 <span className="min-w-0 flex-1 truncate" dir="auto">
                   {it.label}
                 </span>
                 {it.invalid ? <span className="size-1.5 shrink-0 rounded-full bg-destructive" aria-label={t("presentations.editor.hasErrors")} /> : null}
                 <span className={cn("flex shrink-0", !active && "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100")}>
-                  <Button variant="ghost" size="icon-xs" onClick={(e) => (e.stopPropagation(), onDuplicate(it))} aria-label={t("presentations.editor.duplicate")}>
+                  <Button variant="ghost" size="icon-sm" onClick={(e) => (e.stopPropagation(), onDuplicate(it))} aria-label={t("presentations.editor.duplicate")}>
                     <CopyIcon />
                   </Button>
-                  <Button variant="ghost" size="icon-xs" onClick={(e) => (e.stopPropagation(), onRemove(it))} aria-label={t("presentations.remove")}>
+                  <Button variant="ghost" size="icon-sm" onClick={(e) => (e.stopPropagation(), onRemove(it))} aria-label={t("presentations.remove")}>
                     <Trash2Icon />
                   </Button>
                 </span>
@@ -297,7 +296,7 @@ export function Rail({
 
 export function AddButton({ label, onClick, testid }: { label: string; onClick: () => void; testid?: string }) {
   return (
-    <Button variant="outline" size="sm" className="w-full" onClick={onClick} data-testid={testid}>
+    <Button variant="secondary" size="sm" className="w-full" onClick={onClick} data-testid={testid}>
       <PlusIcon />
       {label}
     </Button>

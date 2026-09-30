@@ -1,11 +1,12 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useParams } from "next/navigation"
 import { RocketIcon, RotateCcwIcon } from "lucide-react"
 
 import { SectionHeader, SectionTitle } from "@/components/page"
 import { SessionResultView, WriteToggle, useLaunchSession } from "@/components/sessions/launch-session"
-import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
 
@@ -24,7 +25,7 @@ export default function BrainSessionsPage() {
         description={
           <>
             {t("sessions.description")}{" "}
-            <span dir="ltr" className="font-medium text-grid-fg">
+            <span dir="ltr" className="font-medium text-foreground">
               {namespace}
             </span>
           </>
@@ -32,7 +33,7 @@ export default function BrainSessionsPage() {
       />
 
       <SectionTitle>{t(s.result ? "sessions.ready" : "sessions.launch")}</SectionTitle>
-      <section className="border-y border-line px-6 py-6">
+      <section className="border-y border-border px-6 py-6">
         <div className="max-w-2xl">
           {s.result ? (
             <SessionResultView res={s.result} />
@@ -40,7 +41,7 @@ export default function BrainSessionsPage() {
             <div className="space-y-3">
               <WriteToggle write={s.write} onChange={s.setWrite} />
               {s.error ? (
-                <p role="alert" className="text-sm text-grid-danger-text">
+                <p role="alert" className="text-sm text-nq-danger-text">
                   {s.error}
                 </p>
               ) : null}
@@ -50,11 +51,11 @@ export default function BrainSessionsPage() {
       </section>
       <div className="flex flex-wrap gap-2 px-6 py-6">
         {s.result ? (
-          <Button variant="outline" onClick={s.reset}>
+          <Button variant="secondary" onClick={s.reset}>
             <RotateCcwIcon className="rtl:-scale-x-100" /> {t("sessions.another")}
           </Button>
         ) : (
-          <Button onClick={s.launch} disabled={s.busy}>
+          <Button variant="primary" onClick={s.launch} disabled={s.busy}>
             <RocketIcon /> {s.busy ? t("sessions.minting") : t("sessions.mint")}
           </Button>
         )}

@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, type ChartConfig, ChartContainer, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+
 import { useEffect, useRef } from "react"
 import { BatteryFullIcon, SignalHighIcon, WifiIcon } from "lucide-react"
 import { ArrowDownIcon, ArrowUpIcon, CircleAlertIcon, CircleCheckIcon, CalendarIcon, ChevronDownIcon, InfoIcon, MinusIcon, PaperclipIcon, TriangleAlertIcon } from "lucide-react"
@@ -8,10 +10,6 @@ import { cn } from "cn"
 
 import { reveal, whenVisible } from "@/lib/presentations/motion"
 import type { ScreenBlock, ScreenPart, Tone } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { EditScope, Tx, useEditing } from "./edit"
 import { PresIcon } from "./icon"
 import { MapView } from "./map-view"
@@ -65,7 +63,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                 <span className="truncate">
                   <Tx p={`items.${i}.label`} v={k.label} />
                 </span>
-                <PresIcon name={k.icon} className="size-[1.1em] shrink-0 text-brand" />
+                <PresIcon name={k.icon} className="size-[1.1em] shrink-0 text-nq-brand" />
               </div>
               <div className="mt-[0.2em] text-[1.45em] font-semibold tabular-nums">
                 <bdi>
@@ -201,7 +199,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
               )
             })}
             {part.submit_label ? (
-              <Button size="sm" className="mt-[0.2em] h-auto justify-self-start px-[0.8em] py-[0.35em] text-[0.85em]" tabIndex={-1} aria-disabled>
+              <Button variant="primary" size="sm" className="mt-[0.2em] h-auto justify-self-start px-[0.8em] py-[0.35em] text-[0.85em]" tabIndex={-1} aria-disabled>
                 <Tx p="submit_label" v={part.submit_label} />
               </Button>
             ) : null}
@@ -266,9 +264,9 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
             {part.items.map((it, i) => (
               <li key={i} className="relative flex items-start gap-[0.55em]">
                 {part.type === "timeline" ? (
-                  <span className="absolute -start-[1.33em] top-[0.35em] size-[0.65em] rounded-full border-2 border-background bg-brand" aria-hidden />
+                  <span className="absolute -start-[1.33em] top-[0.35em] size-[0.65em] rounded-full border-2 border-background bg-nq-brand" aria-hidden />
                 ) : (
-                  <span className="flex size-[1.9em] shrink-0 items-center justify-center rounded-[0.45em] border bg-muted text-brand">
+                  <span className="flex size-[1.9em] shrink-0 items-center justify-center rounded-[0.45em] border bg-muted text-nq-brand">
                     <PresIcon name={it.icon ?? "check"} className="size-[1em]" />
                   </span>
                 )}
@@ -305,7 +303,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
                   {(col.cards ?? []).map((c, j) => (
                     <div key={j} className={cn("rounded-[0.45em] border bg-card p-[0.5em] text-[0.84em]", c.tone && c.tone !== "neutral" && "border-s-[3px]", c.tone && TONE_CLASS[c.tone].split(" ")[0])}>
                       <div className="flex items-center gap-[0.35em] font-medium">
-                        <PresIcon name={c.icon} className="size-[1em] text-brand" />
+                        <PresIcon name={c.icon} className="size-[1em] text-nq-brand" />
                         <span className="min-w-0">
                           <Tx p={`columns.${i}.cards.${j}.title`} v={c.title} />
                         </span>
@@ -329,7 +327,7 @@ function Part({ part, phone = false, dir = "ltr" }: { part: ScreenPart; phone?: 
           {(["left", "right"] as const).map((sideKey) => (
             <div key={sideKey} className="grid content-start gap-[0.6em] rounded-[0.7em] border border-dashed p-[0.6em]">
               {(sideKey === "left" ? part.left_label : part.right_label) ? (
-                <Badge variant={sideKey === "left" ? "outline" : "default"} className="justify-self-start">
+                <Badge variant={sideKey === "left" ? "outline" : "brand"} className="justify-self-start">
                   <Tx p={`${sideKey}_label`} v={sideKey === "left" ? part.left_label : part.right_label} />
                 </Badge>
               ) : null}
@@ -383,7 +381,7 @@ function EditOr({ p, v, empty }: { p: string; v?: string; empty: string }) {
 
 function Marker({ n }: { n: number }) {
   return (
-    <span className="flex size-[1.7em] shrink-0 items-center justify-center rounded-full bg-brand text-[0.85em] font-bold text-white tabular-nums shadow-sm ring-2 ring-background">
+    <span className="flex size-[1.7em] shrink-0 items-center justify-center rounded-full bg-nq-brand text-[0.85em] font-bold text-white tabular-nums shadow-sm ring-2 ring-background">
       {n}
     </span>
   )
@@ -513,7 +511,7 @@ export function ScreenView({
                     (WIDE.has(p.type) || i === focus) && "@xl/screen:col-span-2",
                     focus !== undefined &&
                       (i === focus
-                        ? "z-10 rounded-[0.7em] shadow-2xl ring-2 ring-brand ring-offset-4 ring-offset-background"
+                        ? "z-10 rounded-[0.7em] shadow-2xl ring-2 ring-nq-brand ring-offset-4 ring-offset-background"
                         : "[&>*:not(.pres-marks)]:opacity-40 [&>*:not(.pres-marks)]:saturate-50"),
                   )}
                 >
@@ -634,7 +632,7 @@ export function PhoneScreen({
                   "relative min-w-0",
                   focus !== undefined &&
                     (i === focus
-                      ? "z-10 rounded-[0.7em] shadow-xl ring-2 ring-brand ring-offset-2 ring-offset-background"
+                      ? "z-10 rounded-[0.7em] shadow-xl ring-2 ring-nq-brand ring-offset-2 ring-offset-background"
                       : "[&>*:not(.pres-marks)]:opacity-40 [&>*:not(.pres-marks)]:saturate-50"),
                 )}
               >
@@ -654,7 +652,7 @@ export function PhoneScreen({
           {tabs ? (
             <nav className="grid border-t bg-background/95 px-[0.3em] pt-[0.35em]" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }} data-tab-bar>
               {nav.map((n, i) => (
-                <span key={i} data-active={n.active ? "" : undefined} className={cn("flex min-w-0 flex-col items-center gap-[0.15em] text-[0.72em]", n.active ? "font-semibold text-brand" : "text-muted-foreground")}>
+                <span key={i} data-active={n.active ? "" : undefined} className={cn("flex min-w-0 flex-col items-center gap-[0.15em] text-[0.72em]", n.active ? "font-semibold text-nq-brand" : "text-muted-foreground")}>
                   <PresIcon name={n.icon ?? "layout-grid"} className="size-[1.5em]" />
                   <span className="max-w-full truncate">
                     <Tx p={`nav.${i}.label`} v={n.label} />

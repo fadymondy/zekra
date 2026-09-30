@@ -37,7 +37,7 @@ export function CopyPageButton({ markdown, label, copied }: { markdown: string; 
     <button
       type="button"
       onClick={() => copy(markdown)}
-      className="inline-flex h-8 items-center gap-1.5 border border-line px-2.5 text-xs transition-colors hover:bg-muted/40"
+      className="inline-flex h-8 items-center gap-1.5 border border-border px-2.5 text-xs transition-colors hover:bg-muted/40"
     >
       {done ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
       {done ? copied : label}

@@ -1,14 +1,13 @@
 "use client"
 
+import { Button, Field, FieldLabel, Input } from "@fadymondy/nasaq/web"
+
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { useSWRConfig } from "swr"
 import { CheckIcon } from "lucide-react"
 
 import { AccountSection, StatusLine } from "@/components/account/section"
-import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { cancelDeletion, requestDeletion } from "@/lib/account"
 import { authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -54,10 +53,10 @@ export function DeleteAccount() {
   return (
     <>
       <AccountSection title={t("account.delete.whatTitle")}>
-        <ul className="flex max-w-2xl flex-col gap-2 text-sm text-pretty text-grid-body">
+        <ul className="flex max-w-2xl flex-col gap-2 text-sm text-pretty text-nq-fg-body">
           {WHAT.map((key) => (
             <li key={key} className="flex gap-2">
-              <span aria-hidden className="mt-2 size-1.5 shrink-0 bg-grid-danger" />
+              <span aria-hidden className="mt-2 size-1.5 shrink-0 bg-nq-danger" />
               {t(`account.delete.what.${key}`)}
             </li>
           ))}
@@ -66,7 +65,7 @@ export function DeleteAccount() {
 
       {scheduledFor !== null ? (
         <>
-          <div className="flex items-start gap-2 border-b border-line px-6 py-4 text-sm text-pretty text-grid-fg" role="status">
+          <div className="flex items-start gap-2 border-b border-border px-6 py-4 text-sm text-pretty text-foreground" role="status">
             <CheckIcon className="mt-0.5 size-4 shrink-0" />
             {scheduledFor
               ? t("account.delete.scheduled", { date: formatDate(scheduledFor, { dateStyle: "long" }) })
@@ -75,7 +74,7 @@ export function DeleteAccount() {
           <CancelForm initialEmail={email} />
           <div className="flex flex-wrap gap-2 px-6 py-6">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={async () => {
                 await mutate("/api/auth/me", null, { revalidate: false })
                 router.replace("/")
@@ -88,9 +87,9 @@ export function DeleteAccount() {
       ) : (
         <AccountSection title={t("account.delete.formTitle")} description={t("account.delete.formHint")}>
           <form onSubmit={submit} className="max-w-md">
-            <FieldGroup>
+            <div className="grid gap-4">
               {me.data?.email ? (
-                <p className="text-xs text-grid-muted">
+                <p className="text-xs text-muted-foreground">
                   {t("account.delete.signedInAs")}{" "}
                   <bdi dir="ltr" className="font-mono">
                     {me.data.email}
@@ -109,7 +108,7 @@ export function DeleteAccount() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Field>
-              <label className="flex items-start gap-2 text-sm text-pretty text-grid-body">
+              <label className="flex items-start gap-2 text-sm text-pretty text-nq-fg-body">
                 <input
                   type="checkbox"
                   checked={confirmed}
@@ -119,10 +118,10 @@ export function DeleteAccount() {
                 {t("account.delete.confirm")}
               </label>
               <StatusLine notice={error ? { ok: false, text: error } : null} />
-              <Button type="submit" variant="destructive" className="self-start" disabled={!confirmed || !password || busy}>
+              <Button type="submit" variant="danger" className="self-start" disabled={!confirmed || !password || busy}>
                 {busy ? t("common.working") : t("account.delete.submit")}
               </Button>
-            </FieldGroup>
+            </div>
           </form>
         </AccountSection>
       )}
@@ -157,13 +156,13 @@ export function CancelForm({ initialEmail = "" }: { initialEmail?: string }) {
   return (
     <AccountSection title={t("account.delete.cancelTitle")} description={t("account.delete.cancelHint")}>
       {done ? (
-        <p role="status" className="flex items-start gap-2 text-sm text-pretty text-grid-fg">
+        <p role="status" className="flex items-start gap-2 text-sm text-pretty text-foreground">
           <CheckIcon className="mt-0.5 size-4 shrink-0" />
           {t("account.delete.cancelled")}
         </p>
       ) : (
         <form onSubmit={submit} className="max-w-md">
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field>
               <FieldLabel htmlFor="cancel-email">{t("auth.email")}</FieldLabel>
               <Input id="cancel-email" type="email" dir="ltr" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -173,10 +172,10 @@ export function CancelForm({ initialEmail = "" }: { initialEmail?: string }) {
               <Input id="cancel-password" type="password" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field>
             <StatusLine notice={error ? { ok: false, text: error } : null} />
-            <Button type="submit" variant="outline" className="self-start" disabled={!email || !password || busy}>
+            <Button type="submit" variant="secondary" className="self-start" disabled={!email || !password || busy}>
               {busy ? t("common.working") : t("account.delete.cancelSubmit")}
             </Button>
-          </FieldGroup>
+          </div>
         </form>
       )}
     </AccountSection>

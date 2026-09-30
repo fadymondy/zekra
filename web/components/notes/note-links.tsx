@@ -17,13 +17,13 @@ function NoteLinkRow({ id, title, meta, onOpen }: { id: string; title: string; m
       <button
         type="button"
         onClick={() => onOpen(id)}
-        className="flex w-full items-center gap-2 px-2 py-1.5 text-start text-xs hover:bg-grid-soft"
+        className="flex w-full items-center gap-2 px-2 py-1.5 text-start text-xs hover:bg-nq-surface-soft"
       >
-        <FileTextIcon className="size-3.5 shrink-0 text-grid-muted" />
-        <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
+        <FileTextIcon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span dir="auto" className="min-w-0 flex-1 truncate text-foreground">
           {title || t("notes.untitled")}
         </span>
-        {meta ? <span className="shrink-0 text-[12px] text-grid-muted">{meta}</span> : null}
+        {meta ? <span className="shrink-0 text-[12px] text-muted-foreground">{meta}</span> : null}
       </button>
     </li>
   )
@@ -51,20 +51,20 @@ export function NoteLinksSection({
   const backlinks = back.data ?? []
 
   return (
-    <section aria-label={t("notes.links")} className="space-y-5 border-t border-line px-6 py-5">
-      <h2 className="grid-micro flex items-center gap-1.5">
+    <section aria-label={t("notes.links")} className="space-y-5 border-t border-border px-6 py-5">
+      <h2 className="eyebrow flex items-center gap-1.5">
         <Link2Icon className="size-3.5" /> {t("notes.links")}
       </h2>
 
       <div className="grid gap-5 md:grid-cols-2">
         <div>
-          <div className="grid-micro mb-2">
+          <div className="eyebrow mb-2">
             {t("notes.backlinks")} <span>{formatNumber(backlinks.length)}</span>
           </div>
           {backlinks.length === 0 ? (
-            <p className="text-xs text-grid-muted">{back.isLoading ? t("common.loading") : t("notes.noBacklinks")}</p>
+            <p className="text-xs text-muted-foreground">{back.isLoading ? t("common.loading") : t("notes.noBacklinks")}</p>
           ) : (
-            <ul className="divide-y divide-line border-y border-line">
+            <ul className="divide-y divide-border border-y border-border">
               {backlinks.map((b) => (
                 <NoteLinkRow key={b.id} id={b.id} title={b.title} meta={b.category} onOpen={onOpenNote} />
               ))}
@@ -72,13 +72,13 @@ export function NoteLinksSection({
           )}
         </div>
         <div>
-          <div className="grid-micro mb-2">
+          <div className="eyebrow mb-2">
             {t("notes.related")} <span>{formatNumber(related.size)}</span>
           </div>
           {related.size === 0 ? (
-            <p className="text-xs text-grid-muted">{rel.isLoading ? t("common.loading") : t("notes.noRelated")}</p>
+            <p className="text-xs text-muted-foreground">{rel.isLoading ? t("common.loading") : t("notes.noRelated")}</p>
           ) : (
-            <ul className="max-h-72 divide-y divide-line overflow-y-auto border-y border-line">
+            <ul className="max-h-72 divide-y divide-border overflow-y-auto border-y border-border">
               {[...related.values()].slice(0, 40).map((r) => (
                 <NoteLinkRow key={r.id} id={r.id} title={r.title} meta={r.via} onOpen={onOpenNote} />
               ))}

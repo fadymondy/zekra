@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Checkbox } from "@fadymondy/nasaq/web"
+
 // The MCP OAuth consent screen. Claude.ai, Claude Desktop, ChatGPT and other MCP clients send
 // the user here (the authorization_endpoint); the user picks which brains the app may use, and
 // the API answers with the redirect back to the client. Contract: plugins/brain/internal/brain/oauth.go.
@@ -7,8 +9,6 @@ import { useEffect, useMemo, useState } from "react"
 import { AlertTriangleIcon, ShieldCheckIcon } from "lucide-react"
 
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { LoadingRows } from "@/components/states"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
@@ -110,23 +110,23 @@ export default function AuthorizePage() {
           </p>
         ) : !req || leaving ? (
           <div className="space-y-2">
-            <p className="text-sm text-grid-muted">{leaving ? t("oauth.redirecting") : t("oauth.loading")}</p>
+            <p className="text-sm text-muted-foreground">{leaving ? t("oauth.redirecting") : t("oauth.loading")}</p>
             <LoadingRows rows={2} />
           </div>
         ) : (
           <div className="mx-auto flex max-w-lg flex-col gap-6">
-            <div className="flex items-start gap-3 border border-line bg-grid-card p-4">
-              <ShieldCheckIcon className="mt-0.5 size-5 shrink-0 text-grid-action" />
+            <div className="flex items-start gap-3 border border-border bg-card p-4">
+              <ShieldCheckIcon className="mt-0.5 size-5 shrink-0 text-nq-action" />
               <div className="min-w-0 space-y-1 text-sm">
                 <p>
-                  <span dir="auto" className="font-medium text-grid-fg">
+                  <span dir="auto" className="font-medium text-foreground">
                     {req.client.name || req.client.id}
                   </span>{" "}
-                  <span className="text-grid-muted">({t("oauth.claims")})</span>
+                  <span className="text-muted-foreground">({t("oauth.claims")})</span>
                 </p>
-                <p className="text-grid-muted">
+                <p className="text-muted-foreground">
                   {t("oauth.redirectsTo")}{" "}
-                  <span dir="ltr" className="font-mono text-grid-fg">
+                  <span dir="ltr" className="font-mono text-foreground">
                     {req.redirect_host}
                   </span>
                 </p>
@@ -134,18 +134,18 @@ export default function AuthorizePage() {
             </div>
 
             {req.loopback_redirect ? (
-              <p className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-grid-fg">
+              <p className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
                 <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-500" />
                 {t("oauth.loopback")}
               </p>
             ) : null}
 
             <div>
-              <p className="grid-micro mb-2">{t("oauth.permissions")}</p>
-              <ul className="space-y-1 text-sm text-grid-body">
+              <p className="eyebrow mb-2">{t("oauth.permissions")}</p>
+              <ul className="space-y-1 text-sm text-nq-fg-body">
                 {req.requested_scopes.map((s) => (
                   <li key={s.scope} className="flex items-center gap-2">
-                    <span className={cn("size-1.5 shrink-0", s.write ? "bg-amber-500" : "bg-grid-action")} aria-hidden />
+                    <span className={cn("size-1.5 shrink-0", s.write ? "bg-amber-500" : "bg-nq-action")} aria-hidden />
                     {s.description}
                   </li>
                 ))}
@@ -153,11 +153,11 @@ export default function AuthorizePage() {
             </div>
 
             <div>
-              <p className="grid-micro mb-2">{t("oauth.brains")}</p>
+              <p className="eyebrow mb-2">{t("oauth.brains")}</p>
               {req.brains.length === 0 ? (
-                <p className="text-sm text-grid-muted">{t("oauth.noBrains")}</p>
+                <p className="text-sm text-muted-foreground">{t("oauth.noBrains")}</p>
               ) : (
-                <ul className="divide-y divide-line border-y border-line">
+                <ul className="divide-y divide-border border-y border-border">
                   {req.brains.map((b) => {
                     const cur = picked[b.namespace] ?? { on: false, write: false }
                     const canW = req.write_requested && b.canWrite
@@ -168,14 +168,14 @@ export default function AuthorizePage() {
                             checked={cur.on}
                             onCheckedChange={(on) => setPick(b.namespace, { on: !!on, write: !!on && (cur.write || canW) })}
                           />
-                          <span dir="ltr" className="truncate font-medium text-grid-fg">
+                          <span dir="ltr" className="truncate font-medium text-foreground">
                             {b.namespace}
                           </span>
-                          <span className="text-xs text-grid-muted">{t("oauth.memories", { n: formatNumber(b.memories) })}</span>
+                          <span className="text-xs text-muted-foreground">{t("oauth.memories", { n: formatNumber(b.memories) })}</span>
                         </label>
                         {req.write_requested ? (
                           b.canWrite ? (
-                            <div className="inline-flex border border-line text-xs" role="group">
+                            <div className="inline-flex border border-border text-xs" role="group">
                               {[false, true].map((w) => (
                                 <button
                                   key={String(w)}
@@ -185,7 +185,7 @@ export default function AuthorizePage() {
                                   onClick={() => setPick(b.namespace, { on: true, write: w })}
                                   className={cn(
                                     "px-2.5 py-1 disabled:opacity-50",
-                                    cur.on && cur.write === w ? "bg-grid-soft font-medium text-grid-fg" : "text-grid-muted",
+                                    cur.on && cur.write === w ? "bg-nq-surface-soft font-medium text-foreground" : "text-muted-foreground",
                                   )}
                                 >
                                   {w ? t("oauth.readWrite") : t("oauth.read")}
@@ -193,7 +193,7 @@ export default function AuthorizePage() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-xs text-grid-muted">{t("oauth.readOnlyRole")}</span>
+                            <span className="text-xs text-muted-foreground">{t("oauth.readOnlyRole")}</span>
                           )
                         ) : null}
                       </li>
@@ -208,18 +208,18 @@ export default function AuthorizePage() {
                 {error}
               </p>
             ) : chosen.length === 0 && req.brains.length > 0 ? (
-              <p className="text-sm text-grid-muted">{t("oauth.pickOne")}</p>
+              <p className="text-sm text-muted-foreground">{t("oauth.pickOne")}</p>
             ) : null}
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button disabled={busy || chosen.length === 0} onClick={() => decide(true)}>
+              <Button variant="primary" disabled={busy || chosen.length === 0} onClick={() => decide(true)}>
                 {busy ? t("common.working") : t("oauth.allow")}
               </Button>
-              <Button variant="outline" disabled={busy} onClick={() => decide(false)}>
+              <Button variant="secondary" disabled={busy} onClick={() => decide(false)}>
                 {t("oauth.deny")}
               </Button>
             </div>
-            <div className="space-y-1 text-xs text-grid-muted">
+            <div className="space-y-1 text-xs text-muted-foreground">
               {me.data ? <p>{t("oauth.signedInAs", { email: me.data.email })}</p> : null}
               <p>{t("oauth.expires")}</p>
             </div>

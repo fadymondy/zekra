@@ -16,12 +16,12 @@ type Step = { text: ReactNode; snippet?: string }
 
 function ClientRow({ name, steps }: { name: string; steps: Step[] }) {
   return (
-    <section className="grid gap-3 border-b border-line px-6 py-5 md:grid-cols-[14rem_1fr] md:gap-6">
-      <h2 className="text-sm font-medium text-grid-fg">{name}</h2>
+    <section className="grid gap-3 border-b border-border px-6 py-5 md:grid-cols-[14rem_1fr] md:gap-6">
+      <h2 className="text-sm font-medium text-foreground">{name}</h2>
       <ol className="min-w-0 space-y-3">
         {steps.map((s, i) => (
-          <li key={i} className="flex gap-3 text-sm text-grid-body">
-            <span className="grid-micro mt-0.5 w-4 shrink-0 tabular-nums">{i + 1}</span>
+          <li key={i} className="flex gap-3 text-sm text-nq-fg-body">
+            <span className="eyebrow mt-0.5 w-4 shrink-0 tabular-nums">{i + 1}</span>
             <div className="min-w-0 flex-1 space-y-2">
               <div>{s.text}</div>
               {s.snippet ? <CopyField value={s.snippet} /> : null}
@@ -87,9 +87,9 @@ export default function ConnectPage() {
           text: (
             <>
               {t("connect.stdio.s2")}{" "}
-              <span className="text-grid-muted">
+              <span className="text-muted-foreground">
                 {t("connect.stdio.token")}{" "}
-                <Link href={`/${locale}/brains`} className="text-grid-fg underline underline-offset-4">
+                <Link href={`/${locale}/brains`} className="text-foreground underline underline-offset-4">
                   {t("connect.stdio.openBrains")}
                 </Link>
               </span>
@@ -107,20 +107,20 @@ export default function ConnectPage() {
       <SectionHeader micro={t("connect.micro")} title={t("connect.title")} description={t("connect.description")} />
 
       <HatchBand>
-        <p className="grid-micro mb-2">{t("connect.urlLabel")}</p>
+        <p className="eyebrow mb-2">{t("connect.urlLabel")}</p>
         <CopyField value={MCP_URL} label={t("connect.urlLabel")} />
-        <p className="mt-2 text-xs text-grid-muted">{t("connect.urlHint")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("connect.urlHint")}</p>
       </HatchBand>
 
       {clients.map((c) => (
         <ClientRow key={c.name} name={c.name} steps={c.steps} />
       ))}
 
-      <p className="flex flex-wrap items-center gap-1.5 px-6 py-5 text-sm text-grid-muted">
+      <p className="flex flex-wrap items-center gap-1.5 px-6 py-5 text-sm text-muted-foreground">
         {t("connect.footer")}
         <Link
           href={`/${locale}/account/apps`}
-          className="inline-flex items-center gap-1 text-grid-fg underline underline-offset-4"
+          className="inline-flex items-center gap-1 text-foreground underline underline-offset-4"
         >
           {t("connect.footerLink")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
         </Link>

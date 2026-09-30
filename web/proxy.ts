@@ -40,6 +40,8 @@ function shouldSkip(pathname: string): boolean {
     pathname.startsWith("/graphql") ||
     pathname.startsWith("/events") ||
     pathname.startsWith("/.well-known") ||
+    pathname.startsWith("/auth/circlexo") ||
+    pathname.startsWith("/sso/circlexo") ||
     /\.[a-zA-Z0-9]+$/.test(pathname)
   )
 }

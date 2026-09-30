@@ -2,16 +2,8 @@
 
 import { useMemo, useState, type FormEvent } from "react"
 import { PlusIcon, TriangleAlertIcon } from "lucide-react"
-import { toast } from "sonner"
+import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldDescription, FieldError, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@fadymondy/nasaq/web"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SectionHeader, SectionTitle } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { CopyField, Ltr } from "@/components/copy-field"
@@ -68,7 +60,7 @@ export default function AdminTokensPage() {
         title={t("nav.tokens")}
         description={t("admin.tokens.hint")}
         action={
-          <Button onClick={() => setCreating(true)}>
+          <Button variant="primary" onClick={() => setCreating(true)}>
             <PlusIcon />
             {t("admin.tokens.create")}
           </Button>
@@ -83,7 +75,7 @@ export default function AdminTokensPage() {
         <EmptyState title={t("admin.tokens.empty")} body={t("admin.tokens.emptyBody")} />
       ) : (
         <>
-          <div className="border-y border-line">
+          <div className="border-y border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -104,16 +96,16 @@ export default function AdminTokensPage() {
               </TableBody>
             </Table>
           </div>
-          <p className="px-6 py-3 text-xs text-grid-muted">
+          <p className="px-6 py-3 text-xs text-muted-foreground">
             {t("admin.tokens.summary", { active: formatNumber(active.length), total: formatNumber(list.length) })}
           </p>
 
           <SectionTitle>{t("admin.tokens.grantsTitle")}</SectionTitle>
-          <p className="-mt-1 px-6 pb-4 text-sm text-grid-muted">{t("admin.tokens.grantsHint")}</p>
+          <p className="-mt-1 px-6 pb-4 text-sm text-muted-foreground">{t("admin.tokens.grantsHint")}</p>
           {agents.length === 0 ? (
             <EmptyState title={t("admin.tokens.noAgents")} />
           ) : (
-            <div className="mb-8 divide-y divide-line border-y border-line">
+            <div className="mb-8 divide-y divide-border border-y border-border">
               {agents.map((a) => (
                 <AgentGrants key={a.agentId} agentId={a.agentId} isAdmin={a.isAdmin} grants={a.grants} onChanged={() => tokens.mutate()} />
               ))}
@@ -135,19 +127,19 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
       <TableCell className="ps-6">
         <span className="flex items-center gap-2">
           <Ltr mono className="font-medium">{tok.agentId}</Ltr>
-          {tok.isAdmin ? <Badge variant="secondary">{t("admin.tokens.admin")}</Badge> : null}
+          {tok.isAdmin ? <Badge variant="neutral">{t("admin.tokens.admin")}</Badge> : null}
         </span>
       </TableCell>
-      <TableCell className="max-w-56 truncate text-grid-muted" dir="auto">
+      <TableCell className="max-w-56 truncate text-muted-foreground" dir="auto">
         {tok.label || "—"}
       </TableCell>
       <TableCell>
-        <Ltr mono className="text-xs text-grid-muted">{maskToken(tok.token)}</Ltr>
+        <Ltr mono className="text-xs text-muted-foreground">{maskToken(tok.token)}</Ltr>
       </TableCell>
-      <TableCell className="text-grid-muted">
+      <TableCell className="text-muted-foreground">
         {tok.isAdmin ? t("admin.tokens.allBrains") : t("admin.tokens.grantCount", { n: formatNumber(n) })}
       </TableCell>
-      <TableCell className="text-grid-muted">
+      <TableCell className="text-muted-foreground">
         {tok.lastUsedAt ? (
           <span title={formatDate(tok.lastUsedAt, { dateStyle: "medium", timeStyle: "short" })}>{timeAgo(tok.lastUsedAt)}</span>
         ) : (
@@ -156,7 +148,7 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
       </TableCell>
       <TableCell className="pe-6 text-end">
         {tok.revoked ? (
-          <Badge variant="secondary">{t("admin.tokens.revokedBadge")}</Badge>
+          <Badge variant="neutral">{t("admin.tokens.revokedBadge")}</Badge>
         ) : (
           <ConfirmButton
             label={t("common.revoke")}
@@ -200,24 +192,24 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
   return (
     <section>
       <div className="flex flex-wrap items-center gap-2 px-6 pt-4 pb-2">
-        <Ltr mono className="text-sm font-medium text-grid-fg">{agentId}</Ltr>
+        <Ltr mono className="text-sm font-medium text-foreground">{agentId}</Ltr>
         {isAdmin ? (
           <>
-            <Badge variant="secondary">{t("admin.tokens.admin")}</Badge>
-            <span className="text-xs text-grid-muted">{t("permissions.adminHint")}</span>
+            <Badge variant="neutral">{t("admin.tokens.admin")}</Badge>
+            <span className="text-xs text-muted-foreground">{t("permissions.adminHint")}</span>
           </>
         ) : null}
       </div>
       <GrantHeader subject={t("admin.tokens.brain")} />
       {grants.length === 0 ? (
-        <p className="px-6 py-3 text-xs text-grid-muted">{t("admin.tokens.noGrants")}</p>
+        <p className="px-6 py-3 text-xs text-muted-foreground">{t("admin.tokens.noGrants")}</p>
       ) : (
-        <div className="divide-y divide-line">
+        <div className="divide-y divide-border">
           {grants.map((g) => (
             <GrantRow
               key={g.namespace}
               label={g.namespace}
-              name={<Ltr mono className="truncate text-grid-fg">{g.namespace}</Ltr>}
+              name={<Ltr mono className="truncate text-foreground">{g.namespace}</Ltr>}
               canRead={g.canRead}
               canWrite={g.canWrite}
               disabled={busy}
@@ -228,7 +220,7 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
         </div>
       )}
       {brainItems.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 border-t border-line px-6 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border px-6 py-3">
           <Select items={brainItems} value={addNs || null} onValueChange={(v) => setAddNs(String(v ?? ""))}>
             <SelectTrigger aria-label={t("admin.tokens.addBrain")} className="w-full sm:w-64">
               <SelectValue placeholder={t("admin.tokens.addBrain")} />
@@ -242,7 +234,7 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
             </SelectContent>
           </Select>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             disabled={!addNs || busy}
             onClick={() => {
@@ -303,23 +295,23 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
             <DialogHeader>
               <DialogTitle>{t("admin.tokens.createdTitle")}</DialogTitle>
               <DialogDescription>
-                {t("admin.tokens.createdHint")} <Ltr mono className="text-grid-fg">{created.agentId}</Ltr>
+                {t("admin.tokens.createdHint")} <Ltr mono className="text-foreground">{created.agentId}</Ltr>
               </DialogDescription>
             </DialogHeader>
-            <p className="flex items-start gap-2 border border-line bg-grid-card p-3 text-sm text-grid-warn-text" role="alert">
+            <p className="flex items-start gap-2 border border-border bg-card p-3 text-sm text-nq-warning-text" role="alert">
               <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
               {t("admin.tokens.shownOnce")}
             </p>
             <div className="space-y-1.5">
-              <p className="grid-micro">{t("admin.tokens.token")}</p>
+              <p className="eyebrow">{t("admin.tokens.token")}</p>
               <CopyField value={created.token} label={t("admin.tokens.token")} />
             </div>
             <div className="space-y-1.5">
-              <p className="grid-micro">{t("admin.tokens.envLabel")}</p>
+              <p className="eyebrow">{t("admin.tokens.envLabel")}</p>
               <CopyField value={`ZEKRA_TOKEN=${created.token}`} label={t("admin.tokens.envLabel")} />
             </div>
             <DialogFooter>
-              <Button onClick={() => handleOpenChange(false)}>{t("admin.tokens.savedIt")}</Button>
+              <Button variant="primary" onClick={() => handleOpenChange(false)}>{t("admin.tokens.savedIt")}</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -328,7 +320,7 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
               <DialogTitle>{t("admin.tokens.create")}</DialogTitle>
               <DialogDescription>{t("admin.tokens.createHint")}</DialogDescription>
             </DialogHeader>
-            <FieldGroup>
+            <div className="grid gap-4">
               <Field>
                 <FieldLabel htmlFor="tok-agent">{t("admin.tokens.agent")}</FieldLabel>
                 <Input id="tok-agent" dir="ltr" required autoFocus value={agentId} onChange={(e) => setAgentId(e.target.value)} placeholder="alice" className="font-mono" />
@@ -338,20 +330,20 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
                 <FieldLabel htmlFor="tok-label">{t("admin.tokens.label")}</FieldLabel>
                 <Input id="tok-label" dir="auto" value={label} onChange={(e) => setLabel(e.target.value)} placeholder={t("admin.tokens.labelPlaceholder")} />
               </Field>
-              <Field orientation="horizontal">
+              <Field className="flex flex-row items-start gap-3">
                 <Switch id="tok-admin" checked={admin} onCheckedChange={(v) => setAdmin(v === true)} />
-                <FieldContent>
+                <div className="grid gap-1">
                   <FieldLabel htmlFor="tok-admin">{t("admin.tokens.adminLabel")}</FieldLabel>
                   <FieldDescription>{t("admin.tokens.adminHint")}</FieldDescription>
-                </FieldContent>
+                </div>
               </Field>
               {error ? <FieldError>{error}</FieldError> : null}
-            </FieldGroup>
+            </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+              <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" disabled={busy || !agentId.trim()}>
+              <Button variant="primary" type="submit" disabled={busy || !agentId.trim()}>
                 {busy ? t("common.working") : t("admin.tokens.create")}
               </Button>
             </DialogFooter>

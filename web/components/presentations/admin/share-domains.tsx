@@ -2,12 +2,9 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { CheckCircle2Icon, CircleDashedIcon, Loader2Icon, PlusIcon, RefreshCwIcon, StarIcon, Trash2Icon } from "lucide-react"
-import { toast } from "sonner"
+import { Badge, Button, Input, toast } from "@fadymondy/nasaq/web"
 
 import { CopyField } from "@/components/copy-field"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useTranslations } from "@/lib/i18n"
 import { addDomain, deleteDomain, listDomains, setDefaultDomain, verifyDomain, type DomainList } from "@/lib/presentations/api"
 import type { ShareDomain } from "@/lib/presentations/types"
@@ -25,10 +22,10 @@ const HOST = /^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/
 function Records({ d }: { d: ShareDomain }) {
   const { t } = useTranslations()
   const cname = d.cname_target
-  if (!cname && !d.txt_value) return <p className="text-xs text-grid-muted">{t("presentations.domains.noRecords")}</p>
+  if (!cname && !d.txt_value) return <p className="text-xs text-muted-foreground">{t("presentations.domains.noRecords")}</p>
   return (
     <div className="grid gap-3 text-xs" data-testid="domain-dns">
-      <p className="text-grid-muted">{t("presentations.domains.dnsHelp")}</p>
+      <p className="text-muted-foreground">{t("presentations.domains.dnsHelp")}</p>
       {cname ? (
         <div className="grid gap-1">
           <span className="font-medium">
@@ -85,12 +82,12 @@ export function ShareDomains({ namespace, canEdit }: { namespace: string; canEdi
     void run("add", async () => (await addDomain(namespace, h), setHost("")), t("presentations.domains.added"))
   }
 
-  if (error) return <p className="text-sm text-grid-danger-text">{error}</p>
-  if (!list) return <p className="text-sm text-grid-muted">…</p>
+  if (error) return <p className="text-sm text-nq-danger-text">{error}</p>
+  if (!list) return <p className="text-sm text-muted-foreground">…</p>
   const appHost = list.builtinHost || (typeof window === "undefined" ? "" : window.location.host)
   if (!list.supported) {
     return (
-      <p className="text-sm text-grid-muted" data-testid="domains-unsupported">
+      <p className="text-sm text-muted-foreground" data-testid="domains-unsupported">
         {t("presentations.domains.unsupported", { host: appHost })}
       </p>
     )
@@ -99,21 +96,21 @@ export function ShareDomains({ namespace, canEdit }: { namespace: string; canEdi
   return (
     <div className="grid gap-4" data-testid="share-domains">
       <ul className="grid gap-3">
-        <li className="flex flex-wrap items-center gap-2 border border-line p-3 text-sm">
+        <li className="flex flex-wrap items-center gap-2 border border-border p-3 text-sm">
           <bdi dir="ltr" className="font-mono">
             {appHost}
           </bdi>
           <Badge variant="outline">{t("presentations.domains.builtIn")}</Badge>
-          {!list.domains.some((d) => d.default) ? <Badge variant="secondary">{t("presentations.domains.default")}</Badge> : null}
+          {!list.domains.some((d) => d.default) ? <Badge variant="neutral">{t("presentations.domains.default")}</Badge> : null}
         </li>
         {list.domains.map((d) => (
-          <li key={d.id} className="grid gap-3 border border-line p-3 text-sm" data-testid="domain-row">
+          <li key={d.id} className="grid gap-3 border border-border p-3 text-sm" data-testid="domain-row">
             <div className="flex flex-wrap items-center gap-2">
               <bdi dir="ltr" className="font-mono">
                 {d.host}
               </bdi>
               {d.verified ? (
-                <Badge variant="secondary">
+                <Badge variant="neutral">
                   <CheckCircle2Icon />
                   {t("presentations.domains.verified")}
                 </Badge>
@@ -123,11 +120,11 @@ export function ShareDomains({ namespace, canEdit }: { namespace: string; canEdi
                   {t("presentations.domains.pending")}
                 </Badge>
               )}
-              {d.default ? <Badge>{t("presentations.domains.default")}</Badge> : null}
+              {d.default ? <Badge variant="brand">{t("presentations.domains.default")}</Badge> : null}
               {canEdit ? (
                 <span className="ms-auto flex flex-wrap gap-1">
                   {!d.verified ? (
-                    <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run(`v${d.id}`, async () => {
+                    <Button size="sm" variant="secondary" disabled={busy !== null} onClick={() => run(`v${d.id}`, async () => {
                       const out = await verifyDomain(d.id)
                       if (!out.verified) throw new Error(out.last_error || t("presentations.domains.notYet"))
                     }, t("presentations.domains.verifiedNow"))}>
@@ -135,7 +132,7 @@ export function ShareDomains({ namespace, canEdit }: { namespace: string; canEdi
                       {t("presentations.domains.verify")}
                     </Button>
                   ) : !d.default ? (
-                    <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run(`d${d.id}`, () => setDefaultDomain(d.id))}>
+                    <Button size="sm" variant="secondary" disabled={busy !== null} onClick={() => run(`d${d.id}`, () => setDefaultDomain(d.id))}>
                       <StarIcon />
                       {t("presentations.domains.makeDefault")}
                     </Button>
@@ -147,14 +144,14 @@ export function ShareDomains({ namespace, canEdit }: { namespace: string; canEdi
               ) : null}
             </div>
             {!d.verified ? <Records d={d} /> : null}
-            {d.last_error && !d.verified ? <p className="text-xs text-grid-danger-text">{d.last_error}</p> : null}
+            {d.last_error && !d.verified ? <p className="text-xs text-nq-danger-text">{d.last_error}</p> : null}
           </li>
         ))}
       </ul>
       {canEdit ? (
         <form onSubmit={add} className="flex flex-wrap items-center gap-2">
           <Input dir="ltr" className="w-64" value={host} onChange={(e) => setHost(e.target.value)} placeholder="share.example.com" aria-label={t("presentations.domains.host")} />
-          <Button type="submit" variant="outline" disabled={busy !== null || !host.trim()}>
+          <Button type="submit" variant="secondary" disabled={busy !== null || !host.trim()}>
             {busy === "add" ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
             {t("presentations.domains.add")}
           </Button>

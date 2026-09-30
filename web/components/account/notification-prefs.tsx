@@ -1,11 +1,12 @@
 "use client"
 
+import { Switch } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import useSWR from "swr"
 
 import { StatusLine } from "@/components/account/section"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Switch } from "@/components/ui/switch"
 import { getPrefs, savePrefs, type AccountPrefs } from "@/lib/account"
 import { authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
@@ -55,14 +56,14 @@ export function NotificationPrefs() {
 
   return (
     <>
-      <ul className="divide-y divide-line border-y border-line">
+      <ul className="divide-y divide-border border-y border-border">
         {keys.map((k) => (
           <li key={k} className="flex items-start gap-4 px-6 py-3">
             <div className="min-w-0 flex-1">
-              <label htmlFor={`pref-${k}`} className="text-sm font-medium text-grid-fg first-letter:uppercase">
+              <label htmlFor={`pref-${k}`} className="text-sm font-medium text-foreground first-letter:uppercase">
                 {label(k)}
               </label>
-              {hint(k) ? <p className="text-xs text-pretty text-grid-muted">{hint(k)}</p> : null}
+              {hint(k) ? <p className="text-xs text-pretty text-muted-foreground">{hint(k)}</p> : null}
             </div>
             <Switch id={`pref-${k}`} checked={!!prefs.data?.[k]} onCheckedChange={(v) => void toggle(k, v)} />
           </li>

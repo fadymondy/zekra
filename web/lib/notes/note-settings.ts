@@ -12,10 +12,10 @@ settled would be harder to change than a key swap here.
 */
 
 export const FONT_FAMILIES = [
-  { id: 'system', label: 'System', stack: 'var(--grid-font-sans)' },
+  { id: 'system', label: 'System', stack: 'var(--nq-font-ui)' },
   { id: 'serif', label: 'Serif', stack: 'Georgia, "Times New Roman", serif' },
   { id: 'sans', label: 'Sans', stack: '"Helvetica Neue", Arial, sans-serif' },
-  { id: 'mono', label: 'Monospace', stack: 'var(--grid-font-mono)' },
+  { id: 'mono', label: 'Monospace', stack: 'var(--nq-font-mono)' },
   { id: 'reading', label: 'Reading', stack: '"Iowan Old Style", "Palatino Linotype", Palatino, serif' },
 ] as const
 

@@ -1,28 +1,10 @@
 "use client"
 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@fadymondy/nasaq/web"
+
 import { useState } from "react"
 import { ArchiveIcon, ArchiveRestoreIcon, PaletteIcon, PinIcon, PinOffIcon, Trash2Icon } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
 import { useTranslations } from "@/lib/i18n"
 import { NoteAppearancePicker, type AppearancePatch } from "./note-appearance-picker"
 import { useSwipe } from "./use-swipe"
@@ -111,7 +93,7 @@ export function NoteRowActions({
             </ContextMenuSub>
           ) : null}
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" onClick={() => setConfirm("delete")}>
+          <ContextMenuItem variant="danger" onClick={() => setConfirm("delete")}>
             <Trash2Icon />
             {t("notes.delete")}
           </ContextMenuItem>
@@ -126,7 +108,7 @@ export function NoteRowActions({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm === "delete" ? t("notes.deleteBody") : t("notes.archiveBody")}
-              {title ? <span className="mt-1 block font-medium text-grid-fg">{title}</span> : null}
+              {title ? <span className="mt-1 block font-medium text-foreground">{title}</span> : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -134,7 +116,7 @@ export function NoteRowActions({
             <AlertDialogAction
               // The destructive styling is reserved for delete; archiving is
               // reversible and should not read as equally final.
-              className={confirm === "delete" ? "bg-grid-danger text-white hover:bg-grid-danger/90" : undefined}
+              className={confirm === "delete" ? "bg-nq-danger text-white hover:bg-nq-danger/90" : undefined}
               onClick={() => {
                 const action = confirm
                 setConfirm(null)

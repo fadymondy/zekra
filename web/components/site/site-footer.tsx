@@ -25,7 +25,7 @@ export function SiteFooter({
   const isArabic = locale === "ar"
   const link = "text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
   return (
-    <footer className={`mx-auto w-full ${maxWidth} border-x border-t border-line px-6 py-10 sm:px-10`}>
+    <footer className={`mx-auto w-full ${maxWidth} border-x border-t border-border px-6 py-10 sm:px-10`}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <CubeMark mark={ZEKRA_MARK} size={18} />
         {spec.localWordmark && isArabic ? (

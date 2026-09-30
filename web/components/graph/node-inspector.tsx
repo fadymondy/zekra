@@ -13,16 +13,12 @@ import {
   ExternalLinkIcon, EyeIcon, FileTextIcon, Link2Icon, Loader2Icon, Maximize2Icon, PencilIcon, PinIcon, PlusIcon,
   Trash2Icon, XIcon,
 } from "lucide-react"
-import { toast } from "sonner"
+import { Badge, Button, Input, Sheet, SheetContent, SheetTitle, toast } from "@fadymondy/nasaq/web"
 
 import { CategoryPicker } from "@/components/graph/category-picker"
 import { NodeLinks } from "@/components/graph/node-links"
 import { NoteEditor } from "@/components/notes/note-editor"
 import { NoteMarkdown } from "@/components/notes/note-markdown"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import type { GraphNode } from "@/lib/api"
 import { useMemory } from "@/lib/brains"
 import {
@@ -211,7 +207,7 @@ export function NodeInspector({
 
   return (
     <aside
-      className="relative flex shrink-0 flex-col border-s border-line bg-grid-card"
+      className="relative flex shrink-0 flex-col border-s border-border bg-card"
       style={{ width }}
       aria-label={t("graph.inspector")}
     >
@@ -221,11 +217,11 @@ export function NodeInspector({
         aria-orientation="vertical"
         aria-label={t("graph.resize")}
         onPointerDown={startResize}
-        className="absolute inset-y-0 -start-1 z-10 w-2 cursor-col-resize hover:bg-grid-soft"
+        className="absolute inset-y-0 -start-1 z-10 w-2 cursor-col-resize hover:bg-nq-surface-soft"
       />
 
       {/* Header */}
-      <div className="space-y-2.5 border-b border-line p-4">
+      <div className="space-y-2.5 border-b border-border p-4">
         <div className="flex items-center gap-1.5">
           <span aria-hidden className="size-2.5 shrink-0" style={{ background: color }} />
           {structural || readOnly || (!entityId && !n) ? (
@@ -253,12 +249,12 @@ export function NodeInspector({
 
         {noteId ? (
           <div className="flex flex-wrap items-center gap-1.5">
-            <Button size="sm" nativeButton={false} render={<Link href={noteHref(locale, namespace, noteId)} />} title={t("graph.openNoteHint")}>
+            <Button variant="primary" size="sm" nativeButton={false} render={<Link href={noteHref(locale, namespace, noteId)} />} title={t("graph.openNoteHint")}>
               <ExternalLinkIcon className="rtl:-scale-x-100" />
               {t("graph.openNote")}
             </Button>
             {!readOnly && n ? (
-              <Button size="sm" variant="outline" onClick={() => setMode(mode === "edit" ? "view" : "edit")} aria-pressed={mode === "edit"}>
+              <Button size="sm" variant="secondary" onClick={() => setMode(mode === "edit" ? "view" : "edit")} aria-pressed={mode === "edit"}>
                 {mode === "edit" ? <EyeIcon /> : <PencilIcon />}
                 {mode === "edit" ? t("graph.doneEditing") : t("graph.editInline")}
               </Button>
@@ -277,9 +273,9 @@ export function NodeInspector({
         {/* The note */}
         {noteId ? (
           note.error ? (
-            <p className="p-4 text-xs text-grid-muted">{note.error.message}</p>
+            <p className="p-4 text-xs text-muted-foreground">{note.error.message}</p>
           ) : !n ? (
-            <p className="flex items-center gap-2 p-4 text-xs text-grid-muted">
+            <p className="flex items-center gap-2 p-4 text-xs text-muted-foreground">
               <Loader2Icon className="size-3.5 animate-spin" /> {t("graph.loadingNote")}
             </p>
           ) : mode === "edit" ? (
@@ -298,7 +294,7 @@ export function NodeInspector({
             <NoteView note={n} />
           )
         ) : structural ? null : entityLoading ? (
-          <p className="flex items-center gap-2 p-4 text-xs text-grid-muted">
+          <p className="flex items-center gap-2 p-4 text-xs text-muted-foreground">
             <Loader2Icon className="size-3.5 animate-spin" /> {t("graph.loadingNote")}
           </p>
         ) : detail ? (
@@ -312,28 +308,28 @@ export function NodeInspector({
         )}
 
         {/* Links + properties */}
-        <div className="space-y-6 border-t border-line p-4">
+        <div className="space-y-6 border-t border-border p-4">
           {entityId ? (
             <NodeLinks namespace={namespace} entityId={entityId} onOpenNode={openOther} compact />
           ) : (
             <NeighborList neighbors={neighbors} palette={palette} onFocus={(id) => onFocus(id)} />
           )}
           {entityId && detail ? <PropertiesEditor namespace={namespace} entity={detail} /> : null}
-          {readOnly ? <p className="text-[12.5px] text-grid-muted">{t("graph.readOnly")}</p> : null}
+          {readOnly ? <p className="text-[12.5px] text-muted-foreground">{t("graph.readOnly")}</p> : null}
         </div>
       </div>
 
       {/* Expand: the note in a wide sheet over the graph */}
       <Sheet open={expanded} onOpenChange={setExpanded}>
         <SheetContent
-          side={isRtl ? "left" : "right"}
+          side="end"
           className="w-full gap-0 overflow-y-auto p-0 data-[side=left]:sm:max-w-[720px] data-[side=right]:sm:max-w-[720px]"
         >
           <SheetTitle className="sr-only">{name}</SheetTitle>
           {n ? (
             readOnly ? (
               <div className="p-6">
-                <h2 dir="auto" className="mb-3 text-xl font-medium text-grid-fg">
+                <h2 dir="auto" className="mb-3 text-xl font-medium text-foreground">
                   {n.title}
                 </h2>
                 <NoteView note={n} />
@@ -362,7 +358,7 @@ function NameField({ value, readOnly, onCommit }: { value: string; readOnly: boo
   const [v, setV] = useState(value)
   if (readOnly)
     return (
-      <h2 dir="auto" className="break-words text-base font-medium leading-snug text-grid-fg">
+      <h2 dir="auto" className="break-words text-base font-medium leading-snug text-foreground">
         {value}
       </h2>
     )
@@ -387,7 +383,7 @@ function NameField({ value, readOnly, onCommit }: { value: string; readOnly: boo
         }
       }}
       aria-label={t("graph.name")}
-      className="w-full border-b border-transparent bg-transparent text-base font-medium leading-snug text-grid-fg outline-none hover:border-line focus:border-grid-fg"
+      className="w-full border-b border-transparent bg-transparent text-base font-medium leading-snug text-foreground outline-none hover:border-border focus:border-foreground"
     />
   )
 }
@@ -400,14 +396,14 @@ export function NoteView({ note }: { note: Note }) {
       {note.tags?.length ? (
         <div className="flex flex-wrap gap-1">
           {note.tags.map((tag) => (
-            <span key={tag} className="grid-chip">
+            <Badge key={tag} variant="outline">
               <bdi>{tag}</bdi>
-            </span>
+            </Badge>
           ))}
         </div>
       ) : null}
-      <p className="flex flex-wrap items-center gap-x-1.5 text-[12.5px] text-grid-muted">
-        {note.pinned ? <PinIcon className="size-3 text-grid-action" aria-label={t("notes.pinned")} /> : null}
+      <p className="flex flex-wrap items-center gap-x-1.5 text-[12.5px] text-muted-foreground">
+        {note.pinned ? <PinIcon className="size-3 text-nq-action" aria-label={t("notes.pinned")} /> : null}
         <span>{t("notes.updated", { when: timeAgo(note.updatedAt) })}</span>
         <span aria-hidden>·</span>
         <span>{t("notes.version", { n: note.version })}</span>
@@ -421,7 +417,7 @@ export function NoteView({ note }: { note: Note }) {
       {(note.body ?? "").trim() ? (
         <NoteMarkdown text={note.body!} />
       ) : (
-        <p className="text-sm text-grid-muted">{t("graph.emptyNote")}</p>
+        <p className="text-sm text-muted-foreground">{t("graph.emptyNote")}</p>
       )}
     </div>
   )
@@ -435,7 +431,7 @@ function LegacyMemory({ node, namespace }: { node: GraphNode; namespace: string 
   if (!uuid) return null
   if (mem.isLoading)
     return (
-      <p className="flex items-center gap-2 p-4 text-xs text-grid-muted">
+      <p className="flex items-center gap-2 p-4 text-xs text-muted-foreground">
         <Loader2Icon className="size-3.5 animate-spin" /> {t("graph.loadingMemory")}
       </p>
     )
@@ -458,21 +454,21 @@ function NeighborList({
   const { t, formatNumber } = useTranslations()
   return (
     <div>
-      <div className="grid-micro mb-2 flex items-center gap-1.5">
+      <div className="eyebrow mb-2 flex items-center gap-1.5">
         <Link2Icon className="size-3.5" /> {t("graph.connections")} <span>{formatNumber(neighbors.length)}</span>
       </div>
       {neighbors.length === 0 ? (
-        <p className="text-xs text-grid-muted">{t("graph.noConnections")}</p>
+        <p className="text-xs text-muted-foreground">{t("graph.noConnections")}</p>
       ) : (
-        <ul className="max-h-96 divide-y divide-line overflow-y-auto border-y border-line">
+        <ul className="max-h-96 divide-y divide-border overflow-y-auto border-y border-border">
           {neighbors.map((n) => (
             <li key={n.id}>
-              <button type="button" onClick={() => onFocus(n.id)} className="flex w-full items-center gap-2 px-2 py-1.5 text-start hover:bg-grid-soft">
+              <button type="button" onClick={() => onFocus(n.id)} className="flex w-full items-center gap-2 px-2 py-1.5 text-start hover:bg-nq-surface-soft">
                 <span aria-hidden className="h-4 w-1 shrink-0" style={{ background: palette(n.group) }} />
-                <span className="min-w-0 flex-1 truncate text-xs text-grid-fg" dir="auto">
+                <span className="min-w-0 flex-1 truncate text-xs text-foreground" dir="auto">
                   {n.name}
                 </span>
-                <span className="shrink-0 text-[12px] text-grid-muted">{n.group}</span>
+                <span className="shrink-0 text-[12px] text-muted-foreground">{n.group}</span>
               </button>
             </li>
           ))}
@@ -528,25 +524,25 @@ function PropertiesEditor({ namespace, entity }: { namespace: string; entity: En
 
   return (
     <div>
-      <div className="grid-micro mb-2 flex items-center gap-1.5">
+      <div className="eyebrow mb-2 flex items-center gap-1.5">
         {t("graph.properties")} <span>{formatNumber(rows.length)}</span>
         {!readOnly && !adding ? (
-          <Button variant="ghost" size="xs" className="ms-auto" onClick={() => setAdding(true)}>
+          <Button variant="ghost" size="sm" className="ms-auto" onClick={() => setAdding(true)}>
             <PlusIcon /> {t("graph.addProperty")}
           </Button>
         ) : null}
       </div>
-      {rows.length === 0 && !adding ? <p className="text-xs text-grid-muted">{t("graph.noProperties")}</p> : null}
+      {rows.length === 0 && !adding ? <p className="text-xs text-muted-foreground">{t("graph.noProperties")}</p> : null}
       {rows.length ? (
-        <dl className="divide-y divide-line border-y border-line">
+        <dl className="divide-y divide-border border-y border-border">
           {rows.map(([k, v]) => (
             <div key={k} className="flex items-center gap-2 py-1">
-              <dt className="w-1/3 shrink-0 truncate font-mono text-[12.5px] text-grid-muted" dir="ltr" title={k}>
+              <dt className="w-1/3 shrink-0 truncate font-mono text-[12.5px] text-muted-foreground" dir="ltr" title={k}>
                 {k}
               </dt>
               <dd className="min-w-0 flex-1">
                 {readOnly ? (
-                  <span dir="auto" className="block truncate text-xs text-grid-fg" title={showValue(v)}>
+                  <span dir="auto" className="block truncate text-xs text-foreground" title={showValue(v)}>
                     {showValue(v)}
                   </span>
                 ) : (
@@ -554,7 +550,7 @@ function PropertiesEditor({ namespace, entity }: { namespace: string; entity: En
                 )}
               </dd>
               {!readOnly ? (
-                <Button variant="ghost" size="icon-xs" onClick={() => save({ [k]: null })} aria-label={t("graph.removeProperty", { key: k })}>
+                <Button variant="ghost" size="icon-sm" onClick={() => save({ [k]: null })} aria-label={t("graph.removeProperty", { key: k })}>
                   <Trash2Icon />
                 </Button>
               ) : null}
@@ -605,7 +601,7 @@ function PropValue({ value, onCommit }: { value: string; onCommit: (v: string) =
           setV(value)
         }
       }}
-      className="w-full truncate border-b border-transparent bg-transparent py-0.5 text-xs text-grid-fg outline-none hover:border-line focus:border-grid-fg"
+      className="w-full truncate border-b border-transparent bg-transparent py-0.5 text-xs text-foreground outline-none hover:border-border focus:border-foreground"
     />
   )
 }
@@ -620,22 +616,22 @@ export function NodeHoverCard({ node, x, y }: { node: GraphNode; x: number; y: n
   return (
     <div
       role="tooltip"
-      className="pointer-events-none fixed z-50 w-72 border border-line bg-popover p-3 text-xs shadow-md"
+      className="pointer-events-none fixed z-50 w-72 border border-border bg-popover p-3 text-xs shadow-md"
       style={{ left, top: y + 14 }}
     >
       <div className="mb-1 flex items-center gap-1.5">
-        <FileTextIcon className="size-3.5 shrink-0 text-grid-muted" />
-        <span dir="auto" className="min-w-0 flex-1 truncate font-medium text-grid-fg">
+        <FileTextIcon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span dir="auto" className="min-w-0 flex-1 truncate font-medium text-foreground">
           {note.data?.title || node.name}
         </span>
       </div>
-      <p className="mb-1 text-[12px] uppercase tracking-wider text-grid-muted">{note.data?.category || node.type || node.group}</p>
+      <p className="mb-1 text-[12px] uppercase tracking-wider text-muted-foreground">{note.data?.category || node.type || node.group}</p>
       {node.noteId ? (
-        <p dir="auto" className="line-clamp-2 text-grid-body">
+        <p dir="auto" className="line-clamp-2 text-nq-fg-body">
           {note.isLoading ? t("common.loading") : lines || t("graph.emptyNote")}
         </p>
       ) : null}
-      <p className="mt-1.5 text-[12px] text-grid-muted">{t("graph.hoverHint")}</p>
+      <p className="mt-1.5 text-[12px] text-muted-foreground">{t("graph.hoverHint")}</p>
     </div>
   )
 }

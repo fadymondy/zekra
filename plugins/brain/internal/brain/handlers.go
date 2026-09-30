@@ -399,6 +399,7 @@ func (s *Service) DeleteBrain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.dropProfile(r.Context(), in.Namespace)
+	s.brainDeleted(r.Context(), in.Namespace)
 	s.hub.publish("brain", map[string]any{"deleted": in.Namespace, "namespace": in.Namespace})
 	writeJSON(w, http.StatusOK, map[string]any{"namespace": in.Namespace, "deleted": n})
 }

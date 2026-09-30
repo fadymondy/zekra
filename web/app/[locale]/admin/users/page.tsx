@@ -1,13 +1,11 @@
 "use client"
 
+import { Badge, Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, LoadingRows } from "@/components/states"
@@ -43,9 +41,9 @@ export default function AdminUsersPage() {
     <>
       <SectionHeader micro={t("admin.micro")} title={t("nav.users")} description={t("admin.users.hint")} />
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-line px-6 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border px-6 py-3">
         <div className="relative w-full max-w-sm">
-          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
+          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             aria-label={t("admin.users.search")}
@@ -56,7 +54,7 @@ export default function AdminUsersPage() {
           />
         </div>
         {users.data ? (
-          <span className="ms-auto text-xs text-grid-muted">{t("admin.users.count", { n: formatNumber(total) })}</span>
+          <span className="ms-auto text-xs text-muted-foreground">{t("admin.users.count", { n: formatNumber(total) })}</span>
         ) : null}
       </div>
 
@@ -68,7 +66,7 @@ export default function AdminUsersPage() {
         <EmptyState title={q ? t("admin.users.noMatch") : t("admin.users.empty")} />
       ) : (
         <>
-          <div className="border-y border-line">
+          <div className="border-y border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -87,7 +85,7 @@ export default function AdminUsersPage() {
                         <Ltr>{u.email}</Ltr>
                       </Link>
                     </TableCell>
-                    <TableCell className="text-grid-muted" dir="auto">
+                    <TableCell className="text-muted-foreground" dir="auto">
                       {u.name || "—"}
                     </TableCell>
                     <TableCell>
@@ -102,7 +100,7 @@ export default function AdminUsersPage() {
                     <TableCell>
                       <UserStatusBadge user={u} />
                     </TableCell>
-                    <TableCell className="pe-6 text-grid-muted">{formatDate(u.created_at)}</TableCell>
+                    <TableCell className="pe-6 text-muted-foreground">{formatDate(u.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -110,14 +108,14 @@ export default function AdminUsersPage() {
           </div>
           {pages > 1 ? (
             <div className="flex items-center justify-between gap-2 px-6 py-4">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                 <ChevronLeftIcon className="rtl:rotate-180" />
                 {t("admin.users.prev")}
               </Button>
-              <span className="text-xs text-grid-muted">
+              <span className="text-xs text-muted-foreground">
                 {t("admin.users.page", { n: formatNumber(page), total: formatNumber(pages) })}
               </span>
-              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+              <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
                 {t("admin.users.next")}
                 <ChevronRightIcon className="rtl:rotate-180" />
               </Button>

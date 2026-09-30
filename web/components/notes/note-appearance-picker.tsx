@@ -50,7 +50,7 @@ export function NoteAppearancePicker({
   return (
     <div className="w-60 space-y-3 p-2">
       <div>
-        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-grid-muted uppercase">Icon</p>
+        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-muted-foreground uppercase">Icon</p>
         <div className="grid grid-cols-8 gap-1">
           {ICON_NAMES.map((name) => {
             const { Icon } = noteIcon({ icon: name, category })
@@ -63,7 +63,7 @@ export function NoteAppearancePicker({
                 aria-pressed={active}
                 onClick={() => onChange({ icon: name })}
                 className={`flex size-6 items-center justify-center rounded-sm transition ${
-                  active ? "bg-grid-action text-grid-on-action" : "text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
+                  active ? "bg-nq-action text-nq-on-action" : "text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground"
                 }`}
               >
                 <Icon className="size-3.5" />
@@ -74,7 +74,7 @@ export function NoteAppearancePicker({
       </div>
 
       <div>
-        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-grid-muted uppercase">Colour</p>
+        <p className="mb-1.5 font-mono text-[12px] tracking-wider text-muted-foreground uppercase">Colour</p>
         <div className="grid grid-cols-8 gap-1">
           {COLORS.map((hex) => (
             <button
@@ -92,8 +92,8 @@ export function NoteAppearancePicker({
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-line pt-2">
-        <span className="flex items-center gap-1.5 text-xs text-grid-muted">
+      <div className="flex items-center justify-between border-t border-border pt-2">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <current.Icon className="size-3.5" style={{ color: current.color }} />
           {icon || color ? "Custom" : "From category"}
         </span>
@@ -103,7 +103,7 @@ export function NoteAppearancePicker({
           // override", while omitting the field would leave it unchanged.
           onClick={() => onChange({ icon: "", color: "" })}
           disabled={!icon && !color}
-          className="flex items-center gap-1 text-xs text-grid-muted hover:text-grid-fg disabled:opacity-40"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
           <RotateCcwIcon className="size-3" />
           Reset

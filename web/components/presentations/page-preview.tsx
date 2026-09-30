@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@fadymondy/nasaq/web"
+
 import { useRef, type ReactNode } from "react"
 import { CheckIcon } from "lucide-react"
 import { cn } from "cn"
@@ -7,9 +9,6 @@ import { cn } from "cn"
 import { useTranslations } from "@/lib/i18n"
 import type { PageContent, PageSection } from "@/lib/presentations/types"
 import { STYLE_KEYS } from "@/lib/presentations/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { PresTheme } from "./pres-theme"
 import { EditScope, Tx, TxMd } from "./edit"
 import { Md } from "./markdown"
@@ -27,7 +26,7 @@ an http(s) or site URL; otherwise they render as a non-interactive label so a
 concept page never ships a button that does nothing.
 */
 
-function Cta({ label, href, variant = "default", p = "cta_label" }: { label?: string; href?: string; variant?: "default" | "outline"; p?: string }) {
+function Cta({ label, href, variant = "primary", p = "cta_label" }: { label?: string; href?: string; variant?: "primary" | "secondary"; p?: string }) {
   if (!label) return null
   if (!href) {
     return (
@@ -99,7 +98,7 @@ function Section({
               )}
             >
               {s.eyebrow ? (
-                <p className="pres-eyebrow mb-3 text-sm font-medium text-brand">
+                <p className="pres-eyebrow mb-3 text-sm font-medium text-nq-brand">
                   <Tx p="eyebrow" v={s.eyebrow} />
                 </p>
               ) : null}
@@ -147,8 +146,8 @@ function Section({
               return (
                 <Card key={i} data-reveal className="pres-glow">
                   <CardHeader>
-                    <div className="mb-2 flex size-9 items-center justify-center rounded-lg border bg-muted text-brand">
-                      {it.icon ? <PresIcon name={it.icon} className="size-4" /> : <span className="size-2 rounded-full bg-brand" aria-hidden />}
+                    <div className="mb-2 flex size-9 items-center justify-center rounded-lg border bg-muted text-nq-brand">
+                      {it.icon ? <PresIcon name={it.icon} className="size-4" /> : <span className="size-2 rounded-full bg-nq-brand" aria-hidden />}
                     </div>
                     <CardTitle>
                       <Tx p={`items.${i}.title`} v={it.title} />
@@ -182,11 +181,11 @@ function Section({
           ) : null}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {s.plans.map((p, i) => (
-              <Card key={i} data-reveal className={cn("pres-glow", p.highlighted && "ring-2 ring-brand")}>
+              <Card key={i} data-reveal className={cn("pres-glow", p.highlighted && "ring-2 ring-nq-brand")}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between gap-2">
                     <Tx p={`plans.${i}.name`} v={p.name} />
-                    {p.highlighted ? <Badge>★</Badge> : null}
+                    {p.highlighted ? <Badge variant="brand">★</Badge> : null}
                   </CardTitle>
                   <p className="mt-2">
                     <bdi className="text-3xl font-semibold tabular-nums">
@@ -209,7 +208,7 @@ function Section({
                     <ul className="space-y-2 text-sm">
                       {p.features.map((f, j) => (
                         <li key={j} className="flex gap-2">
-                          <CheckIcon className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                          <CheckIcon className="mt-0.5 size-4 shrink-0 text-nq-brand" aria-hidden />
                           <span className="min-w-0 flex-1">
                             <Tx p={`plans.${i}.features.${j}`} v={f} list={{ path: `plans.${i}.features`, index: j }} />
                           </span>

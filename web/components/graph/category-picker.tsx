@@ -1,13 +1,12 @@
 "use client"
 
+import { Button, Input, Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@fadymondy/nasaq/web"
+
 // A note's category = its graph node's entity type. The options are the brain's ontology entity
 // types; "+ New category" swaps the select for an inline input (the server creates the type).
 import { useMemo, useState } from "react"
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useOntology } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -106,7 +105,7 @@ export function CategoryPicker({
         else onChange(s === ALL ? "" : s, false)
       }}
     >
-      <SelectTrigger size="sm" aria-label={t("graph.category")} className={cn("h-7 min-w-32 text-xs", className)}>
+      <SelectTrigger aria-label={t("graph.category")} className={cn("h-7 min-w-32 text-xs", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -114,7 +113,7 @@ export function CategoryPicker({
         {types.map((x) => (
           <SelectItem key={x.name} value={x.name}>
             <span dir="auto">{x.name}</span>
-            {x.count ? <span className="ms-auto ps-3 text-[12px] text-grid-muted">{formatNumber(x.count)}</span> : null}
+            {x.count ? <span className="ms-auto ps-3 text-[12px] text-muted-foreground">{formatNumber(x.count)}</span> : null}
           </SelectItem>
         ))}
         {allowAll ? null : (

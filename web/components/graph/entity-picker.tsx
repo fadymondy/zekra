@@ -1,12 +1,12 @@
 "use client"
 
+import { Input, Popover, PopoverContent, PopoverTrigger } from "@fadymondy/nasaq/web"
+
 // A searchable picker over the brain's graph nodes (GET /api/brain/entities/search). Used by
 // "+ Add link" in the node inspector and the notes editor.
 import { useEffect, useState, type ReactNode } from "react"
 import { Loader2Icon, SearchIcon } from "lucide-react"
 
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useEntitySearch, type Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -47,11 +47,11 @@ export function EntityResults({
 
   if (res.isLoading && !res.data)
     return (
-      <p className="flex items-center gap-2 px-2 py-2 text-xs text-grid-muted">
+      <p className="flex items-center gap-2 px-2 py-2 text-xs text-muted-foreground">
         <Loader2Icon className="size-3.5 animate-spin" /> {t("common.loading")}
       </p>
     )
-  if (list.length === 0) return <p className="px-2 py-2 text-xs text-grid-muted">{t("graph.noNodesFound")}</p>
+  if (list.length === 0) return <p className="px-2 py-2 text-xs text-muted-foreground">{t("graph.noNodesFound")}</p>
   return (
     <ul role="listbox" className="max-h-64 overflow-y-auto">
       {list.map((e, i) => (
@@ -61,14 +61,14 @@ export function EntityResults({
             onMouseDown={(ev) => ev.preventDefault()}
             onClick={() => onPick(e)}
             className={cn(
-              "flex w-full items-center gap-2 px-2 py-1.5 text-start text-xs hover:bg-grid-soft",
-              i === active && "bg-grid-soft",
+              "flex w-full items-center gap-2 px-2 py-1.5 text-start text-xs hover:bg-nq-surface-soft",
+              i === active && "bg-nq-surface-soft",
             )}
           >
-            <span dir="auto" className="min-w-0 flex-1 truncate text-grid-fg">
+            <span dir="auto" className="min-w-0 flex-1 truncate text-foreground">
               {e.name}
             </span>
-            <span className="shrink-0 text-[12px] text-grid-muted">{e.type}</span>
+            <span className="shrink-0 text-[12px] text-muted-foreground">{e.type}</span>
           </button>
         </li>
       ))}
@@ -95,7 +95,7 @@ export function EntityPicker({
       <PopoverTrigger render={trigger as React.ReactElement} />
       <PopoverContent align="start" className="w-72 gap-2 rounded-none p-2">
         <div className="relative">
-          <SearchIcon className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-grid-muted" />
+          <SearchIcon className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             autoFocus
             dir="auto"

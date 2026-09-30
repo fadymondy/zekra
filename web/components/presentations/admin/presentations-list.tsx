@@ -1,5 +1,7 @@
 "use client"
 
+import { Alert, Badge, Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
+
 // A brain's presentations: decks, reports and page previews, filterable by kind, status and
 // customer, with view counts and live links. "New" creates a valid starter document; "From
 // brain" asks the API to draft one from notes, a recall query, a graph entity or the whole
@@ -16,16 +18,6 @@ import { Ltr } from "@/components/copy-field"
 import { EntityResults } from "@/components/graph/entity-picker"
 import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { api, ApiError as ConsoleApiError } from "@/lib/api"
 import type { Entity } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
@@ -97,9 +89,9 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
         action={actions}
       />
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-line px-6 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-border px-6 py-3">
         <div className="relative min-w-48 flex-1">
-          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-grid-muted" aria-hidden />
+          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
             dir="auto"
             type="search"
@@ -163,13 +155,13 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
             const Icon = KIND_ICONS[i.kind]
             return (
               <li key={i.id} data-testid="presentation-row">
-                <a href={hrefOf(i)} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-sm transition-colors hover:bg-grid-soft">
-                  <Icon className="size-4 shrink-0 text-grid-muted" aria-label={t(`presentations.kind.${i.kind}`)} />
+                <a href={hrefOf(i)} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-sm transition-colors hover:bg-nq-surface-soft">
+                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-label={t(`presentations.kind.${i.kind}`)} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-grid-fg" dir="auto">
+                    <p className="truncate font-medium text-foreground" dir="auto">
                       {i.title || t("presentations.untitled")}
                     </p>
-                    <p className="mt-0.5 flex flex-wrap gap-x-3 text-[12.5px] text-grid-muted">
+                    <p className="mt-0.5 flex flex-wrap gap-x-3 text-[12.5px] text-muted-foreground">
                       <span>{t(`presentations.kind.${i.kind}`)}</span>
                       <Ltr>{(i.locales ?? [i.locale]).map((l) => l.toUpperCase()).join(" / ")}</Ltr>
                       {!namespace && i.namespace ? <Ltr>{i.namespace}</Ltr> : null}
@@ -179,19 +171,19 @@ export function PresentationsList({ locale, namespace }: { locale: string; names
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant={i.status === "ready" ? "default" : "outline"}>{t(`presentations.status.${i.status}`)}</Badge>
+                    <Badge variant={i.status === "ready" ? "success" : "outline"}>{t(`presentations.status.${i.status}`)}</Badge>
                     {i.active_shares > 0 ? (
-                      <Badge variant="secondary" title={t("presentations.share.links")}>
+                      <Badge variant="neutral" title={t("presentations.share.links")}>
                         <Link2Icon />
                         {formatNumber(i.active_shares)}
                       </Badge>
                     ) : null}
                   </div>
-                  <span className="inline-flex w-16 items-center justify-end gap-1 text-grid-muted tabular-nums" title={t("presentations.col.views")}>
+                  <span className="inline-flex w-16 items-center justify-end gap-1 text-muted-foreground tabular-nums" title={t("presentations.col.views")}>
                     <EyeIcon className="size-3.5" aria-hidden />
                     {formatNumber(i.view_count)}
                   </span>
-                  <span className="hidden w-40 text-end text-[12.5px] text-grid-muted md:block" title={t("presentations.col.lastViewed")}>
+                  <span className="hidden w-40 text-end text-[12.5px] text-muted-foreground md:block" title={t("presentations.col.lastViewed")}>
                     {when(i.last_viewed_at)}
                   </span>
                 </a>
@@ -283,9 +275,7 @@ function MetaFields({ meta, set, prefix, withStyle }: { meta: Meta; set: (m: Met
 
 function FormError({ error }: { error: string | null }) {
   return error ? (
-    <Alert variant="destructive">
-      <AlertDescription>{error}</AlertDescription>
-    </Alert>
+    <Alert tone="danger">{error}</Alert>
   ) : null
 }
 
@@ -319,7 +309,7 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant="outline" />}>
+      <DialogTrigger render={<Button variant="secondary" />}>
         <PlusIcon />
         {t("presentations.new")}
       </DialogTrigger>
@@ -329,17 +319,17 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
             <DialogTitle>{t("presentations.new")}</DialogTitle>
             <DialogDescription>{t("presentations.newHelp")}</DialogDescription>
           </DialogHeader>
-          <FieldGroup>
+          <div className="grid gap-4">
             <Field>
               <FieldLabel htmlFor="np-title">{t("presentations.col.title")}</FieldLabel>
               <Input id="np-title" dir="auto" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
             </Field>
             <MetaFields meta={meta} set={setMeta} prefix="np" />
-          </FieldGroup>
+          </div>
           <FormError error={error} />
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" type="button" />}>{t("presentations.cancel")}</DialogClose>
-            <Button type="submit" disabled={busy || (!meta.name.trim() && !meta.company.trim())}>
+            <DialogClose render={<Button variant="secondary" type="button" />}>{t("presentations.cancel")}</DialogClose>
+            <Button variant="primary" type="submit" disabled={busy || (!meta.name.trim() && !meta.company.trim())}>
               {busy ? <Loader2Icon className="animate-spin" /> : null}
               {t("presentations.create")}
             </Button>
@@ -410,7 +400,7 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button variant="primary" />}>
         <SparklesIcon />
         {t("presentations.fromBrain.open")}
       </DialogTrigger>
@@ -421,23 +411,21 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
             <DialogDescription>{t("presentations.fromBrain.help")}</DialogDescription>
           </DialogHeader>
           <div className="max-h-[65dvh] overflow-y-auto pe-1">
-            <FieldGroup>
+            <div className="grid gap-4">
               <Field>
                 <FieldLabel>{t("presentations.fromBrain.source")}</FieldLabel>
                 <ToggleGroup
                   aria-label={t("presentations.fromBrain.source")}
                   variant="outline"
-                  size="sm"
-                  spacing={0}
                   value={[type]}
                   onValueChange={(v: string[]) => v[0] && setType(v[0] as SourceType)}
                   className="flex-wrap"
                 >
                   {SOURCE_TYPES.map(({ type: st, icon: Icon }) => (
-                    <ToggleGroupItem key={st} value={st}>
+                    <Toggle key={st} value={st}>
                       <Icon />
                       {t(`presentations.fromBrain.source.${st}`)}
-                    </ToggleGroupItem>
+                    </Toggle>
                   ))}
                 </ToggleGroup>
               </Field>
@@ -453,17 +441,17 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
               ) : type === "entity" ? (
                 <EntityField namespace={namespace} value={entity} onChange={setEntity} />
               ) : (
-                <p className="border border-line bg-grid-card px-3 py-2 text-sm text-grid-muted">{t("presentations.fromBrain.brainHelp")}</p>
+                <p className="border border-border bg-card px-3 py-2 text-sm text-muted-foreground">{t("presentations.fromBrain.brainHelp")}</p>
               )}
 
               <MetaFields meta={meta} set={setMeta} prefix="fb" withStyle />
-            </FieldGroup>
+            </div>
           </div>
-          <p className="text-xs text-grid-muted">{t("presentations.fromBrain.draftNote")}</p>
+          <p className="text-xs text-muted-foreground">{t("presentations.fromBrain.draftNote")}</p>
           <FormError error={error} />
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" type="button" />}>{t("presentations.cancel")}</DialogClose>
-            <Button type="submit" disabled={busy || !source || (!meta.name.trim() && !meta.company.trim())}>
+            <DialogClose render={<Button variant="secondary" type="button" />}>{t("presentations.cancel")}</DialogClose>
+            <Button variant="primary" type="submit" disabled={busy || !source || (!meta.name.trim() && !meta.company.trim())}>
               {busy ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />}
               {busy ? t("presentations.fromBrain.working") : t("presentations.fromBrain.create")}
             </Button>
@@ -491,32 +479,32 @@ function NotePicker({ namespace, selected, onChange }: { namespace: string; sele
     <Field>
       <FieldLabel htmlFor="fb-notes">{t("presentations.fromBrain.notes")}</FieldLabel>
       <div className="relative">
-        <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-grid-muted" aria-hidden />
+        <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <Input id="fb-notes" dir="auto" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("presentations.fromBrain.notesSearch")} className="ps-8" />
       </div>
-      <div className="max-h-56 overflow-y-auto border border-line">
+      <div className="max-h-56 overflow-y-auto border border-border">
         {error ? (
-          <p className="px-3 py-2 text-xs text-grid-danger-text">{t("common.networkError")}</p>
+          <p className="px-3 py-2 text-xs text-nq-danger-text">{t("common.networkError")}</p>
         ) : isLoading && !data ? (
-          <p className="flex items-center gap-2 px-3 py-2 text-xs text-grid-muted">
+          <p className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
             <Loader2Icon className="size-3.5 animate-spin" /> {t("common.loading")}
           </p>
         ) : !data?.notes?.length ? (
-          <p className="px-3 py-2 text-xs text-grid-muted">{t("presentations.fromBrain.noNotes")}</p>
+          <p className="px-3 py-2 text-xs text-muted-foreground">{t("presentations.fromBrain.noNotes")}</p>
         ) : (
-          <ul className="divide-y divide-line" role="listbox" aria-multiselectable aria-label={t("presentations.fromBrain.notes")}>
+          <ul className="divide-y divide-border" role="listbox" aria-multiselectable aria-label={t("presentations.fromBrain.notes")}>
             {data.notes.map((n) => {
               const on = selected.includes(n.id)
               return (
                 <li key={n.id} role="option" aria-selected={on}>
-                  <button type="button" onClick={() => toggle(n.id)} className={cn("flex w-full items-center gap-2 px-3 py-2 text-start text-sm hover:bg-grid-soft", on && "bg-grid-soft")}>
-                    <span className={cn("flex size-4 shrink-0 items-center justify-center border", on ? "border-grid-fg bg-grid-fg text-grid-bg" : "border-line")}>
+                  <button type="button" onClick={() => toggle(n.id)} className={cn("flex w-full items-center gap-2 px-3 py-2 text-start text-sm hover:bg-nq-surface-soft", on && "bg-nq-surface-soft")}>
+                    <span className={cn("flex size-4 shrink-0 items-center justify-center border", on ? "border-foreground bg-foreground text-background" : "border-border")}>
                       {on ? <CheckIcon className="size-3" /> : null}
                     </span>
                     <span className="min-w-0 flex-1 truncate" dir="auto">
                       {n.title || t("presentations.untitled")}
                     </span>
-                    <span className="shrink-0 text-[12.5px] text-grid-muted">{timeAgo(n.updatedAt)}</span>
+                    <span className="shrink-0 text-[12.5px] text-muted-foreground">{timeAgo(n.updatedAt)}</span>
                   </button>
                 </li>
               )
@@ -536,8 +524,8 @@ function EntityField({ namespace, value, onChange }: { namespace: string; value:
     <Field>
       <FieldLabel htmlFor="fb-entity">{t("presentations.fromBrain.entity")}</FieldLabel>
       {value ? (
-        <div className="flex items-center gap-2 border border-line bg-grid-card px-3 py-2 text-sm">
-          <NetworkIcon className="size-4 text-grid-muted" aria-hidden />
+        <div className="flex items-center gap-2 border border-border bg-card px-3 py-2 text-sm">
+          <NetworkIcon className="size-4 text-muted-foreground" aria-hidden />
           <bdi className="min-w-0 flex-1 truncate">{value.name}</bdi>
           <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
             {t("presentations.fromBrain.change")}
@@ -547,7 +535,7 @@ function EntityField({ namespace, value, onChange }: { namespace: string; value:
         <>
           <Input id="fb-entity" dir="auto" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("presentations.fromBrain.entitySearch")} />
           {query.trim() ? (
-            <div className="border border-line">
+            <div className="border border-border">
               <EntityResults namespace={namespace} query={query} onPick={(e) => onChange(e)} />
             </div>
           ) : null}

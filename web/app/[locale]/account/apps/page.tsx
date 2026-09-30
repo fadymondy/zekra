@@ -6,15 +6,12 @@ import { useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
 import { AppWindowIcon, ChevronDownIcon, PlugZapIcon } from "lucide-react"
-import { toast } from "sonner"
+import { Badge, Button, Collapsible, CollapsiblePanel, CollapsibleTrigger, toast } from "@fadymondy/nasaq/web"
 
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
 import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { noRetryOn4xx } from "@/lib/queries"
@@ -41,26 +38,26 @@ function GrantRow({ g, onRevoke }: { g: Grant; onRevoke?: (g: Grant) => Promise<
   const brains = g.namespaces ?? []
   return (
     <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3", g.revoked_at && "opacity-70")}>
-      <AppWindowIcon className="size-4 shrink-0 text-grid-muted" aria-hidden />
+      <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       <div className="min-w-0 flex-1 space-y-1.5">
         <p className="flex flex-wrap items-center gap-x-2 text-sm">
-          <span dir="auto" className="font-medium text-grid-fg">
+          <span dir="auto" className="font-medium text-foreground">
             {name}
           </span>
           {g.client_uri ? (
-            <Ltr mono className="truncate text-xs text-grid-muted">
+            <Ltr mono className="truncate text-xs text-muted-foreground">
               {g.client_uri.replace(/^https?:\/\//, "")}
             </Ltr>
           ) : null}
         </p>
         <div className="flex flex-wrap items-center gap-1.5">
           {brains.length === 0 ? (
-            <span className="text-xs text-grid-muted">{t("apps.noBrains")}</span>
+            <span className="text-xs text-muted-foreground">{t("apps.noBrains")}</span>
           ) : (
             brains.map((b) => (
               <Badge key={b.namespace} variant="outline" className="gap-1.5">
                 <Ltr>{b.namespace}</Ltr>
-                <span className={b.write ? "text-grid-warn" : "text-grid-muted"}>
+                <span className={b.write ? "text-nq-warning" : "text-muted-foreground"}>
                   {b.write ? t("apps.readWrite") : t("apps.read")}
                 </span>
               </Badge>
@@ -68,7 +65,7 @@ function GrantRow({ g, onRevoke }: { g: Grant; onRevoke?: (g: Grant) => Promise<
           )}
         </div>
       </div>
-      <div className="flex flex-col items-end gap-0.5 text-xs text-grid-muted">
+      <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
         {g.revoked_at ? (
           <span>{t("apps.revokedOn", { date: formatDate(g.revoked_at) })}</span>
         ) : (
@@ -110,7 +107,7 @@ export default function ConnectedAppsPage() {
   }
 
   const connectCta = (
-    <Button nativeButton={false} render={<Link href={`/${locale}/connect`} />}>
+    <Button variant="primary" nativeButton={false} render={<Link href={`/${locale}/connect`} />}>
       <PlugZapIcon />
       {t("apps.connectCta")}
     </Button>
@@ -136,17 +133,17 @@ export default function ConnectedAppsPage() {
 
       {revoked.length > 0 ? (
         <Collapsible open={showRevoked} onOpenChange={setShowRevoked} className="mt-6">
-          <CollapsibleTrigger className="flex w-full items-center gap-2 px-6 py-3 text-sm font-medium text-grid-fg">
+          <CollapsibleTrigger className="flex w-full items-center gap-2 px-6 py-3 text-sm font-medium text-foreground">
             <ChevronDownIcon className={cn("size-4 transition-transform", !showRevoked && "-rotate-90 rtl:rotate-90")} />
             {t("apps.revokedSection", { n: revoked.length })}
           </CollapsibleTrigger>
-          <CollapsibleContent>
+          <CollapsiblePanel>
             <RowList label={t("apps.revokedSection", { n: revoked.length })}>
               {revoked.map((g) => (
                 <GrantRow key={g.id} g={g} />
               ))}
             </RowList>
-          </CollapsibleContent>
+          </CollapsiblePanel>
         </Collapsible>
       ) : null}
     </div>

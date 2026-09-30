@@ -75,8 +75,8 @@ function CategoriesLegend({ namespace, palette }: { namespace: string; palette: 
   if (cats.length === 0) return null
   const base = `/${locale}/b/${encodeURIComponent(namespace)}/notes`
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-6 py-1.5 text-xs" aria-label={t("graph.categories")}>
-      <span className="grid-micro">{t("graph.categories")}</span>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-6 py-1.5 text-xs" aria-label={t("graph.categories")}>
+      <span className="eyebrow">{t("graph.categories")}</span>
       {cats.slice(0, 16).map((c) => (
         <Link
           key={c.name}
@@ -85,13 +85,13 @@ function CategoriesLegend({ namespace, palette }: { namespace: string; palette: 
           title={c.description || t("graph.categoryNotes", { name: c.name })}
         >
           <span aria-hidden className="size-2 shrink-0" style={{ background: palette(c.name) }} />
-          <span className="text-grid-fg" dir="auto">
+          <span className="text-foreground" dir="auto">
             {c.name}
           </span>
-          <span className="text-grid-muted">{formatNumber(c.count)}</span>
+          <span className="text-muted-foreground">{formatNumber(c.count)}</span>
         </Link>
       ))}
-      {cats.length > 16 ? <span className="text-grid-muted">{t("graph.moreCategories", { count: formatNumber(cats.length - 16) })}</span> : null}
+      {cats.length > 16 ? <span className="text-muted-foreground">{t("graph.moreCategories", { count: formatNumber(cats.length - 16) })}</span> : null}
     </div>
   )
 }
@@ -146,14 +146,14 @@ export function BrainGraphView({ data, namespace, focus }: { data: GraphData; na
   const toggle = (active: boolean) =>
     cn(
       "inline-flex items-center gap-1.5 px-2.5 py-1 font-medium transition-colors",
-      active ? "bg-primary text-primary-foreground" : "text-grid-muted hover:bg-grid-soft hover:text-grid-fg",
+      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground",
     )
 
   return (
     <div className="zk-graph flex min-h-0 flex-1 flex-col">
       <GraphPaletteStyle />
-      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-b border-line px-6 py-2 text-xs">
-        <div className="inline-flex overflow-hidden border border-line bg-grid-card" role="group" aria-label={t("graph.view")}>
+      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-b border-border px-6 py-2 text-xs">
+        <div className="inline-flex overflow-hidden border border-border bg-card" role="group" aria-label={t("graph.view")}>
           <button
             type="button"
             onClick={() => setModePersist("schema")}
@@ -167,34 +167,34 @@ export function BrainGraphView({ data, namespace, focus }: { data: GraphData; na
             type="button"
             onClick={() => setModePersist("spider")}
             aria-pressed={mode === "spider"}
-            className={cn("border-s border-line", toggle(mode === "spider"))}
+            className={cn("border-s border-border", toggle(mode === "spider"))}
             title={t("graph.spiderHint")}
           >
             <NetworkIcon className="size-3.5" /> {t("graph.spider")}
           </button>
         </div>
 
-        <span className="h-4 w-px bg-line" aria-hidden />
+        <span className="h-4 w-px bg-border" aria-hidden />
 
         {items.map((l) => (
           <span key={l.group} className="inline-flex items-center gap-1.5">
             <span aria-hidden className="size-2.5 shrink-0" style={{ background: l.color }} />
-            <span className="text-grid-fg" dir="auto">
+            <span className="text-foreground" dir="auto">
               {l.group}
             </span>
-            <span className="text-grid-muted">{formatNumber(l.count)}</span>
+            <span className="text-muted-foreground">{formatNumber(l.count)}</span>
           </span>
         ))}
         {other ? (
           <span className="inline-flex items-center gap-1.5" title={other.groups.join(", ")}>
             <span aria-hidden className="size-2.5 shrink-0" style={{ background: OTHER_COLOR }} />
-            <span className="text-grid-fg">{t("graph.other", { count: formatNumber(other.groups.length) })}</span>
-            <span className="text-grid-muted">{formatNumber(other.count)}</span>
+            <span className="text-foreground">{t("graph.other", { count: formatNumber(other.groups.length) })}</span>
+            <span className="text-muted-foreground">{formatNumber(other.count)}</span>
           </span>
         ) : null}
 
         <span
-          className="ms-auto whitespace-nowrap text-[12.5px] text-grid-muted"
+          className="ms-auto whitespace-nowrap text-[12.5px] text-muted-foreground"
           title={
             sampled
               ? t("graph.sampledTitle", {
@@ -278,16 +278,16 @@ export function FocusBanner({ node, palette, onClear }: { node: GraphNode; palet
   const { t } = useTranslations()
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-3">
-      <div className="pointer-events-auto flex items-center gap-2 border border-line bg-grid-card px-3 py-1.5 text-xs">
+      <div className="pointer-events-auto flex items-center gap-2 border border-border bg-card px-3 py-1.5 text-xs">
         <span aria-hidden className="size-2 shrink-0" style={{ background: palette(node.group) }} />
-        <span className="text-grid-muted">{t("graph.focusedOn")}</span>
-        <span className="max-w-[220px] truncate font-medium text-grid-fg" dir="auto">
+        <span className="text-muted-foreground">{t("graph.focusedOn")}</span>
+        <span className="max-w-[220px] truncate font-medium text-foreground" dir="auto">
           {node.name}
         </span>
         <button
           type="button"
           onClick={onClear}
-          className="ms-1 inline-flex items-center gap-1 px-2 py-0.5 text-grid-muted hover:bg-grid-soft hover:text-grid-fg"
+          className="ms-1 inline-flex items-center gap-1 px-2 py-0.5 text-muted-foreground hover:bg-nq-surface-soft hover:text-foreground"
         >
           <XIcon className="size-3" /> {t("graph.clearFocus")}
         </button>
@@ -438,7 +438,7 @@ function SchemaGraphView({
     <div className="relative flex min-h-0 flex-1">
       <div
         ref={viewportRef}
-        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--grid-line)_1px,transparent_0)] [background-size:22px_22px]"
+        className="relative min-w-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_1px_1px,var(--nq-line)_1px,transparent_0)] [background-size:22px_22px]"
         style={{ cursor: dragging ? "grabbing" : "grab", touchAction: "none" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -481,8 +481,8 @@ function SchemaGraphView({
               style={{ left: c.x, top: PAD - 6, width: CARD_W }}
             >
               <span aria-hidden className="size-2.5 shrink-0" style={{ background: palette(c.group) }} />
-              <span className="truncate text-grid-fg">{c.group}</span>
-              <span className="text-grid-muted">{c.count}</span>
+              <span className="truncate text-foreground">{c.group}</span>
+              <span className="text-muted-foreground">{c.count}</span>
             </div>
           ))}
 
@@ -515,7 +515,7 @@ function SchemaGraphView({
                   onMouseEnter={(e) => hover.enter(n, e)}
                   onMouseLeave={hover.leave}
                   aria-label={n.name}
-                  className="absolute flex items-center gap-2 border border-line bg-grid-card px-2.5 text-start"
+                  className="absolute flex items-center gap-2 border border-border bg-card px-2.5 text-start"
                   style={{
                     left: p.x,
                     top: p.y,
@@ -527,7 +527,7 @@ function SchemaGraphView({
                   }}
                 >
                   <span aria-hidden className="h-6 w-1 shrink-0" style={{ background: color }} />
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-grid-fg" dir="auto">
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground" dir="auto">
                     {n.name}
                   </span>
                 </button>

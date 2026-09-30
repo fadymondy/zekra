@@ -29,6 +29,9 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` },
+      // CircleXO single sign-on: the API owns the redirect chain and its callback.
+      { source: "/auth/circlexo/:path*", destination: `${API_ORIGIN}/auth/circlexo/:path*` },
+      { source: "/sso/circlexo", destination: `${API_ORIGIN}/sso/circlexo` },
       { source: "/graphql", destination: `${API_ORIGIN}/graphql` },
       { source: "/events", destination: `${API_ORIGIN}/events` },
       { source: "/install.sh", destination: `${API_ORIGIN}/install.sh` },

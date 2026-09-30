@@ -1,5 +1,7 @@
 "use client"
 
+import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
+
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,11 +11,6 @@ import { BrainCard, BrainRow, brainName } from "@/components/brains/brain-cells"
 import { DeleteBrainDialog, NewBrainDialog } from "@/components/brains/brain-dialogs"
 import { DetailStrip, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState } from "@/components/states"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useStats } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
 import { isAdmin, useBrains, useMe } from "@/lib/queries"
@@ -54,7 +51,7 @@ export default function BrainsPage() {
   const loading = brainsQ.isLoading
   const v = (n?: number) => (loading || n === undefined ? "—" : formatNumber(n))
   const newButton = (
-    <Button onClick={() => setCreating(true)}>
+    <Button variant="primary" onClick={() => setCreating(true)}>
       <PlusIcon />
       {t("brains.new.button")}
     </Button>
@@ -70,14 +67,14 @@ export default function BrainsPage() {
           { label: t("brains.stat.brains"), value: v(s?.brains ?? brainsQ.data?.length) },
           { label: t("brains.stat.memories"), value: v(s?.memories) },
           { label: t("brains.stat.nodes"), value: v(s?.entities) },
-          { label: t("brains.stat.recalls24h"), value: <span className={s?.recalls24h ? "text-grid-ok" : undefined}>{v(s?.recalls24h)}</span> },
-          { label: t("brains.stat.openGaps"), value: <span className={s?.openGaps ? "text-grid-warn" : undefined}>{v(s?.openGaps)}</span> },
+          { label: t("brains.stat.recalls24h"), value: <span className={s?.recalls24h ? "text-nq-success" : undefined}>{v(s?.recalls24h)}</span> },
+          { label: t("brains.stat.openGaps"), value: <span className={s?.openGaps ? "text-nq-warning" : undefined}>{v(s?.openGaps)}</span> },
         ]}
       />
 
       <div className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-xs">
-          <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-grid-muted" />
+          <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             value={search}
@@ -102,18 +99,16 @@ export default function BrainsPage() {
           </Select>
           <ToggleGroup
             variant="outline"
-            size="sm"
-            spacing={0}
             className="hidden sm:flex"
             value={[view]}
             onValueChange={(val: string[]) => val[0] && setView(val[0] as ViewMode)}
           >
-            <ToggleGroupItem value="grid" aria-label={t("brains.view.grid")}>
+            <Toggle value="grid" aria-label={t("brains.view.grid")}>
               <LayoutGridIcon />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label={t("brains.view.list")}>
+            </Toggle>
+            <Toggle value="list" aria-label={t("brains.view.list")}>
               <ListIcon />
-            </ToggleGroupItem>
+            </Toggle>
           </ToggleGroup>
         </div>
       </div>
@@ -121,9 +116,9 @@ export default function BrainsPage() {
       {brainsQ.error ? (
         <ErrorState error={brainsQ.error} />
       ) : loading ? (
-        <div className="grid grid-cols-1 gap-px border-y border-line bg-line sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px border-y border-border bg-border sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="bg-grid-card p-4">
+            <div key={i} className="bg-card p-4">
               <Skeleton className="h-44" />
             </div>
           ))}
@@ -135,13 +130,13 @@ export default function BrainsPage() {
           action={search ? undefined : newButton}
         />
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 gap-px border-y border-line bg-line sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px border-y border-border bg-border sm:grid-cols-2 xl:grid-cols-3">
           {brains.map((b) => (
             <BrainCard key={b.namespace} b={b} onDelete={() => setDeleteNs(b.namespace)} />
           ))}
         </div>
       ) : (
-        <ol className="divide-y divide-line border-y border-line" aria-label={t("brains.title")}>
+        <ol className="divide-y divide-border border-y border-border" aria-label={t("brains.title")}>
           {brains.map((b) => (
             <BrainRow key={b.namespace} b={b} onDelete={() => setDeleteNs(b.namespace)} />
           ))}
@@ -149,10 +144,10 @@ export default function BrainsPage() {
       )}
 
       {isAdmin(me.data) ? (
-        <div className="-mt-px flex flex-wrap items-center gap-2 border-y border-line px-6 py-3 text-xs text-grid-muted">
+        <div className="-mt-px flex flex-wrap items-center gap-2 border-y border-border px-6 py-3 text-xs text-muted-foreground">
           <LockIcon className="size-3.5" />
           {t("brains.adminPointer")}
-          <Link href={`/${locale}/admin/users`} className="text-grid-fg underline underline-offset-4">
+          <Link href={`/${locale}/admin/users`} className="text-foreground underline underline-offset-4">
             {t("brains.adminLink")}
           </Link>
           <span className="ms-auto hidden items-center gap-4 text-[12.5px] sm:flex">

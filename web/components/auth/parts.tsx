@@ -1,11 +1,10 @@
 "use client"
 
+import { Button, Field, FieldError, Input, Separator } from "@fadymondy/nasaq/web"
+
+import { useEffect, useState } from "react"
 import useSWR from "swr"
 
-import { Button } from "@/components/ui/button"
-import { Field, FieldError } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { parseMethods, PROVIDER_NAMES, type LoginMethods, type Provider } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -64,6 +63,38 @@ export function useLoginMethods(): LoginMethods | undefined {
   return data === undefined ? undefined : parseMethods(data)
 }
 
+/**
+ * CircleXO single sign-on, advertised by GET /api/circlexo/config. Off unless the API answers
+ * {enabled:true}; any failure counts as off, so the button never shows on a plain deployment.
+ */
+export function useCircleXO(): { loginUrl: string } | null {
+  const [cfg, setCfg] = useState<{ loginUrl: string } | null>(null)
+  useEffect(() => {
+    let live = true
+    fetch("/api/circlexo/config", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { enabled?: boolean; login_url?: string } | null) => {
+        if (live && j?.enabled === true && typeof j.login_url === "string" && j.login_url.startsWith("/")) setCfg({ loginUrl: j.login_url })
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+  return cfg
+}
+
+/** "Sign in with CircleXO": a full page load, because the flow is a chain of redirects through the API. */
+export function CircleXOButton({ loginUrl, returnTo }: { loginUrl: string; returnTo: string | null }) {
+  const { t } = useTranslations()
+  const href = returnTo ? `${loginUrl}${loginUrl.includes("?") ? "&" : "?"}return_to=${encodeURIComponent(returnTo)}` : loginUrl
+  return (
+    <Button type="button" variant="secondary" size="lg" className="w-full" onClick={() => window.location.assign(href)}>
+      {t("auth.circlexo.signIn")}
+    </Button>
+  )
+}
+
 /** A 6-digit code field: numeric keyboard, one-time-code autofill, always LTR. */
 export function CodeInput({
   id = "code",
@@ -101,7 +132,7 @@ export function ErrorLine({ error }: { error: string | null }) {
 
 export function Notice({ children }: { children: React.ReactNode }) {
   return children ? (
-    <p role="status" className="text-sm text-grid-muted">
+    <p role="status" className="text-sm text-muted-foreground">
       {children}
     </p>
   ) : null
@@ -111,7 +142,7 @@ export function Submit({ busy, label, disabled }: { busy: boolean; label: string
   const { t } = useTranslations()
   return (
     <Field>
-      <Button type="submit" size="lg" disabled={busy || disabled}>
+      <Button variant="primary" type="submit" size="lg" disabled={busy || disabled}>
         {busy ? t("common.working") : label}
       </Button>
     </Field>
@@ -124,7 +155,7 @@ export function OrRule() {
   return (
     <div className="flex items-center gap-3">
       <Separator className="flex-1" />
-      <span className="grid-micro">{t("auth.or")}</span>
+      <span className="eyebrow">{t("auth.or")}</span>
       <Separator className="flex-1" />
     </div>
   )
@@ -147,7 +178,7 @@ export function ProviderButtons({ methods, returnTo }: { methods: LoginMethods |
         return (
           <Button
             key={p}
-            variant={p === "apple" ? "default" : "outline"}
+            variant={p === "apple" ? "primary" : "secondary"}
             size="lg"
             className={cn(
               "w-full [&_svg]:size-4",

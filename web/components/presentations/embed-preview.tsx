@@ -1,11 +1,12 @@
 "use client"
 
+import { Button } from "@fadymondy/nasaq/web"
+
 import { useLayoutEffect, useRef, useState } from "react"
 import { ExternalLinkIcon } from "lucide-react"
 import { cn } from "cn"
 
 import type { PageContent } from "@/lib/presentations/types"
-import { Button } from "@/components/ui/button"
 import { PagePreview } from "./page-preview"
 
 /*
@@ -78,7 +79,7 @@ export function EmbedPreview({
       </div>
       {href ? (
         <div className="absolute inset-x-0 bottom-[max(0.75rem,3cqh)] flex justify-center">
-          <Button
+          <Button variant="primary"
             size="lg"
             className="shadow-lg"
             nativeButton={false}

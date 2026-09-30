@@ -163,13 +163,13 @@ export function useCodeActions(
         <div
           ref={menuRef}
           role="menu"
-          className="fixed z-50 min-w-44 -translate-x-full rounded-md border border-line bg-grid-card py-1 text-sm shadow-lg"
+          className="fixed z-50 min-w-44 -translate-x-full rounded-md border border-border bg-card py-1 text-sm shadow-lg"
           style={{ left: menu.x, top: menu.y }}
         >
           <Item icon={<CopyIcon className="size-4" />} label="Copy" hint="⌘C" onClick={() => run("copy")} />
           <Item icon={<DownloadIcon className="size-4" />} label="Download as file" onClick={() => run("download")} />
           <Item icon={<ImageIcon className="size-4" />} label="Export as PNG" onClick={() => run("png")} />
-          <div className="my-1 border-t border-line" />
+          <div className="my-1 border-t border-border" />
           <Item
             icon={<HashIcon className="size-4" />}
             label={menu.figure.getAttribute("data-lines") === "on" ? "Hide line numbers" : "Show line numbers"}
@@ -178,7 +178,7 @@ export function useCodeActions(
         </div>
       ) : null}
       {toast ? (
-        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md border border-line bg-grid-card px-3 py-1.5 text-sm shadow-lg">
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md border border-border bg-card px-3 py-1.5 text-sm shadow-lg">
           {toast}
         </div>
       ) : null}
@@ -204,11 +204,11 @@ function Item({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-grid-fg hover:bg-grid-soft"
+      className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-foreground hover:bg-nq-surface-soft"
     >
       {icon}
       <span className="flex-1">{label}</span>
-      {hint ? <span className="font-mono text-xs text-grid-muted">{hint}</span> : null}
+      {hint ? <span className="font-mono text-xs text-muted-foreground">{hint}</span> : null}
     </button>
   )
 }

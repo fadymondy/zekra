@@ -3,7 +3,7 @@ import { ArrowRightIcon, GithubIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { CubeMark } from "@/components/brand/cube-mark"
-import { PRODUCT_MARKS, type MarkSpec } from "@/app/styles/grid-marks"
+import { PRODUCT_MARKS, type MarkSpec } from "@/lib/brand/marks"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { DOCS_HREF, RELATED, type Landing } from "@/lib/site/landing"
 import { CopyButton } from "@/components/site/copy-button"
@@ -18,7 +18,7 @@ the same classes, plus the presentations block for the second audience. Copy com
 content/site/landing.{en,ar}.json.
 */
 
-const SECTION = "border-t border-line px-6 py-14 sm:px-10"
+const SECTION = "border-t border-border px-6 py-14 sm:px-10"
 
 /** A mark that swaps to its on-dark body colour in dark mode, when it has one. */
 function ThemedMark({ mark, size }: { mark: MarkSpec; size: number }) {
@@ -41,7 +41,7 @@ function SectionTitle({ children, id }: { children: React.ReactNode; id?: string
 
 function Ordinal({ n }: { n: number }) {
   return (
-    <span dir="ltr" className="font-mono text-xs text-brand">
+    <span dir="ltr" className="font-mono text-xs text-nq-brand">
       {String(n + 1).padStart(2, "0")}
     </span>
   )
@@ -49,8 +49,8 @@ function Ordinal({ n }: { n: number }) {
 
 function Terminal({ terminal }: { terminal: NonNullable<Landing["terminal"]> }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-card/40">
-      <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
+    <div className="overflow-hidden rounded-lg border border-border bg-card/40">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
         <span className="flex gap-1.5" aria-hidden>
           <span className="size-2.5 rounded-full bg-red-500/70" />
           <span className="size-2.5 rounded-full bg-amber-500/70" />
@@ -80,10 +80,10 @@ function Terminal({ terminal }: { terminal: NonNullable<Landing["terminal"]> }) 
 
 function CardGrid({ cards, cols = "sm:grid-cols-2" }: { cards: Landing["features"]["cards"]; cols?: string }) {
   return (
-    <div className={cn("grid gap-px overflow-hidden rounded-lg border border-line bg-line", cols)}>
+    <div className={cn("grid gap-px overflow-hidden rounded-lg border border-border bg-border", cols)}>
       {cards.map((card) => (
         <article key={card.title} className="bg-background p-6">
-          <span className="mb-4 flex size-8 items-center justify-center rounded border border-line text-brand">
+          <span className="mb-4 flex size-8 items-center justify-center rounded border border-border text-nq-brand">
             <Icon name={card.icon} className="size-4" />
           </span>
           <h3 className="text-base font-medium">{card.title}</h3>
@@ -102,7 +102,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader spec={spec} locale={locale} />
 
-      <main className="mx-auto max-w-[1100px] border-x border-line">
+      <main className="mx-auto max-w-[1100px] border-x border-border">
         {/* Hero */}
         <section className="px-6 py-16 sm:px-10">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
@@ -111,7 +111,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
               {/* Latin eyebrows are mono and letter-spaced; Arabic drops both (cursive joins). */}
               <p
                 className={cn(
-                  "mt-6 text-[12.5px] text-brand",
+                  "mt-6 text-[12.5px] text-nq-brand",
                   isArabic ? "text-xs font-medium" : "font-mono tracking-[0.1em]",
                 )}
               >
@@ -131,8 +131,8 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
           {/* The install bar: the copyable command beside the primary action. */}
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-stretch">
             {spec.install ? (
-              <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md border border-line bg-card/40 px-4 py-3">
-                <span aria-hidden className="font-mono text-sm text-brand">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md border border-border bg-card/40 px-4 py-3">
+                <span aria-hidden className="font-mono text-sm text-nq-brand">
                   $
                 </span>
                 <code
@@ -148,7 +148,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             <div className="flex flex-wrap items-center gap-3">
               <a
                 href={href(spec.primaryAction.href)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-brand px-5 py-3 text-sm font-medium whitespace-nowrap text-brand-foreground transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-md bg-nq-brand px-5 py-3 text-sm font-medium whitespace-nowrap text-nq-on-action transition-opacity hover:opacity-90"
               >
                 {spec.primaryAction.label}
                 <ArrowRightIcon className="size-4 rtl:rotate-180" />
@@ -156,7 +156,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
               {spec.secondaryAction ? (
                 <Link
                   href={href(spec.secondaryAction.href)}
-                  className="inline-flex items-center rounded-md border border-line px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors hover:bg-card"
+                  className="inline-flex items-center rounded-md border border-border px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors hover:bg-card"
                 >
                   {spec.secondaryAction.label}
                 </Link>
@@ -165,10 +165,10 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
           </div>
 
           {/* Fact chips, each with its icon. */}
-          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
             {spec.chips.map((chip) => (
               <li key={chip.label} className="flex items-center gap-3 bg-background px-4 py-3 text-sm">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded border border-line text-brand">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded border border-border text-nq-brand">
                   <Icon name={chip.icon} className="size-3.5" />
                 </span>
                 {chip.label}
@@ -194,11 +194,11 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             ) : null}
             <pre
               dir="ltr"
-              className="overflow-x-auto rounded-lg border border-line bg-card/40 p-5 font-mono text-[13px] leading-relaxed text-muted-foreground"
+              className="overflow-x-auto rounded-lg border border-border bg-card/40 p-5 font-mono text-[13px] leading-relaxed text-muted-foreground"
             >
               {spec.explainer.diagram}
             </pre>
-            <div className="mt-6 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+            <div className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
               {spec.explainer.items.map((item) => (
                 <article key={item.title} className="bg-background p-6">
                   <h3 className="text-base font-medium">{item.title}</h3>
@@ -215,7 +215,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             {spec.presentations.eyebrow ? (
               <p
                 className={cn(
-                  "mb-3 text-[12.5px] text-brand",
+                  "mb-3 text-[12.5px] text-nq-brand",
                   isArabic ? "text-xs font-medium" : "font-mono tracking-[0.1em]",
                 )}
               >
@@ -235,7 +235,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                 <a
                   key={action.href + action.label}
                   href={href(action.href)}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-brand px-5 py-3 text-sm font-medium whitespace-nowrap text-brand-foreground transition-opacity hover:opacity-90"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-nq-brand px-5 py-3 text-sm font-medium whitespace-nowrap text-nq-on-action transition-opacity hover:opacity-90"
                 >
                   {action.label}
                   <ArrowRightIcon className="size-4 rtl:rotate-180" />
@@ -249,10 +249,10 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
         {spec.grid ? (
           <section className={SECTION}>
             <SectionTitle id="grid">{spec.grid.title}</SectionTitle>
-            <ul className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
               {spec.grid.items.map((item) => (
                 <li key={item.label} className="flex items-center gap-3 bg-background px-4 py-3.5 text-sm">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded border border-line text-brand">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded border border-border text-nq-brand">
                     <Icon name={item.icon} className="size-3.5" />
                   </span>
                   <span dir="ltr">{item.label}</span>
@@ -278,7 +278,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                       <li
                         key={item}
                         dir="ltr"
-                        className="rounded border border-line px-2 py-1 font-mono text-[12.5px] text-muted-foreground"
+                        className="rounded border border-border px-2 py-1 font-mono text-[12.5px] text-muted-foreground"
                       >
                         {item}
                       </li>
@@ -296,7 +296,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             {spec.steps.note ? (
               <p className="-mt-4 mb-6 max-w-2xl text-sm text-muted-foreground">{spec.steps.note}</p>
             ) : null}
-            <ol className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+            <ol className="divide-y divide-border overflow-hidden rounded-lg border border-border">
               {spec.steps.steps.map((step, index) => (
                 <li key={step.title} className="bg-background p-5">
                   <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                   {step.code ? (
                     <pre
                       dir="ltr"
-                      className="mt-3 overflow-x-auto rounded border border-line bg-card/40 px-3 py-2 font-mono text-xs text-foreground/90"
+                      className="mt-3 overflow-x-auto rounded border border-border bg-card/40 px-3 py-2 font-mono text-xs text-foreground/90"
                     >
                       <code>{step.code}</code>
                     </pre>
@@ -331,7 +331,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
             <div className="flex flex-wrap items-center gap-3">
               <a
                 href={spec.repo ?? "https://github.com/fadymondy"}
-                className="inline-flex items-center gap-2 rounded-md border border-line px-4 py-2 text-sm transition-colors hover:bg-card"
+                className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm transition-colors hover:bg-card"
               >
                 <GithubIcon className="size-4" />
                 GitHub
@@ -344,7 +344,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
         {spec.related?.length ? (
           <section className={SECTION}>
             <SectionTitle id="ecosystem">{isArabic ? "المزيد من المنظومة" : "More from the ecosystem"}</SectionTitle>
-            <div className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+            <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
               {spec.related.map((item) => {
                 const sibling = RELATED[item.domain]
                 if (!sibling) return null
@@ -382,8 +382,8 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{spec.cta.copy}</p>
             ) : null}
             {spec.cta.code ? (
-              <div className="mx-auto mt-6 flex max-w-xl items-center gap-2.5 rounded-md border border-line bg-card/40 px-4 py-3">
-                <span aria-hidden className="font-mono text-sm text-brand">
+              <div className="mx-auto mt-6 flex max-w-xl items-center gap-2.5 rounded-md border border-border bg-card/40 px-4 py-3">
+                <span aria-hidden className="font-mono text-sm text-nq-brand">
                   $
                 </span>
                 <code dir="ltr" className="min-w-0 flex-1 overflow-x-auto text-start font-mono text-sm whitespace-nowrap">
@@ -399,7 +399,7 @@ export function SiteLanding({ spec, locale }: { spec: Landing; locale: string })
                   href={href(action.href)}
                   className={cn(
                     "inline-flex items-center rounded-md px-5 py-3 text-sm font-medium transition-colors",
-                    i === 0 ? "bg-brand text-brand-foreground hover:opacity-90" : "border border-line hover:bg-card",
+                    i === 0 ? "bg-nq-brand text-nq-on-action hover:opacity-90" : "border border-border hover:bg-card",
                   )}
                 >
                   {action.label}

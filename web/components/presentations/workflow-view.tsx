@@ -1,5 +1,7 @@
 "use client"
 
+import { Badge } from "@fadymondy/nasaq/web"
+
 import { useId, useLayoutEffect, useRef, useState } from "react"
 import { cn } from "cn"
 
@@ -7,7 +9,6 @@ import { useTranslations } from "@/lib/i18n"
 import { drawPaths, reveal, whenVisible } from "@/lib/presentations/motion"
 import type { WorkflowBlock, WorkflowStep } from "@/lib/presentations/types"
 import { connector, rowsFor, workflowEdges, type Box } from "@/lib/presentations/workflow"
-import { Badge } from "@/components/ui/badge"
 import { EditScope, IfSet, Tx, TxMd } from "./edit"
 import { PresIcon } from "./icon"
 import { Md } from "./markdown"
@@ -28,7 +29,7 @@ const KIND_STYLE: Record<string, string> = {
   decision: "border-[var(--pres-series-4)]/60",
   human_review: "border-dashed",
   system: "bg-muted/60",
-  output: "border-brand/50 bg-brand/5",
+  output: "border-nq-brand/50 bg-nq-brand/5",
 }
 
 function StepCard({ step, highlight, kindLabel }: { step: WorkflowStep; highlight: boolean; kindLabel: string }) {
@@ -41,15 +42,15 @@ function StepCard({ step, highlight, kindLabel }: { step: WorkflowStep; highligh
       className={cn(
         "relative flex w-full min-w-0 flex-col gap-[0.4em] rounded-[0.8em] border bg-card p-[0.75em] text-start shadow-xs",
         KIND_STYLE[kind],
-        highlight && "ring-2 ring-brand ring-offset-2 ring-offset-background",
+        highlight && "ring-2 ring-nq-brand ring-offset-2 ring-offset-background",
       )}
     >
       <div className="flex items-center gap-[0.5em]">
         <span
           className={cn(
-            "flex size-[2.1em] shrink-0 items-center justify-center rounded-[0.55em] border bg-muted text-brand",
+            "flex size-[2.1em] shrink-0 items-center justify-center rounded-[0.55em] border bg-muted text-nq-brand",
             kind === "decision" && "rotate-45 rounded-[0.35em]",
-            kind === "output" && "border-brand/40 bg-brand text-white",
+            kind === "output" && "border-nq-brand/40 bg-nq-brand text-white",
           )}
         >
           <span className={cn("flex", kind === "decision" && "-rotate-45")}>
@@ -68,7 +69,7 @@ function StepCard({ step, highlight, kindLabel }: { step: WorkflowStep; highligh
       {step.owner || kind !== "step" ? (
         <div className="flex flex-wrap items-center gap-[0.35em]">
           {step.owner ? (
-            <Badge variant="secondary" className="h-auto px-[0.5em] py-[0.1em] text-[0.75em]">
+            <Badge variant="neutral" className="h-auto px-[0.5em] py-[0.1em] text-[0.75em]">
               <Tx p="owner" v={step.owner} />
             </Badge>
           ) : null}

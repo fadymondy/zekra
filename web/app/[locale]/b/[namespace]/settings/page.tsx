@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DownloadIcon, ImageIcon, Loader2Icon, SaveIcon, Trash2Icon, UploadIcon, UserPlusIcon } from "lucide-react"
-import { toast } from "sonner"
+import { Badge, Button, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { BrainAvatar } from "@/components/brains/brain-cells"
@@ -20,12 +20,6 @@ import { Ltr } from "@/components/copy-field"
 import { HatchBand, SectionHeader } from "@/components/page"
 import { ShareDomains } from "@/components/presentations/admin/share-domains"
 import { ErrorState, LoadingRows } from "@/components/states"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { ApiError, brainApi } from "@/lib/api"
 import {
   ACCEPTED_IMAGES,
@@ -53,12 +47,12 @@ const isBrainKey = (key: unknown) => {
 /** One settings block: title + hint on the start side, content on the end side. */
 function Section({ id, title, hint, children, danger }: { id: string; title: string; hint?: ReactNode; children: ReactNode; danger?: boolean }) {
   return (
-    <section aria-labelledby={id} className="grid gap-6 border-t border-line px-6 py-8 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+    <section aria-labelledby={id} className="grid gap-6 border-t border-border px-6 py-8 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
       <div>
-        <h2 id={id} className={cn("text-base font-medium", danger && "text-grid-danger-text")}>
+        <h2 id={id} className={cn("text-base font-medium", danger && "text-nq-danger-text")}>
           {title}
         </h2>
-        {hint ? <p className="mt-1 text-sm text-grid-muted">{hint}</p> : null}
+        {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
       </div>
       <div className="min-w-0 max-w-2xl">{children}</div>
     </section>
@@ -168,7 +162,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
   return (
     <Section id="settings-general" title={t("brainSettings.general.title")} hint={t("brainSettings.general.hint")}>
       <form onSubmit={save}>
-        <FieldGroup>
+        <div className="grid gap-4">
           <Field>
             <FieldLabel htmlFor="bs-name">{t("brainSettings.general.displayName")}</FieldLabel>
             <Input
@@ -224,8 +218,8 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
                     onClick={() => set("icon", e)}
                     aria-label={t("brainSettings.general.useIcon", { icon: e })}
                     className={cn(
-                      "flex size-8 items-center justify-center border border-transparent text-base hover:border-line hover:bg-grid-soft disabled:pointer-events-none disabled:opacity-50",
-                      form.icon === e && "border-line bg-grid-soft",
+                      "flex size-8 items-center justify-center border border-transparent text-base hover:border-border hover:bg-nq-surface-soft disabled:pointer-events-none disabled:opacity-50",
+                      form.icon === e && "border-border bg-nq-surface-soft",
                     )}
                   >
                     {e}
@@ -284,7 +278,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
 
           {canEdit ? (
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={busy || dirty.length === 0}>
+              <Button variant="primary" type="submit" disabled={busy || dirty.length === 0}>
                 {busy ? <Loader2Icon className="animate-spin" /> : <SaveIcon />}
                 {busy ? t("common.saving") : t("common.save")}
               </Button>
@@ -295,7 +289,7 @@ function GeneralSection({ ns, profile, edit, palette }: { ns: string; profile: B
               ) : null}
             </div>
           ) : null}
-        </FieldGroup>
+        </div>
       </form>
     </Section>
   )
@@ -317,10 +311,10 @@ function AppearanceSection({ ns, profile, edit }: { ns: string; profile: BrainPr
           preview={
             profile.coverUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- member-only API image
-              <img src={profile.coverUrl} alt="" className="aspect-[4/1] w-full max-w-md border border-line object-cover" />
+              <img src={profile.coverUrl} alt="" className="aspect-[4/1] w-full max-w-md border border-border object-cover" />
             ) : (
               <div
-                className="flex aspect-[4/1] w-full max-w-md items-center justify-center border border-dashed border-line text-grid-muted"
+                className="flex aspect-[4/1] w-full max-w-md items-center justify-center border border-dashed border-border text-muted-foreground"
                 style={{ backgroundColor: `color-mix(in srgb, ${profile.colorHex} 10%, transparent)` }}
               >
                 <ImageIcon className="size-5" />
@@ -379,7 +373,7 @@ function ImageField({ ns, kind, url, edit, preview }: { ns: string; kind: ImageK
     <div className="grid gap-3">
       <div>
         <h3 className="text-sm font-medium">{t(`brainSettings.appearance.${kind}`)}</h3>
-        <p className="mt-0.5 text-xs text-grid-muted">{t(`brainSettings.appearance.${kind}Hint`)}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t(`brainSettings.appearance.${kind}Hint`)}</p>
       </div>
       <div className="flex flex-wrap items-center gap-4">
         {preview}
@@ -394,12 +388,12 @@ function ImageField({ ns, kind, url, edit, preview }: { ns: string; kind: ImageK
               aria-hidden
               onChange={(e) => void onFile(e.target.files?.[0])}
             />
-            <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
+            <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => input.current?.click()}>
               {busy ? <Loader2Icon className="animate-spin" /> : <UploadIcon />}
               {url ? t("brainSettings.appearance.replace") : t("brainSettings.appearance.upload")}
             </Button>
             {url ? (
-              <Button type="button" variant="ghost" size="sm" className="text-grid-danger-text" disabled={busy} onClick={() => void remove()}>
+              <Button type="button" variant="ghost" size="sm" className="text-nq-danger-text" disabled={busy} onClick={() => void remove()}>
                 <Trash2Icon />
                 {t("brainSettings.appearance.remove")}
               </Button>
@@ -407,7 +401,7 @@ function ImageField({ ns, kind, url, edit, preview }: { ns: string; kind: ImageK
           </div>
         ) : null}
       </div>
-      {full ? <p className="text-xs text-grid-muted">{t("brainSettings.appearance.rules")}</p> : null}
+      {full ? <p className="text-xs text-muted-foreground">{t("brainSettings.appearance.rules")}</p> : null}
     </div>
   )
 }
@@ -451,13 +445,13 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
   return (
     <Section id="settings-members" title={t("brainSettings.members.title")} hint={t("brainSettings.members.hint")}>
       {!full ? (
-        <p className="text-sm text-grid-muted">{t("brainSettings.members.ownerOnly")}</p>
+        <p className="text-sm text-muted-foreground">{t("brainSettings.members.ownerOnly")}</p>
       ) : members.error ? (
         <ErrorState error={members.error} />
       ) : (
         <div className="grid gap-6">
           <form onSubmit={add}>
-            <FieldGroup className="sm:flex-row sm:items-end">
+            <div className="grid gap-4 sm:flex-row sm:items-end">
               <Field className="sm:flex-1">
                 <FieldLabel htmlFor="bs-member-email">{t("brainSettings.members.email")}</FieldLabel>
                 <Input
@@ -485,20 +479,20 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
                   </SelectContent>
                 </Select>
               </Field>
-              <Button type="submit" disabled={busy || !email.trim()}>
+              <Button variant="primary" type="submit" disabled={busy || !email.trim()}>
                 <UserPlusIcon />
                 {t("brainSettings.members.add")}
               </Button>
-            </FieldGroup>
+            </div>
           </form>
 
           {members.isLoading ? (
             <LoadingRows rows={2} />
           ) : (
-            <ul className="divide-y divide-line border-y border-line" aria-label={t("brainSettings.members.title")}>
+            <ul className="divide-y divide-border border-y border-border" aria-label={t("brainSettings.members.title")}>
               {(members.data ?? []).map((m) => (
                 <li key={m.userId} className="flex flex-wrap items-center gap-3 py-3 text-sm">
-                  <Ltr mono className="min-w-0 flex-1 truncate text-grid-fg">
+                  <Ltr mono className="min-w-0 flex-1 truncate text-foreground">
                     {m.userId}
                   </Ltr>
                   <Select
@@ -529,11 +523,11 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
                   />
                 </li>
               ))}
-              {(members.data ?? []).length === 0 ? <li className="py-3 text-sm text-grid-muted">{t("brainSettings.members.none")}</li> : null}
+              {(members.data ?? []).length === 0 ? <li className="py-3 text-sm text-muted-foreground">{t("brainSettings.members.none")}</li> : null}
             </ul>
           )}
-          <p className="text-xs text-grid-muted">
-            <Badge variant="secondary" className="me-1.5 font-normal">
+          <p className="text-xs text-muted-foreground">
+            <Badge variant="neutral" className="me-1.5 font-normal">
               {t("brainSettings.role.editor")}
             </Badge>
             {t("brainSettings.members.rolesHint")}
@@ -569,22 +563,22 @@ function DangerSection({ ns, edit }: { ns: string; edit: EditLevel }) {
   return (
     <Section id="settings-danger" danger title={t("brainSettings.danger.title")} hint={t("brainSettings.danger.hint")}>
       <div className="grid gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-line p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-border p-4">
           <div className="min-w-0">
             <h3 className="text-sm font-medium">{t("brainSettings.danger.export")}</h3>
-            <p className="mt-0.5 text-xs text-grid-muted">{t("brainSettings.danger.exportHint")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("brainSettings.danger.exportHint")}</p>
           </div>
-          <Button variant="outline" nativeButton={false} render={<a href={brainApi.exportUrl(ns)} download />}>
+          <Button variant="secondary" nativeButton={false} render={<a href={brainApi.exportUrl(ns)} download />}>
             <DownloadIcon />
             {t("brainSettings.danger.exportButton")}
           </Button>
         </div>
 
         {edit === "full" ? (
-          <div className="grid gap-4 border border-grid-danger/40 p-4">
+          <div className="grid gap-4 border border-nq-danger/40 p-4">
             <div>
-              <h3 className="text-sm font-medium text-grid-danger-text">{t("brainSettings.danger.delete")}</h3>
-              <p className="mt-0.5 text-xs text-grid-muted">{t("brainSettings.danger.deleteHint")}</p>
+              <h3 className="text-sm font-medium text-nq-danger-text">{t("brainSettings.danger.delete")}</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t("brainSettings.danger.deleteHint")}</p>
             </div>
             <Field>
               <FieldLabel htmlFor="bs-confirm">
@@ -601,7 +595,7 @@ function DangerSection({ ns, edit }: { ns: string; edit: EditLevel }) {
               />
             </Field>
             <div>
-              <Button variant="destructive" disabled={busy || confirm !== ns} onClick={() => void destroy()}>
+              <Button variant="danger" disabled={busy || confirm !== ns} onClick={() => void destroy()}>
                 {busy ? <Loader2Icon className="animate-spin" /> : <Trash2Icon />}
                 {t("brainSettings.danger.deleteButton")}
               </Button>
