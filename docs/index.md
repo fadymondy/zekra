@@ -6,7 +6,7 @@ order: 1
 
 # Zekra
 
-**Zekra (ذكرة) is shared long-term memory for AI agents.** An agent stores what it learns
+**Zekra (ذكرى) is shared long-term memory for AI agents.** An agent stores what it learns
 in a *brain*. The next session, or another agent, recalls it. Coding agents, chat
 assistants, your own agent fleet and your team all read from and write to the same memory.
 

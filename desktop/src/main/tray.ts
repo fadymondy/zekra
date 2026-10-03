@@ -73,9 +73,9 @@ const T = {
     installClaude: "التثبيت في Claude Code…",
     installCursor: "التثبيت في Cursor…",
     installedTitle: "تم تثبيت خادم MCP",
-    installedBody: "أُضيفت ذكرة إلى {tool} ‏({path}). أعد تشغيل {tool} للاتصال.",
+    installedBody: "أُضيفت ذكرى إلى {tool} ‏({path}). أعد تشغيل {tool} للاتصال.",
     installFailed: "تعذّر تثبيت خادم MCP",
-    downloading: "جارٍ تنزيل ذكرة {version}… {progress}٪",
+    downloading: "جارٍ تنزيل ذكرى {version}… {progress}٪",
     restartToUpdate: "أعد التشغيل للتحديث إلى {version}",
   },
 } as const;

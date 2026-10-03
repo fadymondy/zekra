@@ -4,7 +4,7 @@ import { defineDict } from "@mobile/i18n/define";
 Desktop strings for Software Update (features/updates): the loader in the
 sidebar footer, the ready card, the update sheet and Settings ▸ About. Keys are
 prefixed "dupd." (the older upd.* / settingsx.update.* keys stay for their
-callers). EN/AR at key parity. The Arabic product name is ذكرة.
+callers). EN/AR at key parity. The Arabic product name is ذكرى.
 */
 export default defineDict({
   en: {
@@ -45,19 +45,19 @@ export default defineDict({
   ar: {
     "dupd.title": "تحديث البرنامج",
     "dupd.checking": "جارٍ البحث عن تحديثات…",
-    "dupd.available": "يتوفر الإصدار {version} من ذكرة",
-    "dupd.downloading": "جارٍ تنزيل ذكرة {version}",
+    "dupd.available": "يتوفر الإصدار {version} من ذكرى",
+    "dupd.downloading": "جارٍ تنزيل ذكرى {version}",
     "dupd.downloadingShort": "جارٍ التحديث… {progress}٪",
-    "dupd.ready": "ذكرة {version} جاهزة",
+    "dupd.ready": "ذكرى {version} جاهزة",
     "dupd.readyBody": "أعد التشغيل لإكمال التحديث. تُحفظ ملاحظاتك أولًا.",
     "dupd.readyShort": "أعد التشغيل للتحديث",
     "dupd.installing": "جارٍ تثبيت التحديث…",
-    "dupd.upToDate": "ذكرة {version} هي أحدث إصدار.",
+    "dupd.upToDate": "ذكرى {version} هي أحدث إصدار.",
     "dupd.disabled": "التحديثات متاحة في النسخ المثبّتة.",
     "dupd.error": "تعذّر البحث عن تحديثات.",
     "dupd.noNotes": "لا توجد ملاحظات إصدار لهذا الإصدار.",
     "dupd.critical": "تحديث مهم",
-    "dupd.criticalBody": "يصلح هذا التحديث مشكلة مهمة. سيُثبَّت عند إنهاء ذكرة في المرة القادمة.",
+    "dupd.criticalBody": "يصلح هذا التحديث مشكلة مهمة. سيُثبَّت عند إنهاء ذكرى في المرة القادمة.",
     "dupd.restart": "أعد التشغيل للتحديث",
     "dupd.later": "لاحقًا",
     "dupd.check": "البحث عن تحديثات",

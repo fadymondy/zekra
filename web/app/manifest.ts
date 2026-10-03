@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next"
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Zekra — ذكرة",
+    name: "Zekra — ذكرى",
     short_name: "Zekra",
     description: "Shared long-term memory for AI agents — notes, brains and MCP.",
     start_url: "/",

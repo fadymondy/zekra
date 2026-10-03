@@ -3,7 +3,7 @@ import { defineDict } from "@mobile/i18n/define";
 /*
 Desktop strings for the macOS shell: the source-list sidebar, the unified
 toolbar and the notes list column. EN/AR at key parity (defineDict). The
-Arabic product name is ذكرة.
+Arabic product name is ذكرى.
 */
 export default defineDict({
   en: {

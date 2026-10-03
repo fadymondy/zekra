@@ -45,7 +45,7 @@ export default defineDict({
     "mahaam.feedback": "إرسال ملاحظات",
     "mahaam.reportDetail": "شيء معطّل أو غير واضح",
     "mahaam.feedbackDetail": "فكرة أو سؤال للفريق",
-    "mahaam.subtitle": "تصل مباشرة إلى فريق ذكرة",
+    "mahaam.subtitle": "تصل مباشرة إلى فريق ذكرى",
     "mahaam.kind.bug": "خلل",
     "mahaam.kind.idea": "فكرة",
     "mahaam.kind.question": "سؤال",

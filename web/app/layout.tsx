@@ -8,13 +8,13 @@ import { dirForLocale, isLocale, type Locale } from "@/lib/i18n-locale"
 export async function generateMetadata(): Promise<Metadata> {
   const ar = (await headers()).get("x-locale") === "ar"
   return {
-    title: ar ? "ذكرة" : "Zekra",
-    applicationName: ar ? "ذكرة" : "Zekra",
+    title: ar ? "ذكرى" : "Zekra",
+    applicationName: ar ? "ذكرى" : "Zekra",
     description: ar ? "ذاكرة طويلة المدى مشتركة لوكلاء الذكاء الاصطناعي." : "Shared long-term memory for AI agents.",
     // The console is behind a login: zekra.dev is what search engines index.
     robots: { index: false, follow: false },
     // Installed as a PWA (app/manifest.ts): iOS home-screen behaviour.
-    appleWebApp: { capable: true, title: ar ? "ذكرة" : "Zekra", statusBarStyle: "black-translucent" },
+    appleWebApp: { capable: true, title: ar ? "ذكرى" : "Zekra", statusBarStyle: "black-translucent" },
   }
 }
 

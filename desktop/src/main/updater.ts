@@ -67,7 +67,7 @@ const T = {
     installing: "Installing the update…",
   },
   ar: {
-    criticalDetail: "هذا تحديث مهم. ستثبّته ذكرة عند إنهائها في المرة القادمة، أو أعد التشغيل الآن.",
+    criticalDetail: "هذا تحديث مهم. ستثبّته ذكرى عند إنهائها في المرة القادمة، أو أعد التشغيل الآن.",
     installing: "جارٍ تثبيت التحديث…",
   },
 } as const;

@@ -149,6 +149,6 @@ export default defineDict({
     "brains.delete.typeToConfirm": "اكتب {brain} للتأكيد",
     "brains.delete.submit": "حذف الدماغ",
     "brains.delete.done": "حُذف {brain} ({count} ذكرى)",
-    "brains.error.network": "تعذّر الوصول إلى ذكرة. تحقّق من اتصالك.",
+    "brains.error.network": "تعذّر الوصول إلى ذكرى. تحقّق من اتصالك.",
   },
 });

@@ -70,7 +70,7 @@ export default async function SiteLayout({ children, params }: { children: React
         "@type": "SoftwareApplication",
         "@id": `${SITE_URL}/#software`,
         name: spec.name,
-        alternateName: "ذكرة",
+        alternateName: "ذكرى",
         url: SITE_URL,
         description: spec.tagline,
         abstract: AI_SUMMARY,

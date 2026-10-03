@@ -6,7 +6,7 @@ import { getStored, setStored } from "@/lib/storage";
 import { setUiFontLocale } from "@/theme";
 
 // Zekra ships bilingual everywhere (mirroring web/lib/i18n.tsx). The Arabic
-// product name is ذكرة — never ذكرى.
+// product name is ذكرى — never ذكرى.
 export type Locale = "en" | "ar";
 
 /** Every language the app ships, in switcher order. Adding a language is one
@@ -230,7 +230,7 @@ const en = {
 type Key = keyof typeof en;
 
 const ar: Record<Key, string> = {
-  "app.name": "ذكرة",
+  "app.name": "ذكرى",
   "app.tagline": "ملاحظاتك وأدمغتك ومعرفتك المترابطة — معك أينما كنت.",
 
   "nav.notes": "الملاحظات",
@@ -288,7 +288,7 @@ const ar: Record<Key, string> = {
   "notes.title": "الملاحظات",
   "notes.searchPlaceholder": "تصفية بالعنوان والنص والوسوم",
   "notes.empty": "دماغ هادئ",
-  "notes.emptyBody": "أنشئ أول ملاحظة وستقوم ذكرة بفهرستها في هذا الدماغ.",
+  "notes.emptyBody": "أنشئ أول ملاحظة وستقوم ذكرى بفهرستها في هذا الدماغ.",
   "notes.noMatches": "لا نتائج",
   "notes.noMatchesBody": "جرّب بحثًا مختلفًا.",
   "notes.loadingMore": "جارٍ تحميل المزيد",
@@ -335,7 +335,7 @@ const ar: Record<Key, string> = {
   "note.save": "حفظ الملاحظة",
   "note.delete": "حذف الملاحظة",
   "note.deleteConfirm": "حذف الملاحظة؟",
-  "note.deleteBody": "تحتفظ ذكرة بسجل الإصدارات، لكن الملاحظة ستختفي من قائمتك النشطة.",
+  "note.deleteBody": "تحتفظ ذكرى بسجل الإصدارات، لكن الملاحظة ستختفي من قائمتك النشطة.",
   "note.conflict": "تغيّرت هذه الملاحظة في مكان آخر. أعد تحميلها قبل الحفظ.",
   "note.indexing": "جارٍ الفهرسة في الدماغ…",
   "note.chunks": "مقاطع ذاكرة مفهرسة",
@@ -349,7 +349,7 @@ const ar: Record<Key, string> = {
   "search.empty": "لا نتائج",
   "search.emptyBody": "جرّب كلمات أخرى — البحث يقرأ المعنى لا الكلمات فقط.",
   "search.start": "ابحث في ذاكرتك",
-  "search.startBody": "اكتب سؤالًا أو بضع كلمات وستجد ذكرة ما تعرفه.",
+  "search.startBody": "اكتب سؤالًا أو بضع كلمات وستجد ذكرى ما تعرفه.",
   "search.results": "نتيجة",
   "search.searching": "جارٍ البحث",
   "search.failed": "فشل البحث",
@@ -429,7 +429,7 @@ const ar: Record<Key, string> = {
   "settings.mcpBody": "اربط وكيل ذكاء اصطناعي بهذا الدماغ عبر بروتوكول MCP.",
   "settings.mcpUrl": "عنوان الخادم",
   "settings.mcpAuth": "المصادقة",
-  "settings.mcpAuthValue": "OAuth 2.1 — سجّل الدخول بحساب ذكرة",
+  "settings.mcpAuthValue": "OAuth 2.1 — سجّل الدخول بحساب ذكرى",
   "settings.copied": "تم النسخ",
   "settings.openConsole": "فتح لوحة الويب",
   "settings.sessionNote": "جلستك تبقى على هذا الجهاز",

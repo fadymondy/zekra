@@ -1,4 +1,4 @@
-/** The product name in the page's language: ذكرة on /ar, Zekra everywhere else. */
+/** The product name in the page's language: ذكرى on /ar, Zekra everywhere else. */
 export function brandName(locale: string | null | undefined): string {
-  return locale === "ar" ? "ذكرة" : "Zekra"
+  return locale === "ar" ? "ذكرى" : "Zekra"
 }

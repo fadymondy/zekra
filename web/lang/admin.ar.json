@@ -4,7 +4,7 @@
   "admin.notLive.body": "هذا الجزء من واجهة الإدارة لم يُفعَّل على هذا الخادم بعد.",
 
   "admin.overview.title": "نظرة عامة",
-  "admin.overview.hint": "كل ما في ذكرة: الأدمغة والذكريات والوكلاء وما يفعلونه الآن.",
+  "admin.overview.hint": "كل ما في ذكرى: الأدمغة والذكريات والوكلاء وما يفعلونه الآن.",
   "admin.overview.accounts": "الحسابات",
   "admin.overview.accountsNotLive": "ستظهر إحصاءات الحسابات هنا عندما يوفّرها الخادم.",
   "admin.overview.recent": "أحدث النشاط",
@@ -45,7 +45,7 @@
   "admin.brains.deleteConfirm": "حذف الدماغ",
   "admin.brains.deleted": "حُذف {name} ({n} ذكرى)",
 
-  "admin.tokens.hint": "رموز الوصول تتيح للوكلاء الوصول إلى ذكرة. يضع حامل الرمز ZEKRA_TOKEN في إعدادات MCP ليعمل بهوية ذلك الوكيل، وتحدّد الصلاحيات الأدمغة التي يمكنه استخدامها.",
+  "admin.tokens.hint": "رموز الوصول تتيح للوكلاء الوصول إلى ذكرى. يضع حامل الرمز ZEKRA_TOKEN في إعدادات MCP ليعمل بهوية ذلك الوكيل، وتحدّد الصلاحيات الأدمغة التي يمكنه استخدامها.",
   "admin.tokens.create": "إنشاء رمز",
   "admin.tokens.createHint": "يظهر الرمز مرة واحدة فقط. امنحه صلاحيات على الأدمغة بعد إنشائه.",
   "admin.tokens.agent": "معرّف الوكيل",
@@ -102,7 +102,7 @@
   "admin.search.score": "درجة الصلة",
   "admin.search.importance": "الأهمية {n}",
 
-  "admin.activity.hint": "كل عمليات الحفظ والاسترجاع والبحث في ذكرة، الأحدث أولًا، مع تحديث مباشر.",
+  "admin.activity.hint": "كل عمليات الحفظ والاسترجاع والبحث في ذكرى، الأحدث أولًا، مع تحديث مباشر.",
   "admin.activity.operations": "العمليات",
   "admin.activity.recalls": "الاسترجاعات",
   "admin.activity.writes": "الكتابات",
@@ -123,7 +123,7 @@
   "admin.outcome.error": "خطأ",
   "admin.outcome.running": "قيد التنفيذ",
 
-  "admin.users.hint": "كل من لديه حساب في ذكرة. افتح مستخدمًا لتغيير أدواره أو تعطيله أو حذفه.",
+  "admin.users.hint": "كل من لديه حساب في ذكرى. افتح مستخدمًا لتغيير أدواره أو تعطيله أو حذفه.",
   "admin.users.search": "البحث في المستخدمين",
   "admin.users.searchPlaceholder": "ابحث بالبريد الإلكتروني أو الاسم…",
   "admin.users.count": "{n} مستخدم",
@@ -144,7 +144,7 @@
   "admin.role.owner": "مالك",
   "admin.role.admin": "مشرف",
   "admin.role.member": "عضو",
-  "admin.roleHint.owner": "يدير ذكرة: كل ما يستطيعه المشرف، بما في ذلك إدارة المشرفين الآخرين.",
+  "admin.roleHint.owner": "يدير ذكرى: كل ما يستطيعه المشرف، بما في ذلك إدارة المشرفين الآخرين.",
   "admin.roleHint.admin": "يصل إلى لوحة الإدارة: المستخدمون والأدمغة والرموز وإعدادات النظام.",
   "admin.roleHint.member": "يسجّل الدخول ويعمل في الأدمغة المتاحة له.",
 
@@ -182,7 +182,7 @@
   "admin.user.deleted": "حُذف المستخدم",
 
   "admin.settings.title": "النظام",
-  "admin.settings.hint": "معلومات للاطلاع فقط عن خادم ذكرة هذا.",
+  "admin.settings.hint": "معلومات للاطلاع فقط عن خادم ذكرى هذا.",
   "admin.settings.api": "الواجهة البرمجية",
   "admin.settings.status": "الحالة",
   "admin.settings.healthy": "يعمل",

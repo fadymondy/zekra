@@ -30,7 +30,7 @@ export type TFn = (key: TKey, vars?: TVars) => string;
 
 /*
 Bilingual, same as the web console and the mobile app. The Arabic product
-name is ذكرة — never ذكرى.
+name is ذكرى — never ذكرى.
 
 Two sources, one `t()`:
   1. The mobile app's FEATURE dictionaries (mobile/src/i18n/features/*.ts,
@@ -212,7 +212,7 @@ export type DesktopKey = keyof typeof en;
 export type TKey = DesktopKey | FeatureKey | DesktopFeatureKey;
 
 const ar: Record<DesktopKey, string> = {
-  "app.name": "ذكرة",
+  "app.name": "ذكرى",
   "app.tagline": "سجّل الدخول إلى عضو الذاكرة",
 
   "action.signIn": "تسجيل الدخول",
@@ -256,7 +256,7 @@ const ar: Record<DesktopKey, string> = {
   "notes.pinned": "مثبّتة",
   "notes.archived": "مؤرشفة",
   "notes.deleteConfirm": "حذف هذه الملاحظة؟",
-  "notes.deleteBody": "تحتفظ ذكرة بسجل الإصدارات، لكن الملاحظة ستختفي من قائمتك النشطة.",
+  "notes.deleteBody": "تحتفظ ذكرى بسجل الإصدارات، لكن الملاحظة ستختفي من قائمتك النشطة.",
 
   "row.appearance": "الأيقونة واللون",
 
@@ -281,7 +281,7 @@ const ar: Record<DesktopKey, string> = {
   "search.empty": "لا نتائج",
   "search.emptyBody": "جرّب كلمات أخرى — البحث يقرأ المعنى لا الكلمات فقط.",
   "search.start": "ابحث في ذاكرتك",
-  "search.startBody": "اكتب سؤالًا وستجد ذكرة ما تعرفه.",
+  "search.startBody": "اكتب سؤالًا وستجد ذكرى ما تعرفه.",
   "search.searching": "جارٍ البحث…",
 
   "spotlight.label": "البحث",
@@ -365,11 +365,11 @@ const ar: Record<DesktopKey, string> = {
   "shell.offline": "غير متصل",
   "shell.noBrain": "لا يوجد دماغ مفتوح",
   "shell.comingSoon": "قريبًا",
-  "shell.comingSoonBody": "هذا الجزء من ذكرة لنظام Mac قيد البناء.",
+  "shell.comingSoonBody": "هذا الجزء من ذكرى لنظام Mac قيد البناء.",
   "shell.openedFile": "تم فتح {name}",
   "shell.signInLink": "جارٍ إكمال تسجيل الدخول…",
   "status.words": "كلمة",
-  "about.title": "حول ذكرة",
+  "about.title": "حول ذكرى",
 };
 
 // Mobile features first, desktop over them (see the header comment).

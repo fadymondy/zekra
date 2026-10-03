@@ -36,10 +36,10 @@ export default defineDict({
     "widgets.stat.openGaps": "فجوات مفتوحة",
     "widgets.total": "{count} ذكرى",
     "widgets.updated": "آخر تحديث {when}",
-    "widgets.signedOutTitle": "ذكرة",
+    "widgets.signedOutTitle": "ذكرى",
     "widgets.signedOutBody": "سجّل الدخول لترى أدمغتك هنا.",
     "widgets.emptyTitle": "لا توجد أدمغة بعد",
-    "widgets.emptyBody": "افتح ذكرة لإنشاء أول دماغ.",
+    "widgets.emptyBody": "افتح ذكرى لإنشاء أول دماغ.",
     "widgets.more": "+{count} أخرى",
   },
 });
