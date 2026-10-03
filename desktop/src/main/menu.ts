@@ -23,7 +23,7 @@ import { openNewNoteWindow } from "./native-ui";
 import { getSettings } from "./settings-store";
 
 export const APP_NAME = "Zekra";
-export const APP_NAME_AR = "ذكرة";
+export const APP_NAME_AR = "ذكرى";
 
 const WEBSITE = "https://zekra.dev";
 const ISSUES = "https://github.com/fadymondy/zekra/issues/new";

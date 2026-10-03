@@ -153,7 +153,7 @@ export default defineDict({
     "notes.x.unarchiveTitle": "إلغاء أرشفة هذه الملاحظة؟",
     "notes.x.unarchiveBody": "ستعود إلى قائمة ملاحظاتك.",
     "notes.x.deleteTitle": "حذف هذه الملاحظة؟",
-    "notes.x.deleteBody": "تحتفظ ذكرة بسجل إصداراتها، لكن الملاحظة ستختفي من هذا الدماغ.",
+    "notes.x.deleteBody": "تحتفظ ذكرى بسجل إصداراتها، لكن الملاحظة ستختفي من هذا الدماغ.",
     "notes.x.restoreTitle": "استعادة الإصدار {n}؟",
     "notes.x.restoreBody": "ستعود الملاحظة إلى هذا الإصدار، ويبقى محتواها الحالي في السجل.",
     // Outcomes

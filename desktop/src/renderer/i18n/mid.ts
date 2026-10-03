@@ -5,7 +5,7 @@ Desktop strings for the Mark It Down features Zekra absorbed (MH-450):
 importers (imp.*), opened Markdown documents (doc.*), the markdown extras —
 math, diagrams, alerts, footnotes, frontmatter (mdx.*), update toasts (upd.*)
 and menu exports (exp.*). EN/AR at key parity (defineDict). The Arabic
-product name is ذكرة.
+product name is ذكرى.
 */
 export default defineDict({
   en: {
@@ -150,12 +150,12 @@ export default defineDict({
     "imp.retry": "إعادة المحاولة",
     "imp.error.title": "لم يُستورد شيء",
     "imp.error.permission":
-      "ذكرة غير مسموح لها بقراءة ملاحظات Apple. افتح إعدادات النظام › الخصوصية والأمان › الأتمتة، وفعّل «الملاحظات» تحت ذكرة، ثم أعد المحاولة.",
+      "ذكرى غير مسموح لها بقراءة ملاحظات Apple. افتح إعدادات النظام › الخصوصية والأمان › الأتمتة، وفعّل «الملاحظات» تحت ذكرى، ثم أعد المحاولة.",
     "imp.error.unsupported": "هذا الاستيراد غير متاح على هذا الجهاز.",
     "imp.error.empty": "لم يُعثر على ملاحظات هناك.",
     "imp.error.not-found": "لا يبدو هذا تصديرًا من {source}.",
     "imp.error.timeout": "استغرق تطبيق الملاحظات وقتًا طويلًا للرد. أعد المحاولة وتطبيق الملاحظات مفتوح.",
-    "imp.desktopOnly": "يحتاج الاستيراد إلى تطبيق ذكرة لسطح المكتب.",
+    "imp.desktopOnly": "يحتاج الاستيراد إلى تطبيق ذكرى لسطح المكتب.",
     "imp.warnings": "تعذّرت قراءة {count} ملف.",
 
     "doc.preview": "معاينة",
@@ -187,8 +187,8 @@ export default defineDict({
     "mdx.saveSvg": "حفظ SVG",
     "mdx.savePng": "حفظ PNG",
 
-    "upd.available": "جارٍ تنزيل ذكرة {version}…",
-    "upd.ready": "ذكرة {version} جاهزة",
+    "upd.available": "جارٍ تنزيل ذكرى {version}…",
+    "upd.ready": "ذكرى {version} جاهزة",
     "upd.readyBody": "أعد التشغيل لإكمال التحديث.",
     "upd.restart": "أعد التشغيل للتحديث",
 

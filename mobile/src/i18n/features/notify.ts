@@ -38,8 +38,8 @@ export default defineDict({
     "notify.today": "اليوم",
     "notify.yesterday": "أمس",
     "notify.emptyTitle": "لا جديد لديك",
-    "notify.emptyBody": "عند مشاركة دماغ معك أو فتح أحدهم عرضًا شاركته في ذكرة، سيظهر ذلك هنا.",
+    "notify.emptyBody": "عند مشاركة دماغ معك أو فتح أحدهم عرضًا شاركته في ذكرى، سيظهر ذلك هنا.",
     "notify.unavailableTitle": "غير متاح بعد",
-    "notify.unavailableBody": "خادم ذكرة هذا لا يدعم مركز الإشعارات بعد. سيظهر هنا بعد تحديث الخادم.",
+    "notify.unavailableBody": "خادم ذكرى هذا لا يدعم مركز الإشعارات بعد. سيظهر هنا بعد تحديث الخادم.",
   },
 });

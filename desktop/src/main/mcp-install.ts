@@ -34,7 +34,7 @@ const STRINGS = {
     cancel: "Cancel",
   },
   ar: {
-    confirm: "تثبيت خادم MCP الخاص بذكرة في {tool}؟",
+    confirm: "تثبيت خادم MCP الخاص بذكرى في {tool}؟",
     backup: "يُنسخ الملف الحالي أولًا إلى ملف ‎.zekra-backup-…‎ بجانبه. أعد تشغيل {tool} بعد ذلك.",
     newFile: "الملف غير موجود بعد وسيُنشأ. أعد تشغيل {tool} بعد ذلك.",
     install: "تثبيت",

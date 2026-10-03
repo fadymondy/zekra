@@ -137,7 +137,7 @@ func (s *Service) TestPush(w http.ResponseWriter, r *http.Request) {
 	res, err := p.sendNow(ctx, uid, pushMessage{
 		Text: map[string]pushText{
 			"en": {Title: "Zekra", Body: "Notifications are working on this device."},
-			"ar": {Title: "ذكرة", Body: "الإشعارات تعمل على هذا الجهاز."},
+			"ar": {Title: "ذكرى", Body: "الإشعارات تعمل على هذا الجهاز."},
 		},
 		Data: map[string]string{"type": "test"},
 	})

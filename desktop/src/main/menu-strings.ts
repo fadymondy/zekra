@@ -2,7 +2,7 @@
 // renderer's i18n provider, so it carries its own small dictionary; the menu
 // is rebuilt whenever the app locale changes (settings patch -> menu.ts).
 //
-// The Arabic product name is ذكرة — never ذكرى.
+// The Arabic product name is ذكرى — never ذكرى.
 "use strict";
 
 import type { LocaleId } from "../shared/ipc";
@@ -121,14 +121,14 @@ const en = {
 export type MenuStrings = typeof en;
 
 const ar: MenuStrings = {
-  appName: "ذكرة",
-  about: "حول ذكرة",
+  appName: "ذكرى",
+  about: "حول ذكرى",
   settings: "الإعدادات…",
   services: "الخدمات",
-  hide: "إخفاء ذكرة",
+  hide: "إخفاء ذكرى",
   hideOthers: "إخفاء الآخرين",
   showAll: "إظهار الكل",
-  quit: "إنهاء ذكرة",
+  quit: "إنهاء ذكرى",
 
   file: "ملف",
   newNote: "ملاحظة جديدة",
@@ -182,11 +182,11 @@ const ar: MenuStrings = {
   front: "إحضار الكل إلى الأمام",
 
   help: "مساعدة",
-  website: "ذكرة على الويب",
+  website: "ذكرى على الويب",
   reportIssue: "الإبلاغ عن مشكلة…",
   checkUpdates: "البحث عن تحديثات…",
 
-  trayOpen: "فتح ذكرة",
+  trayOpen: "فتح ذكرى",
   traySearch: "بحث…",
   trayMcpUnknown: "MCP: الحالة غير معروفة",
   trayMcpConnected: "MCP: متصل",
@@ -196,12 +196,12 @@ const ar: MenuStrings = {
   markdownFiles: "ماركداون",
   updateTitle: "تحديث البرنامج",
   updateNone: "لديك أحدث إصدار.",
-  updateNoneDetail: "ذكرة {version} هو أحدث إصدار متاح.",
+  updateNoneDetail: "ذكرى {version} هو أحدث إصدار متاح.",
   updateNoReleases: "لم تُنشر أي تحديثات بعد.",
   updateFailed: "تعذّر البحث عن تحديثات.",
-  updateAvailable: "يتوفر الإصدار {version} من ذكرة.",
+  updateAvailable: "يتوفر الإصدار {version} من ذكرى.",
   updateAvailableDetail: "يجري تنزيله في الخلفية. سيُطلب منك إعادة التشغيل عند جاهزيته.",
-  updateReady: "الإصدار {version} من ذكرة جاهز للتثبيت.",
+  updateReady: "الإصدار {version} من ذكرى جاهز للتثبيت.",
   updateReadyDetail: "أعد التشغيل الآن لإكمال التحديث، أو سيُثبَّت عند الإنهاء في المرة القادمة.",
   updateRestart: "إعادة التشغيل الآن",
   updateLater: "لاحقًا",

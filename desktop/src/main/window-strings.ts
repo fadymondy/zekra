@@ -1,6 +1,6 @@
 // Strings for the app windows (app-windows.ts) and the menubar menu (tray.ts):
 // window titles, tray items, sync status. EN + AR, following the menu locale
-// (menu-strings.ts). The Arabic product name is ذكرة — never ذكرى.
+// (menu-strings.ts). The Arabic product name is ذكرى — never ذكرى.
 "use strict";
 
 import { getMenuLocale } from "./menu-strings";
@@ -44,10 +44,10 @@ const en = {
 
 const ar: typeof en = {
   settingsTitle: "الإعدادات",
-  spotlightTitle: "البحث في ذكرة",
+  spotlightTitle: "البحث في ذكرى",
   newBrainTitle: "دماغ جديد",
   newNoteTitle: "ملاحظة جديدة",
-  open: "فتح ذكرة",
+  open: "فتح ذكرى",
   newNote: "ملاحظة جديدة",
   newBrain: "دماغ جديد…",
   search: "بحث…",
@@ -61,7 +61,7 @@ const ar: typeof en = {
   noBrains: "لا توجد أدمغة بعد",
   syncNow: "زامن الآن",
   settings: "الإعدادات…",
-  about: "حول ذكرة",
+  about: "حول ذكرى",
   untitled: "بلا عنوان",
   syncIdle: "تمت المزامنة",
   syncIdleAt: "تمت المزامنة {when}",

@@ -1,4 +1,4 @@
-# Zekra for macOS (ذكرة)
+# Zekra for macOS (ذكرى)
 
 A native Electron client of the Zekra brain/notes API (`https://app.zekra.dev` by
 default; changeable in Settings ▸ General). It is not a browser wrapper: the only

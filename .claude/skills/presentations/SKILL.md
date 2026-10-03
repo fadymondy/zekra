@@ -1,11 +1,11 @@
 ---
 name: presentations
-description: Turn what a Zekra brain knows (notes, a recall query, a graph entity, or the whole brain) or any brief into a customer-ready presentation in Zekra (ذكرة) — a slide deck, a report (PDF/Word) and a landing page, in Arabic and English, with workflow diagrams, product screen mockups (phone/tablet/desktop/browser), live maps, icons and motion — then share it by private link. Use when asked to "make a presentation", "present this", "build a pitch/proposal/deck/report/landing page", or "turn this brain/note into a presentation".
+description: Turn what a Zekra brain knows (notes, a recall query, a graph entity, or the whole brain) or any brief into a customer-ready presentation in Zekra (ذكرى) — a slide deck, a report (PDF/Word) and a landing page, in Arabic and English, with workflow diagrams, product screen mockups (phone/tablet/desktop/browser), live maps, icons and motion — then share it by private link. Use when asked to "make a presentation", "present this", "build a pitch/proposal/deck/report/landing page", or "turn this brain/note into a presentation".
 ---
 
 # Build a presentation in Zekra
 
-Presentations are part of **Zekra** (Arabic name **ذكرة**) and belong to **one brain** (namespace). You turn a source into up to three documents in that brain:
+Presentations are part of **Zekra** (Arabic name **ذكرى**) and belong to **one brain** (namespace). You turn a source into up to three documents in that brain:
 
 | Kind | What it is | Customer gets |
 |---|---|---|
@@ -78,7 +78,7 @@ The **page** tells the same story top-down: `hero` (with a `visual` screen or wo
 
 **Icons:** only names from the catalog's `icons` (kebab-case lucide). If one is refused, validation suggests alternatives: pick from the list, never guess.
 
-**Arabic:** write natural Modern Standard (or Egyptian, if the source is) Arabic. Arabic digits are fine in text. The renderer handles RTL: workflows run right-to-left, **maps never mirror**. The product's Arabic name is **ذكرة**.
+**Arabic:** write natural Modern Standard (or Egyptian, if the source is) Arabic. Arabic digits are fine in text. The renderer handles RTL: workflows run right-to-left, **maps never mirror**. The product's Arabic name is **ذكرى**.
 
 ## 4. Build, validate, save
 

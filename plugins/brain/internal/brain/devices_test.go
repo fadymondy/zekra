@@ -557,7 +557,7 @@ func TestPushSendPrunesDeadTokens(t *testing.T) {
 	for _, g := range d.got {
 		want := "Zekra"
 		if g.token == live {
-			want = "ذكرة" // the Arabic device gets the Arabic text
+			want = "ذكرى" // the Arabic device gets the Arabic text
 		}
 		if g.text.Title != want {
 			t.Fatalf("%s got title %q", g.token, g.text.Title)

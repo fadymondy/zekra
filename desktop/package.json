@@ -2,7 +2,7 @@
   "name": "zekra-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Zekra (ذكرة) for macOS — a native Electron client of the Zekra brain/notes API.",
+  "description": "Zekra (ذكرى) for macOS — a native Electron client of the Zekra brain/notes API.",
   "main": "out/main/main.js",
   "scripts": {
     "build:main": "tsc -p tsconfig.main.json",

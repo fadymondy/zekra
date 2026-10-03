@@ -4,7 +4,7 @@ import { defineDict } from "@mobile/i18n/define";
 Desktop strings for the app's own windows (screens/*-window.tsx): Settings,
 Spotlight, New Note, New Brain, plus the toolbar account button, the sidebar's
 brains header and the Reading settings. Keys are prefixed "win.". EN/AR at key
-parity. The Arabic product name is ذكرة — never ذكرى.
+parity. The Arabic product name is ذكرى — never ذكرى.
 */
 export default defineDict({
   en: {
@@ -52,7 +52,7 @@ export default defineDict({
   },
   ar: {
     "win.section.services": "الخدمات",
-    "win.theme.zekra": "ذكرة",
+    "win.theme.zekra": "ذكرى",
     "win.theme.auto": "تلقائي",
     "win.theme.light": "فاتح",
     "win.theme.dark": "داكن",
@@ -71,7 +71,7 @@ export default defineDict({
     "win.spot.open": "فتح",
     "win.spot.navigate": "تنقّل",
     "win.spot.close": "إغلاق",
-    "win.spot.signedOut": "سجّل الدخول إلى ذكرة للبحث في أدمغتك.",
+    "win.spot.signedOut": "سجّل الدخول إلى ذكرى للبحث في أدمغتك.",
     "win.act.newNote": "ملاحظة جديدة",
     "win.act.newBrain": "دماغ جديد…",
     "win.act.capture": "التقاط سريع",

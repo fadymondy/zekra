@@ -25,7 +25,7 @@ export default defineDict({
     "push.deniedBody": "محظورة من إعدادات الهاتف.",
     "push.unavailable": "غير متاحة في هذا الإصدار.",
     "push.openSettings": "فتح الإعدادات",
-    "push.deniedToast": "اسمح بإشعارات ذكرة من الإعدادات.",
+    "push.deniedToast": "اسمح بإشعارات ذكرى من الإعدادات.",
     "push.enabledToast": "تم تفعيل الإشعارات",
     "push.failed": "تعذّر تغيير الإشعارات. حاول مجددًا.",
     "push.sendTest": "إرسال إشعار تجريبي",

@@ -1,6 +1,6 @@
 // Strings for the desktop services (Dock menu, Jump List, Quick Capture menu
 // item, share fallbacks, conflict copies). EN + AR, following the menu locale
-// (menu-strings.ts). The Arabic product name is ذكرة.
+// (menu-strings.ts). The Arabic product name is ذكرى.
 "use strict";
 
 import { getMenuLocale } from "./menu-strings";
@@ -26,7 +26,7 @@ const ar: typeof en = {
   quickCapture: "التقاط سريع",
   quickCaptureDesc: "التقط ملاحظة من أي مكان",
   captureClipboard: "التقاط الحافظة",
-  newNoteDesc: "افتح ذكرة بملاحظة جديدة",
+  newNoteDesc: "افتح ذكرى بملاحظة جديدة",
   recentNotes: "الملاحظات الأخيرة",
   syncNow: "مزامنة الآن",
   conflictedCopy: "نسخة متعارضة",

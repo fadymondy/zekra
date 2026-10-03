@@ -24,7 +24,7 @@ test("slugify matches the web console and yields valid namespaces", () => {
   assert.equal(slugify("  Product Research "), "product-research");
   assert.equal(slugify("FlowOS / Q3 — plan"), "flowos-q3-plan");
   assert.equal(slugify("--a__b--"), "a-b");
-  assert.equal(slugify("ذكرة"), "");
+  assert.equal(slugify("ذكرى"), "");
   const long = slugify("x".repeat(80));
   assert.equal(long.length, 63);
   assert.ok(validNamespace(long));

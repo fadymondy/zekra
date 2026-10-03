@@ -2,7 +2,7 @@ import { defineDict } from "@/i18n/define";
 
 // Strings owned by the presentations feature (MH-369): the brain's
 // Presentations tab, "Create from brain", and /presentation/{id}.
-// Keys are prefixed "presentations." to stay unique. Arabic product name: ذكرة.
+// Keys are prefixed "presentations." to stay unique. Arabic product name: ذكرى.
 export default defineDict({
   en: {
     // List
@@ -291,10 +291,10 @@ export default defineDict({
     "presentations.translate.action": "ترجم إلى {lang}",
     "presentations.translate.help": "يجب أن يتوفر كل عرض بالعربية والإنجليزية.",
     "presentations.translate.done": "تمت الترجمة",
-    "presentations.translate.noTranslator": "الترجمة الآلية غير مفعّلة على هذا الخادم. أضف الترجمة من لوحة ذكرة على الويب، أو من مساعد ذكاء اصطناعي متصل بذكرة.",
+    "presentations.translate.noTranslator": "الترجمة الآلية غير مفعّلة على هذا الخادم. أضف الترجمة من لوحة ذكرى على الويب، أو من مساعد ذكاء اصطناعي متصل بذكرى.",
 
     "presentations.edit.web": "حرّر على الويب",
-    "presentations.edit.help": "تُحرَّر الشرائح والمحتوى في لوحة ذكرة على الويب.",
+    "presentations.edit.help": "تُحرَّر الشرائح والمحتوى في لوحة ذكرى على الويب.",
     "presentations.delete": "احذف العرض",
     "presentations.deleteConfirm": "حذف هذا العرض؟",
     "presentations.deleteBody": "تتوقف كل روابط المشاركة الخاصة به. لا يمكن التراجع عن ذلك.",

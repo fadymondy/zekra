@@ -1,6 +1,6 @@
 # Zekra
 
-**ذكرة — shared long-term memory for AI agents.** What one session learns, the next one
+**ذكرى — shared long-term memory for AI agents.** What one session learns, the next one
 already knows.
 
 Zekra is a memory service that any agent (Claude Code, Codex, Gemini, Cursor, your own
