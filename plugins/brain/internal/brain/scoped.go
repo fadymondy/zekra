@@ -24,7 +24,7 @@ func (s *Store) StatsFor(ctx context.Context, namespaces []string) (*Stats, erro
 	scan(`SELECT COUNT(DISTINCT namespace) FROM memories WHERE invalid_at IS NULL AND namespace = ANY($1)`, &st.Brains)
 	scan(`SELECT COUNT(*) FROM memories WHERE invalid_at IS NULL AND namespace = ANY($1)`, &st.Memories)
 	scan(`SELECT COUNT(*) FROM entities WHERE namespace = ANY($1)`, &st.Entities)
-	scan(`SELECT COUNT(*) FROM memory_entities me JOIN entities e ON e.id = me.entity_id WHERE e.namespace = ANY($1)`, &st.Edges)
+	scan(`SELECT COUNT(*) FROM entity_edges WHERE valid_to IS NULL AND namespace = ANY($1)`, &st.Edges)
 	scan(`SELECT COUNT(DISTINCT owner_agent_id) FROM memories WHERE owner_agent_id IS NOT NULL AND namespace = ANY($1)`, &st.Agents)
 	scan(`SELECT COUNT(DISTINCT source_ref) FROM memories WHERE source_ref IS NOT NULL AND valid_at > now() - interval '24 hours' AND namespace = ANY($1)`, &st.Sessions24h)
 	scan(`SELECT COUNT(*) FROM memory_events WHERE op='recall' AND ts > now() - interval '24 hours' AND namespace = ANY($1)`, &st.Recalls24h)

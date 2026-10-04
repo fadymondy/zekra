@@ -115,7 +115,7 @@ func (s *Store) SearchAll(ctx context.Context, q SearchQuery) ([]Recalled, error
 		outcome = "empty"
 		s.recordGap(ctx, db, "*", q.Query) // cross-brain miss
 	}
-	s.event(ctx, db, "search", "*", "", outcome, nil, int(time.Since(start).Milliseconds()))
+	s.eventMeta(ctx, db, "search", "*", "", outcome, nil, int(time.Since(start).Milliseconds()), recallMeta(q.Query, out))
 	return out, nil
 }
 

@@ -315,7 +315,7 @@ CREATE TABLE IF NOT EXISTS memory_events (
   latency_ms int,
   metadata   jsonb NOT NULL DEFAULT '{}',
   CONSTRAINT memory_events_op_chk
-    CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search'))
+    CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup'))
 );
 CREATE INDEX IF NOT EXISTS memory_events_ns_ts ON memory_events (namespace, ts DESC);
 
@@ -854,3 +854,22 @@ CREATE INDEX IF NOT EXISTS brain_notifications_user_unread_idx ON public.brain_n
 -- Idempotent.
 ALTER TABLE public.notes         ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';
 ALTER TABLE public.note_versions ADD COLUMN IF NOT EXISTS description text NOT NULL DEFAULT '';
+
+-- ── Activity telemetry (docs/ux/ZEKRA-CAPABILITY-GAPS.md P1) ─────────────────────
+-- Notes adoption, memory edits and dedup now log events; the original op list
+-- rejected them (adopt failed silently). Recall/search rows carry the caller in
+-- agent_id and {query, results, top, client, session} in metadata; the Recalls
+-- view and per-agent activity read them by (namespace, op, ts) and (agent_id, ts).
+-- Idempotent.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.memory_events'::regclass AND conname = 'memory_events_op_chk'
+                   AND pg_get_constraintdef(oid) LIKE '%dedup%') THEN
+    ALTER TABLE public.memory_events DROP CONSTRAINT IF EXISTS memory_events_op_chk;
+    ALTER TABLE public.memory_events ADD CONSTRAINT memory_events_op_chk
+      CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup'));
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS memory_events_ns_op_ts ON memory_events (namespace, op, ts DESC);
+CREATE INDEX IF NOT EXISTS memory_events_agent_ts ON memory_events (agent_id, ts DESC) WHERE agent_id IS NOT NULL;

@@ -47,7 +47,7 @@ func (s *Store) Stats(ctx context.Context) (*Stats, error) {
 	scan(`SELECT COUNT(DISTINCT namespace) FROM memories WHERE invalid_at IS NULL`, &st.Brains)
 	scan(`SELECT COUNT(*) FROM memories WHERE invalid_at IS NULL`, &st.Memories)
 	scan(`SELECT COUNT(*) FROM entities`, &st.Entities)
-	scan(`SELECT COUNT(*) FROM memory_entities`, &st.Edges)
+	scan(`SELECT COUNT(*) FROM entity_edges WHERE valid_to IS NULL`, &st.Edges)
 	scan(`SELECT COUNT(DISTINCT owner_agent_id) FROM memories WHERE owner_agent_id IS NOT NULL`, &st.Agents)
 	scan(`SELECT COUNT(DISTINCT source_ref) FROM memories WHERE source_ref IS NOT NULL AND valid_at > now() - interval '24 hours'`, &st.Sessions24h)
 	scan(`SELECT COUNT(*) FROM memory_events WHERE op='recall' AND ts > now() - interval '24 hours'`, &st.Recalls24h)
@@ -106,7 +106,7 @@ func (s *Store) Namespaces(ctx context.Context) ([]NamespaceInfo, error) {
 		return []NamespaceInfo{}, nil
 	}
 	rows, err := db.QueryContext(ctx, `
-		SELECT namespace, COUNT(*), MAX(valid_at)
+		SELECT namespace, COUNT(*), COALESCE(MAX(ingested_at) FILTER (WHERE COALESCE(source_kind,'') <> 'system'), MAX(ingested_at))
 		FROM memories WHERE invalid_at IS NULL
 		GROUP BY namespace ORDER BY COUNT(*) DESC`)
 	if err != nil {

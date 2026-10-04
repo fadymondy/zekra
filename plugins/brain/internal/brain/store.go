@@ -164,10 +164,7 @@ func vecLit(v []float32) string {
 }
 
 func (s *Store) event(ctx context.Context, db *sql.DB, op, ns, agent, outcome string, memID any, ms int) {
-	_, _ = db.ExecContext(ctx,
-		`INSERT INTO memory_events (namespace, op, memory_id, agent_id, latency_ms, metadata)
-		 VALUES ($1,$2,$3,$4,$5, jsonb_build_object('outcome',$6::text))`,
-		ns, op, memID, nullStr(agent), ms, outcome)
+	s.eventMeta(ctx, db, op, ns, agent, outcome, memID, ms, nil)
 }
 
 func nullStr(s string) any {
@@ -260,6 +257,11 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		return nil, err
 	}
 	start := time.Now()
+	// Attribute the write to the caller when the body didn't name an owner (MCP
+	// retain never does), so "who taught the brain this" is answerable.
+	if in.OwnerAgentID == "" {
+		in.OwnerAgentID = activityFrom(ctx).Agent
+	}
 	// Secrets-first: move any API keys / passwords / .env values / connection
 	// strings / private keys OUT of the content into the per-brain vault, and keep
 	// only the redacted `[secret:<name>]` reference. This runs BEFORE embedding so a
@@ -536,7 +538,13 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 	// by the namespace epoch so any retain in the namespace invalidates it.
 	ckey := recallCacheKey(q, s.nsEpoch(q.Namespace))
 	if hit, ok := s.getCachedRecall(ckey); ok {
-		s.event(ctx, db, "recall", q.Namespace, "", "hit", nil, int(time.Since(start).Milliseconds()))
+		outcome := "hit"
+		if len(hit) == 0 {
+			outcome = "empty" // a cached miss is still a miss
+		}
+		meta := recallMeta(q.Query, hit)
+		meta["cached"] = true
+		s.eventMeta(ctx, db, "recall", q.Namespace, "", outcome, nil, int(time.Since(start).Milliseconds()), meta)
 		return hit, nil
 	}
 	vecs, err := emb.Embed(ctx, []string{q.Query})
@@ -603,7 +611,7 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 	}
 	// Populate L1 for subsequent identical recalls (best-effort; TTL-bounded).
 	s.putCachedRecall(ckey, pool)
-	s.event(ctx, db, "recall", q.Namespace, "", outcome, nil, int(time.Since(start).Milliseconds()))
+	s.eventMeta(ctx, db, "recall", q.Namespace, "", outcome, nil, int(time.Since(start).Milliseconds()), recallMeta(q.Query, pool))
 	return pool, nil
 }
 

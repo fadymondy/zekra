@@ -25,7 +25,9 @@ type callerKey struct{}
 func (s *Service) withCaller(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := s.resolveCaller(r)
-		h(w, r.WithContext(context.WithValue(r.Context(), callerKey{}, &c)))
+		ctx := context.WithValue(r.Context(), callerKey{}, &c)
+		ctx = WithActivity(ctx, Activity{Agent: c.agent, Client: clientKind(c, r), Session: r.Header.Get("Mcp-Session-Id")})
+		h(w, r.WithContext(ctx))
 	}
 }
 

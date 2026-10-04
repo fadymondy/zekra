@@ -34,7 +34,7 @@ func (s *Store) BrainDetail(ctx context.Context, ns string) (*BrainDetail, error
 	}
 	var first, last sql.NullTime
 	_ = db.QueryRowContext(ctx,
-		`SELECT count(*), min(valid_at), max(valid_at) FROM memories WHERE namespace=$1 AND invalid_at IS NULL`, ns).
+		`SELECT count(*), min(valid_at), max(ingested_at) FILTER (WHERE COALESCE(source_kind,'') <> 'system') FROM memories WHERE namespace=$1 AND invalid_at IS NULL`, ns).
 		Scan(&d.Memories, &first, &last)
 	if first.Valid {
 		d.FirstAt = &first.Time
@@ -209,7 +209,7 @@ func (s *Store) EditMemory(ctx context.Context, ns, id, content string, importan
 	if err != nil {
 		return err
 	}
-	sets := "last_accessed_at = now()"
+	sets := "importance = importance" // a no-op base; editing is not an access (last_accessed_at = last recalled)
 	args := []any{id, ns}
 	i := 3
 	if content != "" {
@@ -252,10 +252,11 @@ func (s *Store) EditMemory(ctx context.Context, ns, id, content string, importan
 		// re-tokenize BM25 best-effort (accelerator, not authoritative).
 		_, _ = db.ExecContext(ctx, `UPDATE memories SET content_bm25 = tokenize($2,$3) WHERE id=$1`, id, content, bm25Tokenizer())
 	}
+	s.eventMeta(ctx, db, "edit", ns, "", "ok", id, 0, map[string]any{
+		"content": content != "", "importance": importance > 0, "metadata": metadata != nil})
 	s.bumpEpoch(ns)
 	return nil
 }
-
 
 // DedupSource soft-invalidates duplicate memories in a namespace that share the
 // same source_ref, keeping only the newest per source_ref. Set sourceKind to
@@ -296,5 +297,9 @@ func (s *Store) DedupSource(ctx context.Context, ns, sourceKind string) (int, er
 		return 0, err
 	}
 	n, _ := res.RowsAffected()
+	if n > 0 {
+		s.eventMeta(ctx, db, "dedup", ns, "", "ok", nil, 0, map[string]any{"invalidated": n, "sourceKind": sourceKind})
+		s.bumpEpoch(ns)
+	}
 	return int(n), nil
 }

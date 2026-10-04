@@ -238,15 +238,22 @@ func (s *Service) mcpEndpoint(o *oauthServer) http.HandlerFunc {
 			// Optional: bind the session to one brain (fills an omitted namespace).
 			DefaultNamespace: strings.TrimSpace(r.Header.Get("X-Zekra-Namespace")),
 		}
+		// The session id is minted on initialize (before dispatch, so a batch that
+		// initializes and calls a tool attributes both) and echoed afterwards. It
+		// rides in the context so the tool calls' events record it.
+		sid := r.Header.Get("Mcp-Session-Id")
+		for i := range msgs {
+			if msgs[i].Method == "initialize" {
+				sid = randomToken(18)
+				break
+			}
+		}
+		ctx := WithActivity(r.Context(), Activity{Session: sid})
 		var out []*mcptools.Response
-		initialized := false
 		for i := range msgs {
 			m := &msgs[i]
 			if m.Method == "" {
 				continue // a client's response to us; we never ask, so nothing to do
-			}
-			if m.Method == "initialize" {
-				initialized = true
 			}
 			if cred.hub != nil && m.Method == "tools/call" {
 				// Pay as you go: one `requests` unit per tool call, taken before the
@@ -257,13 +264,11 @@ func (s *Service) mcpEndpoint(o *oauthServer) http.HandlerFunc {
 					continue
 				}
 			}
-			if res := srv.Handle(r.Context(), m); res != nil {
+			if res := srv.Handle(ctx, m); res != nil {
 				out = append(out, res)
 			}
 		}
-		if initialized {
-			w.Header().Set("Mcp-Session-Id", randomToken(18))
-		} else if sid := r.Header.Get("Mcp-Session-Id"); sid != "" {
+		if sid != "" {
 			w.Header().Set("Mcp-Session-Id", sid)
 		}
 		if len(out) == 0 {
