@@ -72,7 +72,8 @@ type Datasource struct {
 	Status     string         `json:"status"` // idle|syncing|ok|error
 	Cursor     string         `json:"cursor,omitempty"`
 	LastError  string         `json:"lastError,omitempty"`
-	DocCount   int            `json:"docCount"`
+	DocCount   int            `json:"docCount"` // documents fetched, all syncs (re-fetches count again)
+	Memories   int            `json:"memories"` // live memories this source wrote (metadata.datasource = name)
 	LastSyncAt *time.Time     `json:"lastSyncAt,omitempty"`
 	CreatedAt  time.Time      `json:"createdAt"`
 }
@@ -117,9 +118,11 @@ func (s *Store) ListDatasources(ctx context.Context, ns string) ([]Datasource, e
 		return nil, err
 	}
 	rows, err := db.QueryContext(ctx, `
-		SELECT id, namespace, kind, name, config, status, COALESCE(cursor,''),
-		       COALESCE(last_error,''), doc_count, last_sync_at, created_at
-		FROM datasources WHERE namespace=$1 ORDER BY created_at DESC`, ns)
+		SELECT d.id, d.namespace, d.kind, d.name, d.config, d.status, COALESCE(d.cursor,''),
+		       COALESCE(d.last_error,''), d.doc_count, d.last_sync_at, d.created_at,
+		       (SELECT count(*) FROM memories m WHERE m.namespace = d.namespace AND m.invalid_at IS NULL
+		          AND m.metadata->>'datasource' = d.name)
+		FROM datasources d WHERE d.namespace=$1 ORDER BY d.created_at DESC`, ns)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +133,7 @@ func (s *Store) ListDatasources(ctx context.Context, ns string) ([]Datasource, e
 		var cfg []byte
 		var last sql.NullTime
 		if err := rows.Scan(&d.ID, &d.Namespace, &d.Kind, &d.Name, &cfg, &d.Status,
-			&d.Cursor, &d.LastError, &d.DocCount, &last, &d.CreatedAt); err != nil {
+			&d.Cursor, &d.LastError, &d.DocCount, &last, &d.CreatedAt, &d.Memories); err != nil {
 			return nil, err
 		}
 		_ = json.Unmarshal(cfg, &d.Config)

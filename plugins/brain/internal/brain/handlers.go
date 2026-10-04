@@ -42,16 +42,22 @@ func (s *Service) Stats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, st)
 }
 
-// GET /api/brain/activity?limit=50
+// GET /api/brain/activity?limit=50&namespace=&op=&agent=&since=&before=
 func (s *Service) Activity(w http.ResponseWriter, r *http.Request) {
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	all, list := s.readableNamespaces(r)
-	var items []ActivityItem
-	if all {
-		items, _ = s.Store.Activity(r.Context(), limit)
+	q := r.URL.Query()
+	before, _ := strconv.ParseInt(q.Get("before"), 10, 64)
+	f := ActivityFilter{Op: q.Get("op"), Agent: q.Get("agent"), Since: parseSince(q.Get("since")),
+		Before: before, Limit: queryInt(r, "limit")}
+	if ns := q.Get("namespace"); ns != "" {
+		if !s.canRead(r, ns) {
+			writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+			return
+		}
+		f.Namespaces = []string{ns}
 	} else {
-		items, _ = s.Store.ActivityFor(r.Context(), list, limit)
+		f.All, f.Namespaces = s.readableNamespaces(r)
 	}
+	items, _ := s.Store.ActivityFiltered(r.Context(), f)
 	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }
 

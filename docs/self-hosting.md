@@ -37,8 +37,8 @@ togo generate                 # sqlc, gqlgen, atlas, OpenAPI
 docker build -t zekra:latest .
 ```
 
-The Dockerfile builds the web console and the API into a distroless image that listens on
-`:8080`.
+The root Dockerfile builds the API (REST, MCP and gRPC) into a distroless image that listens on
+`:8080`. The web console is a separate Next.js image: `docker build -f web/Dockerfile -t zekra-console .` (context is the repo root, since it bundles `docs/`).
 
 ## 2. Configure
 

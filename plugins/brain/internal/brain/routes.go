@@ -28,6 +28,13 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	r.Post("/api/brain/search", sec(s.Search))
 	r.Post("/api/brain/retain", sec(s.Retain))
 	r.Get("/api/brain/memory", sec(s.Get))
+	// Insight screens (Overview / Memory explorer / Recalls / Agents) — read-only.
+	r.Get("/api/brain/overview", sec(s.OverviewHandler))
+	r.Get("/api/brain/memories", sec(s.MemoriesHandler))
+	r.Get("/api/brain/memories/facets", sec(s.FacetsHandler))
+	r.Get("/api/brain/memory/usage", sec(s.MemoryUsageHandler))
+	r.Get("/api/brain/recalls", sec(s.RecallsHandler))
+	r.Get("/api/brain/agents", sec(s.BrainAgentsHandler))
 	r.Post("/api/brain/forget", sec(s.Forget))
 	r.Post("/api/brain/dedup", sec(s.Dedup))
 	// Graph plane — multi-hop traversal, typed neighbours, shortest path,
