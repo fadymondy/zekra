@@ -217,12 +217,15 @@ export function proxy(request: NextRequest) {
 
   const { locale, rest } = splitLocale(pathname)
   const signedIn = request.cookies.has(SESSION_COOKIE)
+  // A signed-in "/" opens the last used brain (cookie set by lib/last-brain), else the list.
+  const lastBrain = request.cookies.get("zekra_last_brain")?.value
+  const home = signedIn ? (lastBrain ? `b/${encodeURIComponent(lastBrain)}` : "brains") : "login"
 
   // No locale in the URL: remembered language, then Accept-Language, then English.
   if (!locale) {
     const url = request.nextUrl.clone()
     const target = preferredLocale(request)
-    url.pathname = pathname === "/" ? `/${target}/${signedIn ? "brains" : "login"}` : `/${target}${pathname}`
+    url.pathname = pathname === "/" ? `/${target}/${home}` : `/${target}${pathname}`
     return NextResponse.redirect(url)
   }
 
@@ -230,7 +233,7 @@ export function proxy(request: NextRequest) {
 
   if (restPath === "/") {
     const url = request.nextUrl.clone()
-    url.pathname = `/${locale}/${signedIn ? "brains" : "login"}`
+    url.pathname = `/${locale}/${home}`
     return NextResponse.redirect(url)
   }
 
