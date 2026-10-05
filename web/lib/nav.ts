@@ -1,6 +1,6 @@
 import {
   ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
-  HouseIcon, KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, NetworkIcon, PlugIcon, PresentationIcon, StickyNoteIcon,
+  HouseIcon, ImageIcon, KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, NetworkIcon, PlugIcon, PresentationIcon, StickyNoteIcon,
   RocketIcon, SearchIcon, ShieldCheckIcon, TypeIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 
@@ -18,6 +18,7 @@ export function brainNav(namespace: string): NavGroup[] {
         { href: "/brains", label: "nav.home", icon: HouseIcon, exact: true },
         { href: b, label: "nav.overview", icon: NetworkIcon, exact: true },
         { href: `${b}/notes`, label: "nav.notes", icon: StickyNoteIcon },
+        { href: `${b}/media`, label: "nav.media", icon: ImageIcon },
         { href: `${b}/presentations`, label: "nav.presentations", icon: PresentationIcon },
         { href: `${b}/search`, label: "nav.search", icon: SearchIcon },
         { href: `${b}/sources`, label: "nav.sources", icon: PlugIcon },

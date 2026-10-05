@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/togo-framework/brain v0.0.0
 	github.com/togo-framework/brain-cognee v0.0.0
+	github.com/togo-framework/brain-ocr v0.0.0
 	github.com/togo-framework/brain-tei v0.0.0
 	github.com/togo-framework/cache v0.3.0
 	github.com/togo-framework/cache-redis v0.0.0
@@ -28,6 +29,8 @@ require (
 // harness consumes the published plugin.
 replace github.com/togo-framework/brain => ./plugins/brain
 
+replace github.com/togo-framework/brain-ocr => ./plugins/brain-ocr
+
 replace github.com/togo-framework/brain-tei => ./plugins/brain-tei
 
 replace github.com/togo-framework/brain-cognee => ./plugins/brain-cognee
@@ -36,6 +39,7 @@ replace github.com/togo-framework/cache-redis => ./plugins/cache-redis
 
 require (
 	github.com/circlexo/circlexo-go v0.1.1
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/togo-framework/aeo v0.1.0
 	github.com/togo-framework/ai v0.1.0
@@ -240,6 +244,8 @@ require (
 	github.com/togo-framework/worker v0.1.0
 	github.com/togo-framework/workflow v0.1.0
 	github.com/togo-framework/youtube v0.1.0
+	golang.org/x/crypto v0.57.0
+	rsc.io/qr v0.2.0
 )
 
 require (
@@ -308,7 +314,6 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/gocolly/colly/v2 v2.1.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -392,17 +397,16 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.ngrok.com/muxado/v2 v2.0.1 // indirect
 	golang.ngrok.com/ngrok v1.12.1 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/image v0.14.0 // indirect
-	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/term v0.43.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/term v0.46.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
-	golang.org/x/tools v0.45.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/api v0.190.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240730163845-b1a4ccb954bf // indirect
@@ -413,5 +417,4 @@ require (
 	modernc.org/libc v1.73.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	rsc.io/qr v0.2.0 // indirect
 )

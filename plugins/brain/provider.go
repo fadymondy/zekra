@@ -19,7 +19,15 @@ type (
 	Embedder = ib.Embedder
 	Reranker = ib.Reranker
 	Engine   = ib.Engine
+
+	MediaReader  = ib.MediaReader
+	MediaText    = ib.MediaText
+	MediaSegment = ib.MediaSegment
+	MediaLine    = ib.MediaLine
 )
+
+// RegisterMediaReader publishes the media → text driver (e.g. brain-ocr) onto the kernel.
+func RegisterMediaReader(k *togo.Kernel, m MediaReader) { ib.RegisterMediaReader(k, m) }
 
 // RegisterEmbedder publishes the embeddings driver (e.g. brain-tei) onto the kernel.
 func RegisterEmbedder(k *togo.Kernel, e Embedder) { ib.RegisterEmbedder(k, e) }

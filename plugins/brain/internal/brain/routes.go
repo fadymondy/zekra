@@ -122,6 +122,8 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	// rendered markdown reads back through the content-addressed serve route.
 	r.Post("/api/notes/image", sec(s.UploadNoteImage))
 	r.Get("/api/notes/image/{ns}/{name}", sec(s.ServeNoteImage))
+	s.mountMedia(r, sec)
+	s.mountCamera(r, sec)
 	r.Get("/api/notes", sec(s.ListNotes))
 	r.Post("/api/notes", sec(s.CreateNote))
 	r.Post("/api/notes/adopt", sec(s.AdoptNotes))

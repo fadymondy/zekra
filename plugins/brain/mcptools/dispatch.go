@@ -37,7 +37,8 @@ var toolAccess = map[string]Access{
 	"datasource_delete": AccessAdmin,
 	"note_create":       AccessWrite, "note_update": AccessWrite, "note_append": AccessWrite,
 	"note_get": AccessRead, "note_search": AccessRead, "note_list": AccessRead, "note_delete": AccessWrite,
-	"notes_adopt": AccessWrite,
+	"notes_adopt":  AccessWrite,
+	"media_retain": AccessWrite, "media_get": AccessRead, "media_list": AccessRead,
 }
 
 // ToolAccess returns a tool's access class (admin for an unknown tool: fail closed).
@@ -50,10 +51,11 @@ func ToolAccess(name string) Access {
 
 // Tools returns every tool definition (memory + graph + ACL + notes).
 func Tools() []map[string]any {
-	defs := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs)+len(graphToolDefs))
+	defs := make([]map[string]any, 0, len(toolDefs)+len(noteToolDefs)+len(graphToolDefs)+len(mediaToolDefs))
 	defs = append(defs, toolDefs...)
 	defs = append(defs, noteToolDefs...)
 	defs = append(defs, graphToolDefs...)
+	defs = append(defs, mediaToolDefs...)
 
 	// Codex's `writes` approval mode relies on the standard MCP annotation to
 	// distinguish read-only tools from mutations. Copy each definition before
@@ -238,6 +240,15 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 			"source": "agent"})
 	case "note_append":
 		post(note("/append"), map[string]any{"text": args["text"], "source": "agent"})
+	case "media_retain":
+		post("/api/brain/media", map[string]any{
+			"namespace": args["namespace"], "data": args["data"], "filename": args["filename"],
+			"url": args["url"], "title": args["title"]})
+	case "media_get":
+		get("/api/brain/media/"+url.PathEscape(str(args["id"])), nil)
+	case "media_list":
+		get("/api/brain/media", nonEmpty(url.Values{"namespace": {str(args["namespace"])},
+			"kind": {str(args["kind"])}, "limit": {str(args["limit"])}}))
 	case "note_get":
 		get(note(""), nil)
 	case "note_search":

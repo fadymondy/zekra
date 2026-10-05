@@ -873,3 +873,52 @@ BEGIN
 END $$;
 CREATE INDEX IF NOT EXISTS memory_events_ns_op_ts ON memory_events (namespace, op, ts DESC);
 CREATE INDEX IF NOT EXISTS memory_events_agent_ts ON memory_events (agent_id, ts DESC) WHERE agent_id IS NOT NULL;
+
+-- ── Media memories (media.go) ───────────────────────────────────────────────────
+-- An uploaded image / PDF / video / audio file. The file itself is a blob in
+-- kernel storage (blob_key); its readable text lives in a companion note
+-- (note_id), so indexing, versioning, deletion and recall all reuse notes. This
+-- row keeps what a note cannot: the reader's status and the raw result with line
+-- boxes and timestamps, which the viewer overlays on the image / seeks the video
+-- to. Idempotent.
+CREATE TABLE IF NOT EXISTS public.brain_media (
+  id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace      text        NOT NULL,
+  note_id        uuid,
+  owner_user_id  text,
+  kind           text        NOT NULL,
+  name           text        NOT NULL DEFAULT '',
+  content_type   text        NOT NULL,
+  bytes          bigint      NOT NULL,
+  digest         text        NOT NULL,                     -- sha256 hex of the file
+  blob_key       text        NOT NULL,
+  status         text        NOT NULL DEFAULT 'pending',
+  error          text,
+  result         jsonb,                                    -- MediaText
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now(),
+  deleted_at     timestamptz,
+  CONSTRAINT media_kind_chk   CHECK (kind IN ('image','pdf','video','audio')),
+  CONSTRAINT media_status_chk CHECK (status IN ('pending','processing','done','failed'))
+);
+CREATE INDEX IF NOT EXISTS brain_media_ns_created ON public.brain_media (namespace, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS brain_media_note ON public.brain_media (note_id);
+CREATE INDEX IF NOT EXISTS brain_media_pending ON public.brain_media (status) WHERE status IN ('pending','processing');
+
+-- Phone camera passes: the desktop shows a one-time QR code (code_hash, a few
+-- minutes); the phone redeems it once for a camera-only bearer pass to ONE brain
+-- (token_hash, a few hours). Only hashes are stored. Idempotent.
+CREATE TABLE IF NOT EXISTS public.brain_camera_pass (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace        text        NOT NULL,
+  user_id          text        NOT NULL,
+  code_hash        text        NOT NULL UNIQUE,
+  code_expires_at  timestamptz NOT NULL,
+  token_hash       text        UNIQUE,
+  expires_at       timestamptz,
+  device           text,
+  redeemed_at      timestamptz,
+  revoked_at       timestamptz,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS brain_camera_pass_user ON public.brain_camera_pass (user_id, created_at DESC);

@@ -1,0 +1,8 @@
+paddleocr==3.3.*
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+python-multipart==0.0.*
+opencv-python-headless==4.10.*
+pypdfium2==4.*
+faster-whisper==1.1.*
+numpy<2.3

@@ -1,0 +1,6 @@
+name: brain-ocr
+description: Media reader for Zekra — OCR in any script (PP-OCRv5), PDF text/OCR, video keyframes and speech-to-text (whisper) via the zekra-ocr service. Publishes a MediaReader onto the kernel for the brain plugin.
+priority: 90
+backend:
+  package: github.com/togo-framework/brain-ocr
+commands: []

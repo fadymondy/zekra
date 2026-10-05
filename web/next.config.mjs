@@ -25,6 +25,10 @@ const nextConfig = {
     "/*": ["./assets/fonts/pdf/**/*", "./node_modules/@sparticuz/chromium/**/*", "./node_modules/follow-redirects/**/*", "./node_modules/tar-fs/**/*", "./content/site/**/*"],
   },
 
+  // Media uploads (POST /api/media: video up to MEDIA_MAX_VIDEO_MB, 1 GB by default) pass
+  // through the rewrite proxy, which otherwise cuts request bodies at 10 MB.
+  experimental: { proxyClientMaxBodySize: "1100mb" },
+
   // The Go API and this app share one origin: session and CSRF cookies stay first-party.
   async rewrites() {
     return [
