@@ -159,7 +159,7 @@ export function AppShell({
           <SidebarTrigger label={t("shell.toggleSidebar")} />
           <div className="ms-auto flex items-center gap-1">{me.data ? <NotificationBell /> : null}</div>
         </AppHeader>
-        <AppMain className="p-0">{body}</AppMain>
+        <AppMain className="p-0 md:min-h-0 md:overflow-y-auto">{body}</AppMain>
         {me.data ? <Spotlight namespace={brain} /> : null}
       </NasaqAppShell>
 
