@@ -9,5 +9,7 @@
   "notifications.emptyHint": "عند مشاركة دماغ معك أو فتح أحدهم عرضًا شاركته في ذكرى، سيظهر ذلك هنا.",
   "notifications.error": "تعذّر تحميل الإشعارات.",
   "notifications.failed": "تعذّر تحديث الإشعارات. حاول مجددًا.",
-  "notifications.unread": "غير مقروء"
+  "notifications.unread": "غير مقروء",
+  "notifications.open": "فتح",
+  "notifications.markRead": "تعليم كمقروء"
 }

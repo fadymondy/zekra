@@ -78,5 +78,6 @@
   "spotlight.label": "Search",
   "spotlight.memories": "Memories",
   "spotlight.placeholder": "Search memories, or jump to a page…",
-  "spotlight.searching": "Searching your brain…"
+  "spotlight.searching": "Searching your brain…",
+  "shell.memoryCount": "{count} memories"
 }

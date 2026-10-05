@@ -9,6 +9,7 @@ import { useSWRConfig } from "swr"
 
 import { CircleXOButton, CodeInput, ErrorLine, Notice, OrRule, ProviderButtons, Submit, useCircleXO, useLoginMethods } from "@/components/auth/parts"
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
+import { homeHref } from "@/lib/last-brain"
 import { auth, AuthError, authMessage, safeNext } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -30,7 +31,7 @@ export function LoginForm() {
   const methods = useLoginMethods()
   const circlexo = useCircleXO()
   const next = safeNext(params.get("next"))
-  const home = `/${locale}/brains`
+  const home = homeHref(locale)
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

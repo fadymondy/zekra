@@ -1,65 +1,57 @@
 "use client"
 
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@fadymondy/nasaq/web"
-
+import { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { ArrowLeftIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react"
+import { LayoutGridIcon } from "lucide-react"
+import { DropdownMenuItem, WorkspaceSwitcher } from "@fadymondy/nasaq/web"
 
 import { BrainAvatar, brainName } from "@/components/brains/brain-cells"
+import { getLastBrain, setLastBrain } from "@/lib/last-brain"
 import { useTranslations } from "@/lib/i18n"
 import { useBrains } from "@/lib/queries"
 
-/** Managy's workspace switcher, for brains. Switching keeps the section (chat, sources…). */
-export function BrainSwitcher({ namespace }: { namespace: string }) {
+/**
+ * The sidebar's tenant menu, for brains (Nasaq's WorkspaceSwitcher). Inside a brain, switching keeps
+ * the section (notes, sources…); outside one it shows the last used brain and opens the picked one.
+ * The brain in scope is remembered so the console reopens on it.
+ */
+export function BrainSwitcher({ namespace }: { namespace?: string }) {
   const { t, locale, formatNumber } = useTranslations()
   const router = useRouter()
   const pathname = usePathname()
   const brains = useBrains()
-  const current = brains.data?.find((b) => b.namespace === namespace)
 
-  function hrefFor(ns: string) {
-    const prefix = `/${locale}/b/${encodeURIComponent(namespace)}`
-    const rest = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : ""
-    return `/${locale}/b/${encodeURIComponent(ns)}${rest}`
+  useEffect(() => {
+    if (namespace) setLastBrain(namespace)
+  }, [namespace])
+
+  const list = brains.data ?? []
+  if (!list.length) return null
+  const last = getLastBrain()
+  const value = namespace ?? (last && list.some((b) => b.namespace === last) ? last : list[0].namespace)
+
+  function open(ns: string) {
+    const prefix = namespace ? `/${locale}/b/${encodeURIComponent(namespace)}` : null
+    const rest = prefix && pathname.startsWith(prefix) ? pathname.slice(prefix.length) : ""
+    router.push(`/${locale}/b/${encodeURIComponent(ns)}${rest}`)
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="ghost"
-            className="h-9 max-w-[9rem] justify-between gap-2 px-2.5 sm:max-w-[16rem]"
-            aria-label={t("shell.switchBrain")}
-          />
-        }
-      >
-        <BrainAvatar namespace={namespace} profile={current} size={24} />
-        <span dir="auto" className="hidden truncate text-sm font-medium sm:inline">
-          {current ? brainName(current) : namespace}
-        </span>
-        <ChevronsUpDownIcon className="text-muted-foreground" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-h-[70vh] min-w-64 overflow-y-auto">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("shell.brains")}</DropdownMenuLabel>
-          {(brains.data ?? []).map((b) => (
-            <DropdownMenuItem key={b.namespace} onClick={() => router.push(hrefFor(b.namespace))}>
-              <BrainAvatar namespace={b.namespace} profile={b} size={20} />
-              <span dir="auto" className="min-w-0 flex-1 truncate">
-                {brainName(b)}
-              </span>
-              <span className="text-xs text-muted-foreground">{formatNumber(b.memories)}</span>
-              {b.namespace === namespace ? <CheckIcon /> : null}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push(`/${locale}/brains`)}>
-          <ArrowLeftIcon className="rtl:-scale-x-100" />
-          {t("shell.allBrains")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <WorkspaceSwitcher
+      workspaces={list.map((b) => ({
+        id: b.namespace,
+        name: brainName(b),
+        description: t("shell.memoryCount", { count: formatNumber(b.memories) }),
+        logo: <BrainAvatar namespace={b.namespace} profile={b} size={20} />,
+      }))}
+      value={value}
+      onValueChange={open}
+      labels={{ heading: t("shell.brains") }}
+    >
+      <DropdownMenuItem onClick={() => router.push(`/${locale}/brains`)}>
+        <LayoutGridIcon />
+        {t("shell.allBrains")}
+      </DropdownMenuItem>
+    </WorkspaceSwitcher>
   )
 }

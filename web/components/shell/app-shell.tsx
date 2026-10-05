@@ -3,16 +3,16 @@
 // The console shell, on Nasaq's AppShell: a collapsible, resizable sidebar (a sheet below md),
 // a sticky header and the page. Every signed-in area (brains, a brain's workspace, account,
 // admin) renders through it with its own navigation. Collapse/resize state and Ctrl/Cmd+B are
-// Nasaq's; this file owns the sign-in guard, realtime, the reading theme and the header actions.
+// Nasaq's; this file owns the sign-in guard, realtime and the reading theme. Layout follows Nasaq's
+// App Shell dashboard: the sidebar carries the brand, the brain (tenant) switcher, search (the
+// command palette) and the user menu; the header carries only the notification center.
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { type ComponentType, type MouseEvent, type ReactNode } from "react"
-import { MessageSquarePlusIcon } from "lucide-react"
+import { type ComponentType, type MouseEvent, type ReactNode, useEffect, useState } from "react"
 import {
   AppHeader,
   AppMain,
   AppShell as NasaqAppShell,
-  Button,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -26,10 +26,10 @@ import {
 
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ErrorState } from "@/components/states"
-import { MahaamWidget, feedbackEnabled, openFeedback } from "@/components/feedback/mahaam-widget"
-import { LiveIndicator } from "@/components/shell/live"
+import { MahaamWidget } from "@/components/feedback/mahaam-widget"
+import { BrainSwitcher } from "@/components/shell/brain-switcher"
 import { NotificationBell } from "@/components/shell/notification-bell"
-import { Spotlight } from "@/components/spotlight/spotlight"
+import { Spotlight, SpotlightTrigger } from "@/components/spotlight/spotlight"
 import { UserMenu } from "@/components/shell/user-menu"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { useTranslations } from "@/lib/i18n"
@@ -38,6 +38,8 @@ import { NoteThemeStyle } from "@/components/notes/theme-picker"
 import { useRequireAuth } from "@/lib/use-require-auth"
 import { RealtimeProvider } from "@/lib/realtime"
 import { brandName } from "@/lib/brand-name"
+import { homeHref } from "@/lib/last-brain"
+import type { User } from "@/lib/queries"
 
 export type NavItem = {
   /** Path after the locale, e.g. "/brains". */
@@ -53,8 +55,11 @@ export type NavGroup = { label?: string; items: NavItem[] }
 function Brand() {
   const { locale } = useTranslations()
   const collapsed = useSidebarCollapsed()
+  // Read after mount: the last brain lives in localStorage, which the server render cannot see.
+  const [home, setHome] = useState(`/${locale}/brains`)
+  useEffect(() => setHome(homeHref(locale)), [locale])
   return (
-    <Link href={`/${locale}/brains`} className="flex h-8 items-center gap-2.5 px-1" aria-label={brandName(locale)}>
+    <Link href={home} className="flex h-8 items-center gap-2.5 px-1" aria-label={brandName(locale)}>
       <CubeMark mark={ZEKRA_MARK} size={24} />
       {collapsed ? null : <span className="text-label font-medium text-foreground">{brandName(locale)}</span>}
     </Link>
@@ -82,12 +87,14 @@ function NavLink({ item }: { item: NavItem }) {
   )
 }
 
-function ShellSidebar({ groups }: { groups: NavGroup[] }) {
+function ShellSidebar({ groups, brain, user }: { groups: NavGroup[]; brain?: string; user?: User }) {
   const { t } = useTranslations()
   return (
     <Sidebar aria-label={t("shell.navigation")}>
       <SidebarHeader>
         <Brand />
+        {user ? <BrainSwitcher namespace={brain} /> : null}
+        {user ? <SpotlightTrigger /> : null}
       </SidebarHeader>
       <SidebarContent>
         {groups.map((g, i) => (
@@ -98,6 +105,7 @@ function ShellSidebar({ groups }: { groups: NavGroup[] }) {
           </SidebarGroup>
         ))}
       </SidebarContent>
+      <SidebarFooter>{user ? <UserMenu user={user} /> : null}</SidebarFooter>
     </Sidebar>
   )
 }
@@ -112,18 +120,15 @@ function ShellSkeleton() {
   )
 }
 
-/** Sidebar + sticky header + main, behind the sign-in guard. `start` fills the header's leading
- *  side (the brain switcher); `gate` can replace the body (e.g. a 403 for non-admins). */
+/** Sidebar + sticky header + main, behind the sign-in guard. `brain` is the brain in scope (the
+ *  switcher's value and the search scope); `gate` can replace the body (e.g. a 403 for non-admins). */
 export function AppShell({
   groups,
-  start,
   brain,
   gate,
   children,
 }: {
   groups: NavGroup[]
-  start?: ReactNode
-  /** The brain in scope, attached to problem reports. */
   brain?: string
   gate?: ReactNode
   children: ReactNode
@@ -142,30 +147,13 @@ export function AppShell({
           than inside the note pane, otherwise it would only take effect on
           pages that happen to render a note. */}
       <AppThemeEffect />
-      <NasaqAppShell sidebar={<ShellSidebar groups={groups} />} resizeLabel={t("shell.resizeSidebar")}>
+      <NasaqAppShell sidebar={<ShellSidebar groups={groups} brain={brain} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
         <AppHeader>
           <SidebarTrigger label={t("shell.toggleSidebar")} />
-          <div className="flex min-w-0 flex-1 items-center gap-1">{start}</div>
-          <div className="flex items-center gap-1">
-            {me.data ? <Spotlight namespace={brain} /> : null}
-            {me.data && feedbackEnabled ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="hidden sm:inline-flex"
-                onClick={() => openFeedback()}
-                aria-label={t("feedback.report")}
-              >
-                <MessageSquarePlusIcon />
-                <span className="hidden sm:inline">{t("feedback.report")}</span>
-              </Button>
-            ) : null}
-            <LiveIndicator />
-            {me.data ? <NotificationBell /> : null}
-            {me.data ? <UserMenu user={me.data} /> : null}
-          </div>
+          <div className="ms-auto flex items-center gap-1">{me.data ? <NotificationBell /> : null}</div>
         </AppHeader>
         <AppMain className="p-0">{body}</AppMain>
+        {me.data ? <Spotlight namespace={brain} /> : null}
       </NasaqAppShell>
 
       {/* Mahaam Feedback: loaded only inside the signed-in app, never on public pages. */}

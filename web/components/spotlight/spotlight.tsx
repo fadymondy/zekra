@@ -41,11 +41,16 @@ replaces the old Tab scope toggle.
 
 const DEBOUNCE_MS = 220
 
+/** The sidebar's "Search… ⌘K" field; it opens the palette mounted by `Spotlight`. */
+export function SpotlightTrigger() {
+  const { t } = useTranslations()
+  return <SearchTrigger label={t("spotlight.label")} />
+}
+
 export function Spotlight({ namespace }: { namespace?: string }) {
   const { t } = useTranslations()
   return (
     <>
-      <SearchTrigger variant="icon" label={t("spotlight.label")} />
       <SpotlightCommands namespace={namespace} />
       <CommandPalette
         labels={{ title: t("spotlight.label") }}

@@ -9,6 +9,7 @@ import { useSWRConfig } from "swr"
 
 import { CodeInput, ErrorLine, MIN_PASSWORD, Notice, ProviderButtons, Submit, useLoginMethods } from "@/components/auth/parts"
 import { PublicFrame, PublicPanel } from "@/components/public-frame"
+import { homeHref } from "@/lib/last-brain"
 import { auth, AuthError, authMessage, safeNext } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -91,7 +92,7 @@ export function RegisterForm() {
           <Submit busy={busy} label={t("auth.createAccount")} disabled={!email || !password || !confirm} />
         </div>
       </form>
-      <ProviderButtons methods={methods} returnTo={next ?? `/${locale}/brains`} />
+      <ProviderButtons methods={methods} returnTo={next ?? homeHref(locale)} />
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {t("auth.haveAccount")}{" "}
         <Link href={`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-foreground underline underline-offset-4">
@@ -130,7 +131,7 @@ export function VerifyEmailForm() {
       // Verified and signed in; without a session (auth briefly unavailable), sign in by hand.
       if (result?.token || result?.user) {
         await mutate("/api/auth/me")
-        router.replace(next ?? `/${locale}/brains`)
+        router.replace(next ?? homeHref(locale))
       } else {
         router.replace(`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`)
       }

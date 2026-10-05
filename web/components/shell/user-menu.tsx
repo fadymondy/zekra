@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation"
 import { useSWRConfig } from "swr"
-import { CircleUserIcon, ShieldCheckIcon } from "lucide-react"
+import { CircleUserIcon, MessageSquarePlusIcon, ShieldCheckIcon } from "lucide-react"
 import { DropdownMenuItem, UserMenu as NasaqUserMenu, toast } from "@fadymondy/nasaq/web"
 
+import { feedbackEnabled, openFeedback } from "@/components/feedback/mahaam-widget"
 import { api, resetCsrf } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { isAdmin, type User } from "@/lib/queries"
 
-/** The account menu: identity, account/admin links, theme, language and sign out (Nasaq's UserMenu). */
+/** The sidebar account menu: identity, account/admin links, report a problem, theme, language and sign out (Nasaq's UserMenu). */
 export function UserMenu({ user }: { user: User }) {
   const { t, locale } = useTranslations()
   const router = useRouter()
@@ -43,6 +44,12 @@ export function UserMenu({ user }: { user: User }) {
         <DropdownMenuItem onClick={() => router.push(`/${locale}/admin`)}>
           <ShieldCheckIcon />
           {t("header.admin")}
+        </DropdownMenuItem>
+      ) : null}
+      {feedbackEnabled ? (
+        <DropdownMenuItem onClick={() => openFeedback()}>
+          <MessageSquarePlusIcon />
+          {t("feedback.report")}
         </DropdownMenuItem>
       ) : null}
     </NasaqUserMenu>
