@@ -1,35 +1,21 @@
 import {
   ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
-  KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, PresentationIcon, StickyNoteIcon,
+  HouseIcon, KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, PresentationIcon, StickyNoteIcon,
   RocketIcon, SearchIcon, ShieldCheckIcon, TypeIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 
 import type { NavGroup } from "@/components/shell/app-shell"
 
-// Every signed-in area's sidebar. Labels are dictionary keys; hrefs are locale-relative.
-
-export const BRAINS_NAV: NavGroup[] = [
-  {
-    items: [
-      { href: "/brains", label: "nav.brains", icon: BrainIcon, exact: true },
-      { href: "/connect", label: "nav.connect", icon: PlugZapIcon },
-      { href: "/admin/presentations", label: "nav.allPresentations", icon: PresentationIcon },
-    ],
-  },
-  {
-    label: "nav.you",
-    items: [
-      { href: "/account", label: "nav.account", icon: UserIcon, exact: true },
-      { href: "/account/security", label: "nav.security", icon: ShieldCheckIcon },
-    ],
-  },
-]
+// Every signed-in area's sidebar. Labels are dictionary keys; hrefs are locale-relative. The console
+// has one main menu, the brain's: Home (every brain's status) sits on top, and outside a brain it
+// shows the last active brain.
 
 export function brainNav(namespace: string): NavGroup[] {
   const b = `/b/${encodeURIComponent(namespace)}`
   return [
     {
       items: [
+        { href: "/brains", label: "nav.home", icon: HouseIcon, exact: true },
         { href: b, label: "nav.overview", icon: NetworkIcon, exact: true },
         { href: `${b}/notes`, label: "nav.notes", icon: StickyNoteIcon },
         { href: `${b}/presentations`, label: "nav.presentations", icon: PresentationIcon },
@@ -47,6 +33,7 @@ export function brainNav(namespace: string): NavGroup[] {
         { href: `${b}/settings`, label: "brainSettings.nav", icon: SettingsIcon },
         { href: `${b}/secrets`, label: "nav.secrets", icon: LockIcon },
         { href: `${b}/permissions`, label: "nav.permissions", icon: KeyRoundIcon },
+        { href: "/connect", label: "nav.connect", icon: PlugZapIcon },
       ],
     },
   ]

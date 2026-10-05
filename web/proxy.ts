@@ -217,9 +217,7 @@ export function proxy(request: NextRequest) {
 
   const { locale, rest } = splitLocale(pathname)
   const signedIn = request.cookies.has(SESSION_COOKIE)
-  // A signed-in "/" opens the last used brain (cookie set by lib/last-brain), else the list.
-  const lastBrain = request.cookies.get("zekra_last_brain")?.value
-  const home = signedIn ? (lastBrain ? `b/${encodeURIComponent(lastBrain)}` : "brains") : "login"
+  const home = signedIn ? "brains" : "login"
 
   // No locale in the URL: remembered language, then Accept-Language, then English.
   if (!locale) {

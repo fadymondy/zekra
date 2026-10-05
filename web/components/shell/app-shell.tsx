@@ -38,8 +38,9 @@ import { NoteThemeStyle } from "@/components/notes/theme-picker"
 import { useRequireAuth } from "@/lib/use-require-auth"
 import { RealtimeProvider } from "@/lib/realtime"
 import { brandName } from "@/lib/brand-name"
-import { homeHref } from "@/lib/last-brain"
-import type { User } from "@/lib/queries"
+import { getLastBrain, homeHref } from "@/lib/last-brain"
+import { brainNav } from "@/lib/nav"
+import { useBrains, type User } from "@/lib/queries"
 
 export type NavItem = {
   /** Path after the locale, e.g. "/brains". */
@@ -122,20 +123,22 @@ function ShellSplash() {
 }
 
 /** Sidebar + sticky header + main, behind the sign-in guard. `brain` is the brain in scope (the
- *  switcher's value and the search scope); `gate` can replace the body (e.g. a 403 for non-admins). */
+ *  switcher's value and the search scope); outside a brain the last active one (else the first) stands
+ *  in, and without `groups` its menu is the sidebar. `gate` can replace the body (e.g. a 403). */
 export function AppShell({
   groups,
   brain,
   gate,
   children,
 }: {
-  groups: NavGroup[]
+  groups?: NavGroup[]
   brain?: string
   gate?: ReactNode
   children: ReactNode
 }) {
   const me = useRequireAuth()
   const { t, locale } = useTranslations()
+  const brains = useBrains()
 
   // The server never has the session, but the client may already hold it in the SWR cache; until
   // mounted both render the splash so hydration always matches.
@@ -143,6 +146,11 @@ export function AppShell({
   useEffect(() => setMounted(true), [])
 
   if (!mounted || (!me.data && !me.error)) return <ShellSplash />
+
+  const list = brains.data ?? []
+  const last = getLastBrain()
+  const scope = brain ?? (last && list.some((b) => b.namespace === last) ? last : list[0]?.namespace)
+  const nav = groups ?? (scope ? brainNav(scope) : [])
   const body: ReactNode = me.error ? <ErrorState error={me.error} /> : (gate ?? children)
 
   return (
@@ -153,13 +161,13 @@ export function AppShell({
       <AppThemeEffect />
       {/* Viewport-bound on desktop: the page never scrolls, so the sidebar keeps its own scroll and
           the user menu stays in view while the main panel scrolls inside. */}
-      <NasaqAppShell className="md:h-dvh md:overflow-hidden" sidebar={<ShellSidebar groups={groups} brain={brain} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
+      <NasaqAppShell className="md:h-dvh md:overflow-hidden" sidebar={<ShellSidebar groups={nav} brain={scope} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
         <AppHeader>
           <SidebarTrigger label={t("shell.toggleSidebar")} />
           <div className="ms-auto flex items-center gap-1">{me.data ? <NotificationBell /> : null}</div>
         </AppHeader>
         <AppMain className="p-0 md:min-h-0 md:overflow-y-auto">{body}</AppMain>
-        {me.data ? <Spotlight namespace={brain} /> : null}
+        {me.data ? <Spotlight namespace={scope} /> : null}
       </NasaqAppShell>
 
       {/* Mahaam Feedback: loaded only inside the signed-in app, never on public pages. */}
