@@ -24,6 +24,7 @@ import {
 
 import { Ltr } from "@/components/copy-field";
 import { NoteEditor } from "@/components/notes/note-editor";
+import { NoteTile } from "@/components/notes/note-list-row";
 import { NoteTabs } from "@/components/notes/note-tabs";
 import { NoteTree } from "@/components/notes/note-tree";
 import { SectionHeader } from "@/components/page";
@@ -86,6 +87,9 @@ function toNq(n: Note): NqNote {
     tags: n.tags ?? [],
     color:
       n.color && NQ_COLORS.has(n.color) ? (n.color as NqNote["color"]) : null,
+    icon: (
+      <NoteTile note={n} className="size-8 rounded-lg" iconClassName="size-4" />
+    ),
     pinned: n.pinned,
     archived: n.archived,
     createdAt: Date.parse(n.createdAt),
@@ -352,6 +356,20 @@ export default function NotesPage() {
         "bg-[color-mix(in_oklab,var(--nq-action)_18%,transparent)] text-foreground",
     );
 
+  const treeToggle = (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-pressed={pane === "tree"}
+      aria-label={t("tree.title")}
+      title={t("tree.title")}
+      onClick={() => setPane((v) => (v === "tree" ? "list" : "tree"))}
+      className={iconBtn(pane === "tree")}
+    >
+      <NetworkIcon />
+    </Button>
+  );
+
   return (
     <>
       <SectionHeader
@@ -360,121 +378,123 @@ export default function NotesPage() {
         action={newButton}
       />
 
-      <div className="grid border-t border-border lg:grid-cols-[24rem_1fr]">
-        {/* List pane: Nasaq's NotesView (search, sort, list/board, scope chips for categories and tags,
+      <div className="p-4 md:p-6">
+        <div className="grid h-[calc(100dvh-11rem)] min-h-[32rem] overflow-hidden rounded-xl border border-border bg-card lg:grid-cols-[22rem_1fr]">
+          {/* List pane: Nasaq's NotesView (search, sort, list/board, scope chips for categories and tags,
             pinned/archive, the ⋯ and context menus). Categories are its notebooks. */}
-        <aside
-          className={cn(
-            "flex min-w-0 flex-col lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:border-e lg:border-border",
-            selected && "hidden lg:flex",
-          )}
-        >
-          <div className="flex items-center justify-end gap-1 px-3 pt-2">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-pressed={pane === "tree"}
-              aria-label={t("tree.title")}
-              title={t("tree.title")}
-              onClick={() => setPane((v) => (v === "tree" ? "list" : "tree"))}
-              className={iconBtn(pane === "tree")}
-            >
-              <NetworkIcon />
-            </Button>
-          </div>
-          {pane === "tree" ? (
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-              <NoteTree
-                namespace={ns}
-                onSelect={(entity) => {
-                  // The tree speaks in entity names; the list speaks in note ids: search the name.
-                  setPane("list");
-                  setSearch(entity);
+          <aside
+            className={cn(
+              "flex min-h-0 min-w-0 flex-col bg-nq-surface-soft lg:border-e lg:border-border",
+              selected && "hidden lg:flex",
+            )}
+          >
+            {pane === "tree" ? (
+              <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+                <div className="flex justify-end p-1">{treeToggle}</div>
+                <NoteTree
+                  namespace={ns}
+                  onSelect={(entity) => {
+                    // The tree speaks in entity names; the list speaks in note ids: search the name.
+                    setPane("list");
+                    setSearch(entity);
+                  }}
+                />
+              </div>
+            ) : (
+              <NotesView
+                notes={nqNotes}
+                notebooks={notebooks}
+                activeId={selected}
+                onOpen={select}
+                onCreate={async () => {
+                  const id = await create();
+                  return id ? { id } : undefined;
+                }}
+                query={search}
+                onQueryChange={setSearch}
+                scope={scope}
+                onScopeChange={pickScope}
+                loading={!pages}
+                error={
+                  list.error ? <ErrorState error={list.error} /> : undefined
+                }
+                onRetry={() => void list.mutate()}
+                onUpdate={updateNote}
+                onDelete={deleteNote}
+                actions={treeToggle}
+                footer={hasMore ? loadMore : undefined}
+                className="min-h-0 flex-1"
+              />
+            )}
+          </aside>
+
+          {/* Editor pane */}
+          <section
+            className={cn(
+              "flex min-h-0 min-w-0 flex-col",
+              !selected && "hidden lg:flex",
+            )}
+          >
+            {/* Tabs (MH-218) sit above the pane and stay put while the note
+              below changes; the strip hides itself under two open notes. */}
+            <NoteTabs
+              tabs={tabs}
+              activeId={selected}
+              onSelect={select}
+              onClose={closeTabAt}
+              labels={{
+                openTabs: t("notes.openTabs"),
+                untitled: t("notes.untitled"),
+                close: t("common.close"),
+              }}
+            />
+            {!selected ? (
+              <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {t("notes.pickOne")}
+                </p>
+                {newButton}
+              </div>
+            ) : current.error ? (
+              <div>
+                <ErrorState
+                  error={
+                    current.error instanceof ApiError &&
+                    current.error.status === 404
+                      ? new ApiError(404, t("notes.notFound"))
+                      : current.error
+                  }
+                />
+                <div className="px-6 py-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => select(null)}
+                  >
+                    {t("notes.back")}
+                  </Button>
+                </div>
+              </div>
+            ) : !current.data ? (
+              <LoadingRows rows={3} />
+            ) : (
+              <NoteEditor
+                key={current.data.id}
+                note={current.data}
+                initialMode={
+                  justCreated === current.data.id ? "write" : undefined
+                }
+                onSaved={onSaved}
+                onBack={() => select(null)}
+                onOpenNote={(id) => select(id)}
+                onDeleted={() => {
+                  select(null);
+                  refreshList();
                 }}
               />
-            </div>
-          ) : (
-            <NotesView
-              notes={nqNotes}
-              notebooks={notebooks}
-              activeId={selected}
-              onOpen={select}
-              onCreate={async () => {
-                const id = await create();
-                return id ? { id } : undefined;
-              }}
-              query={search}
-              onQueryChange={setSearch}
-              scope={scope}
-              onScopeChange={pickScope}
-              loading={!pages}
-              error={list.error ? <ErrorState error={list.error} /> : undefined}
-              onRetry={() => void list.mutate()}
-              onUpdate={updateNote}
-              onDelete={deleteNote}
-              footer={hasMore ? loadMore : undefined}
-              className="min-h-0 flex-1"
-            />
-          )}
-        </aside>
-
-        {/* Editor pane */}
-        <section className={cn("min-w-0", !selected && "hidden lg:block")}>
-          {/* Tabs (MH-218) sit above the pane and stay put while the note
-              below changes; the strip hides itself under two open notes. */}
-          <NoteTabs
-            tabs={tabs}
-            activeId={selected}
-            onSelect={select}
-            onClose={closeTabAt}
-            labels={{
-              openTabs: t("notes.openTabs"),
-              untitled: t("notes.untitled"),
-              close: t("common.close"),
-            }}
-          />
-          {!selected ? (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <p className="text-sm text-muted-foreground">
-                {t("notes.pickOne")}
-              </p>
-              {newButton}
-            </div>
-          ) : current.error ? (
-            <div>
-              <ErrorState
-                error={
-                  current.error instanceof ApiError &&
-                  current.error.status === 404
-                    ? new ApiError(404, t("notes.notFound"))
-                    : current.error
-                }
-              />
-              <div className="px-6 py-3">
-                <Button variant="ghost" size="sm" onClick={() => select(null)}>
-                  {t("notes.back")}
-                </Button>
-              </div>
-            </div>
-          ) : !current.data ? (
-            <LoadingRows rows={3} />
-          ) : (
-            <NoteEditor
-              key={current.data.id}
-              note={current.data}
-              initialMode={
-                justCreated === current.data.id ? "write" : undefined
-              }
-              onSaved={onSaved}
-              onBack={() => select(null)}
-              onOpenNote={(id) => select(id)}
-              onDeleted={() => {
-                select(null);
-                refreshList();
-              }}
-            />
-          )}
-        </section>
+            )}
+          </section>
+        </div>
       </div>
     </>
   );
