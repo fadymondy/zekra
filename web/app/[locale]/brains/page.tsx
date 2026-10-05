@@ -205,7 +205,7 @@ export default function HomePage() {
         {newButton}
       </header>
 
-      <StatGrid>
+      <StatGrid className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           className="rounded-xl"
           loading={loading}
