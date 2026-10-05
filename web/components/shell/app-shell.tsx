@@ -13,6 +13,7 @@ import {
   AppHeader,
   AppMain,
   AppShell as NasaqAppShell,
+  BootSplash,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -20,7 +21,6 @@ import {
   SidebarHeader,
   SidebarItem,
   SidebarTrigger,
-  Skeleton,
   useSidebarCollapsed,
 } from "@fadymondy/nasaq/web"
 
@@ -115,14 +115,10 @@ function ShellSidebar({ groups, brain, user }: { groups: NavGroup[]; brain?: str
   )
 }
 
-function ShellSkeleton() {
-  return (
-    <div className="space-y-4 p-6">
-      <Skeleton className="h-8 w-56" />
-      <Skeleton className="h-4 w-96 max-w-full" />
-      <Skeleton className="h-32 w-full" />
-    </div>
-  )
+/** Shown until the session resolves, so a half-built shell (no switcher, no user menu) never flashes. */
+function ShellSplash() {
+  const { locale } = useTranslations()
+  return <BootSplash className="h-dvh" mark={<CubeMark mark={ZEKRA_MARK} size={40} />} name={brandName(locale)} />
 }
 
 /** Sidebar + sticky header + main, behind the sign-in guard. `brain` is the brain in scope (the
@@ -141,10 +137,8 @@ export function AppShell({
   const me = useRequireAuth()
   const { t, locale } = useTranslations()
 
-  let body: ReactNode
-  if (me.error) body = <ErrorState error={me.error} />
-  else if (!me.data) body = <ShellSkeleton />
-  else body = gate ?? children
+  if (!me.data && !me.error) return <ShellSplash />
+  const body: ReactNode = me.error ? <ErrorState error={me.error} /> : (gate ?? children)
 
   return (
     <RealtimeProvider>
