@@ -12,7 +12,6 @@ import {
   BrainIcon,
   CircleHelpIcon,
   KeyRoundIcon,
-  MessagesSquareIcon,
   NetworkIcon,
   PinIcon,
   PlusIcon,
@@ -244,7 +243,7 @@ export default function BrainOverviewPage() {
   const [question, setQuestion] = useState("")
   const ask = (q: string) => {
     const text = q.trim()
-    router.push(text ? `${base}/chat?q=${encodeURIComponent(text)}` : `${base}/chat`)
+    router.push(text ? `${base}/search?q=${encodeURIComponent(text)}` : `${base}/search`)
   }
 
   const types = top(d?.types, 6)
@@ -258,9 +257,9 @@ export default function BrainOverviewPage() {
         title={<BrainTitle ns={ns} />}
         description={<BrainDescription ns={ns} />}
         action={
-          <Button variant="primary" nativeButton={false} render={<Link href={`${base}/chat`} />}>
-            <MessagesSquareIcon />
-            {t("overview.ask.chat")}
+          <Button variant="primary" nativeButton={false} render={<Link href={`${base}/search`} />}>
+            <SearchIcon />
+            {t("overview.ask.search")}
           </Button>
         }
       />
@@ -362,7 +361,7 @@ export default function BrainOverviewPage() {
                 aria-label={t("overview.ask.placeholder")}
               />
               <Button type="submit" variant="primary">
-                <MessagesSquareIcon />
+                <SearchIcon />
                 {t("overview.ask.send")}
               </Button>
             </form>

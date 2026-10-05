@@ -357,9 +357,6 @@ export const brainApi = {
   deleteSecret: (body: { namespace: string; name: string }) =>
     api<{ deleted: boolean }>("/api/brain/secrets/delete", { json: body }),
 
-  // --- Live agent: chat with a selected brain (RAG grounded in its memories) ---
-  chat: (body: { namespace: string; message: string; history?: ChatTurn[]; topK?: number }) =>
-    api<ChatAnswer>("/api/brain/chat", { json: body }),
 
   // --- Data sources: connectors that ingest external knowledge into a brain ---
   // List every source configured for a brain.
@@ -376,21 +373,6 @@ export const brainApi = {
   // Push (webhook) ingest endpoint for a source — the URL to hand out. Callers
   // POST documents here with header `X-Webhook-Secret: <config.secret>`.
   ingestUrl: (id: string) => `${(typeof window !== "undefined" && window.location.origin) || ""}/api/brain/ingest/${id}`,
-};
-
-export type ChatTurn = { role: "user" | "assistant"; content: string };
-export type ChatFootprint = {
-  namespace: string;
-  query: string;
-  recalled: number;
-  model: string;
-  grounded: boolean;
-  latencyMs: number;
-};
-export type ChatAnswer = {
-  answer: string;
-  citations: Recalled[];
-  footprint: ChatFootprint;
 };
 
 export type SessionResult = {

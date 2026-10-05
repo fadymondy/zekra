@@ -11,7 +11,6 @@
   "overview.ask.title": "اسأل دماغ {brain}",
   "overview.ask.body": "وكيل مباشر لا يجيب إلا من ذكريات هذا الدماغ، ويذكر مصادره في كل إجابة.",
   "overview.ask.suggestion": "حدّثني عن {topic}",
-  "overview.ask.chat": "محادثة",
   "overview.graph.title": "مخطط المعرفة",
   "overview.graph.derived": "مُشتق",
   "overview.recentActivity": "آخر النشاط",
@@ -27,5 +26,6 @@
   "overview.knows.types": "حسب النوع",
   "overview.knows.sources": "حسب المصدر",
   "overview.knows.empty": "لم يتعلّم شيئًا بعد.",
-  "overview.graph.summary": "{nodes} عقدة · {edges} رابط"
+  "overview.graph.summary": "{nodes} عقدة · {edges} رابط",
+  "overview.ask.search": "بحث"
 }

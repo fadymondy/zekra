@@ -11,7 +11,6 @@
   "overview.ask.title": "Ask the {brain} brain",
   "overview.ask.body": "A live agent grounded only in this brain's memories. Every answer cites its sources.",
   "overview.ask.suggestion": "Tell me about {topic}",
-  "overview.ask.chat": "Chat",
   "overview.graph.title": "Memory graph",
   "overview.graph.derived": "Derived",
   "overview.recentActivity": "Recent activity",
@@ -27,5 +26,6 @@
   "overview.knows.types": "By type",
   "overview.knows.sources": "By source",
   "overview.knows.empty": "Nothing learned yet.",
-  "overview.graph.summary": "{nodes} nodes · {edges} edges"
+  "overview.graph.summary": "{nodes} nodes · {edges} edges",
+  "overview.ask.search": "Search"
 }

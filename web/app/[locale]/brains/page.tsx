@@ -177,7 +177,7 @@ export default function HomePage() {
     e?.preventDefault();
     if (!scope || !q.trim()) return;
     router.push(
-      `/${locale}/b/${encodeURIComponent(scope)}/chat?q=${encodeURIComponent(q.trim())}`,
+      `/${locale}/b/${encodeURIComponent(scope)}/search?q=${encodeURIComponent(q.trim())}`,
     );
   }
 
