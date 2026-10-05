@@ -15,5 +15,17 @@
   "overview.graph.title": "Memory graph",
   "overview.graph.derived": "Derived",
   "overview.recentActivity": "Recent activity",
-  "overview.noActivity": "No activity for this brain yet."
+  "overview.noActivity": "No activity for this brain yet.",
+  "overview.stat.vsLastWeek": "vs last week",
+  "overview.ask.placeholder": "Ask anything this brain knows…",
+  "overview.ask.send": "Ask",
+  "overview.ask.try": "Try",
+  "overview.since": "Learning since",
+  "overview.lastLearned": "Last learned",
+  "overview.ops": "Operations · {days} days",
+  "overview.knows.title": "What it knows",
+  "overview.knows.types": "By type",
+  "overview.knows.sources": "By source",
+  "overview.knows.empty": "Nothing learned yet.",
+  "overview.graph.summary": "{nodes} nodes · {edges} edges"
 }

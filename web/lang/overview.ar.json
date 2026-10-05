@@ -15,5 +15,17 @@
   "overview.graph.title": "مخطط المعرفة",
   "overview.graph.derived": "مُشتق",
   "overview.recentActivity": "آخر النشاط",
-  "overview.noActivity": "لا يوجد نشاط لهذا الدماغ بعد."
+  "overview.noActivity": "لا يوجد نشاط لهذا الدماغ بعد.",
+  "overview.stat.vsLastWeek": "مقارنة بالأسبوع الماضي",
+  "overview.ask.placeholder": "اسأل عن أي شيء يعرفه هذا العقل…",
+  "overview.ask.send": "اسأل",
+  "overview.ask.try": "جرّب",
+  "overview.since": "يتعلّم منذ",
+  "overview.lastLearned": "آخر ما تعلّمه",
+  "overview.ops": "العمليات · {days} يومًا",
+  "overview.knows.title": "ما يعرفه",
+  "overview.knows.types": "حسب النوع",
+  "overview.knows.sources": "حسب المصدر",
+  "overview.knows.empty": "لم يتعلّم شيئًا بعد.",
+  "overview.graph.summary": "{nodes} عقدة · {edges} رابط"
 }

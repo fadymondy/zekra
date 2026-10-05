@@ -1,33 +1,141 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+// Brain Overview: what this brain holds and what it has been doing, on Nasaq cards. Stat cards on top
+// (memories carry a 14-day trend), then Ask + "What it knows" (types and sources as meters), recent
+// notes and activity side by side, and the memory graph last.
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowRightIcon, MessagesSquareIcon, NetworkIcon, PinIcon, PlusIcon } from "lucide-react"
-import { Badge, Button, toast } from "@fadymondy/nasaq/web"
+import useSWR from "swr"
+import {
+  ArrowRightIcon,
+  BrainIcon,
+  CircleHelpIcon,
+  KeyRoundIcon,
+  MessagesSquareIcon,
+  NetworkIcon,
+  PinIcon,
+  PlusIcon,
+  SearchIcon,
+  SplineIcon,
+} from "lucide-react"
+import {
+  Badge,
+  Button,
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Chip,
+  ChipGroup,
+  Input,
+  Meter,
+  StatCard,
+  StatGrid,
+  toast,
+} from "@fadymondy/nasaq/web"
 
 import { ActivityRow } from "@/components/activity/activity-row"
-import { Ltr } from "@/components/copy-field"
 import { BrainDescription, BrainMicro, BrainTitle } from "@/components/brains/brain-header"
 import { BrainGraphView, type FocusRequest } from "@/components/graph/graph-view"
-import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
+import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
+import { ApiError, brainApi } from "@/lib/api"
 import { useBrainActivity, useGraph, useSecretCount } from "@/lib/brains"
-import { ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { notesApi, useNotes } from "@/lib/notes"
 import { useBrain } from "@/lib/queries"
 import { useDocumentTitle } from "@/lib/title"
 
-function StatLink({ href, children }: { href: string; children: React.ReactNode }) {
+const DAYS = 14
+const DAY_MS = 24 * 3600 * 1000
+
+/** Daily operation counts over the last DAYS days, oldest first. */
+function dailyActivity(items: { ts: string }[]): number[] {
+  const out = new Array<number>(DAYS).fill(0)
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
+  for (const it of items) {
+    const age = Math.floor((today.getTime() - new Date(it.ts).getTime()) / DAY_MS)
+    if (age < 0 || age >= DAYS) continue
+    out[DAYS - 1 - age] += 1
+  }
+  return out
+}
+
+/** Change of the last 7 days against the 7 before, as a fraction; undefined without a baseline. */
+function weekDelta(trend: number[]): number | undefined {
+  const prev = trend.slice(0, 7).reduce((a, b) => a + b, 0)
+  const last = trend.slice(7).reduce((a, b) => a + b, 0)
+  return prev ? (last - prev) / prev : undefined
+}
+
+/** Largest entries of a count map, biggest first. */
+function top(map: Record<string, number> | undefined, n: number): [string, number][] {
+  return Object.entries(map ?? {}).sort((a, b) => b[1] - a[1]).slice(0, n)
+}
+
+function ViewAll({ href }: { href: string }) {
+  const { t } = useTranslations()
   return (
-    <Link href={href} className="underline decoration-line underline-offset-4 hover:decoration-foreground">
-      {children}
-    </Link>
+    <Button size="sm" variant="ghost" nativeButton={false} render={<Link href={href} />}>
+      {t("common.viewAll")}
+      <ArrowRightIcon className="rtl:-scale-x-100" />
+    </Button>
   )
 }
 
-/** The five latest notes, plus a shortcut to start one. */
+/** A rounded Nasaq card with a titled header and an optional action. */
+function Panel({
+  title,
+  description,
+  action,
+  className,
+  children,
+}: {
+  title: ReactNode
+  description?: ReactNode
+  action?: ReactNode
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <Card className={`rounded-xl ${className ?? ""}`}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
+        {action ? <CardAction>{action}</CardAction> : null}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  )
+}
+
+/** A count map as labelled meters, each measured against the brain's total memories. */
+function Breakdown({ title, rows, total }: { title: string; rows: [string, number][]; total: number }) {
+  const { formatNumber, locale } = useTranslations()
+  if (rows.length === 0) return null
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs font-medium text-muted-foreground">{title}</p>
+      {rows.map(([k, v]) => (
+        <Meter
+          key={k}
+          size="sm"
+          label={<span dir="auto" className="truncate">{k}</span>}
+          value={v}
+          max={Math.max(total, v, 1)}
+          tone="info"
+          valueText={formatNumber(v)}
+          locale={locale}
+        />
+      ))}
+    </div>
+  )
+}
+
 function RecentNotes({ ns, base }: { ns: string; base: string }) {
   const { t, timeAgo } = useTranslations()
   const router = useRouter()
@@ -47,22 +155,18 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
   }
 
   return (
-    <>
-      <SectionTitle
-        action={
-          <div className="flex items-center gap-3">
-            <Link href={`${base}/notes`} className="inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-4">
-              {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
-            </Link>
-            <Button size="sm" variant="secondary" onClick={create} disabled={creating}>
-              <PlusIcon />
-              {t("notes.new")}
-            </Button>
-          </div>
-        }
-      >
-        {t("notes.recent")}
-      </SectionTitle>
+    <Panel
+      title={t("notes.recent")}
+      action={
+        <div className="flex items-center gap-1">
+          <ViewAll href={`${base}/notes`} />
+          <Button size="sm" variant="secondary" onClick={create} disabled={creating}>
+            <PlusIcon />
+            {t("notes.new")}
+          </Button>
+        </div>
+      }
+    >
       {notes.error ? (
         <ErrorState error={notes.error} />
       ) : notes.isLoading ? (
@@ -70,12 +174,12 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
       ) : rows.length === 0 ? (
         <EmptyState title={t("notes.recentEmpty")} />
       ) : (
-        <RowList label={t("notes.recent")}>
+        <RowList label={t("notes.recent")} className="-mx-6 border-y-0">
           {rows.map((n) => (
             <li key={n.id}>
               <Link
                 href={`${base}/notes?id=${encodeURIComponent(n.id)}`}
-                className="flex items-center gap-3 px-6 py-3 text-sm transition-colors hover:bg-nq-surface-soft"
+                className="flex items-center gap-3 px-6 py-2.5 text-sm transition-colors hover:bg-nq-surface-soft"
               >
                 {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-nq-action" /> : null}
                 <span dir="auto" className="min-w-0 flex-1 truncate text-foreground">
@@ -87,12 +191,13 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
           ))}
         </RowList>
       )}
-    </>
+    </Panel>
   )
 }
 
 export default function BrainOverviewPage() {
-  const { t, locale, formatNumber } = useTranslations()
+  const { t, locale, formatNumber, timeAgo } = useTranslations()
+  const router = useRouter()
   const ns = decodeURIComponent(useParams<{ namespace: string }>().namespace)
   useDocumentTitle(`${t("overview.micro")} · ${ns}`)
   const base = `/${locale}/b/${encodeURIComponent(ns)}`
@@ -101,13 +206,20 @@ export default function BrainOverviewPage() {
   const graph = useGraph(ns)
   const secrets = useSecretCount(ns)
   const activity = useBrainActivity(ns)
+  const since = useMemo(() => new Date(Date.now() - DAYS * DAY_MS).toISOString(), [])
+  const trendData = useSWR(["/api/brain/activity", ns, DAYS], () =>
+    brainApi.brainActivity({ namespace: ns, since, limit: 200 }).then((r) => r.items ?? []),
+  )
+  const trend = useMemo(() => dailyActivity(trendData.data ?? []), [trendData.data])
+  const trendTotal = trend.reduce((a, b) => a + b, 0)
 
   const d = detail.data
   const nodes = graph.data?.nodes ?? []
   const edges = graph.data?.edges ?? []
   const nodeTotal = graph.data?.totalNodes || nodes.length
   const edgeTotal = graph.data?.totalEdges || edges.length
-  const recent = activity.rows.slice(0, 8)
+  const recent = activity.rows.slice(0, 6)
+  const gaps = d?.openGaps ?? 0
 
   // ?focus=<entityId>&note=<noteId> (from a note's "View in graph"): open the graph on that node.
   // Read from window once (no Suspense boundary); the graph waits for it so the focus is initial.
@@ -121,7 +233,6 @@ export default function BrainOverviewPage() {
   useEffect(() => {
     if (focusReq && graph.data) graphRef.current?.scrollIntoView({ block: "center" })
   }, [focusReq, graph.data])
-  const gaps = d?.openGaps ?? 0
 
   // Suggested questions from the brain's own named entities, so the page opens somewhere to go.
   const suggestions = useMemo(() => {
@@ -129,7 +240,15 @@ export default function BrainOverviewPage() {
     return Array.from(new Set(named)).slice(0, 4)
   }, [nodes])
 
-  const num = (n: number | undefined, loading: boolean) => (loading || n === undefined ? "—" : formatNumber(n))
+  const [question, setQuestion] = useState("")
+  const ask = (q: string) => {
+    const text = q.trim()
+    router.push(text ? `${base}/chat?q=${encodeURIComponent(text)}` : `${base}/chat`)
+  }
+
+  const types = top(d?.types, 6)
+  const sources = top(d?.sources, 5)
+  const total = d?.memories ?? 0
 
   return (
     <>
@@ -138,112 +257,184 @@ export default function BrainOverviewPage() {
         title={<BrainTitle ns={ns} />}
         description={<BrainDescription ns={ns} />}
         action={
-          <Badge variant="outline">
-            {d ? t("overview.memoriesBadge", { count: formatNumber(d.memories) }) : t("overview.brainBadge")}
-          </Badge>
+          <Button variant="primary" nativeButton={false} render={<Link href={`${base}/chat`} />}>
+            <MessagesSquareIcon />
+            {t("overview.ask.chat")}
+          </Button>
         }
       />
 
-      {detail.error ? <ErrorState error={detail.error} /> : null}
+      <div className="flex flex-col gap-4 p-4 md:p-6">
+        {detail.error ? <ErrorState error={detail.error} /> : null}
 
-      <DetailStrip
-        className="sm:grid-cols-3 lg:grid-cols-6"
-        items={[
-          { label: t("overview.stat.memories"), value: num(d?.memories, detail.isLoading) },
-          { label: t("overview.stat.nodes"), value: num(nodeTotal, graph.isLoading) },
-          { label: t("overview.stat.edges"), value: num(edgeTotal, graph.isLoading) },
-          { label: t("overview.stat.recalls"), value: num(d?.recalls, detail.isLoading) },
-          {
-            label: t("overview.stat.gaps"),
-            value: (
-              <StatLink href={`${base}/gaps`}>
-                <span className={gaps ? "text-nq-warning" : undefined}>{num(d?.openGaps, detail.isLoading)}</span>
-              </StatLink>
-            ),
-          },
-          {
-            label: t("overview.stat.secrets"),
-            value: <StatLink href={`${base}/secrets`}>{num(secrets.data, secrets.isLoading)}</StatLink>,
-          },
-        ]}
-      />
-
-      {/* Ask this brain: the recall panel as an invitation, seeded with the brain's own entities. */}
-      <section className="flex flex-col gap-4 border-b border-border bg-card px-6 py-6 sm:flex-row sm:items-center">
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <span aria-hidden className="size-2.5 shrink-0 bg-nq-action" />
-            <span className="text-[15px] font-medium text-foreground">
-              {t("overview.ask.title", { brain: "⁨" + ns + "⁩" })}
-            </span>
-          </div>
-          <p className="text-sm text-nq-fg-body">{t("overview.ask.body")}</p>
-          {suggestions.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5 pt-1.5">
-              {suggestions.map((s) => (
-                <Link
-                  key={s}
-                  href={`${base}/chat?q=${encodeURIComponent(t("overview.ask.suggestion", { topic: s }))}`}
-                  className="inline-flex h-5 items-center rounded-sm border border-border px-2 text-caption text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {t("overview.ask.suggestion", { topic: "⁨" + s + "⁩" })}
-                </Link>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <Button variant="primary" nativeButton={false} render={<Link href={`${base}/chat`} />}>
-          <MessagesSquareIcon />
-          {t("overview.ask.chat")}
-        </Button>
-      </section>
-
-      <RecentNotes ns={ns} base={base} />
-
-      <SectionTitle
-        action={
-          graph.data?.derived ? <span className="eyebrow">{t("overview.graph.derived")}</span> : null
-        }
-      >
-        {t("overview.graph.title")}
-      </SectionTitle>
-      <div ref={graphRef} className="flex h-[680px] flex-col border-y border-border">
-        {graph.error ? (
-          <ErrorState error={graph.error} />
-        ) : nodes.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
-            <NetworkIcon className="size-8 opacity-40" />
-            <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
-          </div>
-        ) : (
-          focusReq === undefined ? null : (
-            <BrainGraphView key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`} data={graph.data!} namespace={ns} focus={focusReq} />
-          )
-        )}
-      </div>
-
-      <SectionTitle
-        action={
-          <Link href={`${base}/activity`} className="inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-4">
-            {t("common.viewAll")} <ArrowRightIcon className="size-3 rtl:-scale-x-100" />
+        <StatGrid className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <StatCard
+            className="rounded-xl"
+            loading={detail.isLoading}
+            icon={<BrainIcon />}
+            label={t("overview.stat.memories")}
+            value={total}
+            sparkline={trend}
+            delta={weekDelta(trend)}
+            deltaLabel={t("overview.stat.vsLastWeek")}
+          />
+          <StatCard
+            className="rounded-xl"
+            loading={graph.isLoading}
+            icon={<NetworkIcon />}
+            label={t("overview.stat.nodes")}
+            value={nodeTotal}
+          />
+          <StatCard
+            className="rounded-xl"
+            loading={graph.isLoading}
+            icon={<SplineIcon />}
+            label={t("overview.stat.edges")}
+            value={edgeTotal}
+          />
+          <StatCard
+            className="rounded-xl"
+            loading={detail.isLoading}
+            icon={<SearchIcon />}
+            label={t("overview.stat.recalls")}
+            value={d?.recalls ?? 0}
+          />
+          <Link href={`${base}/gaps`} className="rounded-xl">
+            <StatCard
+              className={`h-full rounded-xl transition-colors hover:bg-nq-surface-soft ${gaps ? "text-nq-warning" : ""}`}
+              loading={detail.isLoading}
+              icon={<CircleHelpIcon />}
+              label={t("overview.stat.gaps")}
+              value={gaps}
+            />
           </Link>
-        }
-      >
-        {t("overview.recentActivity")}
-      </SectionTitle>
-      {activity.error ? (
-        <ErrorState error={activity.error} />
-      ) : activity.isLoading ? (
-        <LoadingRows rows={3} />
-      ) : recent.length === 0 ? (
-        <EmptyState title={t("overview.noActivity")} />
-      ) : (
-        <RowList label={t("overview.recentActivity")} className="mb-6">
-          {recent.map((a) => (
-            <ActivityRow key={a.id} a={a} />
-          ))}
-        </RowList>
-      )}
+          <Link href={`${base}/secrets`} className="rounded-xl">
+            <StatCard
+              className="h-full rounded-xl transition-colors hover:bg-nq-surface-soft"
+              loading={secrets.isLoading}
+              icon={<KeyRoundIcon />}
+              label={t("overview.stat.secrets")}
+              value={secrets.data ?? 0}
+            />
+          </Link>
+        </StatGrid>
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Panel
+            className="lg:col-span-2"
+            title={t("overview.ask.title", { brain: "⁨" + ns + "⁩" })}
+            description={t("overview.ask.body")}
+          >
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault()
+                ask(question)
+              }}
+            >
+              <Input
+                dir="auto"
+                className="min-w-0 flex-1"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder={t("overview.ask.placeholder")}
+                aria-label={t("overview.ask.placeholder")}
+              />
+              <Button type="submit" variant="primary">
+                <MessagesSquareIcon />
+                {t("overview.ask.send")}
+              </Button>
+            </form>
+            {suggestions.length > 0 ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                {t("overview.ask.try")}
+                <ChipGroup
+                  aria-label={t("overview.ask.try")}
+                  value=""
+                  onValueChange={(s) => ask(t("overview.ask.suggestion", { topic: s }))}
+                >
+                  {suggestions.map((s) => (
+                    <Chip key={s} value={s}>
+                      {t("overview.ask.suggestion", { topic: "⁨" + s + "⁩" })}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </div>
+            ) : null}
+
+            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="text-xs text-muted-foreground">{t("overview.since")}</dt>
+                <dd className="text-foreground">{d?.firstAt ? timeAgo(d.firstAt) : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">{t("overview.lastLearned")}</dt>
+                <dd className="text-foreground">{d?.lastAt ? timeAgo(d.lastAt) : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">{t("overview.ops", { days: DAYS })}</dt>
+                <dd className="text-foreground">{formatNumber(trendTotal)}</dd>
+              </div>
+            </dl>
+          </Panel>
+
+          <Panel title={t("overview.knows.title")} action={<ViewAll href={`${base}/sources`} />}>
+            {detail.isLoading ? (
+              <LoadingRows rows={4} />
+            ) : types.length === 0 && sources.length === 0 ? (
+              <EmptyState title={t("overview.knows.empty")} />
+            ) : (
+              <div className="flex flex-col gap-5">
+                <Breakdown title={t("overview.knows.types")} rows={types} total={total} />
+                <Breakdown title={t("overview.knows.sources")} rows={sources} total={total} />
+              </div>
+            )}
+          </Panel>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <RecentNotes ns={ns} base={base} />
+          <Panel title={t("overview.recentActivity")} action={<ViewAll href={`${base}/activity`} />}>
+            {activity.error ? (
+              <ErrorState error={activity.error} />
+            ) : activity.isLoading ? (
+              <LoadingRows rows={3} />
+            ) : recent.length === 0 ? (
+              <EmptyState title={t("overview.noActivity")} />
+            ) : (
+              <RowList label={t("overview.recentActivity")} className="-mx-6 border-y-0">
+                {recent.map((a) => (
+                  <ActivityRow key={a.id} a={a} />
+                ))}
+              </RowList>
+            )}
+          </Panel>
+        </div>
+
+        <Panel
+          title={t("overview.graph.title")}
+          description={t("overview.graph.summary", { nodes: formatNumber(nodeTotal), edges: formatNumber(edgeTotal) })}
+          action={graph.data?.derived ? <Badge variant="outline">{t("overview.graph.derived")}</Badge> : null}
+        >
+          <div ref={graphRef} className="-mx-6 -mb-6 flex h-[640px] flex-col overflow-hidden rounded-b-xl border-t border-border">
+            {graph.error ? (
+              <ErrorState error={graph.error} />
+            ) : nodes.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
+                <NetworkIcon className="size-8 opacity-40" />
+                <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
+              </div>
+            ) : focusReq === undefined ? null : (
+              <BrainGraphView
+                key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`}
+                data={graph.data!}
+                namespace={ns}
+                focus={focusReq}
+              />
+            )}
+          </div>
+        </Panel>
+      </div>
     </>
   )
 }
