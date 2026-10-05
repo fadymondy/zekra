@@ -19,6 +19,7 @@ import {
 import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import {
   ActivityIcon,
   BrainIcon,
@@ -38,8 +39,8 @@ import {
   NewBrainDialog,
 } from "@/components/brains/brain-dialogs";
 import { EmptyState, ErrorState } from "@/components/states";
-import { type NamespaceInfo } from "@/lib/api";
-import { useActivity, useStats } from "@/lib/brains";
+import { brainApi, type NamespaceInfo } from "@/lib/api";
+import { useStats } from "@/lib/brains";
 import { useTranslations } from "@/lib/i18n";
 import { getLastBrain } from "@/lib/last-brain";
 import { useBrain, useBrains, useMe } from "@/lib/queries";
@@ -64,25 +65,28 @@ const isActive = (lastAt?: string | null) =>
 const DAYS = 14;
 const DAY_MS = 24 * 3600 * 1000;
 
-/** Daily operation counts per brain over the last DAYS days, oldest first. */
-function dailyActivity(items: { ts: string; namespace: string }[]): Map<string, number[]> {
-  const out = new Map<string, number[]>();
+/** Daily operation counts over the last DAYS days, oldest first. */
+function dailyActivity(items: { ts: string }[]): number[] {
+  const out = new Array<number>(DAYS).fill(0);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   for (const it of items) {
     const age = Math.floor((today.getTime() - new Date(it.ts).getTime()) / DAY_MS);
     if (age < 0 || age >= DAYS) continue;
-    const row = out.get(it.namespace) ?? new Array<number>(DAYS).fill(0);
-    row[DAYS - 1 - age] += 1;
-    out.set(it.namespace, row);
+    out[DAYS - 1 - age] += 1;
   }
   return out;
 }
 
 /** One brain on Home: Nasaq's BrainCard in a card tinted by the brain's colour, with its activity trend. */
-function HomeBrainCard({ b, trend, onDelete }: { b: NamespaceInfo; trend: number[]; onDelete: () => void }) {
+function HomeBrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
   const { t, locale, formatNumber } = useTranslations();
   const { data: d } = useBrain(b.namespace);
+  const since = useMemo(() => new Date(Date.now() - DAYS * DAY_MS).toISOString(), []);
+  const activity = useSWR(["/api/brain/activity", b.namespace, DAYS], () =>
+    brainApi.brainActivity({ namespace: b.namespace, since, limit: 200 }).then((r) => r.items ?? []),
+  );
+  const trend = useMemo(() => dailyActivity(activity.data ?? []), [activity.data]);
   const href = `/${locale}/b/${encodeURIComponent(b.namespace)}`;
   const color = b.colorHex || resolveColor(b.color) || undefined;
   const total = trend.reduce((n, v) => n + v, 0);
@@ -135,8 +139,6 @@ export default function HomePage() {
   const me = useMe();
   const brainsQ = useBrains();
   const stats = useStats();
-  const activity = useActivity(1000);
-  const trends = useMemo(() => dailyActivity(activity.data ?? []), [activity.data]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [question, setQuestion] = useState("");
@@ -330,7 +332,6 @@ export default function HomePage() {
               <HomeBrainCard
                 key={b.namespace}
                 b={b}
-                trend={trends.get(b.namespace) ?? new Array<number>(DAYS).fill(0)}
                 onDelete={() => setDeleteNs(b.namespace)}
               />
             ))}

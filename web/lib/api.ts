@@ -284,6 +284,9 @@ export const brainApi = {
   ping: () => api<{ plugin: string; status: string; authRequired?: boolean }>("/api/brain/ping"),
   stats: () => api<Stats>("/api/brain/stats"),
   activity: (limit = 50) => api<{ items: ActivityItem[] }>(`/api/brain/activity?limit=${limit}`),
+  // One brain's operations since a time (the API caps limit at 200).
+  brainActivity: (opts: { namespace: string; since?: string; limit?: number }) =>
+    api<{ items: ActivityItem[] }>(`/api/brain/activity${qs(opts)}`),
   namespaces: () => api<{ brains: NamespaceInfo[] }>("/api/brain/namespaces"),
   graph: (namespace = "", limit = 3000) =>
     api<GraphData>(`/api/brain/graph${qs({ namespace, limit })}`),
