@@ -440,5 +440,7 @@
   "presentations.option.muted": "Muted",
   "presentations.share.reissue": "Reissue link",
   "presentations.share.confirmReissue": "Reissue this link? The old address stops working and you get a new one with the same label, language, expiry and domain. Its view counts start over.",
-  "presentations.share.reissueUnsupported": "The server can't reissue links yet. Create a new link instead."
+  "presentations.share.reissueUnsupported": "The server can't reissue links yet. Create a new link instead.",
+  "presentations.stat.total": "Presentations",
+  "presentations.stat.ready": "Ready"
 }

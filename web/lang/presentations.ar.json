@@ -440,5 +440,7 @@
   "presentations.option.muted": "باهت",
   "presentations.share.reissue": "إعادة إصدار الرابط",
   "presentations.share.confirmReissue": "إعادة إصدار هذا الرابط؟ سيتوقف العنوان القديم عن العمل وتحصل على عنوان جديد بالتسمية واللغة والصلاحية والنطاق نفسها. ويبدأ عدّ المشاهدات من جديد.",
-  "presentations.share.reissueUnsupported": "لا يدعم الخادم إعادة إصدار الروابط بعد. أنشئ رابطًا جديدًا بدلًا من ذلك."
+  "presentations.share.reissueUnsupported": "لا يدعم الخادم إعادة إصدار الروابط بعد. أنشئ رابطًا جديدًا بدلًا من ذلك.",
+  "presentations.stat.total": "العروض",
+  "presentations.stat.ready": "جاهزة"
 }
