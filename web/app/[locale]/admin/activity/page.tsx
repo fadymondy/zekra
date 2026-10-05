@@ -4,7 +4,8 @@ import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue }
 
 import { useMemo, useState } from "react"
 
-import { DetailStrip, RowList, SectionHeader } from "@/components/page"
+import { ActivityIcon, CircleAlertIcon, PenLineIcon, SparklesIcon } from "lucide-react"
+import { CardList, PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ActivityRow } from "@/components/admin/activity-row"
 import { useActivity } from "@/lib/admin"
@@ -44,16 +45,19 @@ export default function AdminActivityPage() {
     <>
       <SectionHeader micro={t("admin.micro")} title={t("nav.systemActivity")} description={t("admin.activity.hint")} />
 
-      <DetailStrip
+      <PageBody>
+      <StatStrip
+        loading={activity.isLoading}
         items={[
-          { label: t("admin.activity.operations"), value: formatNumber(rows.length) },
-          { label: t("admin.activity.recalls"), value: formatNumber(counts.recalls) },
-          { label: t("admin.activity.writes"), value: formatNumber(counts.writes) },
-          { label: t("admin.activity.errors"), value: <span className={counts.errors ? "text-nq-danger-text" : undefined}>{formatNumber(counts.errors)}</span> },
+          { icon: <ActivityIcon />, label: t("admin.activity.operations"), value: formatNumber(rows.length) },
+          { icon: <SparklesIcon />, label: t("admin.activity.recalls"), value: formatNumber(counts.recalls) },
+          { icon: <PenLineIcon />, label: t("admin.activity.writes"), value: formatNumber(counts.writes) },
+          { icon: <CircleAlertIcon />, label: t("admin.activity.errors"), value: <span className={counts.errors ? "text-nq-danger-text" : undefined}>{formatNumber(counts.errors)}</span> },
         ]}
       />
 
-      <div className="flex flex-wrap items-center gap-2 px-6 py-4">
+      <Panel>
+      <div className="flex flex-wrap items-center gap-2">
         <Select items={brainItems} value={brain} onValueChange={(v) => setBrain(String(v ?? ALL))}>
           <SelectTrigger aria-label={t("admin.activity.brain")} className="w-full sm:w-56">
             <SelectValue />
@@ -93,12 +97,14 @@ export default function AdminActivityPage() {
       ) : rows.length === 0 ? (
         <EmptyState title={filtered ? t("admin.activity.noMatch") : t("admin.activity.empty")} body={filtered ? undefined : t("admin.activity.emptyBody")} />
       ) : (
-        <RowList label={t("nav.systemActivity")} className="mb-8">
+        <CardList label={t("nav.systemActivity")}>
           {rows.map((a) => (
             <ActivityRow key={a.id} a={a} />
           ))}
-        </RowList>
+        </CardList>
       )}
+      </Panel>
+      </PageBody>
     </>
   )
 }

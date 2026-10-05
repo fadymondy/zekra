@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation"
 import { ChevronLeftIcon } from "lucide-react"
 import { Badge, Button, Checkbox, toast } from "@fadymondy/nasaq/web"
 
-import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
+import { PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
 import { NotFoundState } from "@/components/not-found-state"
@@ -93,7 +93,8 @@ export default function AdminUserDetailPage() {
         description={u.name ? <span dir="auto">{u.name}</span> : undefined}
       />
 
-      <DetailStrip
+      <PageBody>
+      <StatStrip
         items={[
           { label: t("admin.user.verified"), value: u.email_verified ? t("admin.user.yes") : t("admin.user.no") },
           { label: t("admin.user.twoFactor"), value: u.two_factor === undefined ? "—" : u.two_factor ? t("admin.user.on") : t("admin.user.off") },
@@ -105,14 +106,13 @@ export default function AdminUserDetailPage() {
         ]}
       />
 
-      <SectionTitle>{t("admin.users.roles")}</SectionTitle>
-      <p className="-mt-1 px-6 pb-3 text-sm text-muted-foreground">{isSelf ? t("admin.user.rolesSelf") : t("admin.user.rolesHint")}</p>
-      <ul className="divide-y divide-border border-y border-border">
+      <Panel title={t("admin.users.roles")} hint={isSelf ? t("admin.user.rolesSelf") : t("admin.user.rolesHint")}>
+      <ul className="-mx-2 flex flex-col gap-1">
         {USER_ROLES.map((r) => {
           const fid = `role-${r}`
           return (
             <li key={r}>
-              <label htmlFor={fid} className="flex cursor-pointer items-start gap-3 px-6 py-3 text-sm">
+              <label htmlFor={fid} className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
                 <Checkbox id={fid} className="mt-0.5" checked={current.includes(r)} disabled={busy || isSelf} onCheckedChange={(v) => toggleRole(r, v === true)} />
                 <span className="min-w-0">
                   <span className="block font-medium text-foreground">{t(`admin.role.${r}`)}</span>
@@ -123,7 +123,7 @@ export default function AdminUserDetailPage() {
           )
         })}
       </ul>
-      <div className="flex flex-wrap gap-2 px-6 py-4">
+      <div className="flex flex-wrap gap-2 border-t border-border pt-3">
         <Button variant="primary" disabled={!dirty || busy || isSelf} onClick={() => act(() => adminApi.setRoles(u.id, current), t("admin.user.rolesSaved")).then(() => setRoles(null))}>
           {busy ? t("common.saving") : t("admin.user.saveRoles")}
         </Button>
@@ -134,8 +134,10 @@ export default function AdminUserDetailPage() {
         ) : null}
       </div>
 
-      <SectionTitle>{t("admin.user.actions")}</SectionTitle>
-      <ul className="mb-8 divide-y divide-border border-y border-border">
+      </Panel>
+
+      <Panel title={t("admin.user.actions")}>
+      <ul className="-mx-2 flex flex-col gap-1">
         {!u.email_verified ? (
           <ActionRow title={t("admin.user.resendTitle")} body={t("admin.user.resendBody")}>
             <Button variant="secondary" size="sm" disabled={busy} onClick={() => act(() => adminApi.resendVerification(u.id), t("admin.user.resent"))}>
@@ -185,6 +187,8 @@ export default function AdminUserDetailPage() {
           )}
         </ActionRow>
       </ul>
+      </Panel>
+      </PageBody>
     </>
   )
 }
@@ -192,7 +196,7 @@ export default function AdminUserDetailPage() {
 
 function ActionRow({ title, body, children }: { title: string; body: string; children: React.ReactNode }) {
   return (
-    <li className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
+    <li className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
       <span className="min-w-0 flex-1">
         <span className="block font-medium text-foreground">{title}</span>
         <span className="block text-muted-foreground">{body}</span>

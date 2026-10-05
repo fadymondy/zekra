@@ -13,7 +13,7 @@ export function ActivityRow({ a, showNamespace = true }: { a: ActivityItem; show
   const { t, formatNumber, timeAgo, formatDate } = useTranslations()
   const tone = a.outcome === "error" ? "danger" : a.outcome === "hit" ? "success" : "outline"
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3 text-sm">
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
       <Ltr mono className="font-medium text-foreground">{a.op}</Ltr>
       {showNamespace ? <Ltr mono className="text-xs text-muted-foreground">{a.namespace || "—"}</Ltr> : null}
       <Ltr className="min-w-0 truncate text-xs text-muted-foreground">{a.agentId || t("admin.activity.anonymous")}</Ltr>

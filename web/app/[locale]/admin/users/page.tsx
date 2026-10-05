@@ -1,12 +1,12 @@
 "use client"
 
-import { Badge, Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
+import { Badge, Button, InputGroup, InputGroupAddon, InputGroupInput, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@fadymondy/nasaq/web"
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 
-import { SectionHeader } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, LoadingRows } from "@/components/states"
 import { AdminErrorState } from "@/components/admin/not-live"
@@ -40,19 +40,22 @@ export default function AdminUsersPage() {
   return (
     <>
       <SectionHeader micro={t("admin.micro")} title={t("nav.users")} description={t("admin.users.hint")} />
+      <PageBody>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border px-6 py-3">
-        <div className="relative w-full max-w-sm">
-          <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+      <Panel>
+      <div className="flex flex-wrap items-center gap-3">
+        <InputGroup className="w-full max-w-sm">
+          <InputGroupAddon>
+            <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
+          </InputGroupAddon>
+          <InputGroupInput
             type="search"
             aria-label={t("admin.users.search")}
             placeholder={t("admin.users.searchPlaceholder")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="ps-8"
           />
-        </div>
+        </InputGroup>
         {users.data ? (
           <span className="ms-auto text-xs text-muted-foreground">{t("admin.users.count", { n: formatNumber(total) })}</span>
         ) : null}
@@ -66,21 +69,21 @@ export default function AdminUsersPage() {
         <EmptyState title={q ? t("admin.users.noMatch") : t("admin.users.empty")} />
       ) : (
         <>
-          <div className="border-y border-border">
+          <div className="overflow-hidden rounded-lg border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="ps-6">{t("admin.users.email")}</TableHead>
+                  <TableHead className="ps-4">{t("admin.users.email")}</TableHead>
                   <TableHead>{t("admin.users.name")}</TableHead>
                   <TableHead>{t("admin.users.roles")}</TableHead>
                   <TableHead>{t("admin.users.status")}</TableHead>
-                  <TableHead className="pe-6">{t("admin.users.joined")}</TableHead>
+                  <TableHead className="pe-4">{t("admin.users.joined")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((u) => (
                   <TableRow key={u.id} className={u.disabled ? "opacity-60" : undefined}>
-                    <TableCell className="ps-6">
+                    <TableCell className="ps-4">
                       <Link href={`/${locale}/admin/users/${encodeURIComponent(String(u.id))}`} className="font-medium hover:underline">
                         <Ltr>{u.email}</Ltr>
                       </Link>
@@ -100,14 +103,14 @@ export default function AdminUsersPage() {
                     <TableCell>
                       <UserStatusBadge user={u} />
                     </TableCell>
-                    <TableCell className="pe-6 text-muted-foreground">{formatDate(u.created_at)}</TableCell>
+                    <TableCell className="pe-4 text-muted-foreground">{formatDate(u.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
           {pages > 1 ? (
-            <div className="flex items-center justify-between gap-2 px-6 py-4">
+            <div className="flex items-center justify-between gap-2">
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                 <ChevronLeftIcon className="rtl:rotate-180" />
                 {t("admin.users.prev")}
@@ -123,6 +126,8 @@ export default function AdminUsersPage() {
           ) : null}
         </>
       )}
+      </Panel>
+      </PageBody>
     </>
   )
 }

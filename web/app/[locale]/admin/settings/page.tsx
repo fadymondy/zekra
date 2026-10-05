@@ -4,7 +4,7 @@ import { Badge } from "@fadymondy/nasaq/web"
 
 import useSWR from "swr"
 
-import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
+import { PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { ErrorState, LoadingRows } from "@/components/states"
 import { api, brainApi } from "@/lib/api"
@@ -37,14 +37,15 @@ export default function AdminSettingsPage() {
   return (
     <>
       <SectionHeader micro={t("admin.micro")} title={t("admin.settings.title")} description={t("admin.settings.hint")} />
+      <PageBody>
 
-      <SectionTitle>{t("admin.settings.api")}</SectionTitle>
+      <Panel title={t("admin.settings.api")}>
       {ping.error ? (
         <ErrorState error={ping.error} />
       ) : !ping.data ? (
         <LoadingRows rows={1} />
       ) : (
-        <DetailStrip
+        <StatStrip
           items={[
             {
               label: t("admin.settings.status"),
@@ -61,13 +62,15 @@ export default function AdminSettingsPage() {
         />
       )}
 
-      <SectionTitle>{t("admin.settings.auth")}</SectionTitle>
+      </Panel>
+
+      <Panel title={t("admin.settings.auth")}>
       {methods.error ? (
         <ErrorState error={methods.error} />
       ) : !parsed ? (
         <LoadingRows rows={1} />
       ) : (
-        <ul className="divide-y divide-border border-y border-border">
+        <ul className="-mx-2 flex flex-col gap-1">
           <MethodRow label={t("admin.settings.password")} on={parsed.password} />
           <MethodRow label={t("admin.settings.emailCode")} on={parsed.code} />
           {PROVIDERS.map((p) => (
@@ -76,9 +79,10 @@ export default function AdminSettingsPage() {
         </ul>
       )}
 
-      <SectionTitle>{t("admin.settings.console")}</SectionTitle>
-      <DetailStrip
-        className="mb-8"
+      </Panel>
+
+      <Panel title={t("admin.settings.console")}>
+      <StatStrip
         items={[
           { label: t("admin.settings.version"), value: version ? <Ltr mono>{version}</Ltr> : "—" },
           {
@@ -96,6 +100,8 @@ export default function AdminSettingsPage() {
           { label: t("admin.settings.stream"), value: <Ltr mono>/api/brain/events</Ltr> },
         ]}
       />
+      </Panel>
+      </PageBody>
     </>
   )
 }
@@ -103,7 +109,7 @@ export default function AdminSettingsPage() {
 function MethodRow({ label, on, ltr }: { label: string; on: boolean; ltr?: boolean }) {
   const { t } = useTranslations()
   return (
-    <li className="flex items-center gap-3 px-6 py-3 text-sm">
+    <li className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
       <span className="flex-1 text-foreground">
         {ltr ? <Ltr>{label}</Ltr> : label}
       </span>

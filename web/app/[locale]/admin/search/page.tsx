@@ -1,11 +1,11 @@
 "use client"
 
-import { Badge, Button, Input, Textarea } from "@fadymondy/nasaq/web"
+import { Badge, Button, InputGroup, InputGroupAddon, InputGroupInput, Textarea } from "@fadymondy/nasaq/web"
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react"
 import { CheckIcon, PencilIcon, SearchIcon, StarIcon, XIcon } from "lucide-react"
 
-import { SectionHeader } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { ErrorState, LoadingRows } from "@/components/states"
 import { toastError } from "@/components/admin/toast-error"
@@ -94,27 +94,22 @@ export default function AdminSearchPage() {
     <>
       <SectionHeader micro={t("admin.micro")} title={t("admin.search.title")} description={t("admin.search.hint")} />
 
-      <section className="border-t border-border px-6 py-6">
+      <PageBody>
+      <Panel>
         <form onSubmit={run} className="flex flex-col gap-2 sm:flex-row">
-          <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("admin.search.placeholder")}
-              aria-label={t("admin.search.title")}
-              dir="auto"
-              autoFocus
-              className="h-10 ps-9"
-            />
-          </div>
-          <Button variant="primary" type="submit" size="lg" className="h-10 px-5" disabled={pending || !q.trim()}>
+          <InputGroup className="h-10 flex-1">
+            <InputGroupAddon>
+              <SearchIcon aria-hidden className="size-4 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.search.placeholder")} aria-label={t("admin.search.title")} dir="auto" autoFocus />
+          </InputGroup>
+          <Button variant="primary" type="submit" className="h-10 px-5" disabled={pending || !q.trim()}>
             <SearchIcon />
             {pending ? t("admin.search.searching") : t("common.search")}
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("admin.search.brains")}>
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t("admin.search.brains")}>
           <Chip active={selected.size === 0} onClick={() => setSelected(new Set())}>
             {t("admin.search.allBrains")}
           </Chip>
@@ -125,11 +120,13 @@ export default function AdminSearchPage() {
             </Chip>
           ))}
         </div>
-      </section>
+      </Panel>
 
+      {pending || state.error || state.q !== undefined ? (
+      <Panel>
       {raw.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-border px-6 py-3">
-          <span className="eyebrow me-1">{t("admin.search.tune")}</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="me-1 text-xs font-medium text-muted-foreground">{t("admin.search.tune")}</span>
           {netFacets.map((n) => (
             <Chip key={n} active={fNet.has(n)} onClick={() => toggleIn(fNet, setFNet, n)}>
               {t(`admin.search.network.${n}`)}
@@ -163,31 +160,32 @@ export default function AdminSearchPage() {
       ) : state.error ? (
         <ErrorState error={state.error} />
       ) : state.q === undefined ? null : raw.length === 0 ? (
-        <section className="border-y border-border">
-          <div aria-hidden className="hatch h-3 border-b border-border" />
-          <div className="px-6 py-10 text-center">
-            <p className="text-sm font-medium text-foreground">{t("admin.search.noResults", { q: state.q })}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("admin.search.noResultsBody")}</p>
-          </div>
-        </section>
+        <div className="rounded-lg bg-nq-surface-soft px-6 py-10 text-center">
+          <SearchIcon aria-hidden className="mx-auto mb-2 size-6 text-muted-foreground" />
+          <p className="text-sm font-medium text-foreground">{t("admin.search.noResults", { q: state.q })}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("admin.search.noResultsBody")}</p>
+        </div>
       ) : results.length === 0 ? (
-        <p className="border-y border-border px-6 py-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-lg bg-nq-surface-soft px-6 py-8 text-center text-sm text-muted-foreground">
           {t("admin.search.allFiltered", { n: formatNumber(raw.length) })}
         </p>
       ) : (
         <>
-          <p className="border-t border-border px-6 pt-4 pb-3 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {hasFilters
               ? t("admin.search.countFiltered", { n: formatNumber(results.length), total: formatNumber(raw.length) })
               : t("admin.search.count", { n: formatNumber(results.length) })}
           </p>
-          <ul className="mb-8 divide-y divide-border border-y border-border">
+          <ul className="-mx-2 flex flex-col gap-1">
             {results.map((r) => (
               <ResultRow key={`${r.namespace}:${r.id}`} r={r} onSaved={(c) => patch(`${r.namespace}:${r.id}`, c)} />
             ))}
           </ul>
         </>
       )}
+      </Panel>
+      ) : null}
+      </PageBody>
     </>
   )
 }
@@ -215,7 +213,7 @@ function ResultRow({ r, onSaved }: { r: Recalled; onSaved: (content: string) => 
   }
 
   return (
-    <li className="px-6 py-4 hover:bg-nq-surface-soft">
+    <li className="rounded-lg px-2 py-3 transition-colors hover:bg-nq-hover">
       {editing ? (
         <div className="space-y-2">
           <Textarea dir="auto" value={draft} onChange={(e) => setDraft(e.target.value)} rows={Math.min(8, Math.max(3, draft.split("\n").length))} autoFocus />

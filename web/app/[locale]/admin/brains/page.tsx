@@ -5,7 +5,7 @@ import Link from "next/link"
 import { DownloadIcon, ExternalLinkIcon, TrashIcon } from "lucide-react"
 import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldError, FieldLabel, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@fadymondy/nasaq/web"
 
-import { SectionHeader } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ApiError, brainApi, type NamespaceInfo } from "@/lib/api"
@@ -29,6 +29,8 @@ export default function AdminBrainsPage() {
         description={t("admin.brains.hint")}
         action={list.length ? <span className="text-sm text-muted-foreground">{t("admin.brains.count", { n: formatNumber(list.length) })}</span> : null}
       />
+      <PageBody>
+      <Panel>
 
       {brains.error ? (
         <ErrorState error={brains.error} />
@@ -37,17 +39,17 @@ export default function AdminBrainsPage() {
       ) : list.length === 0 ? (
         <EmptyState title={t("admin.brains.empty")} body={t("admin.brains.emptyBody")} />
       ) : (
-        <div className="border-y border-border">
+        <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="ps-6">{t("admin.brains.brain")}</TableHead>
+                <TableHead className="ps-4">{t("admin.brains.brain")}</TableHead>
                 <TableHead className="text-end">{t("admin.brains.memories")}</TableHead>
                 <TableHead className="text-end">{t("admin.brains.types")}</TableHead>
                 <TableHead className="text-end">{t("admin.brains.recalls")}</TableHead>
                 <TableHead>{t("admin.brains.lastActivity")}</TableHead>
                 <TableHead>{t("admin.brains.gaps")}</TableHead>
-                <TableHead className="pe-6 text-end">
+                <TableHead className="pe-4 text-end">
                   <span className="sr-only">{t("common.actions")}</span>
                 </TableHead>
               </TableRow>
@@ -60,6 +62,8 @@ export default function AdminBrainsPage() {
           </Table>
         </div>
       )}
+      </Panel>
+      </PageBody>
 
       <DeleteBrainDialog namespace={deleting} onClose={() => setDeleting(null)} onDeleted={() => brains.mutate()} />
     </>
@@ -73,7 +77,7 @@ function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
   const last = d?.lastAt || b.lastAt
   return (
     <TableRow>
-      <TableCell className="ps-6">
+      <TableCell className="ps-4">
         <Link href={href} className="font-medium hover:underline">
           <Ltr mono>{b.namespace}</Ltr>
         </Link>
@@ -95,7 +99,7 @@ function BrainRow({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
           <span className="text-xs text-muted-foreground">{t("admin.brains.noGaps")}</span>
         )}
       </TableCell>
-      <TableCell className="pe-6">
+      <TableCell className="pe-4">
         <div className="flex justify-end gap-1">
           <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={href} />}>
             <ExternalLinkIcon className="rtl:-scale-x-100" />

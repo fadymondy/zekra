@@ -4,7 +4,8 @@ import { Button } from "@fadymondy/nasaq/web"
 
 import Link from "next/link"
 
-import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
+import { BotIcon, BrainIcon, CircleHelpIcon, DatabaseIcon, KeyRoundIcon, RocketIcon, SparklesIcon, WaypointsIcon } from "lucide-react"
+import { CardList, PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ActivityRow } from "@/components/admin/activity-row"
 import { AdminErrorState } from "@/components/admin/not-live"
@@ -32,66 +33,75 @@ export default function AdminOverviewPage() {
     <>
       <SectionHeader micro={t("admin.micro")} title={t("admin.overview.title")} description={t("admin.overview.hint")} />
 
-      {stats.error ? (
-        <ErrorState error={stats.error} />
-      ) : (
-        <>
-          <DetailStrip
-            items={[
-              { label: t("admin.stat.brains"), value: n(s?.brains) },
-              { label: t("admin.stat.memories"), value: n(s?.memories) },
-              { label: t("admin.stat.tokens"), value: n(activeTokens) },
-              { label: t("admin.stat.agents"), value: n(s?.agents) },
-            ]}
-          />
-          <DetailStrip
-            className="-mt-px"
-            items={[
-              { label: t("admin.stat.entities"), value: n(s?.entities) },
-              { label: t("admin.stat.recalls24h"), value: n(s?.recalls24h) },
-              { label: t("admin.stat.sessions24h"), value: n(s?.sessions24h) },
-              { label: t("admin.stat.openGaps"), value: n(s?.openGaps) },
-            ]}
-          />
-        </>
-      )}
+      <PageBody>
+        {stats.error ? (
+          <ErrorState error={stats.error} />
+        ) : (
+          <>
+            <StatStrip
+              loading={stats.isLoading}
+              items={[
+                { icon: <BrainIcon />, label: t("admin.stat.brains"), value: n(s?.brains) },
+                { icon: <DatabaseIcon />, label: t("admin.stat.memories"), value: n(s?.memories) },
+                { icon: <KeyRoundIcon />, label: t("admin.stat.tokens"), value: n(activeTokens) },
+                { icon: <BotIcon />, label: t("admin.stat.agents"), value: n(s?.agents) },
+              ]}
+            />
+            <StatStrip
+              loading={stats.isLoading}
+              items={[
+                { icon: <WaypointsIcon />, label: t("admin.stat.entities"), value: n(s?.entities) },
+                { icon: <SparklesIcon />, label: t("admin.stat.recalls24h"), value: n(s?.recalls24h) },
+                { icon: <RocketIcon />, label: t("admin.stat.sessions24h"), value: n(s?.sessions24h) },
+                { icon: <CircleHelpIcon />, label: t("admin.stat.openGaps"), value: n(s?.openGaps) },
+              ]}
+            />
+          </>
+        )}
 
-      <SectionTitle>{t("admin.overview.accounts")}</SectionTitle>
-      {admin.error ? (
-        <AdminErrorState error={admin.error} what={t("admin.overview.accountsNotLive")} />
-      ) : admin.isLoading ? (
-        <LoadingRows rows={1} />
-      ) : (
-        <DetailStrip
-          items={Object.entries(admin.data ?? {})
-            .filter(([, v]) => typeof v === "number")
-            .slice(0, 8)
-            .map(([k, v]) => ({ label: ACCOUNT_STATS.includes(k) ? t(`admin.accountStat.${k}`) : k, value: formatNumber(v) }))}
-        />
-      )}
+        <Panel title={t("admin.overview.accounts")}>
+          {admin.error ? (
+            <AdminErrorState error={admin.error} what={t("admin.overview.accountsNotLive")} />
+          ) : admin.isLoading ? (
+            <LoadingRows rows={1} />
+          ) : (
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {Object.entries(admin.data ?? {})
+                .filter(([, v]) => typeof v === "number")
+                .slice(0, 8)
+                .map(([k, v]) => (
+                  <div key={k} className="rounded-lg bg-nq-surface-soft px-3 py-2.5">
+                    <dt className="text-xs text-muted-foreground">{ACCOUNT_STATS.includes(k) ? t(`admin.accountStat.${k}`) : k}</dt>
+                    <dd className="mt-0.5 text-lg font-semibold tabular-nums">{formatNumber(v as number)}</dd>
+                  </div>
+                ))}
+            </dl>
+          )}
+        </Panel>
 
-      <SectionTitle
-        action={
-          <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/${locale}/admin/activity`} />}>
-            {t("common.viewAll")}
-          </Button>
-        }
-      >
-        {t("admin.overview.recent")}
-      </SectionTitle>
-      {activity.error ? (
-        <ErrorState error={activity.error} />
-      ) : activity.isLoading ? (
-        <LoadingRows />
-      ) : recent.length === 0 ? (
-        <EmptyState title={t("admin.activity.empty")} body={t("admin.activity.emptyBody")} />
-      ) : (
-        <RowList label={t("admin.overview.recent")} className="mb-8">
-          {recent.map((a) => (
-            <ActivityRow key={a.id} a={a} />
-          ))}
-        </RowList>
-      )}
+        <Panel
+          title={t("admin.overview.recent")}
+          action={
+            <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/${locale}/admin/activity`} />}>
+              {t("common.viewAll")}
+            </Button>
+          }
+        >
+          {activity.error ? (
+            <ErrorState error={activity.error} />
+          ) : activity.isLoading ? (
+            <LoadingRows />
+          ) : recent.length === 0 ? (
+            <EmptyState title={t("admin.activity.empty")} body={t("admin.activity.emptyBody")} />
+          ) : (
+            <CardList label={t("admin.overview.recent")}>
+              {recent.map((a) => (
+                <ActivityRow key={a.id} a={a} />
+              ))}
+            </CardList>
+          )}
+        </Panel>
+      </PageBody>
     </>
   )
 }

@@ -4,7 +4,7 @@ import { useMemo, useState, type FormEvent } from "react"
 import { PlusIcon, TriangleAlertIcon } from "lucide-react"
 import { Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, FieldDescription, FieldError, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@fadymondy/nasaq/web"
 
-import { SectionHeader, SectionTitle } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { ConfirmButton } from "@/components/confirm-button"
 import { CopyField, Ltr } from "@/components/copy-field"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -67,6 +67,7 @@ export default function AdminTokensPage() {
         }
       />
 
+      <PageBody>
       {tokens.error ? (
         <ErrorState error={tokens.error} />
       ) : tokens.isLoading ? (
@@ -75,16 +76,17 @@ export default function AdminTokensPage() {
         <EmptyState title={t("admin.tokens.empty")} body={t("admin.tokens.emptyBody")} />
       ) : (
         <>
-          <div className="border-y border-border">
+          <Panel action={<span className="text-xs text-muted-foreground">{t("admin.tokens.summary", { active: formatNumber(active.length), total: formatNumber(list.length) })}</span>}>
+          <div className="overflow-hidden rounded-lg border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="ps-6">{t("admin.tokens.agent")}</TableHead>
+                  <TableHead className="ps-4">{t("admin.tokens.agent")}</TableHead>
                   <TableHead>{t("admin.tokens.label")}</TableHead>
                   <TableHead>{t("admin.tokens.token")}</TableHead>
                   <TableHead>{t("admin.tokens.grants")}</TableHead>
                   <TableHead>{t("admin.tokens.lastUsed")}</TableHead>
-                  <TableHead className="pe-6 text-end">
+                  <TableHead className="pe-4 text-end">
                     <span className="sr-only">{t("common.actions")}</span>
                   </TableHead>
                 </TableRow>
@@ -96,23 +98,22 @@ export default function AdminTokensPage() {
               </TableBody>
             </Table>
           </div>
-          <p className="px-6 py-3 text-xs text-muted-foreground">
-            {t("admin.tokens.summary", { active: formatNumber(active.length), total: formatNumber(list.length) })}
-          </p>
+          </Panel>
 
-          <SectionTitle>{t("admin.tokens.grantsTitle")}</SectionTitle>
-          <p className="-mt-1 px-6 pb-4 text-sm text-muted-foreground">{t("admin.tokens.grantsHint")}</p>
+          <Panel title={t("admin.tokens.grantsTitle")} hint={t("admin.tokens.grantsHint")}>
           {agents.length === 0 ? (
             <EmptyState title={t("admin.tokens.noAgents")} />
           ) : (
-            <div className="mb-8 divide-y divide-border border-y border-border">
+            <div className="flex flex-col gap-3">
               {agents.map((a) => (
                 <AgentGrants key={a.agentId} agentId={a.agentId} isAdmin={a.isAdmin} grants={a.grants} onChanged={() => tokens.mutate()} />
               ))}
             </div>
           )}
+          </Panel>
         </>
       )}
+      </PageBody>
 
       <CreateTokenDialog open={creating} onOpenChange={setCreating} onCreated={() => tokens.mutate()} />
     </>
@@ -124,7 +125,7 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
   const n = tok.grants?.length ?? 0
   return (
     <TableRow className={tok.revoked ? "opacity-60" : undefined}>
-      <TableCell className="ps-6">
+      <TableCell className="ps-4">
         <span className="flex items-center gap-2">
           <Ltr mono className="font-medium">{tok.agentId}</Ltr>
           {tok.isAdmin ? <Badge variant="neutral">{t("admin.tokens.admin")}</Badge> : null}
@@ -146,7 +147,7 @@ function TokenRow({ tok, onRevoke }: { tok: Token; onRevoke: () => Promise<void>
           t("common.never")
         )}
       </TableCell>
-      <TableCell className="pe-6 text-end">
+      <TableCell className="pe-4 text-end">
         {tok.revoked ? (
           <Badge variant="neutral">{t("admin.tokens.revokedBadge")}</Badge>
         ) : (
@@ -190,8 +191,8 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
     run(() => (!v.canRead && !v.canWrite ? brainApi.revokeGrant({ agentId, namespace }) : brainApi.grant({ agentId, namespace, ...v })))
 
   return (
-    <section>
-      <div className="flex flex-wrap items-center gap-2 px-6 pt-4 pb-2">
+    <section className="rounded-lg border border-border p-3">
+      <div className="flex flex-wrap items-center gap-2 pb-2">
         <Ltr mono className="text-sm font-medium text-foreground">{agentId}</Ltr>
         {isAdmin ? (
           <>
@@ -202,9 +203,9 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
       </div>
       <GrantHeader subject={t("admin.tokens.brain")} />
       {grants.length === 0 ? (
-        <p className="px-6 py-3 text-xs text-muted-foreground">{t("admin.tokens.noGrants")}</p>
+        <p className="px-2 py-3 text-xs text-muted-foreground">{t("admin.tokens.noGrants")}</p>
       ) : (
-        <div className="divide-y divide-border">
+        <div className="mt-1 flex flex-col gap-1">
           {grants.map((g) => (
             <GrantRow
               key={g.namespace}
@@ -220,7 +221,7 @@ function AgentGrants({ agentId, isAdmin, grants, onChanged }: { agentId: string;
         </div>
       )}
       {brainItems.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 border-t border-border px-6 py-3">
+        <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border pt-3">
           <Select items={brainItems} value={addNs || null} onValueChange={(v) => setAddNs(String(v ?? ""))}>
             <SelectTrigger aria-label={t("admin.tokens.addBrain")} className="w-full sm:w-64">
               <SelectValue placeholder={t("admin.tokens.addBrain")} />
@@ -298,7 +299,7 @@ function CreateTokenDialog({ open, onOpenChange, onCreated }: { open: boolean; o
                 {t("admin.tokens.createdHint")} <Ltr mono className="text-foreground">{created.agentId}</Ltr>
               </DialogDescription>
             </DialogHeader>
-            <p className="flex items-start gap-2 border border-border bg-card p-3 text-sm text-nq-warning-text" role="alert">
+            <p className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm text-nq-warning-text" role="alert">
               <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
               {t("admin.tokens.shownOnce")}
             </p>
