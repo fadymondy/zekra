@@ -1,0 +1,93 @@
+"use client"
+
+// The brain's memory graph on Nasaq's GraphView: each entity type is a kind with its own colour, so the
+// toolbar's category filters, search, inspector and graph/grid/list/schema modes all come from Nasaq.
+import { useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { GraphView, TAG_HUES, type GraphViewKind, type GraphViewNode, type TagHue } from "@fadymondy/nasaq/web"
+
+import type { GraphData } from "@/lib/api"
+import { useTranslations } from "@/lib/i18n"
+
+const HUES = TAG_HUES.filter((h) => h !== "gray") as TagHue[]
+
+const kindOf = (n: { type?: string; group?: string }) => n.type || n.group || "other"
+
+export function NasaqBrainGraph({
+  data,
+  base,
+  focusId,
+  focusNoteId,
+  height,
+}: {
+  data: GraphData
+  base: string
+  focusId?: string | null
+  focusNoteId?: string | null
+  height?: number | string
+}) {
+  const { t } = useTranslations()
+  const router = useRouter()
+
+  const { nodes, links, kinds } = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const n of data.nodes) counts.set(kindOf(n), (counts.get(kindOf(n)) ?? 0) + 1)
+    // Biggest categories get the first (most distinct) colours.
+    const order = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k)
+    const kinds: GraphViewKind[] = order.map((k, i) => ({
+      id: k,
+      label: k,
+      hue: k === "other" ? "gray" : HUES[i % HUES.length],
+      shape: k === "root" ? "hexagon" : k === "type" ? "rounded" : "circle",
+    }))
+    const ids = new Set(data.nodes.map((n) => n.id))
+    const nodes: GraphViewNode[] = data.nodes.map((n) => ({
+      id: n.id,
+      label: n.name || n.id,
+      kind: kindOf(n),
+      tags: n.noteId ? ["note"] : undefined,
+    }))
+    const links = data.edges.filter((e) => ids.has(e.source) && ids.has(e.target))
+    return { nodes, links, kinds }
+  }, [data])
+
+  const noteOf = useMemo(() => new Map(data.nodes.filter((n) => n.noteId).map((n) => [n.id, n.noteId!])), [data])
+
+  return (
+    <GraphView
+      nodes={nodes}
+      links={links}
+      kinds={kinds}
+      height={height}
+      defaultSelectedId={focusId ?? data.nodes.find((n) => focusNoteId && n.noteId === focusNoteId)?.id ?? null}
+      onOpen={(n) => {
+        const note = noteOf.get(n.id)
+        router.push(note ? `${base}/notes?id=${encodeURIComponent(note)}` : `${base}/search?q=${encodeURIComponent(n.label)}`)
+      }}
+      labels={{
+        search: t("graph.nq.search"),
+        view: t("graph.nq.view"),
+        graph: t("graph.nq.graph"),
+        grid: t("graph.nq.grid"),
+        list: t("graph.nq.list"),
+        schema: t("graph.nq.schema"),
+        kinds: t("graph.nq.kinds"),
+        counts: (n, l) => t("graph.nq.counts", { nodes: n, links: l }),
+        zoomIn: t("graph.nq.zoomIn"),
+        zoomOut: t("graph.nq.zoomOut"),
+        fit: t("graph.nq.fit"),
+        graphHint: t("graph.nq.graphHint"),
+        open: t("graph.nq.open"),
+        close: t("graph.nq.close"),
+        linksTo: t("graph.nq.linksTo"),
+        linkedFrom: t("graph.nq.linkedFrom"),
+        noLinks: t("graph.nq.noLinks"),
+        connections: (n) => t("graph.nq.connections", { n }),
+        emptyTitle: t("graph.empty"),
+        emptyBody: t("graph.nq.emptyBody"),
+        clear: t("graph.nq.clear"),
+      }}
+      className="rounded-xl"
+    />
+  )
+}

@@ -39,7 +39,8 @@ import {
 
 import { ActivityRow } from "@/components/activity/activity-row"
 import { BrainDescription, BrainMicro, BrainTitle } from "@/components/brains/brain-header"
-import { BrainGraphView, type FocusRequest } from "@/components/graph/graph-view"
+import { type FocusRequest } from "@/components/graph/graph-view"
+import { NasaqBrainGraph } from "@/components/graph/nasaq-brain-graph"
 import { RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ApiError, brainApi } from "@/lib/api"
@@ -325,7 +326,7 @@ export default function BrainOverviewPage() {
           description={t("overview.graph.summary", { nodes: formatNumber(nodeTotal), edges: formatNumber(edgeTotal) })}
           action={graph.data?.derived ? <Badge variant="outline">{t("overview.graph.derived")}</Badge> : null}
         >
-          <div ref={graphRef} className="flex h-[560px] flex-col overflow-hidden rounded-lg border border-border bg-background">
+          <div ref={graphRef} className="flex min-h-[560px] flex-col">
             {graph.error ? (
               <ErrorState error={graph.error} />
             ) : nodes.length === 0 ? (
@@ -334,12 +335,7 @@ export default function BrainOverviewPage() {
                 <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
               </div>
             ) : focusReq === undefined ? null : (
-              <BrainGraphView
-                key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`}
-                data={graph.data!}
-                namespace={ns}
-                focus={focusReq}
-              />
+              <NasaqBrainGraph data={graph.data!} base={base} focusId={focusReq?.id} focusNoteId={focusReq?.noteId} height={620} />
             )}
           </div>
         </Panel>
