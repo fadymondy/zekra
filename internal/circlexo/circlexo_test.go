@@ -349,12 +349,13 @@ func TestSignInRules(t *testing.T) {
 	if u, e := s.svc.UserBySubject(context.Background(), "sub-n-"+tag); e != nil || u != uid {
 		t.Fatalf("link: %s %v", u, e)
 	}
-	// The same subject signs in again as the same user, whatever the claim says.
+	// The same subject signs in again as the same user, whatever the claim says; the account takes
+	// the hub's (verified) new address rather than a second account being made (MH-1149).
 	res, _, err = s.login("sub-n-"+tag, "other-"+tag+"@example.test", true, "", "")
 	if err != nil || !hasSession(res) {
 		t.Fatalf("second sign-in: %v", err)
 	}
-	if n := s.count(`SELECT count(*) FROM users WHERE lower(email) = $1`, "other-"+tag+"@example.test"); n != 0 {
+	if n := s.count(`SELECT count(*) FROM users WHERE lower(email) = $1 AND id = $2`, "other-"+tag+"@example.test", uid); n != 1 {
 		t.Fatal("a linked subject created a second account")
 	}
 

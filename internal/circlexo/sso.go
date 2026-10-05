@@ -130,6 +130,8 @@ func (s *Service) FinishLogin(ctx context.Context, w http.ResponseWriter, l *oid
 	if !s.Acct.UserActive(ctx, userID) {
 		return "", refuse(errSuspended, "the account is disabled or being deleted")
 	}
+	// The hub owns the person's address (MH-1149).
+	s.SyncProfile(ctx, userID, id.Profile())
 
 	to := s.landing(ctx, l, userID)
 
@@ -233,8 +235,19 @@ func (s *Service) landing(ctx context.Context, l *oidc.Login, userID string) str
 	link, err := s.OrgByID(ctx, orgID)
 	if errors.Is(err, sql.ErrNoRows) {
 		// The hub installed the app but the webhook has not (or did not) arrive: provision now if
-		// the hub confirms the org has the app.
-		if _, terr := s.Client.TenantByOrg(ctx, orgID); terr != nil {
+		// the hub confirms the org has the app and is still provisioning it. Once the install is
+		// active, a missing link means the org was deleted in Zekra: tell the hub (it then shows
+		// the app as not installed) instead of making a new one (MH-1149).
+		t, terr := s.Client.TenantByOrg(ctx, orgID)
+		if terr != nil {
+			return home
+		}
+		if t.Status != "provisioning" {
+			if t.ProductTenantID != "" {
+				if _, err := s.Client.ReleaseTenant(ctx, orgID, t.ProductTenantID); err != nil {
+					s.Log.Warn("circlexo: releasing a deleted org's tenant", "org", orgID, "err", err)
+				}
+			}
 			return home
 		}
 		if link, err = s.Provision(ctx, ProvisionInput{OrgID: orgID, Slug: slugHint}); err != nil {

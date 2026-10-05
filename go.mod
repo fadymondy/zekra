@@ -38,7 +38,7 @@ replace github.com/togo-framework/brain-cognee => ./plugins/brain-cognee
 replace github.com/togo-framework/cache-redis => ./plugins/cache-redis
 
 require (
-	github.com/circlexo/circlexo-go v0.1.1
+	github.com/circlexo/circlexo-go v0.2.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/togo-framework/aeo v0.1.0

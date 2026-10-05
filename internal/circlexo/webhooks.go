@@ -36,6 +36,7 @@ func (s *Service) Events() http.Handler {
 	h.Handle(webhooks.MemberAdded, s.onMember)
 	h.Handle(webhooks.MemberRoleChanged, s.onMember)
 	h.Handle(webhooks.MemberRemoved, s.onMemberRemoved)
+	h.Handle(webhooks.UserUpdated, s.onUserUpdated)
 	h.Handle(webhooks.SessionRevoked, func(ctx context.Context, e *webhooks.Envelope) error {
 		d, err := e.Session()
 		if err != nil {
