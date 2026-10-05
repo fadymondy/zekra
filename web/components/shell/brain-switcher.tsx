@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { LayoutGridIcon } from "lucide-react"
 import { DropdownMenuItem, WorkspaceSwitcher } from "@fadymondy/nasaq/web"
 
-import { BrainAvatar, brainName } from "@/components/brains/brain-cells"
+import { brainName } from "@/components/brains/brain-cells"
 import { getLastBrain, setLastBrain } from "@/lib/last-brain"
 import { useTranslations } from "@/lib/i18n"
 import { useBrains } from "@/lib/queries"
@@ -42,7 +42,7 @@ export function BrainSwitcher({ namespace }: { namespace?: string }) {
         id: b.namespace,
         name: brainName(b),
         description: t("shell.memoryCount", { count: formatNumber(b.memories) }),
-        logo: <BrainAvatar namespace={b.namespace} profile={b} size={20} />,
+        logoSrc: b.imageUrl || undefined,
       }))}
       value={value}
       onValueChange={open}
