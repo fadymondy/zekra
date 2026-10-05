@@ -1,8 +1,8 @@
 "use client"
 
 // Brain Overview: what this brain holds and what it has been doing, on Nasaq cards. Stat cards on top
-// (memories carry a 14-day trend), then Ask + "What it knows" (types and sources as meters), recent
-// notes and activity side by side, and the memory graph last.
+// (memories carry a 14-day trend), the memory graph, then Ask + "What it knows" (types and sources as meters), recent
+// notes and activity side by side.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
@@ -174,12 +174,12 @@ function RecentNotes({ ns, base }: { ns: string; base: string }) {
       ) : rows.length === 0 ? (
         <EmptyState title={t("notes.recentEmpty")} />
       ) : (
-        <RowList label={t("notes.recent")} className="-mx-6 border-y-0">
+        <RowList label={t("notes.recent")} className="-mx-4 border-y-0">
           {rows.map((n) => (
             <li key={n.id}>
               <Link
                 href={`${base}/notes?id=${encodeURIComponent(n.id)}`}
-                className="flex items-center gap-3 px-6 py-2.5 text-sm transition-colors hover:bg-nq-surface-soft"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-nq-surface-soft"
               >
                 {n.pinned ? <PinIcon className="size-3.5 shrink-0 text-nq-action" /> : null}
                 <span dir="auto" className="min-w-0 flex-1 truncate text-foreground">
@@ -319,6 +319,31 @@ export default function BrainOverviewPage() {
           </Link>
         </StatGrid>
 
+        <Panel
+          className="overflow-hidden"
+          title={t("overview.graph.title")}
+          description={t("overview.graph.summary", { nodes: formatNumber(nodeTotal), edges: formatNumber(edgeTotal) })}
+          action={graph.data?.derived ? <Badge variant="outline">{t("overview.graph.derived")}</Badge> : null}
+        >
+          <div ref={graphRef} className="flex h-[560px] flex-col overflow-hidden rounded-lg border border-border bg-background">
+            {graph.error ? (
+              <ErrorState error={graph.error} />
+            ) : nodes.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
+                <NetworkIcon className="size-8 opacity-40" />
+                <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
+              </div>
+            ) : focusReq === undefined ? null : (
+              <BrainGraphView
+                key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`}
+                data={graph.data!}
+                namespace={ns}
+                focus={focusReq}
+              />
+            )}
+          </div>
+        </Panel>
+
         <div className="grid gap-4 lg:grid-cols-3">
           <Panel
             className="lg:col-span-2"
@@ -402,7 +427,7 @@ export default function BrainOverviewPage() {
             ) : recent.length === 0 ? (
               <EmptyState title={t("overview.noActivity")} />
             ) : (
-              <RowList label={t("overview.recentActivity")} className="-mx-6 border-y-0">
+              <RowList label={t("overview.recentActivity")} className="-mx-4 border-y-0">
                 {recent.map((a) => (
                   <ActivityRow key={a.id} a={a} />
                 ))}
@@ -411,29 +436,6 @@ export default function BrainOverviewPage() {
           </Panel>
         </div>
 
-        <Panel
-          title={t("overview.graph.title")}
-          description={t("overview.graph.summary", { nodes: formatNumber(nodeTotal), edges: formatNumber(edgeTotal) })}
-          action={graph.data?.derived ? <Badge variant="outline">{t("overview.graph.derived")}</Badge> : null}
-        >
-          <div ref={graphRef} className="-mx-6 -mb-6 flex h-[640px] flex-col overflow-hidden rounded-b-xl border-t border-border">
-            {graph.error ? (
-              <ErrorState error={graph.error} />
-            ) : nodes.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
-                <NetworkIcon className="size-8 opacity-40" />
-                <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
-              </div>
-            ) : focusReq === undefined ? null : (
-              <BrainGraphView
-                key={`${ns}|${focusReq?.id ?? ""}|${focusReq?.noteId ?? ""}`}
-                data={graph.data!}
-                namespace={ns}
-                focus={focusReq}
-              />
-            )}
-          </div>
-        </Panel>
       </div>
     </>
   )
