@@ -80,5 +80,14 @@
   "spotlight.memories": "الذكريات",
   "spotlight.placeholder": "ابحث في الذكريات، أو انتقل إلى صفحة…",
   "spotlight.searching": "جارٍ البحث في دماغك…",
-  "shell.memoryCount": "{count} ذكرى"
+  "shell.memoryCount": "{count} ذكرى",
+  "connectAgent.mcpHint": "Claude وChatGPT وCursor وغيرها",
+  "connectAgent.apiHint": "استدعِ واجهة REST",
+  "connectAgent.apiBody": "أرسل الطلبات إلى واجهة الدماغ مع مفتاح وصول في ترويسة Authorization.",
+  "connectAgent.apiUrl": "عنوان الواجهة الأساسي",
+  "connectAgent.tryHint": "«ماذا قررنا بشأن الإطلاق؟»",
+  "connectAgent.askAdmin": "يحتاج هذا التطبيق إلى مفتاح وصول. اطلب من المسؤول إنشاءه لك.",
+  "connectAgent.keyLabel": "اسم المفتاح",
+  "connectAgent.keyPlaceholder": "مثل: Cursor الخاص بي",
+  "connectAgent.createKey": "أنشئ مفتاحًا"
 }

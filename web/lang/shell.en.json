@@ -80,5 +80,14 @@
   "spotlight.memories": "Memories",
   "spotlight.placeholder": "Search memories, or jump to a page…",
   "spotlight.searching": "Searching your brain…",
-  "shell.memoryCount": "{count} memories"
+  "shell.memoryCount": "{count} memories",
+  "connectAgent.mcpHint": "Claude, ChatGPT, Cursor and more",
+  "connectAgent.apiHint": "Call the REST API",
+  "connectAgent.apiBody": "Send requests to the brain API with an access token in the Authorization header.",
+  "connectAgent.apiUrl": "API base URL",
+  "connectAgent.tryHint": "“What did we decide about the launch?”",
+  "connectAgent.askAdmin": "This app needs an access key. Ask an admin to create one for you.",
+  "connectAgent.keyLabel": "Key name",
+  "connectAgent.keyPlaceholder": "e.g. My Cursor",
+  "connectAgent.createKey": "Create key"
 }

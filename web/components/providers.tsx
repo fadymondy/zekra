@@ -25,7 +25,7 @@ export function Providers({ locale, pwa = true, children }: { locale: string; pw
   }
 
   return (
-    <NasaqProvider brand="zekra" defaultTheme="dark" locale={locale} onLocaleChange={switchTo} density="compact">
+    <NasaqProvider brand="zekra" defaultTheme="dark" locale={locale} onLocaleChange={switchTo} density="compact" expression="native">
       <I18nProvider locale={locale}>
         {children}
         <Toaster />

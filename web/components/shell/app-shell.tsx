@@ -28,6 +28,7 @@ import { CubeMark } from "@/components/brand/cube-mark"
 import { ErrorState } from "@/components/states"
 import { MahaamWidget } from "@/components/feedback/mahaam-widget"
 import { BrainSwitcher } from "@/components/shell/brain-switcher"
+import { ConnectAgent } from "@/components/shell/connect-agent"
 import { NotificationBell } from "@/components/shell/notification-bell"
 import { Spotlight, SpotlightTrigger } from "@/components/spotlight/spotlight"
 import { UserMenu } from "@/components/shell/user-menu"
@@ -164,7 +165,8 @@ export function AppShell({
       <NasaqAppShell className="md:h-dvh md:overflow-hidden" sidebar={<ShellSidebar groups={nav} brain={scope} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
         <AppHeader>
           <SidebarTrigger label={t("shell.toggleSidebar")} />
-          <div className="ms-auto flex items-center gap-1">{me.data ? <NotificationBell /> : null}</div>
+          <div className="ms-auto flex items-center gap-1">{me.data ? <ConnectAgent /> : null}
+            {me.data ? <NotificationBell /> : null}</div>
         </AppHeader>
         <AppMain className="p-0 md:min-h-0 md:overflow-y-auto">{body}</AppMain>
         {me.data ? <Spotlight namespace={scope} /> : null}
