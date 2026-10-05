@@ -81,7 +81,7 @@ function HomeBrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void
       }}
       footer={
         <div className="flex items-center justify-between gap-2">
-          <Button size="sm" variant="secondary" render={<Link href={href} />}>
+          <Button size="sm" variant="secondary" nativeButton={false} render={<Link href={href} />}>
             {t("brains.open")}
           </Button>
           <Button size="sm" variant="ghost" onClick={onDelete} aria-label={t("brains.menu.delete")}>
