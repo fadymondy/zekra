@@ -152,7 +152,9 @@ export function AppShell({
           than inside the note pane, otherwise it would only take effect on
           pages that happen to render a note. */}
       <AppThemeEffect />
-      <NasaqAppShell sidebar={<ShellSidebar groups={groups} brain={brain} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
+      {/* Viewport-bound on desktop: the page never scrolls, so the sidebar keeps its own scroll and
+          the user menu stays in view while the main panel scrolls inside. */}
+      <NasaqAppShell className="md:h-dvh md:overflow-hidden" sidebar={<ShellSidebar groups={groups} brain={brain} user={me.data ?? undefined} />} resizeLabel={t("shell.resizeSidebar")}>
         <AppHeader>
           <SidebarTrigger label={t("shell.toggleSidebar")} />
           <div className="ms-auto flex items-center gap-1">{me.data ? <NotificationBell /> : null}</div>
