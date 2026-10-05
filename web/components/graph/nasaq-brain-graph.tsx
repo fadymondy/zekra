@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { GraphView, TAG_HUES, type GraphViewKind, type GraphViewLink, type GraphViewNode, type TagHue } from "@fadymondy/nasaq/web"
 
 import type { GraphData } from "@/lib/api"
+import { useOntology } from "@/lib/graph-edit"
 import { useTranslations } from "@/lib/i18n"
 
 const HUES = TAG_HUES.filter((h) => h !== "gray") as TagHue[]
@@ -30,6 +31,8 @@ export function NasaqBrainGraph({
 }) {
   const { t } = useTranslations()
   const router = useRouter()
+  // Category descriptions come from the brain's ontology (editable over the API/MCP).
+  const ontology = useOntology(brain)
 
   const { nodes, links, kinds } = useMemo(() => {
     const counts = new Map<string, number>()
@@ -39,6 +42,7 @@ export function NasaqBrainGraph({
     const kinds: GraphViewKind[] = order.map((k, i) => ({
       id: k,
       label: k,
+      description: ontology.data?.entityTypes.find((x) => x.name === k)?.description || undefined,
       hue: k === "other" ? "gray" : HUES[i % HUES.length],
       shape: k === "root" ? "hexagon" : k === "type" ? "rounded" : "circle",
     }))
@@ -65,7 +69,7 @@ export function NasaqBrainGraph({
     for (const n of data.nodes) links.push({ source: `__hub__${kindOf(n)}`, target: n.id, kind: "member" })
     kinds.unshift({ id: "__core__", label: brain, hue: "violet", shape: "hexagon", labelPosition: "bottom" })
     return { nodes, links, kinds }
-  }, [data, brain])
+  }, [data, brain, ontology.data])
 
   const noteOf = useMemo(() => new Map(data.nodes.filter((n) => n.noteId).map((n) => [n.id, n.noteId!])), [data])
 
