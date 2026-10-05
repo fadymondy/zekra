@@ -11,32 +11,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import useSWRInfinite from "swr/infinite"
 import { useSWRConfig } from "swr"
-import { ArrowDownUpIcon, CheckIcon, Loader2Icon, NetworkIcon, PlusIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react"
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, Popover, PopoverContent, PopoverTrigger, toast } from "@fadymondy/nasaq/web"
+import { Loader2Icon, NetworkIcon, PlusIcon } from "lucide-react"
+import { Button, NOTE_COLORS, NotesView, toast, type Note as NqNote, type NotePatch, type Notebook } from "@fadymondy/nasaq/web"
 
 import { Ltr } from "@/components/copy-field"
-import { CategoryPicker } from "@/components/graph/category-picker"
 import { NoteEditor } from "@/components/notes/note-editor"
-import { NoteListRow } from "@/components/notes/note-list-row"
-import type { NoteRowAction } from "@/components/notes/note-row-actions"
 import { NoteTabs } from "@/components/notes/note-tabs"
 import { NoteTree } from "@/components/notes/note-tree"
-import { TagCombobox } from "@/components/notes/tag-combobox"
 import { SectionHeader } from "@/components/page"
-import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
+import { ErrorState, LoadingRows } from "@/components/states"
 import { api, ApiError } from "@/lib/api"
 import { useTranslations } from "@/lib/i18n"
 import { refreshGraph } from "@/lib/graph-edit"
 import { notesApi, useNote, useNotes, type Note, type NotePage } from "@/lib/notes"
 import { closeTab, loadTabs, nextSelection, openTab, renameTab, type OpenTab } from "@/lib/notes/open-tabs"
-import { groupNotes, type NoteGroup } from "@/lib/notes/note-groups"
 import { forgetRecent, pushRecent } from "@/lib/notes/recent-notes"
 import { useDocumentTitle } from "@/lib/title"
 import { cn } from "@/lib/utils"
 
 const PAGE = 50
-type Sort = "updated" | "created" | "title"
-type View = "all" | "pinned" | "archived"
 
 function setUrlParam(name: string, value: string | null) {
   const url = new URL(window.location.href)
@@ -55,33 +48,46 @@ function listKey(ns: string, f: { q: string; category: string; tag: string; arch
   return `/api/notes?${sp}`
 }
 
+const NQ_COLORS = new Set<string>(NOTE_COLORS)
+
+/** A Zekra note as Nasaq's Note: the category is its notebook; a palette colour carries over. */
+function toNq(n: Note): NqNote {
+  return {
+    id: n.id,
+    title: n.title,
+    body: n.description || n.body || "",
+    format: "markdown",
+    notebookId: n.category || null,
+    tags: n.tags ?? [],
+    color: n.color && NQ_COLORS.has(n.color) ? (n.color as NqNote["color"]) : null,
+    pinned: n.pinned,
+    archived: n.archived,
+    createdAt: Date.parse(n.createdAt),
+    updatedAt: Date.parse(n.updatedAt),
+  }
+}
+
 export default function NotesPage() {
-  const { t, locale } = useTranslations()
+  const { t } = useTranslations()
   const ns = decodeURIComponent(useParams<{ namespace: string }>().namespace)
   useDocumentTitle(`${t("nav.notes")} · ${ns}`)
   const { mutate } = useSWRConfig()
 
   const [search, setSearch] = useState("")
   const [q, setQ] = useState("")
-  const [category, setCategory] = useState("")
-  const [tags, setTags] = useState<string[]>([])
-  // All · Pinned · Archived (the desktop's library lists). The server's archived=1 means
-  // "include archived"; the Archived view keeps only those, client-side.
-  const [view, setView] = useState<View>("all")
-  const pinnedOnly = view === "pinned"
-  const archived = view === "archived"
+  // NotesView's scope: all · pinned · archive · nb:<category> · tag:<tag>; it filters the loaded notes.
+  const [scope, setScope] = useState("all")
   // Which pane the list column shows: the note list, or the spine-rooted tree.
   const [pane, setPane] = useState<"list" | "tree">("list")
-  const [sort, setSort] = useState<Sort>("updated")
   const [selected, setSelected] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
   const [justCreated, setJustCreated] = useState<string | null>(null)
 
   // Deep links, read once from the URL (no Suspense boundary needed).
   useEffect(() => {
     const sp = new URL(window.location.href).searchParams
     setSelected(sp.get("id"))
-    setCategory(sp.get("category") ?? "")
+    const c = sp.get("category")
+    if (c) setScope(`nb:${c}`)
   }, [])
 
   useEffect(() => {
@@ -89,9 +95,8 @@ export default function NotesPage() {
     return () => clearTimeout(h)
   }, [search])
 
-  // The server filters by one tag; the rest (AND), pinned and the non-default sorts apply to
-  // the loaded pages.
-  const filters = { q, category, tag: tags[0] ?? "", archived }
+  // The server searches; archived notes are included so NotesView's Archive scope has them.
+  const filters = { q, category: "", tag: "", archived: true }
   const list = useSWRInfinite<NotePage>(
     (i, prev: NotePage | null) => (i > 0 && !prev?.nextCursor ? null : listKey(ns, filters, i > 0 ? prev!.nextCursor : undefined)),
     (key: string) => api<NotePage>(key),
@@ -99,7 +104,7 @@ export default function NotesPage() {
   )
   // The realtime stream revalidates plain /api/notes? keys, not infinite ones: watch a one-row
   // head of the same query and refresh the pages when it changes.
-  const head = useNotes({ namespace: ns, q, category, tag: filters.tag, archived, limit: 1 })
+  const head = useNotes({ namespace: ns, q, archived: true, limit: 1 })
   const headSig = head.data ? `${head.data.notes[0]?.id}:${head.data.notes[0]?.version}:${head.data.serverTime}` : ""
   const lastHead = useRef("")
   useEffect(() => {
@@ -111,16 +116,12 @@ export default function NotesPage() {
 
   const pages = list.data
   const hasMore = !!pages?.[pages.length - 1]?.nextCursor
-  const notes = useMemo(() => {
-    let all = (pages ?? []).flatMap((p) => p.notes ?? [])
-    if (tags.length > 1) all = all.filter((n) => tags.every((x) => n.tags?.includes(x)))
-    if (pinnedOnly) all = all.filter((n) => n.pinned)
-    if (archived) all = all.filter((n) => n.archived)
-    if (sort === "created") all = [...all].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    else if (sort === "title") all = [...all].sort((a, b) => (a.title || "").localeCompare(b.title || ""))
-    return all
-  }, [pages, tags, pinnedOnly, archived, sort])
-  const groups = useMemo(() => groupNotes(notes, { pinnedFirst: view === "all", sort }), [notes, view, sort])
+  const notes = useMemo(() => (pages ?? []).flatMap((p) => p.notes ?? []), [pages])
+  const nqNotes = useMemo(() => notes.map(toNq), [notes])
+  const notebooks = useMemo<Notebook[]>(
+    () => Array.from(new Set(notes.map((n) => n.category).filter(Boolean))).sort().map((c) => ({ id: c!, name: c! })),
+    [notes],
+  )
 
   // Load more when the sentinel scrolls into view.
   const sentinel = useRef<HTMLDivElement | null>(null)
@@ -171,23 +172,24 @@ export default function NotesPage() {
     }
   }
 
-  const pickCategory = (c: string) => {
-    setCategory(c)
-    setUrlParam("category", c || null)
+  const pickScope = (sc: string) => {
+    setScope(sc)
+    setUrlParam("category", sc.startsWith("nb:") ? sc.slice(3) : null)
   }
 
-  async function create() {
-    setCreating(true)
+  async function create(): Promise<string | null> {
     try {
-      const n = await notesApi.create(ns, { ...(tags.length ? { tags } : {}), ...(category ? { category } : {}) })
+      const category = scope.startsWith("nb:") ? scope.slice(3) : ""
+      const tag = scope.startsWith("tag:") ? scope.slice(4) : ""
+      const n = await notesApi.create(ns, { ...(tag ? { tags: [tag] } : {}), ...(category ? { category } : {}) })
       await mutate(`/api/notes/${encodeURIComponent(n.id)}`, n, { revalidate: false })
       setJustCreated(n.id)
       select(n.id)
       refreshList()
+      return n.id
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
-    } finally {
-      setCreating(false)
+      return null
     }
   }
 
@@ -204,79 +206,53 @@ export default function NotesPage() {
     [mutate, list],
   )
 
-  /*
-  Row actions from the list (MH-220): pin, archive, delete. Pin and archive go
-  through the same optimistic patch as an in-editor save; delete drops the row
-  and clears the selection if it was the open note.
-  */
-  const rowAction = useCallback(
-    async (n: Note, action: NoteRowAction) => {
+  // NotesView's menu actions (pin, archive, colour, move to category, tags, rename) as note updates.
+  const updateNote = useCallback(
+    async (id: string, patch: NotePatch) => {
+      const n = notes.find((x) => x.id === id)
+      if (!n) return { error: t("notes.notFound") }
+      const { notebookId, color, body: _b, format: _f, ...rest } = patch
       try {
-        if (action === "delete") {
-          await notesApi.remove(n.id)
-          void list.mutate(
-            (ps) => ps?.map((p) => ({ ...p, notes: p.notes.filter((x) => x.id !== n.id) })),
-            { revalidate: false },
-          )
-          setSelected((cur) => (cur === n.id ? null : cur))
-          forgetRecent(n.id)
-          setTabs(closeTab(ns, n.id))
-          refreshGraph(n.namespace)
-          toast.success(t("notes.deletedToast"))
-          return
-        }
-        const patch = action === "pin" ? { pinned: !n.pinned } : { archived: !n.archived }
-        const updated = await notesApi.update(n.id, n.version, { ...n, body: n.body ?? "", ...patch })
+        const updated = await notesApi.update(n.id, n.version, {
+          ...n,
+          body: n.body ?? "",
+          ...rest,
+          ...(notebookId !== undefined ? { category: notebookId ?? "" } : {}),
+          ...(color !== undefined ? { color: color ?? "" } : {}),
+        })
         onSaved(updated)
+        if (notebookId !== undefined) refreshGraph(n.namespace)
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
+        return { error: err instanceof ApiError ? err.message : t("common.networkError") }
       }
     },
-    [list, onSaved, t],
+    [notes, onSaved, t],
   )
 
-  /** Save an icon/colour override (MH-308). Empty strings clear it. */
-  const setAppearance = useCallback(
-    async (n: Note, patch: { icon?: string; color?: string }) => {
+  const deleteNote = useCallback(
+    async (id: string) => {
+      const n = notes.find((x) => x.id === id)
       try {
-        const updated = await notesApi.update(n.id, n.version, { ...n, body: n.body ?? "", ...patch })
-        onSaved(updated)
+        await notesApi.remove(id)
+        void list.mutate((ps) => ps?.map((p) => ({ ...p, notes: p.notes.filter((x) => x.id !== id) })), { revalidate: false })
+        setSelected((cur) => (cur === id ? null : cur))
+        forgetRecent(id)
+        setTabs(closeTab(ns, id))
+        if (n) refreshGraph(n.namespace)
+        toast.success(t("notes.deletedToast"))
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : t("common.networkError"))
+        return { error: err instanceof ApiError ? err.message : t("common.networkError") }
       }
     },
-    [onSaved, t],
+    [notes, list, ns, t],
   )
 
   const newButton = (
-    <Button variant="primary" onClick={create} disabled={creating}>
+    <Button variant="primary" onClick={() => void create()}>
       <PlusIcon />
-      {creating ? t("common.working") : t("notes.new")}
+      {t("notes.new")}
     </Button>
   )
-  const filtering = !!(q || category || tags.length || view !== "all")
-  const clearFilters = () => {
-    setSearch("")
-    setQ("")
-    pickCategory("")
-    setTags([])
-    setView("all")
-    setSort("updated")
-  }
-  const groupLabel = (g: NoteGroup<Note>) =>
-    g.kind === "calendarMonth" && g.month !== undefined
-      ? new Date(g.year ?? 2000, g.month, 1).toLocaleDateString(locale === "ar" ? "ar" : "en", { month: "long" })
-      : g.kind === "year"
-        ? g.year ? String(g.year) : t("notes.grp.earlier")
-        : g.kind === "all"
-          ? ""
-          : t(`notes.grp.${g.kind}`)
-
-  const sortLabel: Record<Sort, string> = {
-    updated: t("notes.sortUpdated"),
-    created: t("notes.sortCreated"),
-    title: t("notes.sortTitle"),
-  }
 
   const iconBtn = (on: boolean) =>
     cn("size-8 shrink-0 text-muted-foreground hover:text-foreground", on && "bg-[color-mix(in_oklab,var(--nq-action)_18%,transparent)] text-foreground")
@@ -286,174 +262,60 @@ export default function NotesPage() {
       <SectionHeader micro={<Ltr>{ns}</Ltr>} title={t("nav.notes")} action={newButton} />
 
       <div className="grid border-t border-border lg:grid-cols-[24rem_1fr]">
-        {/* List pane — the desktop's notes column */}
+        {/* List pane: Nasaq's NotesView (search, sort, list/board, scope chips for categories and tags,
+            pinned/archive, the ⋯ and context menus). Categories are its notebooks. */}
         <aside
           className={cn(
             "flex min-w-0 flex-col lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:border-e lg:border-border",
             selected && "hidden lg:flex",
           )}
         >
-          <div className="flex flex-col gap-2 px-3 pt-3 pb-2">
-            <div className="flex items-center gap-1">
-              <div className="relative min-w-0 flex-1">
-                <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  dir="auto"
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") setSearch("")
-                  }}
-                  placeholder={t("notes.search")}
-                  aria-label={t("notes.search")}
-                  className="h-8 rounded-md border-transparent bg-[color-mix(in_oklab,var(--nq-fg)_6%,transparent)] ps-8 text-[14px] shadow-none"
-                />
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("notes.sort")} title={sortLabel[sort]} className={iconBtn(sort !== "updated")} />}>
-                  <ArrowDownUpIcon />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-44">
-                  {(["updated", "created", "title"] as Sort[]).map((s) => (
-                    <DropdownMenuItem key={s} onClick={() => setSort(s)}>
-                      <CheckIcon className={cn(sort === s ? "opacity-100" : "opacity-0")} />
-                      {sortLabel[s]}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Category and tags: a filter popover, so the column stays one quiet row. */}
-              <Popover>
-                <PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("notes.filters")} title={t("notes.filters")} className={iconBtn(!!(category || tags.length))} />}>
-                  <SlidersHorizontalIcon />
-                </PopoverTrigger>
-                <PopoverContent align="end" className="flex w-72 flex-col gap-2 p-3">
-                  <CategoryPicker namespace={ns} value={category} onChange={(c) => pickCategory(c)} allowAll className="w-full" />
-                  <TagCombobox
-                    namespace={ns}
-                    selected={tags}
-                    onToggle={(tag) => setTags((cur) => (cur.includes(tag) ? cur.filter((x) => x !== tag) : [...cur, tag]))}
-                    onClear={() => setTags([])}
-                    trigger={
-                      <Button variant="secondary" size="sm" className="w-full justify-start font-normal text-muted-foreground">
-                        {tags.length ? tags.join(", ") : t("notes.tags")}
-                      </Button>
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-
-              {/* List vs tree (MH-217): the tree is rooted on the brain's graph spine. */}
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-pressed={pane === "tree"}
-                aria-label={t("tree.title")}
-                title={t("tree.title")}
-                onClick={() => setPane((v) => (v === "tree" ? "list" : "tree"))}
-                className={iconBtn(pane === "tree")}
-              >
-                <NetworkIcon />
-              </Button>
-            </div>
-
-            {/* All · Pinned · Archived */}
-            <div role="radiogroup" aria-label={t("nav.notes")} className="flex rounded-lg bg-[color-mix(in_oklab,var(--nq-fg)_6%,transparent)] p-0.5">
-              {(["all", "pinned", "archived"] as View[]).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="radio"
-                  aria-checked={view === v}
-                  onClick={() => setView(v)}
-                  className={cn(
-                    "h-7 flex-1 rounded-md text-[13px] font-medium transition-colors",
-                    view === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {t(`notes.view.${v}`)}
-                </button>
-              ))}
-            </div>
-
-            {category || tags.length ? (
-              <div className="flex flex-wrap items-center gap-1">
-                {category ? (
-                  <button type="button" onClick={() => pickCategory("")} className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] px-1.5 text-[12.5px] text-foreground">
-                    <bdi>{category}</bdi>
-                    <XIcon className="size-3 text-muted-foreground" />
-                  </button>
-                ) : null}
-                {tags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => setTags((cur) => cur.filter((x) => x !== tag))}
-                    className="inline-flex h-6 items-center gap-1 rounded-md bg-[color-mix(in_oklab,var(--nq-fg)_7%,transparent)] px-1.5 text-[12.5px] text-foreground"
-                  >
-                    #<bdi>{tag}</bdi>
-                    <XIcon className="size-3 text-muted-foreground" />
-                  </button>
-                ))}
-              </div>
-            ) : null}
+          <div className="flex items-center justify-end gap-1 px-3 pt-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-pressed={pane === "tree"}
+              aria-label={t("tree.title")}
+              title={t("tree.title")}
+              onClick={() => setPane((v) => (v === "tree" ? "list" : "tree"))}
+              className={iconBtn(pane === "tree")}
+            >
+              <NetworkIcon />
+            </Button>
           </div>
-
           <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
             {pane === "tree" ? (
               <NoteTree
                 namespace={ns}
                 onSelect={(entity) => {
-                  // The tree speaks in entity names; the list speaks in note
-                  // ids. Searching the name is the honest bridge — an entity
-                  // need not BE a note, so there may be nothing to select.
+                  // The tree speaks in entity names; the list speaks in note ids: search the name.
                   setPane("list")
                   setSearch(entity)
                 }}
               />
-            ) : list.error ? (
-              <ErrorState error={list.error} />
-            ) : !pages ? (
-              <LoadingRows rows={6} />
-            ) : notes.length === 0 ? (
-              filtering ? (
-                <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-                  <p>{t("notes.noMatches")}</p>
-                  <button type="button" onClick={clearFilters} className="mt-2 underline underline-offset-4 hover:text-foreground">
-                    {t("notes.clearFilters")}
-                  </button>
-                </div>
-              ) : (
-                <EmptyState title={t("notes.emptyTitle")} body={t("notes.emptyBody")} action={newButton} />
-              )
             ) : (
-              groups.map((g) => (
-                <section key={g.key} aria-label={groupLabel(g) || undefined}>
-                  {g.kind !== "all" ? (
-                    <h3 className="sticky top-0 z-10 bg-background/95 px-2.5 pt-3 pb-1 text-[12.5px] font-semibold text-muted-foreground backdrop-blur-sm">
-                      {groupLabel(g)}
-                    </h3>
-                  ) : null}
-                  <ol className="flex flex-col gap-px">
-                    {g.notes.map((n) => (
-                      <li key={n.id}>
-                        <NoteListRow
-                          note={n}
-                          selected={selected === n.id}
-                          onSelect={() => select(n.id)}
-                          onAction={(a) => void rowAction(n, a)}
-                          onAppearance={(patch) => void setAppearance(n, patch)}
-                        />
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              ))
+              <NotesView
+                notes={nqNotes}
+                notebooks={notebooks}
+                activeId={selected}
+                onOpen={select}
+                onCreate={async () => {
+                  const id = await create()
+                  return id ? { id } : undefined
+                }}
+                query={search}
+                onQueryChange={setSearch}
+                scope={scope}
+                onScopeChange={pickScope}
+                loading={!pages}
+                error={list.error ? <ErrorState error={list.error} /> : undefined}
+                onRetry={() => void list.mutate()}
+                onUpdate={updateNote}
+                onDelete={deleteNote}
+                className="rounded-xl"
+              />
             )}
-            {hasMore ? (
+            {pane === "list" && hasMore ? (
               <div ref={sentinel} className="flex justify-center px-6 py-3">
                 <Button variant="ghost" size="sm" disabled={list.isValidating} onClick={() => void list.setSize((s) => s + 1)}>
                   {list.isValidating ? <Loader2Icon className="animate-spin" /> : null}
