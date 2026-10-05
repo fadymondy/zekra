@@ -93,6 +93,8 @@ github.com/chromedp/sysutil v1.1.0 h1:PUFNv5EcprjqXZD9nJb9b/c9ibAbxiYo4exNWZyipw
 github.com/chromedp/sysutil v1.1.0/go.mod h1:WiThHUdltqCNKGc4gaU50XgYjwjYIhKWoHGPTUfWTJ8=
 github.com/circlexo/circlexo-go v0.1.1 h1:8eaNPmDozUNNXOSeNHH5F+z58Eq8KikfQhwYt7W25ak=
 github.com/circlexo/circlexo-go v0.1.1/go.mod h1:8owk1RIM0vdyUFE1kqqQ1ZGhof7uQ7xAxm5AaW8xMGQ=
+github.com/circlexo/circlexo-go v0.2.0 h1:pLAQQ+1QK5erWrfx8oSu6jT5Dac6KHuvoOxSNNCXmRA=
+github.com/circlexo/circlexo-go v0.2.0/go.mod h1:8owk1RIM0vdyUFE1kqqQ1ZGhof7uQ7xAxm5AaW8xMGQ=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNUA=
