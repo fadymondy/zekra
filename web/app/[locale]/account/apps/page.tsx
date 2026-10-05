@@ -2,8 +2,8 @@
 
 // Connected apps: the MCP clients (Claude.ai, ChatGPT, …) the user approved on the OAuth consent
 // screen, with the brains each may use. Contract: plugins/brain/internal/brain/oauth.go (listGrants).
+import { openConnectAgent } from "@/components/shell/connect-agent"
 import { useState } from "react"
-import Link from "next/link"
 import useSWR from "swr"
 import { AppWindowIcon, ChevronDownIcon, PlugZapIcon } from "lucide-react"
 import { Badge, Button, Collapsible, CollapsiblePanel, CollapsibleTrigger, toast } from "@fadymondy/nasaq/web"
@@ -107,7 +107,7 @@ export default function ConnectedAppsPage() {
   }
 
   const connectCta = (
-    <Button variant="primary" nativeButton={false} render={<Link href={`/${locale}/connect`} />}>
+    <Button variant="primary" onClick={openConnectAgent}>
       <PlugZapIcon />
       {t("apps.connectCta")}
     </Button>

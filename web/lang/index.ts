@@ -37,8 +37,6 @@ import oauthEn from "./oauth.en.json"
 import oauthAr from "./oauth.ar.json"
 import brainSettingsEn from "./brainSettings.en.json"
 import brainSettingsAr from "./brainSettings.ar.json"
-import connectEn from "./connect.en.json"
-import connectAr from "./connect.ar.json"
 import notesEn from "./notes.en.json"
 import notesAr from "./notes.ar.json"
 import appsEn from "./apps.en.json"
@@ -52,7 +50,6 @@ type Dict = Record<string, string>
 export const EN: Dict = {
   ...oauthEn,
   ...brainSettingsEn,
-  ...connectEn,
   ...notesEn,
   ...appsEn,
   ...presentationsEn,
@@ -77,7 +74,6 @@ export const EN: Dict = {
 export const AR: Dict = {
   ...oauthAr,
   ...brainSettingsAr,
-  ...connectAr,
   ...notesAr,
   ...appsAr,
   ...presentationsAr,

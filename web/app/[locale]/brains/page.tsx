@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 
 import { brainName } from "@/components/brains/brain-cells";
+import { resolveColor } from "@/lib/brain-profile";
 import {
   DeleteBrainDialog,
   NewBrainDialog,
@@ -95,7 +96,8 @@ function HomeBrainCard({
           id: b.namespace,
           name: brainName(b),
           description: b.description || undefined,
-          avatar: b.imageUrl || undefined,
+          avatar: b.imageUrl || b.icon || undefined,
+          color: b.colorHex || resolveColor(b.color) || undefined,
           status: "ready",
           visibility: "private",
           memories: b.memories,
@@ -162,7 +164,7 @@ export default function HomePage() {
   const activeCount = all.filter((b) => isActive(b.lastAt)).length;
   const brains = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return all.filter(
+    const rows = all.filter(
       (b) =>
         (filter === "all" || isActive(b.lastAt)) &&
         (!term ||
@@ -170,6 +172,8 @@ export default function HomePage() {
             s.toLowerCase().includes(term),
           )),
     );
+    // The six most recently active; a search reaches every brain.
+    return term ? rows : rows.slice(0, 6);
   }, [all, search, filter]);
 
   const last = getLastBrain();
@@ -349,24 +353,23 @@ export default function HomePage() {
       </section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Attention
-          className="rounded-xl"
-          title={t("home.attention.title")}
-          headingLevel={2}
-          loading={gaps.isLoading}
-          empty={t("home.attention.empty")}
-          items={(gaps.data ?? []).map((g) => ({
-            id: String(g.id),
-            title: g.query,
-            description: nameOf(g.namespace),
-            tone: "warning" as const,
-            icon: CircleHelpIcon,
-            count: g.hits,
-            time: timeAgo(g.lastSeen),
-            dateTime: g.lastSeen,
-            href: `/${locale}/b/${encodeURIComponent(g.namespace)}/gaps`,
-          }))}
-        />
+        <Panel title={t("home.attention.title")}>
+          <Attention
+            loading={gaps.isLoading}
+            empty={t("home.attention.empty")}
+            items={(gaps.data ?? []).map((g) => ({
+              id: String(g.id),
+              title: g.query,
+              description: nameOf(g.namespace),
+              tone: "warning" as const,
+              icon: CircleHelpIcon,
+              count: g.hits,
+              time: timeAgo(g.lastSeen),
+              dateTime: g.lastSeen,
+              href: `/${locale}/b/${encodeURIComponent(g.namespace)}/gaps`,
+            }))}
+          />
+        </Panel>
 
         <Panel title={t("home.activity.title")}>
           {activity.data?.length ? (

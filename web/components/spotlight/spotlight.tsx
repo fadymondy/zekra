@@ -1,5 +1,6 @@
 "use client"
 
+import { openConnectAgent } from "@/components/shell/connect-agent"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
@@ -77,7 +78,7 @@ function SpotlightCommands({ namespace }: { namespace?: string }) {
     const go = (href: string) => () => router.push(href)
     const base: Command[] = [
       { id: "zekra.go.brains", section: "navigation", label: t("nav.brains"), icon: BrainIcon, perform: go(`/${locale}/brains`) },
-      { id: "zekra.go.connect", section: "navigation", label: t("nav.connect"), icon: PlugZapIcon, perform: go(`/${locale}/connect`) },
+      { id: "zekra.go.connect", section: "navigation", label: t("nav.connect"), icon: PlugZapIcon, perform: openConnectAgent },
       { id: "zekra.go.account", section: "navigation", label: t("nav.account"), icon: UserIcon, perform: go(`/${locale}/account`) },
       { id: "zekra.go.security", section: "navigation", label: t("nav.security"), icon: ShieldCheckIcon, perform: go(`/${locale}/account/security`) },
     ]

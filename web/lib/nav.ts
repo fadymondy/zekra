@@ -1,6 +1,6 @@
 import {
   ActivityIcon, AppWindowIcon, BellIcon, BrainIcon, ChartColumnIcon, CircleHelpIcon, DatabaseIcon, DownloadIcon,
-  HouseIcon, KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PlugZapIcon, PresentationIcon, StickyNoteIcon,
+  HouseIcon, KeyRoundIcon, LayoutGridIcon, LinkIcon, LockIcon, MessagesSquareIcon, NetworkIcon, PlugIcon, PresentationIcon, StickyNoteIcon,
   RocketIcon, SearchIcon, ShieldCheckIcon, TypeIcon, UserIcon, UsersIcon, TrashIcon, SettingsIcon,
 } from "lucide-react"
 
@@ -33,7 +33,6 @@ export function brainNav(namespace: string): NavGroup[] {
         { href: `${b}/settings`, label: "brainSettings.nav", icon: SettingsIcon },
         { href: `${b}/secrets`, label: "nav.secrets", icon: LockIcon },
         { href: `${b}/permissions`, label: "nav.permissions", icon: KeyRoundIcon },
-        { href: "/connect", label: "nav.connect", icon: PlugZapIcon },
       ],
     },
   ]

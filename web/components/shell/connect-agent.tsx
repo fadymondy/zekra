@@ -13,6 +13,13 @@ import { useTranslations } from "@/lib/i18n"
 import { brandName } from "@/lib/brand-name"
 import { isAdmin, useMe } from "@/lib/queries"
 
+const OPEN_EVENT = "zekra:connect-agent"
+
+/** Opens the "Connect your agent" sheet from anywhere (Spotlight, the apps page…). */
+export function openConnectAgent() {
+  window.dispatchEvent(new Event(OPEN_EVENT))
+}
+
 function useOrigin(): string {
   const [origin, setOrigin] = useState("")
   useEffect(() => setOrigin(window.location.origin), [])
@@ -63,12 +70,20 @@ function MintKeyForm({ onMinted }: { onMinted: (token: string) => void }) {
 export function ConnectAgent() {
   const { t, locale } = useTranslations()
   const origin = useOrigin()
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const show = () => setOpen(true)
+    window.addEventListener(OPEN_EVENT, show)
+    return () => window.removeEventListener(OPEN_EVENT, show)
+  }, [])
   if (!origin) return null
   const mcpUrl = process.env.NEXT_PUBLIC_MCP_URL || `${origin}/api/mcp`
   const product = brandName(locale)
 
   return (
     <McpConnectSheet
+      open={open}
+      onOpenChange={setOpen}
       types={[
         {
           value: "mcp",
