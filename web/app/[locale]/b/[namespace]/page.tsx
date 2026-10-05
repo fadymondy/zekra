@@ -335,7 +335,7 @@ export default function BrainOverviewPage() {
                 <p className="text-sm">{graph.isLoading ? t("graph.loading") : t("graph.empty")}</p>
               </div>
             ) : focusReq === undefined ? null : (
-              <NasaqBrainGraph data={graph.data!} base={base} focusId={focusReq?.id} focusNoteId={focusReq?.noteId} height={620} />
+              <NasaqBrainGraph data={graph.data!} base={base} brain={ns} focusId={focusReq?.id} focusNoteId={focusReq?.noteId} height={620} />
             )}
           </div>
         </Panel>
