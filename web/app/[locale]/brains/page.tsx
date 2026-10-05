@@ -2,22 +2,39 @@
 
 // Home: every brain's status at a glance. A greeting, the headline numbers, an "ask your memory"
 // box, the brains grid, and what needs attention / what happened lately / what the brains know.
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Skeleton, StatCard, StatGrid, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
+import {
+  Attention,
+  BrainCard,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Chip,
+  ChipGroup,
+  Input,
+  Progress,
+  Skeleton,
+  StatCard,
+  StatGrid,
+  Timeline,
+  TimelineItem,
+} from "@fadymondy/nasaq/web"
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import useSWR from "swr"
-import { ActivityIcon, BrainIcon, CircleHelpIcon, DatabaseIcon, NetworkIcon, PlusIcon, SearchIcon, SparklesIcon } from "lucide-react"
+import { ActivityIcon, BrainIcon, CircleHelpIcon, DatabaseIcon, NetworkIcon, PlusIcon, SearchIcon, SparklesIcon, Trash2Icon } from "lucide-react"
 
-import { BrainCard, brainName } from "@/components/brains/brain-cells"
+import { brainName } from "@/components/brains/brain-cells"
 import { DeleteBrainDialog, NewBrainDialog } from "@/components/brains/brain-dialogs"
 import { EmptyState, ErrorState } from "@/components/states"
-import { brainApi } from "@/lib/api"
+import { brainApi, type NamespaceInfo } from "@/lib/api"
 import { useActivity, useStats } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
 import { getLastBrain } from "@/lib/last-brain"
-import { useBrains, useMe } from "@/lib/queries"
+import { useBrain, useBrains, useMe } from "@/lib/queries"
 import { useDocumentTitle } from "@/lib/title"
 
 type Filter = "all" | "active"
@@ -33,12 +50,46 @@ const isActive = (lastAt?: string | null) => !!lastAt && Date.now() - new Date(l
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Card className="min-w-0">
+    <Card className="min-w-0 rounded-xl">
       <CardHeader>
         <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  )
+}
+
+/** Nasaq's BrainCard for one brain; the detail call fills in sources and recalls. */
+function HomeBrainCard({ b, onDelete }: { b: NamespaceInfo; onDelete: () => void }) {
+  const { t, locale } = useTranslations()
+  const { data: d } = useBrain(b.namespace)
+  const href = `/${locale}/b/${encodeURIComponent(b.namespace)}`
+  return (
+    <BrainCard
+      className="rounded-xl"
+      brain={{
+        id: b.namespace,
+        name: brainName(b),
+        description: b.description || undefined,
+        avatar: b.imageUrl || undefined,
+        status: "ready",
+        visibility: "private",
+        memories: b.memories,
+        sources: d ? Object.keys(d.sources ?? {}).length : 0,
+        chats: d?.recalls,
+        lastActive: b.lastAt || null,
+      }}
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <Button size="sm" variant="secondary" render={<Link href={href} />}>
+            {t("brains.open")}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onDelete} aria-label={t("brains.menu.delete")}>
+            <Trash2Icon />
+          </Button>
+        </div>
+      }
+    />
   )
 }
 
@@ -119,7 +170,7 @@ export default function HomePage() {
       </StatGrid>
 
       {scope ? (
-        <Card>
+        <Card className="rounded-xl">
           <CardContent className="flex flex-col gap-3 pt-6">
             <div className="flex items-center gap-2 text-sm font-medium">
               <SparklesIcon className="size-4 text-primary" />
@@ -138,11 +189,13 @@ export default function HomePage() {
             </form>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {t("home.ask.try")}
-              {SUGGESTIONS.map((k) => (
-                <Button key={k} size="sm" variant="secondary" className="rounded-full" onClick={() => ask(t(k))}>
-                  {t(k)}
-                </Button>
-              ))}
+              <ChipGroup aria-label={t("home.ask.try")} value="" onValueChange={(k) => ask(t(k))}>
+                {SUGGESTIONS.map((k) => (
+                  <Chip key={k} value={k}>
+                    {t(k)}
+                  </Chip>
+                ))}
+              </ChipGroup>
             </div>
           </CardContent>
         </Card>
@@ -150,14 +203,14 @@ export default function HomePage() {
 
       <section className="flex flex-col gap-3" aria-label={t("brains.title")}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <ToggleGroup variant="outline" value={[filter]} onValueChange={(v: string[]) => v[0] && setFilter(v[0] as Filter)}>
-            <Toggle value="all">
-              {t("home.filter.all")} <Badge variant="neutral">{formatNumber(all.length)}</Badge>
-            </Toggle>
-            <Toggle value="active">
-              {t("home.filter.active")} <Badge variant="neutral">{formatNumber(activeCount)}</Badge>
-            </Toggle>
-          </ToggleGroup>
+          <ChipGroup aria-label={t("brains.title")} value={filter} onValueChange={(v) => setFilter(v as Filter)}>
+            <Chip value="all">
+              {t("home.filter.all")} · {formatNumber(all.length)}
+            </Chip>
+            <Chip value="active">
+              {t("home.filter.active")} · {formatNumber(activeCount)}
+            </Chip>
+          </ChipGroup>
           <div className="relative w-full sm:max-w-xs">
             <SearchIcon className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -186,55 +239,47 @@ export default function HomePage() {
             action={search ? undefined : newButton}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {brains.map((b) => (
-              <BrainCard key={b.namespace} b={b} onDelete={() => setDeleteNs(b.namespace)} />
+              <HomeBrainCard key={b.namespace} b={b} onDelete={() => setDeleteNs(b.namespace)} />
             ))}
           </div>
         )}
       </section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Panel title={t("home.attention.title")}>
-          {gaps.data?.length ? (
-            <ul className="flex flex-col divide-y divide-border">
-              {gaps.data.map((g) => (
-                <li key={g.id}>
-                  <Link href={`/${locale}/b/${encodeURIComponent(g.namespace)}/gaps`} className="flex items-start gap-2 py-2 text-sm hover:text-primary">
-                    <CircleHelpIcon className="mt-0.5 size-4 shrink-0 text-nq-warning" />
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="line-clamp-1">{g.query}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {nameOf(g.namespace)} · {timeAgo(g.lastSeen)}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Empty>{gaps.isLoading ? "…" : t("home.attention.empty")}</Empty>
-          )}
-        </Panel>
+        <Attention
+          className="rounded-xl"
+          title={t("home.attention.title")}
+          headingLevel={2}
+          loading={gaps.isLoading}
+          empty={t("home.attention.empty")}
+          items={(gaps.data ?? []).map((g) => ({
+            id: String(g.id),
+            title: g.query,
+            description: nameOf(g.namespace),
+            tone: "warning" as const,
+            icon: CircleHelpIcon,
+            count: g.hits,
+            time: timeAgo(g.lastSeen),
+            dateTime: g.lastSeen,
+            href: `/${locale}/b/${encodeURIComponent(g.namespace)}/gaps`,
+          }))}
+        />
 
         <Panel title={t("home.activity.title")}>
           {activity.data?.length ? (
-            <ul className="flex flex-col divide-y divide-border">
+            <Timeline>
               {activity.data.map((a) => (
-                <li key={a.id} className="flex items-center gap-2 py-2 text-sm">
-                  <span
-                    className={`size-2 shrink-0 rounded-full ${a.outcome === "hit" ? "bg-nq-success" : a.outcome === "error" ? "bg-nq-danger" : "bg-muted-foreground"}`}
-                  />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="line-clamp-1">
-                      {a.op} · {nameOf(a.namespace)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{a.agentId || "—"}</span>
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(a.ts)}</span>
-                </li>
+                <TimelineItem
+                  key={a.id}
+                  icon={<ActivityIcon className={a.outcome === "hit" ? "text-nq-success" : a.outcome === "error" ? "text-nq-danger" : undefined} />}
+                  title={`${a.op} · ${nameOf(a.namespace)}`}
+                  description={a.agentId || "—"}
+                  time={a.ts}
+                />
               ))}
-            </ul>
+            </Timeline>
           ) : (
             <Empty>{activity.isLoading ? "…" : t("home.activity.empty")}</Empty>
           )}
@@ -247,19 +292,14 @@ export default function HomePage() {
                 .sort((a, b) => b.memories - a.memories)
                 .slice(0, 6)
                 .map((b) => (
-                  <li key={b.namespace} className="text-sm">
-                    <div className="mb-1 flex justify-between gap-2">
-                      <Link href={`/${locale}/b/${encodeURIComponent(b.namespace)}`} className="line-clamp-1 hover:text-primary">
-                        {brainName(b)}
-                      </Link>
-                      <span className="tabular-nums text-muted-foreground">{formatNumber(b.memories)}</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${(b.memories / maxMemories) * 100}%`, background: b.colorHex || undefined }}
-                      />
-                    </div>
+                  <li key={b.namespace}>
+                    <Progress
+                      size="sm"
+                      value={(b.memories / maxMemories) * 100}
+                      label={<Link href={`/${locale}/b/${encodeURIComponent(b.namespace)}`} className="hover:text-primary">{brainName(b)}</Link>}
+                      showValue
+                      valueText={formatNumber(b.memories)}
+                    />
                   </li>
                 ))}
             </ul>
