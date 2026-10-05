@@ -76,6 +76,7 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 	s.RegisterTwoFactor(post, get)
 	s.RegisterIdentities(k.Router)
 	RegisterAreaAPI(api, s)
+	s.RegisterAvatar(k.Router, avatarBlobs(k))
 	RegisterAdminAPI(api, s)
 
 	if k.Hooks != nil {

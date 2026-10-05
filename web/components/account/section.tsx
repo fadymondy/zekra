@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react"
 
-import { SectionTitle } from "@/components/page"
+import { Panel } from "@/components/page"
 import { cn } from "@/lib/utils"
 
 /** One account block: a second-level title, an optional hint, then the body between hairlines. */
@@ -20,10 +20,10 @@ export function AccountSection({
   className?: string
 }) {
   return (
-    <section>
-      <SectionTitle action={action}>{title}</SectionTitle>
-      {description ? <p className="text-nq-fg-body leading-relaxed -mt-1 max-w-2xl px-6 pb-3 text-sm text-pretty">{description}</p> : null}
-      <div className={cn("border-y border-border px-6 py-6", className)}>{children}</div>
+    <section className="px-4 pt-4 md:px-6">
+      <Panel title={title} hint={description} action={action}>
+        <div className={cn("pt-1", className)}>{children}</div>
+      </Panel>
     </section>
   )
 }

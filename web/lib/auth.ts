@@ -29,7 +29,7 @@ export class AuthError extends ApiError {
 
 // Unsafe methods are CSRF-guarded server-side (togo-framework/auth security.go). A fresh token is
 // read for every call so a sign-in (which rotates the session) never sends a stale one.
-async function csrfToken(): Promise<string> {
+export async function csrfToken(): Promise<string> {
   const res = await fetch("/api/auth/csrf", { credentials: "same-origin", cache: "no-store" })
   const data = (await res.json().catch(() => ({}))) as { csrf_token?: string }
   return data.csrf_token ?? ""

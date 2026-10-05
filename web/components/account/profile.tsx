@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Field, FieldDescription, FieldLabel, Input } from "@fadymondy/nasaq/web"
+import { AvatarUpload, Badge, Button, Field, FieldDescription, FieldLabel, Input } from "@fadymondy/nasaq/web"
 
 import Link from "next/link"
 import { useMemo, useState, type FormEvent } from "react"
@@ -9,7 +9,7 @@ import useSWR, { useSWRConfig } from "swr"
 import { MIN_PASSWORD } from "@/components/auth/parts"
 import { AccountSection, StatusLine } from "@/components/account/section"
 import { LoadingRows } from "@/components/states"
-import { getProfile, saveProfile, type AccountProfile } from "@/lib/account"
+import { getProfile, removeAvatar, saveProfile, uploadAvatar, type AccountProfile } from "@/lib/account"
 import { auth, authMessage } from "@/lib/auth"
 import { useTranslations } from "@/lib/i18n"
 import { useMe } from "@/lib/queries"
@@ -32,9 +32,7 @@ export function ProfileSection() {
   return (
     <AccountSection title={t("account.profile.title")} description={t("account.profile.hint")}>
       {profile.isLoading ? (
-        <div className="-mx-6 -my-6">
-          <LoadingRows rows={3} />
-        </div>
+        <LoadingRows rows={3} />
       ) : profile.error ? (
         <div className="flex flex-col gap-2">
           {me.data?.email ? (
@@ -57,7 +55,6 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
   const { t } = useTranslations()
   const { mutate } = useSWRConfig()
   const [name, setName] = useState(profile.name ?? "")
-  const [avatar, setAvatar] = useState(profile.avatar ?? "")
   const [timezone, setTimezone] = useState(profile.timezone ?? "")
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
@@ -72,7 +69,7 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
     setBusy(true)
     setNotice(null)
     try {
-      const saved = await saveProfile({ name: name.trim(), avatar: avatar.trim(), timezone })
+      const saved = await saveProfile({ name: name.trim(), timezone })
       await mutate("/api/me/account/profile", saved, { revalidate: false })
       await mutate("/api/auth/me")
       setNotice({ ok: true, text: t("account.profile.saved") })
@@ -84,22 +81,43 @@ function ProfileForm({ profile }: { profile: AccountProfile }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="max-w-md">
-      <div className="grid gap-4">
-        <Field>
-          <FieldLabel>{t("auth.email")}</FieldLabel>
-          <p dir="ltr" className="text-sm text-foreground rtl:text-end">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl bg-nq-surface-soft p-4">
+        <AvatarUpload
+          name={profile.name || profile.email}
+          src={profile.avatar || undefined}
+          maxSize={2 * 1024 * 1024}
+          onChange={async (file) => {
+            const url = await uploadAvatar(file)
+            await mutate("/api/me/account/profile", { ...profile, avatar: url }, { revalidate: false })
+            await mutate("/api/auth/me")
+          }}
+          onRemove={
+            profile.avatar
+              ? async () => {
+                  await removeAvatar()
+                  await mutate("/api/me/account/profile", { ...profile, avatar: "" }, { revalidate: false })
+                  await mutate("/api/auth/me")
+                }
+              : undefined
+          }
+        />
+        <div className="min-w-0">
+          <p dir="auto" className="truncate text-base font-medium text-foreground">
+            {profile.name || profile.email}
+          </p>
+          <p dir="ltr" className="truncate text-sm text-muted-foreground rtl:text-end">
             {profile.email}
           </p>
-          <FieldDescription>{profile.verified ? t("account.profile.verified") : t("account.profile.unverified")}</FieldDescription>
-        </Field>
+          <Badge variant={profile.verified ? "success" : "outline"} className="mt-1.5">
+            {profile.verified ? t("account.profile.verified") : t("account.profile.unverified")}
+          </Badge>
+        </div>
+      </div>
+      <div className="grid max-w-md gap-4">
         <Field>
           <FieldLabel htmlFor="name">{t("account.profile.name")}</FieldLabel>
           <Input id="name" dir="auto" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="avatar">{t("account.profile.avatar")}</FieldLabel>
-          <Input id="avatar" dir="ltr" type="url" placeholder="https://…" value={avatar} onChange={(e) => setAvatar(e.target.value)} />
         </Field>
         <Field>
           <FieldLabel htmlFor="timezone">{t("account.profile.timezone")}</FieldLabel>

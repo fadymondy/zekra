@@ -121,7 +121,7 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			return strings.TrimSpace(*v)
 		}
 		name, avatar, tz := pick(in.Body.Name, cur.Name), pick(in.Body.Avatar, cur.Avatar), pick(in.Body.Timezone, cur.Timezone)
-		if avatar != "" {
+		if avatar != "" && (avatarKey(avatar) == "" || avatar != cur.Avatar) {
 			if u, err := url.Parse(avatar); err != nil || u.Scheme != "https" || u.Host == "" {
 				return nil, huma.Error422UnprocessableEntity("the avatar must be an https address")
 			}

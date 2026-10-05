@@ -1,7 +1,7 @@
 // The signed-in account's self-service API, ported from fadymondy.com-v2 (lib/api/account-area.ts,
 // lib/api/account.ts, lib/api/identities.ts). Every call acts on the session's account; nothing
 // takes an account id. Errors are AuthError (lib/auth.ts), so pages translate them with authMessage.
-import { authRequest, type Provider } from "@/lib/auth"
+import { authRequest, csrfToken, type Provider } from "@/lib/auth"
 
 // ── Profile ───────────────────────────────────────────────────────────────
 
@@ -15,8 +15,27 @@ export type AccountProfile = {
 }
 
 export const getProfile = () => authRequest<AccountProfile>("/api/me/account/profile")
-export const saveProfile = (p: Pick<AccountProfile, "name" | "avatar" | "timezone">) =>
+export const saveProfile = (p: Partial<Pick<AccountProfile, "name" | "avatar" | "timezone">>) =>
   authRequest<AccountProfile>("/api/me/account/profile", "PUT", p)
+
+/** Uploads a cropped profile photo; resolves to its URL. */
+export async function uploadAvatar(file: File): Promise<string> {
+  const body = new FormData()
+  body.append("file", file)
+  const res = await fetch("/api/me/account/avatar", {
+    method: "POST",
+    body,
+    headers: { "X-CSRF-Token": await csrfToken() },
+    credentials: "same-origin",
+  })
+  const data = (await res.json().catch(() => ({}))) as { avatar?: string; error?: string | { message?: string }; message?: string }
+  if (!res.ok) {
+    const e = data.error
+    throw new Error((typeof e === "object" ? e?.message : e) || data.message || res.statusText)
+  }
+  return data.avatar ?? ""
+}
+export const removeAvatar = () => authRequest<{ avatar: string }>("/api/me/account/avatar", "DELETE")
 
 // ── Notification preferences ──────────────────────────────────────────────
 
