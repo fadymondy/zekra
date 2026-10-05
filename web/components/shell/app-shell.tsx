@@ -8,7 +8,7 @@
 // command palette) and the user menu; the header carries only the notification center.
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { type ComponentType, type MouseEvent, type ReactNode, useEffect, useState } from "react"
+import { type ComponentType, type MouseEvent, type ReactNode } from "react"
 import {
   AppHeader,
   AppMain,
@@ -55,11 +55,16 @@ export type NavGroup = { label?: string; items: NavItem[] }
 function Brand() {
   const { locale } = useTranslations()
   const collapsed = useSidebarCollapsed()
-  // Read after mount: the last brain lives in localStorage, which the server render cannot see.
-  const [home, setHome] = useState(`/${locale}/brains`)
-  useEffect(() => setHome(homeHref(locale)), [locale])
+  const router = useRouter()
+  // The href stays the server-renderable /brains; a plain click goes to the last used brain
+  // (localStorage), so server and client markup always match.
+  function onClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    router.push(homeHref(locale))
+  }
   return (
-    <Link href={home} className="flex h-8 items-center gap-2.5 px-1" aria-label={brandName(locale)}>
+    <Link href={`/${locale}/brains`} onClick={onClick} className="flex h-8 items-center gap-2.5 px-1" aria-label={brandName(locale)}>
       <CubeMark mark={ZEKRA_MARK} size={24} />
       {collapsed ? null : <span className="text-label font-medium text-foreground">{brandName(locale)}</span>}
     </Link>
