@@ -43,9 +43,9 @@ export function SourceRow({ s, onChanged }: { s: Datasource; onChanged: () => vo
   }
 
   return (
-    <li className="space-y-3 px-6 py-3">
+    <li className="space-y-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-nq-hover">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center border border-border bg-card text-nq-action">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[color-mix(in_oklab,var(--nq-action)_14%,transparent)] text-nq-action">
           <Icon className="size-4" />
         </span>
         <div className="min-w-0 flex-1">

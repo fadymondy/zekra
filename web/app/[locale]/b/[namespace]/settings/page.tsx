@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DownloadIcon, ImageIcon, Loader2Icon, SaveIcon, Trash2Icon, UploadIcon, UserPlusIcon } from "lucide-react"
-import { Badge, Button, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, toast } from "@fadymondy/nasaq/web"
+import { Alert, Badge, Button, Field, FieldDescription, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, toast } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { BrainAvatar } from "@/components/brains/brain-cells"
@@ -17,7 +17,7 @@ import { GitHubSync } from "@/components/brains/github-sync"
 import { toastError } from "@/components/admin/toast-error"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Ltr } from "@/components/copy-field"
-import { HatchBand, SectionHeader } from "@/components/page"
+import { PageBody, SectionHeader } from "@/components/page"
 import { ShareDomains } from "@/components/presentations/admin/share-domains"
 import { ErrorState, LoadingRows } from "@/components/states"
 import { ApiError, brainApi } from "@/lib/api"
@@ -47,7 +47,7 @@ const isBrainKey = (key: unknown) => {
 /** One settings block: title + hint on the start side, content on the end side. */
 function Section({ id, title, hint, children, danger }: { id: string; title: string; hint?: ReactNode; children: ReactNode; danger?: boolean }) {
   return (
-    <section aria-labelledby={id} className="grid gap-6 border-t border-border px-6 py-8 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+    <section aria-labelledby={id} className={cn("grid gap-6 rounded-xl border bg-card p-5 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]", danger ? "border-nq-danger/40" : "border-border")}>
       <div>
         <h2 id={id} className={cn("text-base font-medium", danger && "text-nq-danger-text")}>
           {title}
@@ -78,18 +78,15 @@ export default function BrainSettingsPage() {
   return (
     <>
       <SectionHeader micro={<Ltr>{ns}</Ltr>} title={t("brainSettings.title")} description={t("brainSettings.description")} />
+      <PageBody>
       {!data ? (
         <LoadingRows rows={4} />
       ) : (
         <>
           {data.edit === "none" ? (
-            <HatchBand>
-              <p className="text-sm">{t("brainSettings.readOnly")}</p>
-            </HatchBand>
+            <Alert tone="info" className="rounded-xl">{t("brainSettings.readOnly")}</Alert>
           ) : data.edit === "limited" ? (
-            <HatchBand>
-              <p className="text-sm">{t("brainSettings.limited")}</p>
-            </HatchBand>
+            <Alert tone="info" className="rounded-xl">{t("brainSettings.limited")}</Alert>
           ) : null}
           <GeneralSection key={data.profile.updatedAt ?? "new"} ns={ns} profile={data.profile} edit={data.edit} palette={data.palette} />
           <AppearanceSection ns={ns} profile={data.profile} edit={data.edit} />
@@ -105,6 +102,7 @@ export default function BrainSettingsPage() {
           <DangerSection ns={ns} edit={data.edit} />
         </>
       )}
+      </PageBody>
     </>
   )
 }
@@ -489,9 +487,9 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
           {members.isLoading ? (
             <LoadingRows rows={2} />
           ) : (
-            <ul className="divide-y divide-border border-y border-border" aria-label={t("brainSettings.members.title")}>
+            <ul className="-mx-2 flex flex-col gap-1" aria-label={t("brainSettings.members.title")}>
               {(members.data ?? []).map((m) => (
-                <li key={m.userId} className="flex flex-wrap items-center gap-3 py-3 text-sm">
+                <li key={m.userId} className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-nq-hover">
                   <Ltr mono className="min-w-0 flex-1 truncate text-foreground">
                     {m.userId}
                   </Ltr>
@@ -523,7 +521,7 @@ function MembersSection({ ns, edit }: { ns: string; edit: EditLevel }) {
                   />
                 </li>
               ))}
-              {(members.data ?? []).length === 0 ? <li className="py-3 text-sm text-muted-foreground">{t("brainSettings.members.none")}</li> : null}
+              {(members.data ?? []).length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{t("brainSettings.members.none")}</li> : null}
             </ul>
           )}
           <p className="text-xs text-muted-foreground">
@@ -563,7 +561,7 @@ function DangerSection({ ns, edit }: { ns: string; edit: EditLevel }) {
   return (
     <Section id="settings-danger" danger title={t("brainSettings.danger.title")} hint={t("brainSettings.danger.hint")}>
       <div className="grid gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-border p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4">
           <div className="min-w-0">
             <h3 className="text-sm font-medium">{t("brainSettings.danger.export")}</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{t("brainSettings.danger.exportHint")}</p>

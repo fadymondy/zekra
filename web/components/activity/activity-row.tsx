@@ -56,7 +56,7 @@ export function ActivityRow({ a, showNamespace = false, showAgent = true }: { a:
   const { t, formatNumber, formatDate } = useTranslations()
   const label = useLabel()
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3 text-sm">
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
       {showAgent ? <Monogram id={a.agentId || "?"} /> : null}
       <span className="font-medium text-foreground">{label("activity.op", a.op)}</span>
       {showNamespace ? (

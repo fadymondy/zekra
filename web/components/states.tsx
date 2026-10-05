@@ -10,9 +10,9 @@ import { useTranslations } from "@/lib/i18n"
 
 export function LoadingRows({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-border border-y border-border" aria-busy>
+    <div className="flex flex-col gap-2" aria-busy>
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="flex items-center gap-4 px-6 py-4">
+        <div key={i} className="flex items-center gap-4 rounded-lg bg-nq-surface-soft px-4 py-3">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="ms-auto h-4 w-16" />
@@ -24,7 +24,7 @@ export function LoadingRows({ rows = 3 }: { rows?: number }) {
 
 export function EmptyState({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-2 border-y border-border bg-card px-6 py-12 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-xl bg-nq-surface-soft px-6 py-12 text-center">
       <p className="text-sm font-medium text-foreground">{title}</p>
       {body ? <p className="max-w-md text-sm text-muted-foreground">{body}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
@@ -41,7 +41,7 @@ export function ErrorState({ error }: { error: unknown }) {
         : error.message
       : t("common.networkError")
   return (
-    <div role="alert" className="flex items-start gap-3 border-y border-border px-6 py-4 text-sm">
+    <div role="alert" className="flex items-start gap-3 rounded-xl border border-nq-danger/30 px-4 py-3 text-sm">
       <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-nq-danger" />
       <p className="text-nq-danger-text">{message}</p>
     </div>

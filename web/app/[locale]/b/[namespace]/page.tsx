@@ -40,7 +40,7 @@ import { ActivityRow } from "@/components/activity/activity-row"
 import { BrainDescription, BrainMicro, BrainTitle } from "@/components/brains/brain-header"
 import { type FocusRequest } from "@/components/graph/graph-view"
 import { NasaqBrainGraph } from "@/components/graph/nasaq-brain-graph"
-import { RowList, SectionHeader } from "@/components/page"
+import { CardList, RowList, SectionHeader } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ApiError, brainApi } from "@/lib/api"
 import { useBrainActivity, useGraph, useSecretCount } from "@/lib/brains"
@@ -422,11 +422,11 @@ export default function BrainOverviewPage() {
             ) : recent.length === 0 ? (
               <EmptyState title={t("overview.noActivity")} />
             ) : (
-              <RowList label={t("overview.recentActivity")} className="-mx-4 border-y-0">
+              <CardList label={t("overview.recentActivity")}>
                 {recent.map((a) => (
                   <ActivityRow key={a.id} a={a} />
                 ))}
-              </RowList>
+              </CardList>
             )}
           </Panel>
         </div>

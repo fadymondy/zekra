@@ -7,7 +7,8 @@ import { Button, toast, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
 import { useSWRConfig } from "swr"
 
 import { ToneSquare } from "@/components/activity/activity-row"
-import { RowList, SectionHeader, SectionTitle } from "@/components/page"
+import { CardList, PageBody, Panel, SectionHeader, cardRow } from "@/components/page"
+import { cn } from "@/lib/utils"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { ApiError, brainApi, type Gap, type GapStatus } from "@/lib/api"
 import { useGaps, type Tone } from "@/lib/brains"
@@ -20,7 +21,7 @@ const TONE: Record<string, Tone> = { open: "warn", indexed: "ok", dismissed: "mu
 function GapRow({ g, busy, onResolve }: { g: Gap; busy: boolean; onResolve: (s: GapStatus) => void }) {
   const { t, formatNumber, formatDate } = useTranslations()
   return (
-    <li className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
+    <li className={cn("flex flex-wrap items-center gap-3 text-sm", cardRow)}>
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-foreground" title={g.query} dir="auto">
           {g.query}
@@ -94,7 +95,8 @@ export default function BrainGapsPage() {
   return (
     <>
       <SectionHeader micro={t("gaps.micro")} title={t("gaps.title")} description={t("gaps.description")} />
-      <div className="flex flex-wrap items-center gap-2 border-t border-border px-6 py-3">
+      <PageBody>
+      <div className="flex flex-wrap items-center gap-2">
         <ToggleGroup
           aria-label={t("gaps.filter")}
           variant="outline"
@@ -125,22 +127,26 @@ export default function BrainGapsPage() {
           const rows = grouped[s] ?? []
           if (rows.length === 0) return null
           return (
-            <section key={s}>
-              <SectionTitle action={<span className="eyebrow">{formatNumber(rows.length)}</span>}>
+            <Panel
+              key={s}
+              action={<span className="text-xs text-muted-foreground">{formatNumber(rows.length)}</span>}
+              title={
                 <span className="inline-flex items-center gap-2">
                   <ToneSquare tone={TONE[s] ?? "muted"} className="size-2" />
                   {t(`gaps.status.${s}`)}
                 </span>
-              </SectionTitle>
-              <RowList label={t(`gaps.status.${s}`)}>
+              }
+            >
+              <CardList label={t(`gaps.status.${s}`)}>
                 {rows.map((g) => (
                   <GapRow key={g.id} g={g} busy={busyId === g.id} onResolve={(next) => resolve(g.id, next)} />
                 ))}
-              </RowList>
-            </section>
+              </CardList>
+            </Panel>
           )
         })
       )}
+      </PageBody>
     </>
   )
 }

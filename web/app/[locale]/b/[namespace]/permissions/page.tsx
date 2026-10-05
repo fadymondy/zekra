@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Badge, Button, Field, FieldLabel, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, toast } from "@fadymondy/nasaq/web"
 
-import { SectionHeader, SectionTitle } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { Ltr } from "@/components/copy-field"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { GrantHeader, GrantRow } from "@/components/admin/grants"
@@ -71,6 +71,7 @@ export default function PermissionsPage() {
         }
       />
 
+      <PageBody>
       {tokens.error ? (
         <ErrorState error={tokens.error} />
       ) : tokens.isLoading ? (
@@ -81,48 +82,46 @@ export default function PermissionsPage() {
         <>
           <AddGrant agents={ungranted.map((r) => r.agentId)} disabled={busy} onAdd={upsert} />
 
-          <SectionTitle>
-            {t("permissions.agents")}{" "}
-            <span className="text-sm font-normal text-muted-foreground">{formatNumber(granted.length)}</span>
-          </SectionTitle>
-          {granted.length === 0 ? (
-            <EmptyState title={t("permissions.noGrants")} body={t("permissions.noGrantsBody")} />
-          ) : (
-            <div className="border-y border-border">
-              <GrantHeader subject={t("permissions.agent")} />
-              <div className="divide-y divide-border">
-                {granted.map((r) => (
-                  <GrantRow
-                    key={r.agentId}
-                    label={r.agentId}
-                    name={<Ltr mono className="truncate font-medium text-foreground">{r.agentId}</Ltr>}
-                    canRead={r.grant?.canRead ?? false}
-                    canWrite={r.grant?.canWrite ?? false}
-                    disabled={busy}
-                    onChange={(v) => upsert(r.agentId, v)}
-                    onRevoke={() => revoke(r.agentId)}
-                  />
-                ))}
+          <Panel title={t("permissions.agents")} action={<span className="text-xs text-muted-foreground">{formatNumber(granted.length)}</span>}>
+            {granted.length === 0 ? (
+              <EmptyState title={t("permissions.noGrants")} body={t("permissions.noGrantsBody")} />
+            ) : (
+              <div className="-mx-2">
+                <GrantHeader subject={t("permissions.agent")} />
+                <div className="mt-1 flex flex-col gap-1">
+                  {granted.map((r) => (
+                    <GrantRow
+                      key={r.agentId}
+                      label={r.agentId}
+                      name={<Ltr mono className="truncate font-medium text-foreground">{r.agentId}</Ltr>}
+                      canRead={r.grant?.canRead ?? false}
+                      canWrite={r.grant?.canWrite ?? false}
+                      disabled={busy}
+                      onChange={(v) => upsert(r.agentId, v)}
+                      onRevoke={() => revoke(r.agentId)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </Panel>
 
           {admins.length > 0 ? (
-            <>
-              <SectionTitle>{t("permissions.admins")}</SectionTitle>
-              <ul className="divide-y divide-border border-y border-border">
+            <Panel title={t("permissions.admins")}>
+              <ul className="-mx-2 flex flex-col gap-1">
                 {admins.map((r) => (
-                  <li key={r.agentId} className="flex flex-wrap items-center gap-3 px-6 py-3 text-sm">
+                  <li key={r.agentId} className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover">
                     <Ltr mono className="font-medium text-foreground">{r.agentId}</Ltr>
                     <Badge variant="neutral">{t("permissions.admin")}</Badge>
                     <span className="ms-auto text-xs text-muted-foreground">{t("permissions.adminHint")}</span>
                   </li>
                 ))}
               </ul>
-            </>
+            </Panel>
           ) : null}
         </>
       )}
+      </PageBody>
     </>
   )
 }
@@ -153,9 +152,7 @@ function AddGrant({
   }
 
   return (
-    <section className="border-t border-border px-6 py-6">
-      <h2 className="text-base font-medium">{t("permissions.addTitle")}</h2>
-      <p className="mt-1 mb-5 text-sm text-muted-foreground">{t("permissions.addHint")}</p>
+    <Panel title={t("permissions.addTitle")} hint={t("permissions.addHint")}>
       {agents.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("permissions.allGranted")}</p>
       ) : (
@@ -197,6 +194,6 @@ function AddGrant({
           </div>
         </form>
       )}
-    </section>
+    </Panel>
   )
 }

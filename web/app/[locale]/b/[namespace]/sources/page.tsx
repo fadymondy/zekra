@@ -4,9 +4,9 @@ import { Button } from "@fadymondy/nasaq/web"
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import { PlusIcon } from "lucide-react"
+import { CircleAlertIcon, ClockIcon, DatabaseIcon, FileTextIcon, PlusIcon } from "lucide-react"
 
-import { DetailStrip, SectionHeader, SectionTitle } from "@/components/page"
+import { CardList, PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { AddSourceDialog } from "@/components/sources/add-source-dialog"
 import { SourceRow } from "@/components/sources/source-row"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
@@ -37,31 +37,34 @@ export default function BrainSourcesPage() {
     <div>
       <SectionHeader micro={t("sources.micro")} title={t("sources.title")} description={t("sources.description")} action={addButton} />
 
-      {list.length > 0 ? (
-        <DetailStrip
-          items={[
-            { label: t("sources.statSources"), value: formatNumber(list.length) },
-            { label: t("sources.statDocs"), value: formatNumber(docs) },
-            { label: t("sources.statErrors"), value: formatNumber(list.filter((s) => s.status === "error").length) },
-            { label: t("sources.statLastSync"), value: lastSync ? timeAgo(lastSync) : t("common.never") },
-          ]}
-        />
-      ) : null}
+      <PageBody>
+        {list.length > 0 ? (
+          <StatStrip
+            items={[
+              { icon: <DatabaseIcon />, label: t("sources.statSources"), value: formatNumber(list.length) },
+              { icon: <FileTextIcon />, label: t("sources.statDocs"), value: formatNumber(docs) },
+              { icon: <CircleAlertIcon />, label: t("sources.statErrors"), value: formatNumber(list.filter((s) => s.status === "error").length) },
+              { icon: <ClockIcon />, label: t("sources.statLastSync"), value: lastSync ? timeAgo(lastSync) : t("common.never") },
+            ]}
+          />
+        ) : null}
 
-      <SectionTitle>{t("sources.connected")}</SectionTitle>
-      {sources.error ? (
-        <ErrorState error={sources.error} />
-      ) : sources.isLoading ? (
-        <LoadingRows />
-      ) : list.length === 0 ? (
-        <EmptyState title={t("sources.emptyTitle")} body={t("sources.emptyBody")} action={addButton} />
-      ) : (
-        <ol className="divide-y divide-border border-y border-border" aria-label={t("sources.connected")}>
-          {list.map((s) => (
-            <SourceRow key={s.id} s={s} onChanged={reload} />
-          ))}
-        </ol>
-      )}
+        <Panel title={t("sources.connected")}>
+          {sources.error ? (
+            <ErrorState error={sources.error} />
+          ) : sources.isLoading ? (
+            <LoadingRows />
+          ) : list.length === 0 ? (
+            <EmptyState title={t("sources.emptyTitle")} body={t("sources.emptyBody")} action={addButton} />
+          ) : (
+            <CardList label={t("sources.connected")}>
+              {list.map((s) => (
+                <SourceRow key={s.id} s={s} onChanged={reload} />
+              ))}
+            </CardList>
+          )}
+        </Panel>
+      </PageBody>
 
       <AddSourceDialog namespace={namespace} open={adding} onOpenChange={setAdding} onCreated={reload} />
     </div>

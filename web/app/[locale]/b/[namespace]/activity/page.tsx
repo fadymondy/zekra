@@ -4,7 +4,9 @@ import { useMemo } from "react"
 import { useParams } from "next/navigation"
 
 import { ActivityRow } from "@/components/activity/activity-row"
-import { DetailStrip, RowList, SectionHeader, SectionTitle } from "@/components/page"
+import { ActivityIcon, CircleAlertIcon, PenLineIcon, SparklesIcon } from "lucide-react"
+
+import { CardList, PageBody, Panel, SectionHeader, StatStrip } from "@/components/page"
 import { EmptyState, ErrorState, LoadingRows } from "@/components/states"
 import { useBrainActivity } from "@/lib/brains"
 import { useTranslations } from "@/lib/i18n"
@@ -33,39 +35,39 @@ export default function BrainActivityPage() {
         title={t("activity.title")}
         description={t("activity.description", { brain: "\u2068" + ns + "\u2069" })}
       />
-      <DetailStrip
-        items={[
-          { label: t("activity.stat.operations"), value: v(rows.length) },
-          { label: t("activity.stat.recalls"), value: v(counts.recalls) },
-          { label: t("activity.stat.writes"), value: v(counts.writes) },
-          {
-            label: t("activity.stat.errors"),
-            value: <span className={counts.errors ? "text-nq-danger" : undefined}>{v(counts.errors)}</span>,
-          },
-        ]}
-      />
-      <SectionTitle
-        action={
-          rows.length > 0 ? (
-            <span className="eyebrow">{t("activity.liveCount", { count: formatNumber(rows.length) })}</span>
-          ) : null
-        }
-      >
-        {t("activity.log")}
-      </SectionTitle>
-      {error ? (
-        <ErrorState error={error} />
-      ) : isLoading ? (
-        <LoadingRows rows={5} />
-      ) : rows.length === 0 ? (
-        <EmptyState title={t("activity.empty")} body={t("activity.emptyBody")} />
-      ) : (
-        <RowList label={t("activity.log")}>
-          {rows.map((a) => (
-            <ActivityRow key={a.id} a={a} />
-          ))}
-        </RowList>
-      )}
+      <PageBody>
+        <StatStrip
+          loading={isLoading}
+          items={[
+            { icon: <ActivityIcon />, label: t("activity.stat.operations"), value: v(rows.length) },
+            { icon: <SparklesIcon />, label: t("activity.stat.recalls"), value: v(counts.recalls) },
+            { icon: <PenLineIcon />, label: t("activity.stat.writes"), value: v(counts.writes) },
+            {
+              icon: <CircleAlertIcon />,
+              label: t("activity.stat.errors"),
+              value: <span className={counts.errors ? "text-nq-danger" : undefined}>{v(counts.errors)}</span>,
+            },
+          ]}
+        />
+        <Panel
+          title={t("activity.log")}
+          action={rows.length > 0 ? <span className="text-xs text-muted-foreground">{t("activity.liveCount", { count: formatNumber(rows.length) })}</span> : null}
+        >
+          {error ? (
+            <ErrorState error={error} />
+          ) : isLoading ? (
+            <LoadingRows rows={5} />
+          ) : rows.length === 0 ? (
+            <EmptyState title={t("activity.empty")} body={t("activity.emptyBody")} />
+          ) : (
+            <CardList label={t("activity.log")}>
+              {rows.map((a) => (
+                <ActivityRow key={a.id} a={a} />
+              ))}
+            </CardList>
+          )}
+        </Panel>
+      </PageBody>
     </>
   )
 }

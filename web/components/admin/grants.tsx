@@ -14,7 +14,7 @@ const COLS = "grid grid-cols-[minmax(0,1fr)_4rem_4rem_2.5rem] items-center gap-x
 export function GrantHeader({ subject }: { subject: string }) {
   const { t } = useTranslations()
   return (
-    <div className={`${COLS} border-b border-border px-6 py-2`}>
+    <div className={`${COLS} border-b border-border px-2 pb-2`}>
       <span className="eyebrow">{subject}</span>
       <span className="eyebrow text-center">{t("permissions.read")}</span>
       <span className="eyebrow text-center">{t("permissions.write")}</span>
@@ -45,7 +45,7 @@ export function GrantRow({
 }) {
   const { t } = useTranslations()
   return (
-    <div className={`${COLS} px-6 py-3 text-sm`}>
+    <div className={`${COLS} rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-nq-hover`}>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         {name}
         {extra}

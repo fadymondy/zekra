@@ -5,7 +5,7 @@ import { Button } from "@fadymondy/nasaq/web"
 import { useParams } from "next/navigation"
 import { RocketIcon, RotateCcwIcon } from "lucide-react"
 
-import { SectionHeader, SectionTitle } from "@/components/page"
+import { PageBody, Panel, SectionHeader } from "@/components/page"
 import { SessionResultView, WriteToggle, useLaunchSession } from "@/components/sessions/launch-session"
 import { useTranslations } from "@/lib/i18n"
 import { useDocumentTitle } from "@/lib/title"
@@ -32,8 +32,8 @@ export default function BrainSessionsPage() {
         }
       />
 
-      <SectionTitle>{t(s.result ? "sessions.ready" : "sessions.launch")}</SectionTitle>
-      <section className="border-y border-border px-6 py-6">
+      <PageBody>
+      <Panel title={t(s.result ? "sessions.ready" : "sessions.launch")}>
         <div className="max-w-2xl">
           {s.result ? (
             <SessionResultView res={s.result} />
@@ -48,8 +48,7 @@ export default function BrainSessionsPage() {
             </div>
           )}
         </div>
-      </section>
-      <div className="flex flex-wrap gap-2 px-6 py-6">
+      <div className="flex flex-wrap gap-2 border-t border-border pt-4">
         {s.result ? (
           <Button variant="secondary" onClick={s.reset}>
             <RotateCcwIcon className="rtl:-scale-x-100" /> {t("sessions.another")}
@@ -60,6 +59,8 @@ export default function BrainSessionsPage() {
           </Button>
         )}
       </div>
+      </Panel>
+      </PageBody>
     </div>
   )
 }
