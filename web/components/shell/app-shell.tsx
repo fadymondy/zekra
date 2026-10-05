@@ -8,7 +8,7 @@
 // command palette) and the user menu; the header carries only the notification center.
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { type ComponentType, type MouseEvent, type ReactNode } from "react"
+import { useEffect, useState, type ComponentType, type MouseEvent, type ReactNode } from "react"
 import {
   AppHeader,
   AppMain,
@@ -137,7 +137,12 @@ export function AppShell({
   const me = useRequireAuth()
   const { t, locale } = useTranslations()
 
-  if (!me.data && !me.error) return <ShellSplash />
+  // The server never has the session, but the client may already hold it in the SWR cache; until
+  // mounted both render the splash so hydration always matches.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  if (!mounted || (!me.data && !me.error)) return <ShellSplash />
   const body: ReactNode = me.error ? <ErrorState error={me.error} /> : (gate ?? children)
 
   return (
