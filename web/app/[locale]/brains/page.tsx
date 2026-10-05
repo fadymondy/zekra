@@ -3,28 +3,22 @@
 // Home: every brain's status at a glance. A greeting, the headline numbers, an "ask your memory"
 // box, the brains grid, and what needs attention / what happened lately / what the brains know.
 import {
-  Attention,
+  Sparkline,
   BrainCard,
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Chip,
   ChipGroup,
   Input,
-  Progress,
   Skeleton,
   StatCard,
   StatGrid,
-  Timeline,
-  TimelineItem,
 } from "@fadymondy/nasaq/web";
 
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
 import {
   ActivityIcon,
   BrainIcon,
@@ -44,7 +38,7 @@ import {
   NewBrainDialog,
 } from "@/components/brains/brain-dialogs";
 import { EmptyState, ErrorState } from "@/components/states";
-import { brainApi, type NamespaceInfo } from "@/lib/api";
+import { type NamespaceInfo } from "@/lib/api";
 import { useActivity, useStats } from "@/lib/brains";
 import { useTranslations } from "@/lib/i18n";
 import { getLastBrain } from "@/lib/last-brain";
@@ -67,86 +61,82 @@ function greetingKey(): string {
 const isActive = (lastAt?: string | null) =>
   !!lastAt && Date.now() - new Date(lastAt).getTime() < ACTIVE_MS;
 
-function Panel({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card className="min-w-0 rounded-xl">
-      <CardHeader>
-        <CardTitle className="text-sm">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  );
+const DAYS = 14;
+const DAY_MS = 24 * 3600 * 1000;
+
+/** Daily operation counts per brain over the last DAYS days, oldest first. */
+function dailyActivity(items: { ts: string; namespace: string }[]): Map<string, number[]> {
+  const out = new Map<string, number[]>();
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  for (const it of items) {
+    const age = Math.floor((today.getTime() - new Date(it.ts).getTime()) / DAY_MS);
+    if (age < 0 || age >= DAYS) continue;
+    const row = out.get(it.namespace) ?? new Array<number>(DAYS).fill(0);
+    row[DAYS - 1 - age] += 1;
+    out.set(it.namespace, row);
+  }
+  return out;
 }
 
-/** Nasaq's BrainCard for one brain; the detail call fills in sources and recalls. */
-function HomeBrainCard({
-  b,
-  onDelete,
-}: {
-  b: NamespaceInfo;
-  onDelete: () => void;
-}) {
-  const { t, locale } = useTranslations();
+/** One brain on Home: Nasaq's BrainCard in a card tinted by the brain's colour, with its activity trend. */
+function HomeBrainCard({ b, trend, onDelete }: { b: NamespaceInfo; trend: number[]; onDelete: () => void }) {
+  const { t, locale, formatNumber } = useTranslations();
   const { data: d } = useBrain(b.namespace);
   const href = `/${locale}/b/${encodeURIComponent(b.namespace)}`;
+  const color = b.colorHex || resolveColor(b.color) || undefined;
+  const total = trend.reduce((n, v) => n + v, 0);
   return (
-    <Card className="rounded-xl px-4 transition-colors hover:bg-nq-surface-soft">
-      <BrainCard
-        brain={{
-          id: b.namespace,
-          name: brainName(b),
-          description: b.description || undefined,
-          avatar: b.imageUrl || b.icon || undefined,
-          color: b.colorHex || resolveColor(b.color) || undefined,
-          status: "ready",
-          visibility: "private",
-          memories: b.memories,
-          sources: d ? Object.keys(d.sources ?? {}).length : 0,
-          chats: d?.recalls,
-          lastActive: b.lastAt || null,
-        }}
-        footer={
-          <div className="flex items-center justify-between gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              nativeButton={false}
-              render={<Link href={href} />}
-            >
-              {t("brains.open")}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onDelete}
-              aria-label={t("brains.menu.delete")}
-            >
-              <Trash2Icon />
-            </Button>
-          </div>
-        }
-      />
+    <Card
+      className="relative gap-0 overflow-hidden rounded-xl p-0 transition-shadow hover:shadow-floating"
+      style={color ? { backgroundImage: `linear-gradient(to bottom, color-mix(in srgb, ${color} 10%, transparent), transparent 45%)` } : undefined}
+    >
+      <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-primary" style={color ? { backgroundColor: color } : undefined} />
+      <div className="p-4 pb-3">
+        <BrainCard
+          brain={{
+            id: b.namespace,
+            name: brainName(b),
+            description: b.description || undefined,
+            avatar: b.imageUrl || b.icon || undefined,
+            color,
+            status: "ready",
+            visibility: "private",
+            memories: b.memories,
+            sources: d ? Object.keys(d.sources ?? {}).length : 0,
+            chats: d?.recalls,
+            lastActive: b.lastAt || null,
+          }}
+        />
+      </div>
+      <div className="flex items-end justify-between gap-3 border-t border-border px-4 py-3">
+        <div className="flex flex-col">
+          <span className="text-xs text-muted-foreground">{t("home.trend", { days: DAYS })}</span>
+          <span className="text-sm font-medium tabular-nums">{formatNumber(total)}</span>
+        </div>
+        <Sparkline className="h-10 w-40" data={trend} color={color} label={t("home.trend", { days: DAYS })} />
+      </div>
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-nq-surface-soft/50 px-4 py-2">
+        <Button size="sm" variant="primary" nativeButton={false} render={<Link href={href} />}>
+          {t("brains.open")}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onDelete} aria-label={t("brains.menu.delete")}>
+          <Trash2Icon />
+        </Button>
+      </div>
     </Card>
-  );
-}
-
-function Empty({ children }: { children: ReactNode }) {
-  return (
-    <p className="py-6 text-center text-sm text-muted-foreground">{children}</p>
   );
 }
 
 export default function HomePage() {
-  const { t, locale, formatNumber, timeAgo } = useTranslations();
+  const { t, locale, formatNumber } = useTranslations();
   useDocumentTitle(t("home.title"));
   const router = useRouter();
   const me = useMe();
   const brainsQ = useBrains();
   const stats = useStats();
-  const activity = useActivity(8);
-  const gaps = useSWR(["/api/brain/gaps", "home"], () =>
-    brainApi.gaps({ status: "open", limit: 6 }).then((r) => r.gaps ?? []),
-  );
+  const activity = useActivity(1000);
+  const trends = useMemo(() => dailyActivity(activity.data ?? []), [activity.data]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [question, setQuestion] = useState("");
@@ -180,11 +170,6 @@ export default function HomePage() {
   const scope =
     last && all.some((b) => b.namespace === last) ? last : all[0]?.namespace;
   const scopeBrain = all.find((b) => b.namespace === scope);
-  const maxMemories = Math.max(1, ...all.map((b) => b.memories));
-  const nameOf = (ns: string) => {
-    const b = all.find((x) => x.namespace === ns);
-    return b ? brainName(b) : ns;
-  };
 
   function ask(q: string, e?: FormEvent) {
     e?.preventDefault();
@@ -345,90 +330,13 @@ export default function HomePage() {
               <HomeBrainCard
                 key={b.namespace}
                 b={b}
+                trend={trends.get(b.namespace) ?? new Array<number>(DAYS).fill(0)}
                 onDelete={() => setDeleteNs(b.namespace)}
               />
             ))}
           </div>
         )}
       </section>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Panel title={t("home.attention.title")}>
-          <Attention
-            loading={gaps.isLoading}
-            empty={t("home.attention.empty")}
-            items={(gaps.data ?? []).map((g) => ({
-              id: String(g.id),
-              title: g.query,
-              description: nameOf(g.namespace),
-              tone: "warning" as const,
-              icon: CircleHelpIcon,
-              count: g.hits,
-              time: timeAgo(g.lastSeen),
-              dateTime: g.lastSeen,
-              href: `/${locale}/b/${encodeURIComponent(g.namespace)}/gaps`,
-            }))}
-          />
-        </Panel>
-
-        <Panel title={t("home.activity.title")}>
-          {activity.data?.length ? (
-            <Timeline>
-              {activity.data.map((a) => (
-                <TimelineItem
-                  key={a.id}
-                  icon={
-                    <ActivityIcon
-                      className={
-                        a.outcome === "hit"
-                          ? "text-nq-success"
-                          : a.outcome === "error"
-                            ? "text-nq-danger"
-                            : undefined
-                      }
-                    />
-                  }
-                  title={`${a.op} · ${nameOf(a.namespace)}`}
-                  description={a.agentId || "—"}
-                  time={a.ts}
-                />
-              ))}
-            </Timeline>
-          ) : (
-            <Empty>{activity.isLoading ? "…" : t("home.activity.empty")}</Empty>
-          )}
-        </Panel>
-
-        <Panel title={t("home.knows.title")}>
-          {all.length ? (
-            <ul className="flex flex-col gap-3">
-              {[...all]
-                .sort((a, b) => b.memories - a.memories)
-                .slice(0, 6)
-                .map((b) => (
-                  <li key={b.namespace}>
-                    <Progress
-                      size="sm"
-                      value={(b.memories / maxMemories) * 100}
-                      label={
-                        <Link
-                          href={`/${locale}/b/${encodeURIComponent(b.namespace)}`}
-                          className="hover:text-primary"
-                        >
-                          {brainName(b)}
-                        </Link>
-                      }
-                      showValue
-                      valueText={formatNumber(b.memories)}
-                    />
-                  </li>
-                ))}
-            </ul>
-          ) : (
-            <Empty>{t("brains.empty")}</Empty>
-          )}
-        </Panel>
-      </div>
 
       <NewBrainDialog
         open={creating}

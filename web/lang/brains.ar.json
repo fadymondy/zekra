@@ -73,5 +73,6 @@
   "home.attention.empty": "لا فجوات مفتوحة. وجد كل سؤال إجابته.",
   "home.activity.title": "النشاط الأخير",
   "home.activity.empty": "لا نشاط بعد.",
-  "home.knows.title": "ما تعرفه أدمغتك"
+  "home.knows.title": "ما تعرفه أدمغتك",
+  "home.trend": "النشاط · آخر {days} يومًا"
 }

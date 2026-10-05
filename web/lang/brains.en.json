@@ -73,5 +73,6 @@
   "home.attention.empty": "No open gaps. Every question found an answer.",
   "home.activity.title": "Recent activity",
   "home.activity.empty": "No activity yet.",
-  "home.knows.title": "What your brains know"
+  "home.knows.title": "What your brains know",
+  "home.trend": "Activity · last {days} days"
 }
