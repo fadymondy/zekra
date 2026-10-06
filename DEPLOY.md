@@ -5,6 +5,17 @@ Production is **app.zekra.dev**, served from one LXC container on the Proxmox ho
 on 2026-09-23 after an earlier version turned out to describe a Docker deployment
 that production does not use.
 
+> **Current path (since early Oct 2026): Hosbah.** Production runs as two Hosbah apps on
+> LXC 109: `zekra-api` (container `hosbah-zekra-api-web-*`, :8080 → 127.0.0.1:<random>)
+> and `zekra-console` (`hosbah-zekra-console-web-*`, :3020). Pushing to `main` starts a
+> *fast* deploy of both. The fast track can ship a stale console build or fail to start
+> its build container, so after a merge run `deploy_app {app, track: "full"}` for each
+> and check `/api/auth/methods` and `/en/login` on app.zekra.dev.
+> All public routes (app., mcp., zekra.dev/api) reach the Hosbah containers. The systemd
+> units below are retired: `zekra-web.service` is stopped and `zekra.service` is disabled
+> but still running the 2026-09-23 binary on :8080 with no traffic. The manual
+> build/deploy steps below are kept only as a rollback reference.
+
 ## Topology
 
 ```
