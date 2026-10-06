@@ -272,7 +272,7 @@ export function LoginForm() {
           ) : null}
 
           {/* Only while sign-up is open: a closed server refuses every new account (MH-1241). */}
-          {methods?.registration === false ? null : (
+          {methods?.registration !== true ? null : (
             <p className="mt-6 text-center text-sm text-muted-foreground">
               {t("auth.noAccount")}{" "}
               <Link href={registerHref} className="font-medium text-foreground underline underline-offset-4">
