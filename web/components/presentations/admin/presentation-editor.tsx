@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Alert, Badge, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Textarea } from "@fadymondy/nasaq/web"
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
@@ -75,6 +76,7 @@ function itemPathOf(kind: Detail["kind"], path: Path): Path {
 }
 
 export function PresentationEditor({ id, locale, namespace }: { id: string; locale: string; namespace: string }) {
+  const router = useRouter()
   const { t } = useTranslations()
   const [doc, setDoc] = useState<Detail | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -330,7 +332,7 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
     if (!doc || !window.confirm(t("presentations.confirmDelete"))) return
     await deletePresentation(doc.id)
     saved.current = { draft: live.current.draft, meta: JSON.stringify(live.current.meta) }
-    window.location.href = presentationsHref(locale, namespace)
+    router.push(presentationsHref(locale, namespace))
   }
 
   if (loadError) {
