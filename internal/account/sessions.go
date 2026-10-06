@@ -263,7 +263,10 @@ func (s *Service) MethodsMiddleware(configured func() []auth.LoginMethod) func(h
 			}
 			out = append(out, configured()...)
 			w.Header().Set("Cache-Control", "no-store")
-			writeJSON(w, http.StatusOK, map[string]any{"methods": out})
+			// registration tells the sign-in and sign-up pages whether to offer
+			// "Create account" at all (MH-1241): with ALLOW_REGISTRATION off they
+			// showed a form whose every submit came back 403.
+			writeJSON(w, http.StatusOK, map[string]any{"methods": out, "registration": allowRegistration()})
 		})
 	}
 }

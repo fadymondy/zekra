@@ -271,12 +271,15 @@ export function LoginForm() {
             </div>
           ) : null}
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {t("auth.noAccount")}{" "}
-            <Link href={registerHref} className="font-medium text-foreground underline underline-offset-4">
-              {t("auth.createAccount")}
-            </Link>
-          </p>
+          {/* Only while sign-up is open: a closed server refuses every new account (MH-1241). */}
+          {methods?.registration === false ? null : (
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              {t("auth.noAccount")}{" "}
+              <Link href={registerHref} className="font-medium text-foreground underline underline-offset-4">
+                {t("auth.createAccount")}
+              </Link>
+            </p>
+          )}
         </div>
       </PublicPanel>
     </PublicFrame>
