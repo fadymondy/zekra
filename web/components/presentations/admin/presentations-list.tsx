@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Alert, Badge, Button, Card, CardContent, Checkbox, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, FieldDescription, FieldLabel, Input, InputGroup, InputGroupAddon, InputGroupInput, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StatCard, StatGrid, Toggle, ToggleGroup } from "@fadymondy/nasaq/web"
 
 // A brain's presentations: decks, reports and page previews, filterable by kind, status and
@@ -307,6 +308,7 @@ function FormError({ error }: { error: string | null }) {
 // ---- New (blank starter) -------------------------------------------------------------
 
 function NewPresentation({ locale, namespace }: { locale: string; namespace: string }) {
+  const router = useRouter()
   const { t } = useTranslations()
   const [meta, setMeta] = useMeta(locale)
   const [title, setTitle] = useState("")
@@ -325,7 +327,7 @@ function NewPresentation({ locale, namespace }: { locale: string; namespace: str
         customer: { name: meta.name, company: meta.company, email: meta.email },
         content: starter(meta.kind, title.trim() || t("presentations.untitled")),
       })
-      window.location.href = presentationsHref(locale, namespace, doc.id)
+      router.push(presentationsHref(locale, namespace, doc.id))
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setBusy(false)
@@ -376,6 +378,7 @@ const SOURCE_TYPES: { type: SourceType; icon: typeof StickyNoteIcon }[] = [
 ]
 
 function FromBrain({ locale, namespace }: { locale: string; namespace: string }) {
+  const router = useRouter()
   const { t } = useTranslations()
   const [open, setOpen] = useState(false)
   const [meta, setMeta] = useMeta(locale)
@@ -416,7 +419,7 @@ function FromBrain({ locale, namespace }: { locale: string; namespace: string })
         style: meta.style,
       })
       const doc = res.documents?.find((d) => d.kind === meta.kind) ?? res.documents?.[0]
-      window.location.href = presentationsHref(locale, namespace, doc?.id)
+      router.push(presentationsHref(locale, namespace, doc?.id))
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       setBusy(false)
