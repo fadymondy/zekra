@@ -8,6 +8,19 @@ syncSiteDocs();
 // The Go API (cmd/api) — console, REST, SSE and the install scripts live behind it.
 const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:8080";
 
+// Security headers on every response (MH-1253): pin HTTPS, no MIME sniffing, no full-URL referrers,
+// and the app can only be framed by itself (clickjacking). Nothing embeds these pages cross-origin.
+const SECURITY_HEADERS = {
+  source: "/:path*",
+  headers: [
+    { key: "Strict-Transport-Security", value: "max-age=31536000" },
+    { key: "X-Content-Type-Options", value: "nosniff" },
+    { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+    { key: "X-Frame-Options", value: "SAMEORIGIN" },
+    { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+  ],
+};
+
 const nextConfig = {
   // Self-contained server (.next/standalone) for production, as in Managy.
   output: "standalone",
@@ -48,6 +61,7 @@ const nextConfig = {
   // The service worker (PWA) must never be cached, or clients keep an old version forever.
   async headers() {
     return [
+      SECURITY_HEADERS,
       {
         source: "/sw.js",
         headers: [
