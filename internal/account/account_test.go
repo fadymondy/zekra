@@ -246,6 +246,25 @@ func TestMethodsMiddlewareDedupes(t *testing.T) {
 	}
 }
 
+// MH-1241: /methods tells the web app whether sign-up is open.
+func TestMethodsMiddlewareRegistration(t *testing.T) {
+	plugin := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"methods": []auth.LoginMethod{}})
+	})
+	h := (&Service{}).MethodsMiddleware(func() []auth.LoginMethod { return nil })(plugin)
+	for env, want := range map[string]bool{"": true, "true": true, "false": false, "off": false} {
+		t.Setenv("ALLOW_REGISTRATION", env)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/auth/methods", nil))
+		var body struct {
+			Registration *bool `json:"registration"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil || body.Registration == nil || *body.Registration != want {
+			t.Errorf("ALLOW_REGISTRATION=%q: registration %v, want %v (%s)", env, body.Registration, want, rec.Body)
+		}
+	}
+}
+
 func TestSplitCSV(t *testing.T) {
 	if got := splitCSV(" admin, ,owner "); strings.Join(got, "|") != "admin|owner" {
 		t.Errorf("splitCSV: %v", got)

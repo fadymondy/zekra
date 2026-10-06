@@ -43,6 +43,7 @@
   "auth.recoveryCode": "Recovery code",
   "auth.recoveryIntro": "Enter one of the recovery codes you saved when you turned on two-factor. Each works once.",
   "auth.registerHint": "One account for every brain you run or share.",
+  "auth.registrationClosed": "Sign-up is closed on this server. If you already have an account, sign in.",
   "auth.registrationFailed": "We couldn't create the account. The email may already be registered — try signing in.",
   "auth.resend": "Send a new code",
   "auth.resendIn": "Send a new code in {seconds}s",

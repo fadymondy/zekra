@@ -134,7 +134,13 @@ export const PROVIDERS: Provider[] = ["google", "github", "apple"]
 /** Brand names are not translated. */
 export const PROVIDER_NAMES: Record<Provider, string> = { google: "Google", github: "GitHub", apple: "Apple" }
 
-export type LoginMethods = { password: boolean; code: boolean; providers: Partial<Record<Provider, string>> }
+export type LoginMethods = {
+  password: boolean
+  code: boolean
+  providers: Partial<Record<Provider, string>>
+  /** Whether new accounts can be created. Absent from older APIs, which counts as open. */
+  registration: boolean
+}
 
 /**
  * GET /api/auth/methods, read defensively: fadymondy returns `{ methods: [{ name, type, url }] }`;
@@ -149,7 +155,8 @@ export function parseMethods(data: unknown): LoginMethods {
       ? ((data as Record<string, unknown>).methods ?? [])
       : []
   const list = Array.isArray(raw) ? raw : []
-  const out: LoginMethods = { password: false, code: false, providers: {} }
+  const registration = !(data && typeof data === "object" && !Array.isArray(data) && (data as Record<string, unknown>).registration === false)
+  const out: LoginMethods = { password: false, code: false, providers: {}, registration }
   let firstParty = false
   for (const item of list) {
     let name = ""
@@ -219,6 +226,7 @@ export function authMessage(err: unknown, t: (key: string, vars?: Record<string,
     if (code === "email_unverified") return t("auth.emailUnverified")
     if (code === "last_method") return t("account.connections.lastMethod")
     if (code === "invalid_credentials") return t("auth.invalidCredentials")
+    if (code === "registration_closed") return t("auth.registrationClosed")
     if (err.status === 429) return t("auth.tooMany")
     if (err.status === 404 || err.status === 405 || err.status === 501) return t("auth.unavailable")
     if (err.status >= 500) return t("common.apiUnavailable")

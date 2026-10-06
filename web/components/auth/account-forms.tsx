@@ -71,6 +71,19 @@ export function RegisterForm() {
     }
   }
 
+  const signInHref = `/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`
+
+  // Sign-up is closed on this server: say so instead of a form that can only fail (MH-1241).
+  if (methods?.registration === false) {
+    return (
+      <Frame title={t("auth.createAccount")} description={t("auth.registrationClosed")}>
+        <Button variant="primary" size="lg" className="w-full" nativeButton={false} render={<Link href={signInHref} />}>
+          {t("auth.signIn")}
+        </Button>
+      </Frame>
+    )
+  }
+
   return (
     <Frame title={t("auth.createAccount")} description={t("auth.registerHint")}>
       <form onSubmit={onSubmit} noValidate>
@@ -95,7 +108,7 @@ export function RegisterForm() {
       <ProviderButtons methods={methods} returnTo={next ?? homeHref(locale)} />
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {t("auth.haveAccount")}{" "}
-        <Link href={`/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-foreground underline underline-offset-4">
+        <Link href={signInHref} className="font-medium text-foreground underline underline-offset-4">
           {t("auth.signIn")}
         </Link>
       </p>
