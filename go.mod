@@ -61,7 +61,7 @@ require (
 	github.com/togo-framework/ai-rss v0.1.0
 	github.com/togo-framework/ai-searxng v0.1.0
 	github.com/togo-framework/ai-stt v0.1.0
-	github.com/togo-framework/ai-tts v0.1.0
+	github.com/togo-framework/ai-tts v0.1.1
 	github.com/togo-framework/analytics v0.1.1
 	github.com/togo-framework/audit v0.1.1
 	github.com/togo-framework/auth v0.8.1
@@ -106,7 +106,7 @@ require (
 	github.com/togo-framework/data-bigquery v0.1.0
 	github.com/togo-framework/data-databricks v0.1.0
 	github.com/togo-framework/data-iceberg v0.1.0
-	github.com/togo-framework/db-mongodb v0.1.0
+	github.com/togo-framework/db-mongodb v0.1.1
 	github.com/togo-framework/db-mysql v0.1.0
 	github.com/togo-framework/db-supabase v0.1.0
 	github.com/togo-framework/deploy v0.1.0
@@ -162,7 +162,6 @@ require (
 	github.com/togo-framework/notifications-pusher v0.1.0
 	github.com/togo-framework/notifications-slack v0.1.0
 	github.com/togo-framework/notifications-webpush v0.1.0
-	github.com/togo-framework/oauth-server v0.1.1
 	github.com/togo-framework/observability v0.1.1
 	github.com/togo-framework/ocr v0.1.0
 	github.com/togo-framework/omnigent v0.1.0
