@@ -205,7 +205,7 @@ require (
 	github.com/togo-framework/seo v0.1.0
 	github.com/togo-framework/seo-head v0.1.0
 	github.com/togo-framework/services v0.1.0
-	github.com/togo-framework/settings v0.1.1
+	github.com/togo-framework/settings v0.1.2
 	github.com/togo-framework/sharing v0.1.0
 	github.com/togo-framework/site-search v0.1.0
 	github.com/togo-framework/skills v0.1.0
