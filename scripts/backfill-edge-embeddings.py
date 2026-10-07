@@ -32,6 +32,7 @@ Environment:
   ZEKRA_API_URL        e.g. https://zekra.example.com   (route B)
   ZEKRA_TOKEN          cbt_... brain token                (route B)
   EMB_BATCH              rows per DB flush                  (default: 128)
+  TEI_MAX_BATCH          texts per TEI /embed call          (default: 32, TEI's limit)
   EMB_WORKERS            parallel HTTP calls for route B    (default: 8)
 
 Never hard-code credentials here — this file is committed.
@@ -50,6 +51,7 @@ SCRATCH_NS = os.environ.get("EMB_SCRATCH_NS", "__edge_embed")
 BATCH = int(os.environ.get("EMB_BATCH", "128"))
 WORKERS = int(os.environ.get("EMB_WORKERS", "8"))
 TEI_URL = os.environ.get("TEI_EMBEDDINGS_URL", "").rstrip("/")
+TEI_MAX_BATCH = int(os.environ.get("TEI_MAX_BATCH", "32"))
 API_URL = os.environ.get("ZEKRA_API_URL", "").rstrip("/")
 TOKEN = os.environ.get("ZEKRA_TOKEN", "")
 # Cloudflare blocks the default python UA, so present a normal one.
@@ -80,9 +82,14 @@ def tei_available():
 
 
 def tei_embed(texts):
-    r = requests.post(TEI_URL + "/embed", json={"inputs": texts}, timeout=120)
-    r.raise_for_status()
-    return r.json()
+    # TEI rejects more than its max-client-batch-size (32) inputs with a 413,
+    # so a DB batch is embedded in TEI-sized slices (MH-1315).
+    out = []
+    for i in range(0, len(texts), TEI_MAX_BATCH):
+        r = requests.post(TEI_URL + "/embed", json={"inputs": texts[i:i + TEI_MAX_BATCH]}, timeout=120)
+        r.raise_for_status()
+        out.extend(r.json())
+    return out
 
 
 # ------------------------------------------------- route B: hosted retain surface
