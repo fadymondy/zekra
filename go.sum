@@ -721,6 +721,8 @@ github.com/togo-framework/services v0.1.0 h1:9TyYxXZS0QTkWKCHjHvkWPILjE14zPZThMF
 github.com/togo-framework/services v0.1.0/go.mod h1:nxKRkEs2UyPvCh/9e9TX5Qh64yNwdpX6otugYrGM8gk=
 github.com/togo-framework/settings v0.1.1 h1:7m1Ou7hoYIIJg/bmTs5h0SyzmZChjCetXgq5WSeInpc=
 github.com/togo-framework/settings v0.1.1/go.mod h1:qbERlVcWHGB6wtGV0SuUDDwj78aekgXr06EQBurwSKo=
+github.com/togo-framework/settings v0.1.2 h1:B+vqmJUQxhpLlIO8UaJjAkIauTxI/3fTviNmTXPaaHU=
+github.com/togo-framework/settings v0.1.2/go.mod h1:s5huDR/b5z5ScK6TsKbzNo23FiILERG9xmgD/DOJVlA=
 github.com/togo-framework/sharing v0.1.0 h1:CpW5kABt5k6ylCKl3/87sju+A4U5bWZ8JHh96YH54Gk=
 github.com/togo-framework/sharing v0.1.0/go.mod h1:PN344PbA9Z1OJoxyaRJiCEr75feJKKvytJphaOMuOOg=
 github.com/togo-framework/site-search v0.1.0 h1:N6IuUxe/VotZdOkZ3JSwPpdd481is2XFq5BLQvgMgAU=
