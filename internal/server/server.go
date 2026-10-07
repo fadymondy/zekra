@@ -17,6 +17,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	brainplugin "github.com/togo-framework/brain"
 	"github.com/togo-framework/togo"
 
 	"github.com/fadymondy/zekra/internal/account"
@@ -39,6 +40,9 @@ func Boot() *app.App {
 	// Accounts around the togo auth plugin: email verification, password reset,
 	// sign-in codes, 2FA, Google/Apple/GitHub, the account area, deletion, data
 	// export, and the admin API (internal/account). No-op without Postgres.
+	// Registered first so it is outermost: the account and auth-plugin CORS answer every OPTIONS
+	// themselves, which would leave the public MCP/OAuth preflights bare (MH-459).
+	k.UseMiddleware(brainplugin.PublicPreflight)
 	acct := account.Mount(context.Background(), k, api, a.SQLDB)
 
 	// The CircleXO hub (docs/circlexo.md): sign in with the hub, orgs as brains, plan limits, hub

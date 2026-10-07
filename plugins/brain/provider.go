@@ -8,6 +8,7 @@ package brain
 import (
 	"context"
 	"database/sql"
+	"net/http"
 
 	"github.com/togo-framework/togo"
 
@@ -56,7 +57,9 @@ func BM25SQL() string   { return ib.BM25SQL() }
 
 // BackfillNotesGraph makes every existing note a graph node (entity, derived
 // wikilink/tag edges, memory links). Idempotent; returns the notes synced.
-func BackfillNotesGraph(ctx context.Context, db *sql.DB) (int, error) { return ib.BackfillNotesGraph(ctx, db) }
+func BackfillNotesGraph(ctx context.Context, db *sql.DB) (int, error) {
+	return ib.BackfillNotesGraph(ctx, db)
+}
 
 // AdoptResult is what one document-adoption run did.
 type AdoptResult = ib.AdoptResult
@@ -73,3 +76,7 @@ func AdoptDocuments(ctx context.Context, db *sql.DB, ns string, wait bool) (*Ado
 func UnadoptedNamespaces(ctx context.Context, db *sql.DB) ([]string, error) {
 	return ib.UnadoptedNamespaces(ctx, db)
 }
+
+// PublicPreflight answers CORS preflights for the public MCP and OAuth endpoints. Register it
+// with Kernel.UseMiddleware ahead of any CORS middleware (MH-459).
+func PublicPreflight(next http.Handler) http.Handler { return ib.PublicPreflight(next) }

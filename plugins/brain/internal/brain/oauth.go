@@ -1479,13 +1479,41 @@ func oauthError(w http.ResponseWriter, status int, code, desc string) {
 // origin grants a browser-based client nothing a server could not already do.
 func allowAnyOrigin(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, MCP-Protocol-Version, Mcp-Session-Id")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, MCP-Protocol-Version, Mcp-Session-Id, X-Zekra-Token, X-Agent-Id")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 }
 
 func (s *oauthServer) preflight(w http.ResponseWriter, _ *http.Request) {
 	allowAnyOrigin(w)
+	w.Header().Set("Access-Control-Max-Age", "600")
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// publicPreflightPaths are the endpoints any origin may call with a bearer token or as an
+// OAuth client: the MCP endpoint and the OAuth metadata, registration, token and revoke routes.
+var publicPreflightPaths = map[string]bool{
+	"/api/mcp":                                      true,
+	"/.well-known/oauth-protected-resource":         true,
+	"/.well-known/oauth-protected-resource/":        true,
+	"/.well-known/oauth-protected-resource/api/mcp": true,
+	"/.well-known/oauth-authorization-server":       true,
+	"/api/oauth/register":                           true,
+	"/api/oauth/token":                              true,
+	"/api/oauth/revoke":                             true,
+}
+
+// PublicPreflight answers the CORS preflight of the public MCP and OAuth endpoints. It has to
+// wrap the router: the auth plugin's Router.Use CORS and the account CORS both end every
+// OPTIONS with their own credentialed, allowlisted answer before routing, so the r.Options
+// handlers above never ran and browsers got a bare 204 (MH-459).
+func PublicPreflight(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions && publicPreflightPaths[r.URL.Path] {
+			(*oauthServer)(nil).preflight(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // ipLimiter is a fixed-window counter per address, in memory.
