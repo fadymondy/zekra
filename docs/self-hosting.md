@@ -55,6 +55,8 @@ Copy `.env.example` to `.env` and fill it in. These are the settings that matter
 | `AUTH_SECRET` | **Required.** At least 32 bytes (`openssl rand -hex 32`). Signs sessions. If it is unset, sessions end on every restart. |
 | `ZEKRA_SECRETS_KEY` | 64 hex characters. Encrypts the secrets vault. If unset, it is derived from `AUTH_SECRET`. Keep it stable, or stored secrets become unreadable. |
 | `VAULT_KEY` | 32 bytes (hex or base64). Encrypts two-factor secrets. Falls back to `ZEKRA_SECRETS_KEY`, then `AUTH_SECRET`. Set it in production. |
+| `MFA_CHALLENGE_SECRET` | **Required in production.** At least 32 bytes (`openssl rand -hex 32`). Signs the auth-mfa plugin's login challenges. With `APP_ENV=production` the server refuses to start without it. |
+| `DASHBOARD_REQUIRED_ROLE` | Role the dashboard plugin's access check (`GET /api/dashboard/access`) requires. Set it to `admin` in production. |
 | `ZEKRA_PUBLIC_URL` | URL placed in the MCP configs that the session launcher generates. Defaults to `APP_URL`. |
 
 ### Access control

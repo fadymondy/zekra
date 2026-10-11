@@ -1,6 +1,7 @@
 package account
 
 import (
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -21,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/togo-framework/auth"
 	"rsc.io/qr"
 )
@@ -332,7 +334,8 @@ func (s *Service) handleChallenge(w http.ResponseWriter, r *http.Request) {
 		Code         string `json:"code"`
 		RecoveryCode string `json:"recovery_code"`
 	}
-	if json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&b) != nil || b.Challenge == "" || (b.Code == "" && b.RecoveryCode == "") {
+	raw, err := io.ReadAll(io.LimitReader(r.Body, 4<<10))
+	if err != nil || json.Unmarshal(raw, &b) != nil || b.Challenge == "" || (b.Code == "" && b.RecoveryCode == "") {
 		writeJSONErr(w, http.StatusBadRequest, "challenge and code are required")
 		return
 	}
@@ -347,8 +350,11 @@ func (s *Service) handleChallenge(w http.ResponseWriter, r *http.Request) {
 	var userID string
 	var attempts int
 	var expires time.Time
-	err := s.DB.QueryRowContext(ctx, `SELECT user_id, attempts, expires_at FROM account_challenges WHERE id = $1`, b.Challenge).
+	err = s.DB.QueryRowContext(ctx, `SELECT user_id, attempts, expires_at FROM account_challenges WHERE id = $1`, b.Challenge).
 		Scan(&userID, &attempts, &expires)
+	if errors.Is(err, sql.ErrNoRows) && s.handOff(w, r, b.Challenge, raw) {
+		return
+	}
 	if err != nil || s.now().After(expires) || attempts >= maxAttempts {
 		_, _ = s.DB.ExecContext(ctx, `DELETE FROM account_challenges WHERE id = $1`, b.Challenge)
 		expired()
@@ -381,6 +387,51 @@ func (s *Service) handleChallenge(w http.ResponseWriter, r *http.Request) {
 		extra["recovery_codes_left"] = left
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"token": token, "extra": extra, "user": userBody(userID, email, roles)})
+}
+
+// handOff passes a challenge the auth plugin minted (its own TOTP, or an
+// auth-mfa factor) to the plugin's handler, which Zekra's route replaced. Only
+// an account Zekra would let sign in gets there: a disabled one is refused, and
+// one with Zekra's two-factor on was given Zekra's challenge at login, so a
+// plugin challenge for it is refused too. It reports whether it answered.
+func (s *Service) handOff(w http.ResponseWriter, r *http.Request, challenge string, body []byte) bool {
+	if s.pluginChallenge == nil || s.Auth == nil {
+		return false
+	}
+	userID, err := s.Auth.VerifyLoginChallenge(challenge)
+	if err != nil {
+		return false
+	}
+	ctx := r.Context()
+	if s.disabled(ctx, userID) {
+		disabledResponse(w)
+		return true
+	}
+	if s.twoFactorOn(ctx, userID) {
+		return false
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
+	r.ContentLength = int64(len(body))
+	s.pluginChallenge.ServeHTTP(w, r)
+	return true
+}
+
+// routeHandler returns the handler registered for method and pattern on r,
+// with its route-level middleware (r.With) but not the router-wide middleware,
+// which has already run for any request reaching a handler; nil if none.
+func routeHandler(r chi.Routes, method, pattern string) http.Handler {
+	global := len(r.Middlewares())
+	var found http.Handler
+	_ = chi.Walk(r, func(m, route string, h http.Handler, mws ...func(http.Handler) http.Handler) error {
+		if found == nil && m == method && route == pattern {
+			if len(mws) > global {
+				h = chi.Chain(mws[global:]...).Handler(h)
+			}
+			found = h
+		}
+		return nil
+	})
+	return found
 }
 
 // sessionUser returns the signed-in account (not a personal access token),

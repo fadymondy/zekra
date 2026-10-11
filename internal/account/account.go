@@ -55,6 +55,10 @@ type Service struct {
 	// session issued at iat (unix seconds) for userID was ended elsewhere: the
 	// hub revoked the sign-in it came from. See hub.go.
 	SessionEnded func(ctx context.Context, userID string, iat int64) bool
+	// pluginChallenge is the auth plugin's own POST /api/auth/2fa/challenge
+	// handler, which Zekra's route of the same path replaces; a challenge the
+	// plugin minted (its TOTP, auth-mfa) is handed back to it. See twofactor.go.
+	pluginChallenge http.Handler
 }
 
 // ErrUnavailable is returned when the database or the auth service is missing.

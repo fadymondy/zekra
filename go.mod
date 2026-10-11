@@ -20,7 +20,7 @@ require (
 	// SQLite is the built-in default driver. Postgres/MySQL/Mongo drivers come from
 	// their db-* PLUGIN (added to internal/plugins by `togo new --db`), which pulls
 	// the raw driver transitively — so it isn't a direct dependency of this app.
-	modernc.org/sqlite v1.53.0
+	modernc.org/sqlite v1.60.1
 )
 
 // The brain plugin is developed in-repo (monorepo dev harness). Resolve it
@@ -40,7 +40,7 @@ replace github.com/togo-framework/cache-redis => ./plugins/cache-redis
 require (
 	github.com/circlexo/circlexo-go v0.2.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/togo-framework/aeo v0.1.0
 	github.com/togo-framework/ai v0.1.0
 	github.com/togo-framework/ai-adk v0.1.0
@@ -64,10 +64,10 @@ require (
 	github.com/togo-framework/ai-tts v0.1.1
 	github.com/togo-framework/analytics v0.1.1
 	github.com/togo-framework/audit v0.1.1
-	github.com/togo-framework/auth v0.8.1
+	github.com/togo-framework/auth v0.10.0
 	github.com/togo-framework/auth-firebase v0.1.0
-	github.com/togo-framework/auth-mfa v0.1.0
-	github.com/togo-framework/auth-oauth v0.2.0
+	github.com/togo-framework/auth-mfa v0.2.0
+	github.com/togo-framework/auth-oauth v0.2.1
 	github.com/togo-framework/auth-passkeys v0.1.0
 	github.com/togo-framework/auth-platform v0.1.2
 	github.com/togo-framework/auth-saml v0.1.0
@@ -101,7 +101,7 @@ require (
 	github.com/togo-framework/contacts-google v0.1.0
 	github.com/togo-framework/content-mcp v0.1.0
 	github.com/togo-framework/content-registry v0.1.0
-	github.com/togo-framework/dashboard v0.8.0
+	github.com/togo-framework/dashboard v0.10.0
 	github.com/togo-framework/data v0.1.0
 	github.com/togo-framework/data-bigquery v0.1.0
 	github.com/togo-framework/data-databricks v0.1.0
@@ -189,7 +189,7 @@ require (
 	github.com/togo-framework/queue-rabbitmq v0.1.0
 	github.com/togo-framework/rag-postgres v0.1.0
 	github.com/togo-framework/ratelimit v0.1.0
-	github.com/togo-framework/realtime v0.2.0
+	github.com/togo-framework/realtime v0.2.1
 	github.com/togo-framework/realtime-grpc v0.1.0
 	github.com/togo-framework/realtime-nats v0.1.0
 	github.com/togo-framework/realtime-ws v0.2.0
@@ -340,7 +340,7 @@ require (
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mmcdole/gofeed v1.3.0 // indirect
 	github.com/mmcdole/goxpp v1.1.1-0.20240225020742-a0c311522b23 // indirect
@@ -405,7 +405,7 @@ require (
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/api v0.278.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
@@ -413,7 +413,7 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.73.4 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 )
