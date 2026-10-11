@@ -295,15 +295,53 @@ func (s *Service) wrapLogin(next http.Handler, w http.ResponseWriter, r *http.Re
 			Email string   `json:"email"`
 			Roles []string `json:"roles"`
 		} `json:"user"`
+		MFARequired bool   `json:"mfa_required"`
+		Challenge   string `json:"challenge"`
 	}
-	if rec.status == http.StatusOK && json.Unmarshal(rec.body.Bytes(), &signedIn) == nil && signedIn.User.ID != "" {
-		if s.disabled(r.Context(), signedIn.User.ID) || s.twoFactorOn(r.Context(), signedIn.User.ID) {
-			http.SetCookie(w, ClearSessionCookie(secureRequest(r)))
-			s.complete(w, r, signedIn.User.ID, signedIn.User.Email, strings.Join(signedIn.User.Roles, ","), nil)
+	if rec.status == http.StatusOK && json.Unmarshal(rec.body.Bytes(), &signedIn) == nil {
+		if signedIn.User.ID != "" {
+			if s.disabled(r.Context(), signedIn.User.ID) || s.twoFactorOn(r.Context(), signedIn.User.ID) {
+				http.SetCookie(w, ClearSessionCookie(secureRequest(r)))
+				s.complete(w, r, signedIn.User.ID, signedIn.User.Email, strings.Join(signedIn.User.Roles, ","), nil)
+				return
+			}
+		} else if signedIn.MFARequired && s.pluginChallengeGate(w, r, signedIn.Challenge) {
 			return
 		}
 	}
 	rec.replay(w)
+}
+
+// pluginChallengeGate applies Zekra's account checks to a login the auth plugin
+// answered with its own second-factor challenge instead of a session (auth
+// v0.9+, for an account with the plugin's TOTP or an auth-mfa factor). A
+// disabled account is refused, and an account with Zekra's two-factor on gets
+// Zekra's challenge, so neither is decided by the plugin's factor alone. It
+// reports whether it answered; false leaves the plugin's challenge to pass
+// through.
+func (s *Service) pluginChallengeGate(w http.ResponseWriter, r *http.Request, challenge string) bool {
+	if s.Auth == nil || challenge == "" {
+		return false
+	}
+	userID, err := s.Auth.VerifyLoginChallenge(challenge)
+	if err != nil {
+		return false
+	}
+	ctx := r.Context()
+	if s.disabled(ctx, userID) {
+		disabledResponse(w)
+		return true
+	}
+	if !s.twoFactorOn(ctx, userID) {
+		return false
+	}
+	var email, roles string
+	if err := s.DB.QueryRowContext(ctx, `SELECT email, COALESCE(roles,'') FROM users WHERE id = $1`, userID).Scan(&email, &roles); err != nil {
+		writeJSONErr(w, http.StatusInternalServerError, "could not start the second step")
+		return true
+	}
+	s.complete(w, r, userID, email, roles, nil)
+	return true
 }
 
 func (s *Service) wrapRegister(next http.Handler, w http.ResponseWriter, r *http.Request) {

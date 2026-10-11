@@ -73,6 +73,8 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 	post := func(p string, h http.HandlerFunc) { k.Router.Post(p, h) }
 	get := func(p string, h http.HandlerFunc) { k.Router.Get(p, h) }
 	s.RegisterSignup(post)
+	// Taken before Zekra's route replaces it (chi keeps the last registration).
+	s.pluginChallenge = routeHandler(k.Router, http.MethodPost, "/api/auth/2fa/challenge")
 	s.RegisterTwoFactor(post, get)
 	s.RegisterIdentities(k.Router)
 	RegisterAreaAPI(api, s)
