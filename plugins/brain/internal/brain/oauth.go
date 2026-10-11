@@ -318,8 +318,9 @@ type oauthServer struct {
 	// fetchJWKS fetches a private_key_jwt client's jwks_uri (same guard).
 	fetchJWKS func(ctx context.Context, uri string) ([]byte, error)
 	jwks      *jwksCache
-	register  *ipLimiter
+	register  *registerLimits
 	tokenRate *ipLimiter
+	pruner    clientPruner
 }
 
 func newOAuthServer(svc *Service) *oauthServer {
@@ -329,7 +330,7 @@ func newOAuthServer(svc *Service) *oauthServer {
 		fetchCIMD: fetchClientMetadata,
 		fetchJWKS: fetchClientMetadata, // same SSRF-guarded https fetch
 		jwks:      newJWKSCache(),
-		register:  newIPLimiter(20, time.Hour),
+		register:  newRegisterLimits(),
 		tokenRate: newIPLimiter(120, time.Minute),
 	}
 }
@@ -431,6 +432,8 @@ type oauthClient struct {
 	JWKS    string
 	// Metadata document client (client_id is an https URL).
 	CIMD bool
+	// When the client was first registered (or its document first fetched).
+	CreatedAt time.Time
 }
 
 var errUnknownClient = errors.New("unknown client")
@@ -452,15 +455,16 @@ func (s *oauthServer) loadClient(ctx context.Context, clientID string, fetch boo
 			return nil, err
 		}
 		redirects, _ := json.Marshal(c.RedirectURIs)
-		_, err = db.ExecContext(ctx, `
+		err = db.QueryRowContext(ctx, `
 			INSERT INTO mcp_oauth_clients (id, client_name, client_uri, redirect_uris, token_endpoint_auth_method, jwks_uri, jwks)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (id) DO UPDATE SET client_name = EXCLUDED.client_name,
 				client_uri = EXCLUDED.client_uri, redirect_uris = EXCLUDED.redirect_uris,
 				token_endpoint_auth_method = EXCLUDED.token_endpoint_auth_method,
 				jwks_uri = EXCLUDED.jwks_uri, jwks = EXCLUDED.jwks,
-				updated_at = now()`,
-			c.ID, c.Name, c.URI, string(redirects), c.AuthMethod, c.JWKSURI, c.JWKS)
+				updated_at = now()
+			RETURNING created_at`,
+			c.ID, c.Name, c.URI, string(redirects), c.AuthMethod, c.JWKSURI, c.JWKS).Scan(&c.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -470,9 +474,9 @@ func (s *oauthServer) loadClient(ctx context.Context, clientID string, fetch boo
 	var c oauthClient
 	var redirects string
 	err = db.QueryRowContext(ctx, `
-		SELECT id, client_name, client_uri, redirect_uris, token_endpoint_auth_method, secret_hash, jwks_uri, jwks
+		SELECT id, client_name, client_uri, redirect_uris, token_endpoint_auth_method, secret_hash, jwks_uri, jwks, created_at
 		FROM mcp_oauth_clients WHERE id = $1`, clientID).
-		Scan(&c.ID, &c.Name, &c.URI, &redirects, &c.AuthMethod, &c.SecretHash, &c.JWKSURI, &c.JWKS)
+		Scan(&c.ID, &c.Name, &c.URI, &redirects, &c.AuthMethod, &c.SecretHash, &c.JWKSURI, &c.JWKS, &c.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errUnknownClient
 	}
@@ -517,44 +521,26 @@ func (c *oauthClient) allowsRedirect(uri string) bool {
 	return false
 }
 
-/*
-validRedirectURI is the registration-time rule from the spec's communication
-security section: https, or http on a loopback host. No fragment, no
-credentials, absolute.
-*/
-func validRedirectURI(raw string) bool {
-	if raw == "" || len(raw) > 2000 {
-		return false
-	}
-	u, err := url.Parse(raw)
-	if err != nil || !u.IsAbs() || u.Fragment != "" || strings.Contains(raw, "#") || u.User != nil || u.Host == "" {
-		return false
-	}
-	switch u.Scheme {
-	case "https":
-		return true
-	case "http":
-		host := u.Hostname()
-		return host == "localhost" || host == "127.0.0.1" || host == "::1"
-	}
-	return false
-}
+// validRedirectURI is the registration-time rule from the spec's communication
+// security section; see redirectURIProblem (oauth_dcr.go) for the details.
+func validRedirectURI(raw string) bool { return redirectURIProblem(raw) == "" }
 
 func isLoopbackRedirect(raw string) bool {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return false
 	}
-	h := u.Hostname()
-	return h == "localhost" || h == "127.0.0.1" || h == "::1"
+	return isLoopbackHost(u.Hostname())
 }
 
 func (s *oauthServer) registerClient(w http.ResponseWriter, r *http.Request) {
 	allowAnyOrigin(w)
-	if !s.register.allow(clientIPOf(r), s.now()) {
-		oauthError(w, http.StatusTooManyRequests, "slow_down", "too many registrations from this address")
+	if ok, wait := s.register.take(clientIPOf(r), s.now()); !ok {
+		w.Header().Set("Retry-After", retryAfterSeconds(wait))
+		oauthError(w, http.StatusTooManyRequests, "slow_down", "too many client registrations; retry later")
 		return
 	}
+	s.maybePruneClients(s.now())
 	var in struct {
 		RedirectURIs            []string `json:"redirect_uris"`
 		ClientName              string   `json:"client_name"`
@@ -568,15 +554,20 @@ func (s *oauthServer) registerClient(w http.ResponseWriter, r *http.Request) {
 		oauthError(w, http.StatusBadRequest, "invalid_client_metadata", "body must be a JSON object")
 		return
 	}
-	if len(in.RedirectURIs) == 0 || len(in.RedirectURIs) > 10 {
+	if len(in.RedirectURIs) == 0 || len(in.RedirectURIs) > maxRedirectURIs {
 		oauthError(w, http.StatusBadRequest, "invalid_redirect_uri", "between 1 and 10 redirect_uris are required")
 		return
 	}
 	for _, u := range in.RedirectURIs {
-		if !validRedirectURI(u) {
-			oauthError(w, http.StatusBadRequest, "invalid_redirect_uri", "redirect URIs must be https, or http on localhost, with no fragment")
+		if problem := redirectURIProblem(u); problem != "" {
+			oauthError(w, http.StatusBadRequest, "invalid_redirect_uri", problem)
 			return
 		}
+	}
+	in.ClientName = strings.TrimSpace(in.ClientName)
+	if problem := clientNameProblem(in.ClientName); problem != "" {
+		oauthError(w, http.StatusBadRequest, "invalid_client_metadata", problem)
+		return
 	}
 	method := in.TokenEndpointAuthMethod
 	if method == "" {
@@ -610,7 +601,7 @@ func (s *oauthServer) registerClient(w http.ResponseWriter, r *http.Request) {
 		secret = secretPrefix + randomToken(32)
 		secretHash = HashToken(secret)
 	}
-	name := oauthClip(strings.TrimSpace(in.ClientName), 120)
+	name := in.ClientName
 	redirects, _ := json.Marshal(in.RedirectURIs)
 	db, err := s.db(r.Context())
 	if err == nil {
@@ -796,15 +787,23 @@ func (s *oauthServer) authorizeRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	brains, _ := s.svc.brainsForUser(r, c)
+	// A self-registered client's name is only a claim; a metadata-document
+	// client is identified by the https URL it is served from. Either way a
+	// client first seen in the last day gets a warning on the consent screen.
+	isNew := client.CreatedAt.IsZero() || s.now().Sub(client.CreatedAt) < newClientWindow
 	writeJSONNoStore(w, http.StatusOK, map[string]any{
 		"client": map[string]any{
 			"id":                client.ID,
 			"name":              client.Name,
 			"uri":               client.URI,
 			"metadata_document": client.CIMD,
+			"verified":          client.CIMD,
+			"registered_at":     client.CreatedAt.UTC().Format(time.RFC3339),
+			"new":               isNew,
 		},
 		"redirect_uri":       p.RedirectURI,
 		"redirect_host":      redirect.Host,
+		"redirect_hostname":  redirect.Hostname(),
 		"loopback_redirect":  isLoopbackRedirect(p.RedirectURI),
 		"requested_scopes":   offered,
 		"write_requested":    hasScope(scopes, ScopeWrite),
@@ -1534,6 +1533,13 @@ func newIPLimiter(max int, window time.Duration) *ipLimiter {
 }
 
 func (l *ipLimiter) allow(ip string, now time.Time) bool {
+	ok, _ := l.take(ip, now)
+	return ok
+}
+
+// take counts one request for ip; when it is over the limit it also returns how
+// long until the current window ends.
+func (l *ipLimiter) take(ip string, now time.Time) (bool, time.Duration) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if len(l.seen) > 10000 {
@@ -1546,10 +1552,13 @@ func (l *ipLimiter) allow(ip string, now time.Time) bool {
 	w := l.seen[ip]
 	if w == nil || now.Sub(w.start) > l.window {
 		l.seen[ip] = &ipWindow{start: now, n: 1}
-		return true
+		return l.max > 0, l.window
 	}
 	w.n++
-	return w.n <= l.max
+	if w.n <= l.max {
+		return true, 0
+	}
+	return false, w.start.Add(l.window).Sub(now)
 }
 
 // logRefusedClient records the shape of a token request whose client could not

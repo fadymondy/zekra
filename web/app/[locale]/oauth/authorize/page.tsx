@@ -18,9 +18,10 @@ import { cn } from "@/lib/utils"
 
 type Brain = { namespace: string; role: string; canWrite: boolean; memories: number }
 type AuthorizeRequest = {
-  client: { id: string; name: string; uri?: string }
+  client: { id: string; name: string; uri?: string; verified?: boolean; new?: boolean; registered_at?: string }
   redirect_uri: string
   redirect_host: string
+  redirect_hostname?: string
   loopback_redirect: boolean
   requested_scopes: { scope: string; write: boolean; description: string }[]
   write_requested: boolean
@@ -28,10 +29,19 @@ type AuthorizeRequest = {
 }
 type Pick = { on: boolean; write: boolean }
 
+// hostOf is the host a metadata-document client_id (an https URL) is served from.
+function hostOf(u: string) {
+  try {
+    return new URL(u).host
+  } catch {
+    return u
+  }
+}
+
 const PARAMS = ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state", "scope", "resource"]
 
 export default function AuthorizePage() {
-  const { t, locale, formatNumber } = useTranslations()
+  const { t, locale, formatNumber, timeAgo } = useTranslations()
   useDocumentTitle(t("oauth.title"))
   const me = useMe()
   const [query, setQuery] = useState<string | null>(null)
@@ -117,21 +127,39 @@ export default function AuthorizePage() {
           <div className="mx-auto flex max-w-lg flex-col gap-6">
             <div className="flex items-start gap-3 border border-border bg-card p-4">
               <ShieldCheckIcon className="mt-0.5 size-5 shrink-0 text-nq-action" />
-              <div className="min-w-0 space-y-1 text-sm">
+              <div className="min-w-0 flex-1 space-y-3 text-sm">
                 <p>
-                  <span dir="auto" className="font-medium text-foreground">
+                  <span dir="auto" className="break-words font-medium text-foreground">
                     {req.client.name || req.client.id}
                   </span>{" "}
-                  <span className="text-muted-foreground">({t("oauth.claims")})</span>
-                </p>
-                <p className="text-muted-foreground">
-                  {t("oauth.redirectsTo")}{" "}
-                  <span dir="ltr" className="font-mono text-foreground">
-                    {req.redirect_host}
+                  <span className="text-muted-foreground">
+                    ({req.client.verified ? t("oauth.verifiedBy", { host: hostOf(req.client.id) }) : t("oauth.claims")})
                   </span>
                 </p>
+                <div>
+                  <p className="text-muted-foreground">{t("oauth.redirectsTo")}</p>
+                  <p
+                    dir="ltr"
+                    className="mt-1 inline-block break-all border border-amber-500/40 bg-amber-500/10 px-2 py-1 font-mono text-base font-semibold text-foreground"
+                  >
+                    {req.redirect_hostname || req.redirect_host}
+                  </p>
+                  <p dir="ltr" className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                    {req.redirect_uri}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {req.client.new || !req.client.verified ? (
+              <p role="note" className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
+                <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-500" />
+                <span>
+                  {req.client.new ? t("oauth.newClient", { when: timeAgo(req.client.registered_at) }) : t("oauth.unverifiedClient")}{" "}
+                  {t("oauth.checkHost", { host: req.redirect_hostname || req.redirect_host })}
+                </span>
+              </p>
+            ) : null}
 
             {req.loopback_redirect ? (
               <p className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
