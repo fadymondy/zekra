@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.fadymondy/zekra",
+  "title": "Zekra",
+  "description": "Long-term memory and a knowledge graph for AI agents: recall, notes, secrets and data sources.",
+  "version": "0.1.0",
+  "websiteUrl": "https://zekra.dev",
+  "repository": {
+    "url": "https://github.com/fadymondy/zekra",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.zekra.dev"
+    }
+  ]
+}
