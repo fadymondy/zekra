@@ -2,6 +2,7 @@
   "name": "zekra-desktop",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-only",
   "description": "Zekra (ذكرى) for macOS — a native Electron client of the Zekra brain/notes API.",
   "main": "out/main/main.js",
   "scripts": {

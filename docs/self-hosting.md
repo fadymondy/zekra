@@ -6,7 +6,9 @@ order: 9
 
 # Self-hosting
 
-Zekra is open source ([github.com/fadymondy/zekra](https://github.com/fadymondy/zekra)). It
+Zekra is open source under the [GNU AGPL-3.0](https://github.com/fadymondy/zekra/blob/main/LICENSE)
+([github.com/fadymondy/zekra](https://github.com/fadymondy/zekra)). If you run a modified
+version as a network service, the AGPL requires you to offer its source to your users. It
 ships as one Go binary that serves the REST API, the web console, GraphQL and an OpenAPI
 description on a single port (`:8080`).
 

@@ -1,5 +1,7 @@
 # Zekra
 
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
+
 **ذكرى — shared long-term memory for AI agents.** What one session learns, the next one
 already knows.
 
@@ -84,3 +86,9 @@ cd web && npm run dev
 
 Configuration comes from `.env` / `togo.yaml` (`ZEKRA_*` variables; legacy `CABRAIN_*` names
 are still honoured). Secrets are never committed.
+
+## License
+
+Zekra is licensed under the [GNU Affero General Public License v3.0](./LICENSE)
+(`AGPL-3.0-only`). You can use, modify and self-host it; if you run a modified version as a
+network service, you must offer its users the corresponding source under the same license.

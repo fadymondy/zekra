@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Fady Mondy. Licensed under the GNU AGPL-3.0; see LICENSE at the repo root.
+
 module github.com/togo-framework/brain
 
 go 1.26
