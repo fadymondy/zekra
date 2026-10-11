@@ -24,10 +24,11 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -159,10 +160,24 @@ var secretMatchers = []struct {
 	{kind: "credential", re: regexp.MustCompile(`(?i)\b(pass(?:word|wd)?|secret|api[_-]?key|access[_-]?token|auth[_-]?token)\b\s*[:=]\s*['"]?([^\s'"]{6,})['"]?`), nameGroup: 1, valGroup: 2},
 }
 
+// secretRefRe matches a vault reference left by an earlier capture. References
+// are opaque: nothing inside one is ever detected, captured or rewritten.
+var secretRefRe = regexp.MustCompile(`\[secret:[^\[\]\s]*\]`)
+
+// secretEnvName / publicEnvName gate the env matcher to variables that hold a
+// credential. Hosts, ports, usernames, sender addresses, URLs and IDs are config,
+// not secrets.
+var (
+	secretEnvName = regexp.MustCompile(`PASS|PWD|SECRET|TOKEN|API_?KEY|PRIVATE_?KEY|ACCESS_?KEY|(?:^|_)KEY$|CREDENTIAL|SALT|DSN`)
+	publicEnvName = regexp.MustCompile(`PUBLIC|PUBLISHABLE|_ID$|_USER(?:NAME)?$|_EMAIL$|_ADDRESS$|_HOST$|_URL$|_URI$|_PATH$`)
+)
+
+var emailRe = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$`)
+
 // looksLikePlaceholder skips obvious non-secrets (examples, redaction markers).
 func looksLikePlaceholder(v string) bool {
 	lv := strings.ToLower(v)
-	for _, p := range []string{"example", "changeme", "your_", "xxxx", "****", "…", "redacted", "<", "placeholder", "dummy"} {
+	for _, p := range []string{"example", "changeme", "your_", "xxxx", "****", "…", "redacted", "<", "placeholder", "dummy", "[secret:"} {
 		if strings.Contains(lv, p) {
 			return true
 		}
@@ -172,35 +187,195 @@ func looksLikePlaceholder(v string) bool {
 
 // extractSecrets scans content, returns the redacted content (secret values
 // replaced with `[secret:<name>]`) and the list of detected secrets (deduped by
-// value). Names are derived from the env var / credential label when available,
-// else "<kind>-<8hex of value>".
+// value, unique by name). Existing references pass through untouched.
 func extractSecrets(content string) (string, []detectedSecret) {
-	redacted := content
-	seen := map[string]string{} // value -> name (dedup)
+	found := detectSecrets(content)
+	plan := make([]plannedSecret, len(found))
+	for i, d := range found {
+		plan[i] = plannedSecret{detectedSecret: d}
+	}
+	return redactSecrets(content, plan), found
+}
+
+// detectSecrets finds the secret values in content. Names come from the env var,
+// or from the credential label plus its context ("Admin password:" under
+// "## Moharrik" → moharrik-admin-password), else "<kind>-<8hex of value>". Two
+// different values never share a name within one body.
+func detectSecrets(content string) []detectedSecret {
+	refs := secretRefRe.FindAllStringIndex(content, -1)
+	inRef := func(a, b int) bool {
+		for _, r := range refs {
+			if a < r[1] && b > r[0] {
+				return true
+			}
+		}
+		return false
+	}
+	seen := map[string]bool{}     // value
+	nameOf := map[string]string{} // name -> value
 	var out []detectedSecret
 
 	for _, m := range secretMatchers {
-		for _, loc := range m.re.FindAllStringSubmatch(content, -1) {
-			val := loc[m.valGroup]
-			val = strings.TrimSpace(val)
-			if len(val) < 6 || looksLikePlaceholder(val) {
+		for _, loc := range m.re.FindAllStringSubmatchIndex(content, -1) {
+			vs, ve := loc[2*m.valGroup], loc[2*m.valGroup+1]
+			if vs < 0 || inRef(loc[0], loc[1]) || inRef(vs, ve) {
 				continue
 			}
-			name, dup := seen[val]
-			if !dup {
-				if m.nameGroup > 0 && m.nameGroup < len(loc) && loc[m.nameGroup] != "" {
-					name = sanitizeSecretName(loc[m.nameGroup])
-				} else {
-					sum := sha256.Sum256([]byte(val))
-					name = fmt.Sprintf("%s-%s", m.kind, hex.EncodeToString(sum[:4]))
-				}
-				seen[val] = name
-				out = append(out, detectedSecret{Name: name, Value: val, Kind: m.kind})
+			val := strings.TrimSpace(content[vs:ve])
+			if len(val) < 6 || seen[val] || looksLikePlaceholder(val) {
+				continue
 			}
-			redacted = strings.ReplaceAll(redacted, val, "[secret:"+name+"]")
+			label := ""
+			if m.nameGroup > 0 && loc[2*m.nameGroup] >= 0 {
+				label = content[loc[2*m.nameGroup]:loc[2*m.nameGroup+1]]
+			}
+			var name string
+			switch m.kind {
+			case "env":
+				if !secretEnvName.MatchString(label) || publicEnvName.MatchString(label) || emailRe.MatchString(val) {
+					continue
+				}
+				name = sanitizeSecretName(label)
+			case "credential":
+				if emailRe.MatchString(val) {
+					continue
+				}
+				name = credentialName(content, loc[0], label)
+			default:
+				name = m.kind + "-" + shortHash(val)
+			}
+			if prev, taken := nameOf[name]; taken && prev != val {
+				name = sanitizeSecretName(name + "-" + shortHash(val))
+			}
+			seen[val] = true
+			nameOf[name] = val
+			out = append(out, detectedSecret{Name: name, Value: val, Kind: m.kind})
 		}
 	}
-	return redacted, out
+	return out
+}
+
+// plannedSecret is a detected secret with its final vault name; Store is false
+// when the vault already holds this exact value under that name.
+type plannedSecret struct {
+	detectedSecret
+	Store bool
+}
+
+// redactSecrets replaces each planned value with its reference, longest value
+// first, and only outside existing references.
+func redactSecrets(content string, plan []plannedSecret) string {
+	sorted := append([]plannedSecret(nil), plan...)
+	sort.SliceStable(sorted, func(i, j int) bool { return len(sorted[i].Value) > len(sorted[j].Value) })
+	for _, p := range sorted {
+		content = replaceOutsideRefs(content, p.Value, "[secret:"+p.Name+"]")
+	}
+	return content
+}
+
+func replaceOutsideRefs(s, old, repl string) string {
+	var b strings.Builder
+	last := 0
+	for _, r := range secretRefRe.FindAllStringIndex(s, -1) {
+		b.WriteString(strings.ReplaceAll(s[last:r[0]], old, repl))
+		b.WriteString(s[r[0]:r[1]])
+		last = r[1]
+	}
+	b.WriteString(strings.ReplaceAll(s[last:], old, repl))
+	return b.String()
+}
+
+// planSecretCapture picks a vault name per detected secret without ever
+// overwriting an entry that holds a different value: an identical value reuses
+// its entry, a clash falls back to "<name>-<8hex of value>", and if that is taken
+// too the secret is skipped (left un-redacted) and reported. lookup returns the
+// current value under a name; a lookup error counts as taken.
+func planSecretCapture(found []detectedSecret, lookup func(name string) (string, bool, error)) ([]plannedSecret, []string) {
+	var plan []plannedSecret
+	var skipped []string
+	for _, d := range found {
+		placed := false
+		for _, name := range []string{d.Name, sanitizeSecretName(d.Name + "-" + shortHash(d.Value))} {
+			cur, ok, err := lookup(name)
+			if err != nil {
+				continue
+			}
+			if !ok || cur == d.Value {
+				d.Name = name
+				plan = append(plan, plannedSecret{detectedSecret: d, Store: !ok})
+				placed = true
+				break
+			}
+		}
+		if !placed {
+			skipped = append(skipped, d.Name)
+		}
+	}
+	return plan, skipped
+}
+
+var (
+	labelWordRe = regexp.MustCompile(`[A-Za-z0-9]+`)
+	headingRe   = regexp.MustCompile(`^\s*(?:#{1,6}\s+(.+?)\s*#*\s*|\*\*([^*]+)\*\*:?|__([^_]+)__:?|([^:=]{1,60}):)\s*$`)
+)
+
+// credentialName builds a vault name from a credential label and its context:
+// the nearest heading above plus the words before the label on its own line
+// ("Admin password:" under "## Moharrik" → moharrik-admin-password).
+func credentialName(content string, at int, label string) string {
+	base := normalizeCredentialLabel(label)
+	lineStart := strings.LastIndexByte(content[:at], '\n') + 1
+	ctx := contextWords(content[lineStart:at])
+	lines := strings.Split(content[:lineStart], "\n")
+	for i, n := len(lines)-1, 0; i >= 0 && n < 20; i-- {
+		l := strings.TrimSpace(lines[i])
+		if l == "" {
+			continue
+		}
+		n++
+		if m := headingRe.FindStringSubmatch(l); m != nil {
+			head := contextWords(m[1] + m[2] + m[3] + m[4])
+			if !strings.Contains(strings.Join(ctx, "-"), strings.Join(head, "-")) {
+				ctx = append(head, ctx...)
+			}
+			break
+		}
+	}
+	if len(ctx) > 0 && ctx[len(ctx)-1] == base {
+		ctx = ctx[:len(ctx)-1]
+	}
+	if len(ctx) > 5 {
+		ctx = ctx[len(ctx)-5:]
+	}
+	return sanitizeSecretName(strings.Join(append(ctx, base), "-"))
+}
+
+func contextWords(s string) []string {
+	w := labelWordRe.FindAllString(strings.ToLower(s), -1)
+	if len(w) > 4 {
+		w = w[len(w)-4:]
+	}
+	return w
+}
+
+func normalizeCredentialLabel(l string) string {
+	l = strings.ToLower(l)
+	switch {
+	case strings.HasPrefix(l, "pass"):
+		return "password"
+	case strings.HasPrefix(l, "api"):
+		return "api-key"
+	case strings.HasPrefix(l, "access"):
+		return "access-token"
+	case strings.HasPrefix(l, "auth"):
+		return "auth-token"
+	}
+	return "secret"
+}
+
+func shortHash(v string) string {
+	sum := sha256.Sum256([]byte(v))
+	return hex.EncodeToString(sum[:4])
 }
 
 var nameSanitizer = regexp.MustCompile(`[^A-Za-z0-9_.\-]+`)
@@ -319,20 +494,37 @@ func (s *Store) DeleteSecret(ctx context.Context, ns, name string) (bool, error)
 
 // captureSecrets is the retain-path hook: it extracts secrets from content, stores
 // each in the vault, and returns the redacted content plus the captured names.
-// Best-effort — a vault error must never fail the retain; on error it returns the
-// ORIGINAL content unchanged (so nothing is silently dropped) and no names.
+// Existing vault entries are never overwritten with a different value (see
+// planSecretCapture). Best-effort — a vault error must never fail the retain; on
+// error it returns the ORIGINAL content unchanged (so nothing is silently
+// dropped) and no names.
 func (s *Store) captureSecrets(ctx context.Context, ns, content, sourceRef, by string) (string, []string) {
-	redacted, found := extractSecrets(content)
+	found := detectSecrets(content)
 	if len(found) == 0 {
 		return content, nil
 	}
-	var names []string
-	for _, d := range found {
-		if err := s.PutSecret(ctx, ns, d.Name, d.Value, d.Kind, sourceRef, by); err != nil {
-			// Could not vault it (e.g. no key) — do not redact that value; keep content intact.
-			return content, nil
+	plan, skipped := planSecretCapture(found, func(name string) (string, bool, error) {
+		v, err := s.RevealSecret(ctx, ns, name)
+		if errors.Is(err, ErrNotFound) {
+			return "", false, nil
 		}
-		names = append(names, d.Name)
+		return v, err == nil, err
+	})
+	if len(skipped) > 0 {
+		slog.Warn("brain: secret capture skipped, no free vault name", "namespace", ns, "sourceRef", sourceRef, "names", skipped)
 	}
-	return redacted, names
+	var names []string
+	for _, p := range plan {
+		if p.Store {
+			if err := s.PutSecret(ctx, ns, p.Name, p.Value, p.Kind, sourceRef, by); err != nil {
+				// Could not vault it (e.g. no key) — do not redact; keep content intact.
+				return content, nil
+			}
+		}
+		names = append(names, p.Name)
+	}
+	if len(names) == 0 {
+		return content, nil
+	}
+	return redactSecrets(content, plan), names
 }
