@@ -14,6 +14,9 @@ so nobody re-derives what is already known.
 - **Console + API + MCP:** https://app.zekra.dev
 - **CLI:** [`fadymondy/zekra-cli`](https://github.com/fadymondy/zekra-cli)
 
+
+⭐ **Useful? Star the repo** so other agent builders find it. Questions and ideas go in [Discussions](https://github.com/fadymondy/zekra/discussions).
+
 ## Documentation
 
 Full docs at **https://zekra.dev/en/docs** (source: [`docs/`](./docs)):
@@ -92,3 +95,11 @@ are still honoured). Secrets are never committed.
 Zekra is licensed under the [GNU Affero General Public License v3.0](./LICENSE)
 (`AGPL-3.0-only`). You can use, modify and self-host it; if you run a modified version as a
 network service, you must offer its users the corresponding source under the same license.
+
+## More open source from the same author
+
+- [TomatoPHP](https://tomatophp.com): 60+ open-source FilamentPHP plugins for Laravel
+- [Laravilt](https://laravilt.com): Laravel admin panels rendered with Inertia on Vue 3 or React 19
+- [ToGO](https://to-go.dev): the Laravel-style workflow for Go + React apps, with a plugin marketplace
+
+Built by [Fady Mondy](https://fadymondy.com).
