@@ -32,7 +32,7 @@ var (
 	fakeValue77    = fakeSecret("Fake-", "Value-77")
 	fakeValue88    = fakeSecret("Fake-", "Value-88")
 	fakeToken      = fakeSecret("Fake-", "Token-", "xyz9")
-	fakeSMTPHost   = fakeSecret("smtp", ".mail", ".me.com")
+	fakeSMTPHost   = fakeSecret("smtp", ".example", ".test")
 	fakeDBURL      = fakeSecret("postgres", "://", "app", ":", fakeDBPass, "@", "db.acme.test:5432/app")
 )
 

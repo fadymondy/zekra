@@ -41,6 +41,8 @@ func newOAuthFix(t *testing.T) *oauthFix {
 	f.clock = time.Now().UTC()
 	f.s.now = func() time.Time { return f.clock }
 	f.s.fetchCIMD = func(context.Context, string) ([]byte, error) { return nil, errors.New("no network in tests") }
+	// Tests register many clients from one address; the limits have their own tests.
+	f.s.register = &registerLimits{perIP: newIPLimiter(1000, time.Hour), global: newIPLimiter(1000, time.Hour)}
 	f.exec(`INSERT INTO brain_members (namespace, user_id, role) VALUES ($1,'u-alice','owner'), ($2,'u-bob','owner')`, f.brain, f.other)
 	t.Cleanup(func() {
 		db, _ := f.svc.Store.db(context.Background())
@@ -754,7 +756,7 @@ func TestOAuthClientMetadataDocument(t *testing.T) {
 
 func TestOAuthRegistrationRateLimited(t *testing.T) {
 	f := newOAuthFix(t)
-	f.s.register = newIPLimiter(2, time.Hour)
+	f.s.register = &registerLimits{perIP: newIPLimiter(2, time.Hour), global: newIPLimiter(100, time.Hour)}
 	for i := 0; i < 2; i++ {
 		if _, rec := f.register(`{"client_name":"p1 rl","redirect_uris":["` + redirect + `"]}`); rec.Code != http.StatusCreated {
 			t.Fatalf("registration %d: %d", i, rec.Code)
