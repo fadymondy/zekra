@@ -147,6 +147,10 @@ win:
       arch: [x64, arm64]
 
 nsis:
+  # No spaces: GitHub turns them into dots on upload, while latest.yml names
+  # the installer with dashes, so the default "Zekra Setup x.y.z.exe" made the
+  # auto-update download 404.
+  artifactName: ${productName}-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
@@ -183,8 +187,24 @@ linux:
     - target: deb
       arch: [x64, arm64]
 
+# Setting depends REPLACES electron-builder's default list, so it has to carry
+# everything Electron links against: the four-entry list it had before left out
+# libasound2, and the app would not start on a system without ALSA ("error
+# while loading shared libraries: libasound.so.2"). On Ubuntu 24.04+/Debian 13
+# the t64 packages Provide these names.
 deb:
-  depends: ["libnotify4", "libxtst6", "libnss3", "libsecret-1-0"]
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+    - libasound2
+    - libgbm1
 
 # electron-updater reads the feed from app-update.yml, generated from this.
 publish:
