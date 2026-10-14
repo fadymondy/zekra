@@ -1,21 +1,23 @@
-# Zekra for Flathub — repackages the published Linux .deb (x86_64).
+﻿# Zekra for Flathub — repackages the published Linux .deb (x86_64).
 #
-#   flatpak-builder --user --install-deps-from=flathub --force-clean \
-#     --state-dir=/mnt/e/tmp/zekra-pkg/flatpak-state \
-#     /mnt/e/tmp/zekra-pkg/flatpak-build dev.zekra.Zekra.yml
+#   flatpak run org.flatpak.Builder --user --install-deps-from=flathub \
+#     --force-clean --state-dir=<scratch>/state --repo=<scratch>/repo \
+#     <scratch>/build dev.zekra.Zekra.yml
 #
-# State and build dirs go on E: (the WSL vhdx lives on C:). Remove both after a
-# build. On a new release: bump url + sha256 below and add a <release> to the
-# metainfo (flathub's x-checker-data bot opens that PR on its own).
+# On the Windows box the scratch dir lives in WSL (/srv/zekra-build) and is
+# deleted after the build; see ../README.md. On a new release bump url + sha256
+# and add a <release> to the metainfo (Flathub's x-checker-data bot opens that
+# PR on its own).
 #
 # The self-updater is switched off by deleting resources/app-update.yml (no
-# feed config -> updater.ts disables itself); Flathub ships the updates.
+# feed config -> updater.ts disables itself); Flathub ships the updates. "Open
+# at login" is off too: Flathub doesn't grant ~/.config/autostart access.
 app-id: dev.zekra.Zekra
 runtime: org.freedesktop.Platform
-runtime-version: '24.08'
+runtime-version: '26.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
-base-version: '24.08'
+base-version: '26.08'
 command: zekra
 separate-locales: false
 finish-args:
@@ -29,8 +31,6 @@ finish-args:
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.kde.StatusNotifierWatcher
   - --talk-name=org.freedesktop.secrets
-  # "Open at login" writes an XDG autostart entry (os-integration.ts).
-  - --filesystem=xdg-config/autostart:create
 modules:
   - name: zekra
     buildsystem: simple

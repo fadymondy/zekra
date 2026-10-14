@@ -39,9 +39,8 @@ const LINUX_AUTOSTART = () => path.join(os.homedir(), ".config", "autostart", "z
 
 /** The Exec= command a login launch should run, quoted for a .desktop file. */
 function linuxExec(): string {
-  // Inside a sandbox process.execPath only exists in the sandbox; snapd's own
-  // autostart runs the snap app and ignores Exec=, but keep it truthful.
-  if (process.env.FLATPAK_ID) return `flatpak run ${process.env.FLATPAK_ID}`;
+  // process.execPath only exists inside the snap; snapd's own autostart runs
+  // the snap app and ignores Exec=, but keep it truthful.
   if (process.env.SNAP_NAME) return `/snap/bin/${process.env.SNAP_NAME}`;
   return `"${(process.env.APPIMAGE || process.execPath).replace(/"/g, '\\"')}"`;
 }
@@ -50,6 +49,10 @@ export async function applyLoginItem(open: boolean, hidden: boolean): Promise<{ 
   if (!app.isPackaged) {
     // Registering the bare Electron binary would launch the Electron demo app.
     return { ok: false, message: "development build: login item not registered" };
+  }
+  if (process.env.FLATPAK_ID) {
+    // Flathub grants no ~/.config/autostart access.
+    return { ok: false, message: "Flatpak build: open at login is not available" };
   }
   try {
     if (platform === "darwin") {
