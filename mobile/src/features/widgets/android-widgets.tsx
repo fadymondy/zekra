@@ -28,7 +28,7 @@ export const ANDROID_WIDGET_NAMES: AndroidWidgetName[] = Object.values(ANDROID_W
 
 // Copied into the APK by the plugin's `fonts` option (app.json); the library
 // falls back to the system font if one is missing.
-const FONT = { regular: "Lusail-Regular", medium: "Lusail-Medium", mono: "JetBrainsMono_500Medium" };
+const FONT = { regular: "IBMPlexSansArabic-Regular", medium: "IBMPlexSansArabic-Medium", mono: "JetBrainsMono_500Medium" };
 
 const hex = (c: string) => c as ColorProp;
 

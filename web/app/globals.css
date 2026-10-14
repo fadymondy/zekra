@@ -8,7 +8,7 @@
 @import "@fadymondy/nasaq/tokens.css";
 @import "@fadymondy/nasaq/theme.css";
 @import "@fadymondy/nasaq/web/styles.css";
-/* Font files only (Lusail, Inter, JetBrains Mono); the family names are the ones Nasaq's --nq-font-* use. */
+/* Font files only (Inter, IBM Plex Sans Arabic, JetBrains Mono); the family names are the ones Nasaq's --nq-font-* use. */
 @import "./styles/grid-fonts.css";
 @import "./styles/inter.css";
 

@@ -41,12 +41,11 @@ function Shell() {
   useScreenTracking();
   usePushNotifications(token);
   useWidgetSync();
-  // Lusail carries both Arabic and Latin, so the whole UI uses one family.
+  // Arabic UI uses IBM Plex Sans Arabic, English uses Inter (RN cannot fall back per glyph).
   const [fontsLoaded] = useFonts({
-    "Lusail-Light": require("../assets/fonts/Lusail-Light.ttf"),
-    "Lusail-Regular": require("../assets/fonts/Lusail-Regular.ttf"),
-    "Lusail-Medium": require("../assets/fonts/Lusail-Medium.ttf"),
-    "Lusail-Bold": require("../assets/fonts/Lusail-Bold.ttf"),
+    "IBMPlexSansArabic-Light": require("../assets/fonts/IBMPlexSansArabic-Light.ttf"),
+    "IBMPlexSansArabic-Regular": require("../assets/fonts/IBMPlexSansArabic-Regular.ttf"),
+    "IBMPlexSansArabic-Medium": require("../assets/fonts/IBMPlexSansArabic-Medium.ttf"),
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
     Inter_300Light,

@@ -17,7 +17,7 @@
              radii, 34px rows and controls, a GTK header bar, no materials
 
    Readability floor: secondary text 12.5–13px, section headers and the status
-   bar 12px; nothing smaller. Arabic (Lusail) is a step larger again.
+   bar 12px; nothing smaller. Arabic (IBM Plex Sans Arabic) is a step larger again.
 
    RULE: no colour is hard-coded here. Everything derives from the grid tokens
    (--grid-bg/-card/-fg/-muted/-line/-action…), which the reading themes
@@ -51,7 +51,7 @@ body {
   --fs-ui: 14px;
   --fs-small: 12.5px;
   --fs-title: 14.5px;
-  --grid-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Lusail", system-ui, sans-serif;
+  --grid-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "IBM Plex Sans Arabic", system-ui, sans-serif;
   --text-xs: 0.78125rem; /* 12.5px */
   --text-xs--line-height: 1.45;
   --text-sm: 0.875rem; /* 14px */
@@ -66,7 +66,7 @@ html[data-platform="win32"] {
   --fs-ui: 14px;
   --fs-small: 13px;
   --fs-title: 20px;
-  --grid-font-sans: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "Lusail", system-ui, sans-serif;
+  --grid-font-sans: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "IBM Plex Sans Arabic", system-ui, sans-serif;
   --text-xs: 0.8125rem; /* 13px */
   --text-sm: 0.875rem; /* 14px */
 }
@@ -79,18 +79,18 @@ html[data-platform="linux"] {
   --fs-ui: 14.5px;
   --fs-small: 13px;
   --fs-title: 15px;
-  --grid-font-sans: system-ui, Cantarell, Ubuntu, "Noto Sans", "Lusail", sans-serif;
+  --grid-font-sans: system-ui, Cantarell, Ubuntu, "Noto Sans", "IBM Plex Sans Arabic", sans-serif;
   --text-xs: 0.8125rem; /* 13px */
   --text-sm: 0.90625rem; /* 14.5px */
 }
-/* Arabic: Lusail (the brand face) on every OS, a step larger — it needs
+/* Arabic: IBM Plex Sans Arabic on every OS, a step larger — it needs
    ~1px more than Latin at small sizes. "Inter AR" comes FIRST (web
    app/styles/inter.css): Inter has no Arabic glyphs, so Arabic text falls
-   through to Lusail glyph-by-glyph while English brain names and note titles
-   render in Inter — sized ~14px against Lusail's 15px (size-adjust). */
+   through to Plex glyph-by-glyph while English brain names and note titles
+   render in Inter — sized ~14px against Plex's 15px (size-adjust). */
 html:lang(ar),
 html:lang(ar)[data-platform] {
-  --grid-font-sans: "Inter AR", "Lusail", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --grid-font-sans: "Inter AR", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --fs-ui: 15px;
   --fs-small: 13.5px;
   --text-xs: 0.84375rem; /* 13.5px */
@@ -520,10 +520,10 @@ html[dir="ltr"] [data-slot="sidebar"] :is([dir="auto"], .zk-bidi) {
 /* ── English UI font: Inter on every platform ─────────────────────────────
    Declared after the per-platform stacks above and with a more specific
    selector, so English is Inter on macOS, Windows and Linux alike. Arabic
-   keeps each platform's stack with Lusail. Inter's @font-face comes from
+   keeps each platform's stack with Plex. Inter's @font-face comes from
    web/app/styles/inter.css (bundled with globals.css). */
 html[lang^="en"][data-platform] {
-  --grid-font-sans: "Inter", "Lusail", system-ui, sans-serif;
+  --grid-font-sans: "Inter", "IBM Plex Sans Arabic", system-ui, sans-serif;
 }
 
 /* ── Sidebar: the Brains header is a link to the all-brains table ─────── */

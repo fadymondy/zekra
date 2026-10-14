@@ -65,7 +65,7 @@ const NotificationRow = memo(function NotificationRow({ item, last, now, onOpen,
       leading={<KindTile kind={item.kind} p={p} />}
       trailing={
         <View style={styles.end}>
-          {/* JetBrains Mono has no Arabic: Arabic times use Lusail. */}
+          {/* JetBrains Mono has no Arabic: Arabic times use IBM Plex Sans Arabic. */}
           <AppText numberOfLines={1} style={[isRtl ? styles.whenAr : styles.when, { color: p.muted }]}>{when}</AppText>
           {unread ? <View style={[styles.dot, { backgroundColor: p.action }]} /> : null}
         </View>
@@ -252,7 +252,7 @@ export function NotificationCenter() {
 const styles = StyleSheet.create({
   end: { alignItems: "flex-end", gap: 8, paddingTop: 2 },
   when: { fontFamily: fonts.mono, fontSize: 12 },
-  whenAr: { fontFamily: "Lusail-Regular", fontSize: 13 }, // Arabic-only style
+  whenAr: { fontFamily: "IBMPlexSansArabic-Regular", fontSize: 13 }, // Arabic-only style
   dot: { width: 8, height: 8, borderRadius: 4 },
   footer: { paddingVertical: 18, alignItems: "center" },
 });

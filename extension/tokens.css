@@ -1,5 +1,5 @@
 /* Zekra extension — the house grid design system, matching the mobile app and
-   the desktop renderer (rails, hatch ground, rows, Lusail type scale).
+   the desktop renderer (rails, hatch ground, rows, Inter + IBM Plex Sans Arabic type scale).
    Colours are Zekra's own tokens from web/app/styles/grid-tokens.css. */
 
 :root {

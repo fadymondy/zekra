@@ -220,7 +220,7 @@ func shell(locale, heading, bodyHTML string) string {
 	font := "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
 	if locale == "ar" {
 		dir, align = "rtl", "right"
-		font = "Lusail, 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif"
+		font = "'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
 	}
 	return fmt.Sprintf(`<!doctype html>
 <html dir="%s" lang="%s">

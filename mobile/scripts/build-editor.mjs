@@ -5,7 +5,7 @@ Build the note engine WebView pages (MH-368): `npm run build:editor`.
   editor-web/editor-main.mts -> src/features/editor/editor-html.gen.ts  (EDITOR_HTML)
   editor-web/export-main.mts -> src/features/editor/export-html.gen.ts  (EXPORT_HTML)
 
-Each output is ONE self-contained HTML document (JS + CSS + the Lusail
+Each output is ONE self-contained HTML document (JS + CSS + the IBM Plex Sans Arabic
 face inlined) exported as a string constant, so the app loads it with
 <WebView source={{ html }}> and nothing is fetched at runtime but note images.
 
@@ -84,13 +84,13 @@ async function bundle(entry) {
   return result.outputFiles[0].text;
 }
 
-/** Lusail (the app's Arabic+Latin face) so "System" matches the native UI. */
+/** IBM Plex Sans Arabic (the app's Arabic face; carries Latin too) so "System" matches the native UI. */
 function fontFaces() {
   const face = (file, weight) => {
     const data = readFileSync(path.join(mobile, "assets", "fonts", file)).toString("base64");
-    return `@font-face{font-family:Lusail;font-weight:${weight};font-style:normal;font-display:swap;src:url(data:font/ttf;base64,${data}) format("truetype")}`;
+    return `@font-face{font-family:"IBM Plex Sans Arabic";font-weight:${weight};font-style:normal;font-display:swap;src:url(data:font/ttf;base64,${data}) format("truetype")}`;
   };
-  return face("Lusail-Regular.ttf", "100 450") + face("Lusail-Medium.ttf", "451 900");
+  return face("IBMPlexSansArabic-Regular.ttf", "100 450") + face("IBMPlexSansArabic-Medium.ttf", "451 900");
 }
 
 function page(js, fonts) {

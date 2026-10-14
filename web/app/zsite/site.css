@@ -1,6 +1,6 @@
 /* zekra.dev only (imported by app/zsite/[locale]/layout.tsx). The console keeps the grid as is.
-   These reproduce what fadymondy.com-v2 painted on zekra.dev: Geist for Latin with Lusail behind
-   it for Arabic, Lusail first on RTL pages, and its softer hairline
+   These reproduce what fadymondy.com-v2 painted on zekra.dev: Geist for Latin with IBM Plex Sans Arabic behind
+   it for Arabic, Plex first on RTL pages, and its softer hairline
    (--color-line: color-mix(border 64%, background)). */
 @import "@fontsource-variable/geist";
 @import "@fontsource/ibm-plex-sans-arabic/400.css";
@@ -8,7 +8,7 @@
 @import "@fontsource/ibm-plex-sans-arabic/600.css";
 
 .zsite {
-  --nq-font-ui: "Geist Variable", "Lusail", "IBM Plex Sans Arabic", sans-serif;
+  --nq-font-ui: "Geist Variable", "IBM Plex Sans Arabic", sans-serif;
   --nq-line: color-mix(in oklab, #ded5c4 64%, #f0ebe1);
   --border: var(--nq-line);
   /* Button text on the violet, as zekra.dev drew it. */
@@ -19,7 +19,7 @@
   --nq-line: color-mix(in oklab, #25355c 64%, #0b1429);
 }
 html[dir="rtl"] .zsite {
-  --nq-font-ui: "Lusail", "IBM Plex Sans Arabic", "Geist Variable", sans-serif;
+  --nq-font-ui: "IBM Plex Sans Arabic", "Geist Variable", sans-serif;
 }
 
 /* Shiki dual-theme output (components/ui/code-block.tsx): the light theme's colours are inline and

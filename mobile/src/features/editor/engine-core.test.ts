@@ -29,8 +29,8 @@ test("heading cycle", () => {
   assert.deepEqual([0, 1, 2, 3, 4].map(nextHeading), [1, 2, 3, 0, 0]);
 });
 
-test("font stacks: system leads with Lusail, others mirror web", () => {
-  assert.match(fontStack("system"), /^Lusail,/);
+test("font stacks: system leads with IBM Plex Sans Arabic, others mirror web", () => {
+  assert.match(fontStack("system"), /^"IBM Plex Sans Arabic",/);
   assert.match(fontStack("reading"), /Iowan Old Style/);
   assert.match(fontStack("serif"), /^Georgia/);
 });
