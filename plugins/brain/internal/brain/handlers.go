@@ -156,13 +156,19 @@ func (s *Service) Search(w http.ResponseWriter, r *http.Request) {
 		}
 		q.Namespaces = allowed
 	}
-	res, err := s.Store.SearchAll(r.Context(), q)
+	res, err := s.Store.Search(r.Context(), q)
 	if err != nil {
 		writeJSON(w, http.StatusServiceUnavailable, unavailable(err))
 		return
 	}
-	s.hub.publish("search", map[string]any{"count": len(res)})
-	writeJSON(w, http.StatusOK, map[string]any{"results": res})
+	s.hub.publish("search", map[string]any{"count": len(res.Results)})
+	body := map[string]any{"results": res.Results}
+	if len(res.Skipped) > 0 {
+		// Brains that failed or ran late: the answer is partial, not an error.
+		body["partial"] = true
+		body["skipped"] = res.Skipped
+	}
+	writeJSON(w, http.StatusOK, body)
 }
 
 // POST /api/brain/retain  { namespace, content, sourceKind, ... }
