@@ -17,7 +17,7 @@
   "account.connections.notConnected": "Not connected",
   "account.connections.title": "Connected accounts",
   "account.connections.unavailable": "Not enabled on this server",
-  "account.delete.cancelHint": "Scheduled a deletion by mistake? Cancel it with your email and password before the grace period ends.",
+  "account.delete.cancelHint": "Scheduled a deletion by mistake? Cancel it before the grace period ends — with a code we email you, or with your password.",
   "account.delete.cancelSubmit": "Cancel deletion",
   "account.delete.cancelTitle": "Changed your mind?",
   "account.delete.cancelled": "Deletion cancelled. Your account stays as it was; sign in again to use it.",
@@ -134,5 +134,15 @@
   "account.reading.themeHint": "Repaints the whole app. Pick none to keep Zekra's own palette.",
   "account.reading.lightThemes": "Light themes",
   "account.reading.darkThemes": "Dark themes",
-  "account.reading.ownPalette": "Use Zekra's own palette"
+  "account.reading.ownPalette": "Use Zekra's own palette",
+  "account.delete.formHintNoPassword": "Your account has no password (you sign in with Google, Apple or GitHub), so we'll email you a code to confirm it's really you.",
+  "account.delete.codeHint": "We'll email a 6-digit code to your address. It works for 15 minutes.",
+  "account.delete.codeSent": "Check your inbox: we sent you a 6-digit code. Enter it below.",
+  "account.delete.cancelCodeHint": "Enter your email and we'll send a 6-digit code if a deletion is pending for it.",
+  "account.delete.cancelCodeSent": "If a deletion is pending for that address, a 6-digit code is on its way. Enter it below.",
+  "account.delete.sendCode": "Email me a code",
+  "account.delete.resendCode": "Send a new code",
+  "account.delete.code": "6-digit code",
+  "account.delete.useCode": "Use an emailed code instead",
+  "account.delete.usePassword": "Use my password instead"
 }

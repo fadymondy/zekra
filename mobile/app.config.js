@@ -21,6 +21,10 @@ const has = (rel) => fs.existsSync(path.join(__dirname, rel));
 // client id; it has to be in Info.plist at prebuild time, so it comes from the build environment
 // (mobile/.env locally, Codemagic's environment in CI). Without it the plugin is left out rather than
 // baking in a wrong scheme — and the app hides the Google button (src/features/social/google.ts).
+// The native sheet also needs EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (the API's OAUTH_GOOGLE_CLIENT_ID) and,
+// on iOS, EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID; the API must list the iOS client id in
+// OAUTH_GOOGLE_AUDIENCES. Without them Google signs in through the API's browser flow instead.
+// All documented in mobile/.env.example.
 const GOOGLE_IOS_URL_SCHEME = process.env.GOOGLE_IOS_URL_SCHEME || process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
 
 // Codemagic Patch — OTA JS updates from the self-hosted Patch server (the same stack as

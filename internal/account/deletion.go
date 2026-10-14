@@ -15,11 +15,17 @@ import (
 /*
 Deleting your own account (ported from fadymondy's account.go / purge.go, FM-50).
 
- 1. Schedule — re-authenticate with the password (a session alone is never
-    enough), record a deletion request 14 days out, and revoke every credential
-    the user holds, immediately.
- 2. Cancel — during those 14 days. Takes email + password (the user was signed
-    out everywhere), and answers an unknown email and a wrong password the same.
+ 1. Schedule — re-authenticate (a session alone is never enough) with the
+    password or with a 6-digit code mailed to the account's address
+    (POST /api/me/delete/code), record a deletion request 14 days out, and
+    revoke every credential the user holds, immediately. The code is what lets
+    an account without a password — one made by Google / Apple / GitHub
+    ("!sso") — delete itself.
+ 2. Cancel — during those 14 days, without a session (the user was signed out
+    everywhere). Takes email + password, or email + a code mailed by
+    POST /api/me/delete/cancel/code (sent only when a deletion is pending; the
+    answer is the same either way). An unknown email, a wrong password and a
+    wrong code all answer alike.
  3. Purge — once the grace window has passed, delete the account and everything
     the account area holds. The request row and the audit trail keep only the
     user id and a SHA-256 of the email.
@@ -37,7 +43,18 @@ const (
 // GracePeriod is how long a deletion can still be cancelled.
 const GracePeriod = 14 * 24 * time.Hour
 
+// Code purposes (account_codes) for confirming a deletion and cancelling one.
+const (
+	purposeDelete   = "delete"
+	purposeUndelete = "undelete"
+)
+
+// Proof re-authenticates a deletion or a cancel: the password, or an emailed code.
+type Proof struct{ Password, Code string }
+
 var (
+	ErrWrongCode      = errors.New("that code is wrong or has expired — request a new one")
+	ErrNoProof        = errors.New("enter your password or the code we emailed you")
 	ErrWrongPassword  = errors.New("password is incorrect")
 	ErrBadCredentials = errors.New("invalid email or password")
 	ErrRateLimited    = errors.New("too many attempts, try again later")
@@ -82,9 +99,48 @@ func (s *Service) Latest(ctx context.Context, userID string) (*Deletion, error) 
 	return &d, nil
 }
 
-// Schedule records a deletion request after re-checking the password, and
-// revokes every credential the user holds.
-func (s *Service) Schedule(ctx context.Context, userID, password, testimonials string, meta Meta) (*Deletion, error) {
+// RequestDeletionCode mails the signed-in user a code that confirms deleting the
+// account (the way an account without a password re-authenticates).
+func (s *Service) RequestDeletionCode(ctx context.Context, userID, locale string, meta Meta) error {
+	if !s.ready() {
+		return ErrUnavailable
+	}
+	if !accountAttempts.allow("delete-code:"+userID) || !ipAttempts.allow("delete-code:"+meta.IP) {
+		return ErrRateLimited
+	}
+	var email string
+	if err := s.DB.QueryRowContext(ctx, `SELECT email FROM users WHERE id = $1`, userID).Scan(&email); err != nil {
+		return fmt.Errorf("could not load the account: %w", err)
+	}
+	return s.issueCode(ctx, normEmail(email), purposeDelete, locale, true)
+}
+
+// RequestCancelCode mails a cancel code to email when that account has a
+// deletion pending. The caller answers the same whether or not it did.
+func (s *Service) RequestCancelCode(ctx context.Context, email, locale string, meta Meta) error {
+	if !s.ready() {
+		return ErrUnavailable
+	}
+	email = normEmail(email)
+	if !ipAttempts.allow("cancel-code:"+meta.IP) || !accountAttempts.allow("cancel-code:"+email) {
+		return ErrRateLimited
+	}
+	id, _, err := s.userByEmail(ctx, email)
+	if err != nil {
+		return nil
+	}
+	if latest, err := s.Latest(ctx, id); err != nil || latest == nil || latest.Status != StatusScheduled {
+		return nil
+	}
+	if err := s.issueCode(ctx, email, purposeUndelete, locale, false); err != nil {
+		s.log().Warn("account deletion: could not send the cancel code", "err", err)
+	}
+	return nil
+}
+
+// Schedule records a deletion request after re-checking the password or an
+// emailed code, and revokes every credential the user holds.
+func (s *Service) Schedule(ctx context.Context, userID string, proof Proof, testimonials string, meta Meta) (*Deletion, error) {
 	if !s.ready() || s.Auth == nil {
 		return nil, ErrUnavailable
 	}
@@ -97,11 +153,24 @@ func (s *Service) Schedule(ctx context.Context, userID, password, testimonials s
 	if !accountAttempts.allow("delete:"+userID) || !ipAttempts.allow("delete:"+meta.IP) {
 		return nil, ErrRateLimited
 	}
-	email, err := s.verifyPassword(ctx, userID, password)
+	var email string
+	var err error
+	switch {
+	case proof.Code != "":
+		email, err = s.verifyDeletionCode(ctx, userID, proof.Code)
+	case proof.Password != "":
+		email, err = s.verifyPassword(ctx, userID, proof.Password)
+	default:
+		return nil, ErrNoProof
+	}
 	if err != nil {
-		if errors.Is(err, ErrWrongPassword) {
+		if errors.Is(err, ErrWrongPassword) || errors.Is(err, ErrWrongCode) {
+			reason := "wrong password"
+			if proof.Code != "" {
+				reason = "wrong code"
+			}
 			s.Audit(ctx, Entry{Actor: userID, Action: "account.delete.denied", Subject: "user:" + userID, Meta: meta,
-				Details: map[string]any{"reason": "wrong password"}})
+				Details: map[string]any{"reason": reason}})
 		}
 		return nil, err
 	}
@@ -131,8 +200,9 @@ func (s *Service) Schedule(ctx context.Context, userID, password, testimonials s
 	return row, nil
 }
 
-// Cancel withdraws a pending deletion, proven by email + password.
-func (s *Service) Cancel(ctx context.Context, email, password string, meta Meta) error {
+// Cancel withdraws a pending deletion, proven by email + password or email + an
+// emailed cancel code.
+func (s *Service) Cancel(ctx context.Context, email string, proof Proof, meta Meta) error {
 	if !s.ready() || s.Auth == nil {
 		return ErrUnavailable
 	}
@@ -140,24 +210,40 @@ func (s *Service) Cancel(ctx context.Context, email, password string, meta Meta)
 	if !ipAttempts.allow("cancel:"+meta.IP) || !accountAttempts.allow("cancel:"+normEmail(email)) {
 		return ErrRateLimited
 	}
-	guard := s.Auth.Guard("")
-	if guard == nil || guard.Auth == nil {
-		return ErrUnavailable
-	}
-	// The guard compares against a dummy hash for an unknown email: same cost.
-	stored := email
-	_ = s.DB.QueryRowContext(ctx, `SELECT email FROM users WHERE lower(email) = $1 ORDER BY created_at LIMIT 1`, normEmail(email)).Scan(&stored)
-	id, err := guard.Auth.Attempt(ctx, stored, password)
-	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCredentials) {
+	var userID string
+	switch {
+	case proof.Code != "":
+		if s.checkCode(ctx, normEmail(email), purposeUndelete, proof.Code) != nil {
 			return ErrBadCredentials
 		}
-		return fmt.Errorf("could not verify credentials: %w", err)
+		uid, _, err := s.userByEmail(ctx, normEmail(email))
+		if err != nil {
+			return ErrBadCredentials
+		}
+		userID = uid
+	case proof.Password != "":
+		guard := s.Auth.Guard("")
+		if guard == nil || guard.Auth == nil {
+			return ErrUnavailable
+		}
+		// The guard compares against a dummy hash for an unknown email: same cost.
+		stored := email
+		_ = s.DB.QueryRowContext(ctx, `SELECT email FROM users WHERE lower(email) = $1 ORDER BY created_at LIMIT 1`, normEmail(email)).Scan(&stored)
+		id, err := guard.Auth.Attempt(ctx, stored, proof.Password)
+		if err != nil {
+			if errors.Is(err, auth.ErrInvalidCredentials) {
+				return ErrBadCredentials
+			}
+			return fmt.Errorf("could not verify credentials: %w", err)
+		}
+		if id == nil || id.ID == "" {
+			return ErrBadCredentials
+		}
+		userID = id.ID
+	default:
+		return ErrNoProof
 	}
-	if id == nil || id.ID == "" {
-		return ErrBadCredentials
-	}
-	latest, err := s.Latest(ctx, id.ID)
+	latest, err := s.Latest(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("could not read deletion requests: %w", err)
 	}
@@ -182,9 +268,21 @@ func (s *Service) Cancel(ctx context.Context, email, password string, meta Meta)
 	if n != 1 {
 		return ErrGraceOver
 	}
-	s.Audit(ctx, Entry{Actor: id.ID, Action: "account.delete.cancelled", Subject: "user:" + id.ID, Meta: meta,
+	s.Audit(ctx, Entry{Actor: userID, Action: "account.delete.cancelled", Subject: "user:" + userID, Meta: meta,
 		Details: map[string]any{"deletion_id": latest.ID}})
 	return nil
+}
+
+// verifyDeletionCode consumes userID's deletion code and returns its email.
+func (s *Service) verifyDeletionCode(ctx context.Context, userID, code string) (string, error) {
+	var email string
+	if err := s.DB.QueryRowContext(ctx, `SELECT email FROM users WHERE id = $1`, userID).Scan(&email); err != nil {
+		return "", ErrWrongCode
+	}
+	if s.checkCode(ctx, normEmail(email), purposeDelete, code) != nil {
+		return "", ErrWrongCode
+	}
+	return email, nil
 }
 
 // verifyPassword checks password against userID's own hash and returns its email.
@@ -361,8 +459,10 @@ func (s *Service) PurgeUser(ctx context.Context, userID, email string) (map[stri
 		_ = s.DB.QueryRowContext(ctx, `SELECT email FROM users WHERE id = $1`, userID).Scan(&email)
 	}
 	summary := s.revokeCredentials(ctx, userID)
+	// Before the identities go: Apple must be told (App Review 5.1.1(v)).
+	summary["apple_tokens_revoked"] = s.revokeAppleTokens(ctx, userID)
 	byUser := []struct{ table, col string }{
-		{"auth_identities", "user_id"}, {"account_totp", "user_id"}, {"account_recovery_codes", "user_id"},
+		{"account_apple_tokens", "user_id"}, {"auth_identities", "user_id"}, {"account_totp", "user_id"}, {"account_recovery_codes", "user_id"},
 		{"account_challenges", "user_id"}, {"account_unverified", "user_id"}, {"account_profiles", "user_id"},
 		{"account_prefs", "user_id"}, {"account_password_resets", "user_id"}, {"account_session_revocations", "user_id"},
 		{"account_disabled", "user_id"}, {"auth_totp", "subject"}, {"auth_pins", "subject"},

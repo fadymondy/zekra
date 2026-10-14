@@ -62,12 +62,21 @@ export const exportDownloadURL = (token: string) => `/api/me/account/export/down
 
 // ── Deletion ──────────────────────────────────────────────────────────────
 
+/** Re-authentication for deleting or cancelling: the password, or a 6-digit emailed code. */
+export type DeletionProof = { password: string } | { code: string }
+
+/** Mails the code that confirms a deletion — how an account without a password proves itself. */
+export const requestDeletionCode = (locale: string) =>
+  authRequest<{ status: string }>("/api/me/delete/code", "POST", { locale })
 /** Schedules deletion (grace period) and signs the account out everywhere. */
-export const requestDeletion = (password: string) =>
-  authRequest<{ status: string; scheduled_for: string }>("/api/me/delete", "POST", { password })
-/** Works signed out: the account proves itself with its password. */
-export const cancelDeletion = (email: string, password: string) =>
-  authRequest<{ status: string }>("/api/me/delete/cancel", "POST", { email, password })
+export const requestDeletion = (proof: DeletionProof) =>
+  authRequest<{ status: string; scheduled_for: string }>("/api/me/delete", "POST", proof)
+/** Works signed out: mails a cancel code when the address has a deletion pending (same answer either way). */
+export const requestCancelCode = (email: string, locale: string) =>
+  authRequest<{ status: string }>("/api/me/delete/cancel/code", "POST", { email, locale })
+/** Works signed out: the account proves itself with its password or the emailed cancel code. */
+export const cancelDeletion = (email: string, proof: DeletionProof) =>
+  authRequest<{ status: string }>("/api/me/delete/cancel", "POST", { email, ...proof })
 
 // ── Connected accounts ────────────────────────────────────────────────────
 

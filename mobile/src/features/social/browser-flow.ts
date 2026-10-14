@@ -18,13 +18,17 @@ import {
 } from "./social-core";
 import { loadCrypto } from "./native";
 
-// Sign in with GitHub or Google through the API's own web flow, run in the
+// Sign in with GitHub, Google or Apple (Android) through the API's own web flow, run in the
 // system browser (see below). No native SDK and no
 // per-platform OAuth client: the server uses its web client, as on the website.
 // The API never puts a bearer token in a URL: it redirects to
 // zekra://auth/<provider>?code=… with a single-use code that lives two minutes,
 // and the app trades it at POST /api/auth/<provider>/exchange —
-// internal/account/oauth_github.go, oauth_google.go.
+// internal/account/oauth_github.go, oauth_google.go, oauth_apple.go.
+//
+// The same flow connects a provider to the signed-in account (link mode,
+// the connected-accounts screen): the code is then a link code, redeemed at
+// POST /api/me/identities/<provider> with the session's bearer.
 //
 // The code rides a custom-scheme redirect another app could also claim
 // (Android), so it is bound to this app with PKCE: the challenge goes on the
@@ -79,8 +83,9 @@ export function cancelBrowserSignIn(): void {
   settle()?.resolve(null);
 }
 
-/** The one-time code and the verifier it is bound to; null when cancelled. */
-export async function browserGrant(provider: BrowserProvider): Promise<{ code: string; verifier: string } | null> {
+/** The one-time code and the verifier it is bound to; null when cancelled.
+ *  `link` asks for a link code (connect to the signed-in account). */
+export async function browserGrant(provider: BrowserProvider, options: { link?: boolean } = {}): Promise<{ code: string; verifier: string } | null> {
   const Crypto = loadCrypto();
   if (!Crypto) throw new SocialSignInError(provider, "unavailable", "missing ExpoCrypto");
   cancelBrowserSignIn(); // one sign-in at a time
@@ -88,7 +93,7 @@ export async function browserGrant(provider: BrowserProvider): Promise<{ code: s
   const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, verifier, {
     encoding: Crypto.CryptoEncoding.BASE64,
   });
-  const pending: PendingBrowserSignIn = { provider, verifier, startedAt: Date.now() };
+  const pending: PendingBrowserSignIn = { provider, verifier, startedAt: Date.now(), ...(options.link ? { link: true } : {}) };
   await setStored(PENDING_KEY, JSON.stringify(pending));
   breadcrumb(`browser sign-in ${provider} open`);
 
@@ -101,7 +106,7 @@ export async function browserGrant(provider: BrowserProvider): Promise<{ code: s
       // Abandoned in the browser: give the button back.
       timer: setTimeout(() => settle()?.resolve(null), BROWSER_SIGNIN_TTL_MS),
     };
-    Linking.openURL(appStartUrl(API_URL, provider, base64ToBase64Url(digest))).catch((caught) => {
+    Linking.openURL(appStartUrl(API_URL, provider, base64ToBase64Url(digest), options.link)).catch((caught) => {
       const error = new SocialSignInError(provider, "nosheet", caught instanceof Error ? caught.message : String(caught));
       reportError(error, `browser sign-in ${provider}`);
       settle()?.reject(error);
@@ -135,6 +140,9 @@ export async function completeBrowserReturn(provider: BrowserProvider, url: stri
   const pending = parsePending(await getStored(PENDING_KEY));
   if (!pendingMatches(pending, provider, Date.now())) return { kind: "ignored" };
   settle();
+  // A link code is redeemed only by the screen that asked for it; after a cold
+  // start that screen is gone, so the user simply connects again.
+  if (pending.link) return { kind: "ignored" };
   if (answer.kind === "cancelled") return { kind: "cancelled" };
   if (answer.kind === "error") return { kind: "error", error: new SocialSignInError(provider, answer.reason) };
   try {

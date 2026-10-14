@@ -159,7 +159,27 @@ export type Recalled = {
   namespace?: string;
 };
 
-export type AccountProfile = { name?: string; email?: string; avatar?: string; timezone?: string };
+export type AccountProfile = { name?: string; email?: string; avatar?: string; timezone?: string; has_password?: boolean };
+
+/** One connected sign-in (GET /api/me/identities, internal/account/identities.go). */
+export type ConnectedIdentity = {
+  provider: "google" | "apple" | "github";
+  email: string;
+  created_at: string;
+  last_used_at: string | null;
+  /** false when it is the account's only way to sign in (no password, nothing else connected). */
+  can_unlink: boolean;
+};
+
+/** What a provider proved, to connect it: an ID token (Google), an identity token + nonce
+ *  (Apple's sheet), or a browser flow's one-time link code. */
+export type LinkProof =
+  | { id_token: string }
+  | { identity_token: string; nonce: string; authorization_code?: string }
+  | { code: string; code_verifier: string };
+
+/** Re-authentication for deleting an account or cancelling the deletion. */
+export type DeletionProof = { password: string } | { code: string };
 export type DeleteState = { status: "none" | "scheduled" | "cancelled" | "purged"; scheduled_for?: string; requested_at?: string; cancelled_at?: string };
 
 export type Secret = { name: string; namespace: string; kind?: string; hint?: string; updatedAt?: string };
@@ -183,10 +203,10 @@ export const authApi = {
   providers: () => request<unknown>("/api/auth/providers"),
   methods: () => request<unknown>("/api/auth/methods"),
   google: (idToken: string) => request<AuthAnswer>("/api/auth/google/token", { json: { id_token: idToken } }),
-  apple: (body: { identity_token: string; nonce: string; full_name?: string }) =>
+  apple: (body: { identity_token: string; nonce: string; full_name?: string; authorization_code?: string }) =>
     request<AuthAnswer>("/api/auth/apple/token", { json: body }),
-  /** Trade an auth session's one-time code (GitHub / Google app flow). */
-  socialExchange: (provider: "github" | "google", code: string, verifier: string) =>
+  /** Trade an auth session's one-time code (GitHub / Google / Apple app flow). */
+  socialExchange: (provider: "github" | "google" | "apple", code: string, verifier: string) =>
     request<AuthAnswer>(`/api/auth/${provider}/exchange`, { json: { code, code_verifier: verifier } }),
   me: (token: string) => request<{ user?: User } | User>("/api/auth/me", { token }),
   logout: (token: string) => request<{ status: string }>("/api/auth/logout", { token, json: {} }),
@@ -227,12 +247,27 @@ export const zekraApi = {
   profile: (token: string) => request<AccountProfile>("/api/me/account/profile", { token }),
   updateProfile: (token: string, body: { name?: string; avatar?: string; timezone?: string }) =>
     request<AccountProfile>("/api/me/account/profile", { method: "PUT", token, json: body }),
-  // Deletion is password-confirmed and scheduled, not immediate (a session
-  // alone cannot delete an account).
-  deleteAccount: (token: string, password: string) =>
-    request<DeleteState>("/api/me/delete", { token, csrf: true, json: { password } }),
+  // --- connected accounts (internal/account/identities.go) ---
+  identities: (token: string) => request<ConnectedIdentity[]>("/api/me/identities", { token }),
+  linkIdentity: (token: string, provider: ConnectedIdentity["provider"], proof: LinkProof) =>
+    request<{ provider: string; email: string }>(`/api/me/identities/${provider}`, { token, json: proof }),
+  unlinkIdentity: (token: string, provider: ConnectedIdentity["provider"]) =>
+    request<void>(`/api/me/identities/${provider}`, { method: "DELETE", token }),
+  // Deletion is re-authenticated (password, or an emailed code for accounts
+  // without one) and scheduled, not immediate: a session alone cannot delete an
+  // account. Scheduling signs the account out everywhere at once — this
+  // token included — so the cancel legs take no token.
+  deleteCode: (token: string, locale: string) =>
+    request<{ status: string }>("/api/me/delete/code", { token, csrf: true, json: { locale } }),
+  deleteAccount: (token: string, proof: DeletionProof) =>
+    request<{ status: string; scheduled_for?: string }>("/api/me/delete", { token, csrf: true, json: proof }),
   deleteState: (token: string) => request<DeleteState>("/api/me/delete", { token }),
-  cancelDelete: (token: string) => request<DeleteState>("/api/me/delete/cancel", { token, csrf: true, json: {} }),
+  /** Public: mails a cancel code when the address has a deletion pending (same answer either way). */
+  cancelDeleteCode: (email: string, locale: string) =>
+    request<{ status: string }>("/api/me/delete/cancel/code", { csrf: true, json: { email, locale } }),
+  /** Public: email + the emailed code (or the password). */
+  cancelDelete: (email: string, proof: DeletionProof) =>
+    request<{ status: string }>("/api/me/delete/cancel", { csrf: true, json: { email, ...proof } }),
 };
 
 /*
