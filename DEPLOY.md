@@ -1,147 +1,78 @@
 # Deploying Zekra
 
-Production is **app.zekra.dev** (console + API), **mcp.zekra.dev** (MCP) and the API
-routes under **zekra.dev**. All of it runs on LXC 109 "zekra" on the Proxmox host
-`pve-3x1`, as two **Hosbah** apps. This document describes that setup as it runs today.
-It was last checked against the live hosts on 2026-10-11.
+This page covers running Zekra in production. For a first install, start with
+[docs/self-hosting.md](docs/self-hosting.md) or the Docker Compose stack in the
+[README](README.md#self-host-with-docker-compose).
 
-## Topology
+## Components
 
 ```
-Cloudflare ─► Nginx Proxy Manager (LXC 100, npm.3x1.io)
-                 ├─ app.zekra.dev  ─► 10.10.10.109:80 (Hosbah Caddy)
-                 ├─ mcp.zekra.dev  ─► 10.10.10.109:80 (Hosbah Caddy); "/" is rewritten to /api/mcp
-                 └─ zekra.dev      ─► "/" public site: 10.10.10.123 (fadymondy-web, Hosbah Caddy)
-                                      /api,/events,/graphql,/install.sh,/upgrade.sh,/.well-known
-                                      ─► 10.10.10.109:80 with Host: app.zekra.dev
-                                      (keeps the short `zekra.dev/install.sh` working for the CLI;
-                                      do not remove these locations)
+reverse proxy (TLS)
+  ├─ app.example.com  ─► console (Next.js, web/Dockerfile, :3020)
+  │                       proxies /api, /graphql, /events, /install.sh, /upgrade.sh and the
+  │                       SSO paths to the API (API_ORIGIN, baked in at build time)
+  └─ mcp.example.com  ─► API (Go, Dockerfile, :8080); rewrite "/" to /api/mcp (optional)
 
-LXC 109 "zekra" (10.10.10.109)
-  caddy :80 (/etc/caddy/hosbah.json, managed by Hosbah; do not hand-edit)
-    app.zekra.dev, zekra-console.hosbah.com ─► hosbah-zekra-console-web-*  (Next console, :3020)
-    mcp.zekra.dev, zekra-api.hosbah.com     ─► hosbah-zekra-api-web-*      (Go API, :8080)
-    anything else                           ─► 404 "No app is routed at this hostname."
-  The console proxies /api, /graphql, /events, /install.sh, /upgrade.sh and the
-  CircleXO SSO paths to the API (web/next.config.mjs rewrites, API_ORIGIN), so
-  app.zekra.dev/api reaches the API through the console container.
-  Containers publish on 127.0.0.1:<random port>; Hosbah rewrites Caddy on every deploy.
-
-  docker zekra-pg    Postgres 17 + vchord / vchord_bm25 / pg_tokenizer / pg_partman
-                     127.0.0.1:5432, network `zekra`, volume `zekra-pgdata`
-  docker tei-embed   BAAI/bge-m3 (1024-d)              :18081
-  docker tei-rerank  BAAI/bge-reranker-v2-m3 (CPU)     :18082
+API ─► Postgres 17 with vchord, vchord_bm25, pg_tokenizer and pg_partman
+    ─► TEI embeddings (1024-dimension model, e.g. Qwen/Qwen3-Embedding-0.6B)
+    ─► TEI reranker (optional, e.g. BAAI/bge-reranker-v2-m3)
+    ─► Redis (optional L1 cache), Cognee (optional graph engine), an LLM for chat (optional)
 ```
 
-NPM points at LXC 109 port 80 by IP and lets Caddy pick the container by Host, so a
-deploy (which changes container names and ports) never needs an NPM change.
-The former domains `cabrain-app.fadymondy.com` (308 → app.zekra.dev, method and body
-preserved for old API clients) and `cabrain.fadymondy.com` (301 → zekra.dev) are
-redirect-only.
+The console and API are two images built from this repository: `Dockerfile` (API) and
+`web/Dockerfile` (console, build context = the repo root). Any container platform works.
+Put both behind one TLS-terminating proxy; the console serves the API under its own origin.
 
-The old systemd units (`zekra.service` on :8080, `zekra-web.service` on :3020) are
-retired. Neither is running (`zekra` is failed, `zekra-web` inactive) and nothing
-listens on :8080. Nothing should route to `10.10.10.109:8080` or `:3020` directly.
-
-Shell access, for the database and debugging only: `ssh root@pve-3x1`, then
-`pct exec 109 -- …` / `pct push 109 <src> <dst>`.
-
-## Deploying (Hosbah)
-
-- Apps: `zekra-api` (`Dockerfile.api`) and `zekra-console`, both building from `main`.
-- **Merging to `main` auto-deploys both** (about 2–4 minutes). The fast track can ship
-  a stale console build or fail to start its build container. If that happens, run
-  `deploy_app {app, track: "full"}` for the affected app.
-- Env changes (`set_env`) apply on the next deploy or `restart_app`.
-- Use the Hosbah dashboard, or the Hosbah MCP authorized for the team that owns these
-  apps (`list_apps` must show them).
-- After a deploy, check `https://app.zekra.dev/api/health` (200),
-  `https://app.zekra.dev/en/login` (200) and `https://zekra.dev/install.sh` (200), and search
-  the API logs (`app_logs_search`, level `error`) for boot errors.
-- Rollback: `rollback_app` to the previous release, or run the previous
-  `hosbah/zekra-api:<id>` image that is still on the host.
-- Hosbah images carry no `vcs.revision`. To confirm a build, `docker cp <ctr>:/app/zekra`
-  and look for a new symbol with `go tool nm`.
+After a deploy, check `/api/health` (200), `/en/login` (200) and `/install.sh` (200) on the
+console origin, and look for boot errors in the API log.
 
 ## The rule that matters: schema before binary
 
 **The API does not migrate its database at boot.** A binary that reads a new column
-will fail every query that touches it until the schema exists. So before merging a
+will fail every query that touches it until the schema exists. So before deploying a
 change that touches `plugins/brain/internal/brain/schema.sql`:
 
 1. Diff `schema.sql` against the commit that is live.
-2. Take a `pg_dump -Fc` into `/root/backups/`.
-3. Apply that delta as the `zekra` role
-   (`pct exec 109 -- docker exec -i zekra-pg psql -U zekra -d zekra -v ON_ERROR_STOP=1 -1`).
-4. Only then merge, which deploys the new binary.
+2. Take a backup (`pg_dump -Fc`).
+3. Apply the delta (`zekractl migrate` is idempotent, or apply the diff with
+   `psql -v ON_ERROR_STOP=1 -1`).
+4. Only then deploy the new binary.
 
-Do not simply re-run the whole `schema.sql` as `zekra`: that role owns `notes` and
-`brain_profiles` but not `memories`, `entities` or `secrets` (owned by `postgres`),
-so it stops at the first `ALTER` on those. Changes to postgres-owned tables need
-`-U postgres`.
+If the application role does not own every table (for example, some were created by
+`postgres`), apply changes to those tables as their owner.
 
 ## Configuration
 
-The API's environment lives in the **Hosbah app env** of `zekra-api` (sealed with the
-team key). It holds `DATABASE_URL`, `AUTH_SECRET`, `ZEKRA_SECRETS_KEY`,
-`MFA_CHALLENGE_SECRET`, the TEI URLs, the OAuth client ids/secrets (`GOOGLE_*`,
-`GITHUB_*`; callbacks under `https://app.zekra.dev/api/auth/*/callback`), mail, and the
-LLM endpoints. Never commit any of it.
+Every setting is documented in [`.env.example`](.env.example) and
+[docs/self-hosting.md](docs/self-hosting.md#2-configure). Keep the API's environment in your
+platform's secret store; never commit it. It holds `DATABASE_URL`, `AUTH_SECRET`,
+`ZEKRA_SECRETS_KEY`, `MFA_CHALLENGE_SECRET`, the TEI URLs, OAuth client ids/secrets
+(`OAUTH_GOOGLE_*`, `OAUTH_GITHUB_*`; callbacks under `<AUTH_PUBLIC_URL>/api/auth/*/callback`),
+mail and the LLM endpoints.
 
 `MFA_CHALLENGE_SECRET` (at least 32 bytes) is required in production. Without it every
-API boot logs `MFA_CHALLENGE_SECRET is required in production`. Its value is kept in
-the Zekra vault, brain `zekra`, name `zekra-mfa-challenge-secret`.
+API boot logs `MFA_CHALLENGE_SECRET is required in production`.
 
 The console bakes `NEXT_PUBLIC_*` at build time and reads `API_ORIGIN` for its rewrites.
-
-`/etc/zekra/zekra.env` on LXC 109 belongs to the retired systemd unit. It is kept only
-for the legacy rollback path below.
 
 Tunables worth knowing:
 
 | Var | Default | Why |
 |---|---|---|
 | `BRAIN_BM25_TOKENIZER` | `zekra_ml` | llmlingua2 multilingual tokenizer in `tokenizer_catalog`. |
-| `BRAIN_RERANK_TIMEOUT` | `4s` | The CPU reranker costs ~2–4s per document; past this budget recall and search keep the hybrid (RRF) order instead of timing out. The API learns the per-document cost and only sends what fits (none on today's CPU, re-probed in the background every 10 min). `0` disables reranking. |
+| `BRAIN_RERANK_TIMEOUT` | `4s` | The CPU reranker costs ~2–4s per document; past this budget recall and search keep the hybrid (RRF) order instead of timing out. The API learns the per-document cost and only sends what fits (re-probed in the background every 10 min). `0` disables reranking. |
 | `BRAIN_HNSW_EF_SEARCH` | `200` | Candidate list for the vector index; lower values drop results because most rows are superseded. |
 | `BRAIN_SEARCH_CONCURRENCY` | `6` | Brains queried at once by cross-brain search (`/api/brain/search`). |
 | `BRAIN_SEARCH_BRAIN_TIMEOUT` | `5s` | Per-brain limit in cross-brain search; a brain past it is left out (`partial: true`, `skipped: [...]`) instead of failing the request. |
 
-## Legacy manual deploy (rollback reference only)
-
-Before Hosbah (until early Oct 2026) the API and console ran as systemd units on
-LXC 109. Use this only if Hosbah itself is down, and remember NPM now routes to Caddy
-on :80, not to :8080/:3020.
-
-```bash
-# API: static linux binary
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o zekra-api ./cmd/api
-cp -a /opt/zekra/zekra-api /opt/zekra/zekra-api.bak-$(date +%Y%m%d-%H%M%S)
-install -o zekra -g zekra -m 755 zekra-api /opt/zekra/zekra-api
-systemctl restart zekra          # env /etc/zekra/zekra.env; curl :8080/api/brain/mine -> 401
-
-# Console: build INSIDE the runtime image so native modules (sharp) are linux.
-# Needs the repo's docs/ beside web/ (next.config.mjs bundles them).
-docker run --rm -v "$PWD:/src:ro" -v "$OUT:/out" node:24-bookworm-slim bash -c '
-  mkdir /build && cd /src && tar --exclude=web/node_modules --exclude=web/.next -cf - web docs | tar -C /build -xf -
-  cd /build/web && npm ci && npm run build
-  mkdir -p /out/zekra-web/.next && cp -a .next/standalone/. /out/zekra-web/
-  cp -a .next/static /out/zekra-web/.next/static && cp -a public assets content /out/zekra-web/'
-tar --no-same-owner -xzf zekra-web.tgz -C /opt/zekra-web.new
-cp -a /opt/zekra-web/.env.production /opt/zekra-web.new/
-rm -rf /opt/zekra-web.prev && mv /opt/zekra-web /opt/zekra-web.prev && mv /opt/zekra-web.new /opt/zekra-web
-systemctl restart zekra-web      # curl :3020/en/login -> 200
-```
-
 ## Known issues
 
-- The reranker is the recall bottleneck on this hardware: `bge-reranker-v2-m3` costs
-  ~4.6s per document on CPU even with 24 cores. Benchmarked alternatives are on
-  MH-376; `mmarco-mMiniLMv2-L12-H384-v1` is ~31× faster and agrees with it for
-  English but not for Arabic queries.
-- The API's startup readiness probe checks `DATABASE_URL` only and stops at once on
-  an authentication error (MH-325). It used to probe a stale `*_DATABASE_URL` alias
-  and wait 90 silent seconds.
+- The reranker is the recall bottleneck on CPU: `bge-reranker-v2-m3` costs about 4s per
+  document even with 24 cores. The API learns the per-document cost and only reranks what
+  fits in `BRAIN_RERANK_TIMEOUT`. `mmarco-mMiniLMv2-L12-H384-v1` is ~31× faster and agrees
+  with it for English but not for Arabic queries. A GPU removes the problem.
+- The API's startup readiness probe checks `DATABASE_URL` only and stops at once on an
+  authentication error.
 
 ## Mobile app sign-in providers
 
@@ -206,7 +137,7 @@ systemctl restart zekra-web      # curl :3020/en/login -> 200
     `POST /api/me/delete/cancel/code {email}` mails a code when a deletion is pending, then
     `POST /api/me/delete/cancel {email, code}` (or `{email, password}`). Needs mail (Resend).
 
-## Mobile push notifications (FCM, MH-373)
+## Mobile push notifications (FCM)
 
 The brain plugin sends push notifications to the mobile app through FCM HTTP v1: when
 a brain is shared with a user, and the first time a customer opens a presentation link.

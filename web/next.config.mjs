@@ -24,8 +24,7 @@ const SECURITY_HEADERS = {
 const nextConfig = {
   // Self-contained server (.next/standalone) for production, as in Managy.
   output: "standalone",
-  // dev.zekra.dev is the tunnelled preview of THIS dev server (NPM 900.conf ->
-  // 10.10.10.1:18085 -> :3020). Next 16 refuses to serve dev assets to an origin
+  // dev.zekra.dev is a tunnelled preview of a dev server (:3020). Next 16 refuses to serve dev assets to an origin
   // that is not listed here, and the failure is silent-ish: the HTML renders but
   // the client bundle never runs, so nothing hydrates and every button is dead.
   allowedDevOrigins: ["127.0.0.1", "localhost", "app.zekra.dev", "zekra.dev", "dev.zekra.dev"],

@@ -12,6 +12,7 @@
 # Zekra — secrets never committed (infra agent owns these; SPEC §1.5)
 .env.*
 !.env.example
+!.env.selfhost.example
 *.secrets
 .pg-secrets
 .minio-secrets
