@@ -12,6 +12,7 @@ import notes from "./notes";
 import notify from "./notify";
 import presentations from "./presentations";
 import push from "./push";
+import servers from "./servers";
 import settings from "./settings";
 import updates from "./updates";
 import vault from "./vault";
@@ -19,7 +20,7 @@ import widgets from "./widgets";
 
 // Each feature owns one dictionary file; they are merged over the base
 // dictionary in src/lib/i18n.tsx.
-export const FEATURE_DICTS = [kit, brains, notes, editor, presentations, vault, media, push, settings, nav, widgets, notify, auth, mahaam, updates, account];
+export const FEATURE_DICTS = [kit, brains, notes, editor, presentations, vault, media, servers, push, settings, nav, widgets, notify, auth, mahaam, updates, account];
 
 export type FeatureKey =
   | DictKey<typeof kit>
@@ -30,6 +31,7 @@ export type FeatureKey =
   | DictKey<typeof presentations>
   | DictKey<typeof vault>
   | DictKey<typeof media>
+  | DictKey<typeof servers>
   | DictKey<typeof push>
   | DictKey<typeof settings>
   | DictKey<typeof widgets>

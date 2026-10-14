@@ -1,4 +1,4 @@
-import { API_URL } from "@/lib/api";
+import { apiBase, authHeader } from "@/lib/server";
 
 import { authImageUrl } from "./engine-core";
 
@@ -8,8 +8,8 @@ never gets the token).
 
 For an API image: fetch with the bearer, read the blob as a data: URL, hand it
 to the page. Anything else is answered with its own URL so the page loads it
-directly (public https images) — the token only ever goes to API_URL
-(engine-core authImageUrl pins the origin).
+directly (public https images) — the token only ever goes to the active server
+(engine-core authImageUrl pins the origin, authHeader the token's server).
 
 Kept in memory, bounded by total size, shared by every engine on screen and
 the export host, and keyed by the ORIGINAL src so the markdown is never
@@ -47,7 +47,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
  * src itself for a public http(s) image, or null if it cannot be loaded.
  */
 export function resolveNoteImage(src: string, token: string | null): Promise<string | null> {
-  const url = authImageUrl(src, API_URL);
+  const url = authImageUrl(src, apiBase());
   if (!url) return Promise.resolve(/^https?:\/\//i.test(src) ? src : null);
   const hit = cache.get(src);
   if (hit) {
@@ -61,7 +61,7 @@ export function resolveNoteImage(src: string, token: string | null): Promise<str
   const job = (async () => {
     try {
       const response = await fetch(url, {
-        headers: { Accept: "image/*", "X-Agent-Id": "zekra-mobile", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { Accept: "image/*", "X-Agent-Id": "zekra-mobile", ...authHeader(token, url) },
       });
       if (!response.ok) return null;
       let dataUrl = await blobToDataUrl(await response.blob());

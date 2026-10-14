@@ -5,7 +5,8 @@ import * as Sharing from "expo-sharing";
 import { useCallback, useMemo } from "react";
 
 import { exportFileName, mergeBrains, type BrainDetail, type BrainListItem, type BrainStats } from "@/features/brains/brains-core";
-import { API_URL, request } from "@/lib/api";
+import { request } from "@/lib/api";
+import { apiBase, authHeader } from "@/lib/server";
 import { useAuth } from "@/providers/auth";
 import { useBrains } from "@/providers/brains";
 
@@ -94,8 +95,9 @@ export function useInvalidateBrains() {
  */
 export async function exportBrain(token: string, namespace: string, dialogTitle: string): Promise<void> {
   const target = new File(Paths.cache, exportFileName(namespace, new Date()));
-  const file = await File.downloadFileAsync(`${API_URL}/api/brain/export?namespace=${enc(namespace)}`, target, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/x-ndjson", "X-Agent-Id": "zekra-mobile" },
+  const url = `${apiBase()}/api/brain/export?namespace=${enc(namespace)}`;
+  const file = await File.downloadFileAsync(url, target, {
+    headers: { ...authHeader(token, url), Accept: "application/x-ndjson", "X-Agent-Id": "zekra-mobile" },
     idempotent: true,
   });
   if (!(await Sharing.isAvailableAsync())) throw new Error("sharing unavailable");

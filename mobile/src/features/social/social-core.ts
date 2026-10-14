@@ -291,8 +291,9 @@ export function socialErrorKey(provider: SocialProvider, failure: { status?: num
  *  verifier the returning code is bound to. Kept in secure storage so the
  *  sign-in can finish even if the OS closed the app while the user was away.
  *  `link` marks connecting a provider to the signed-in account: its code is a
- *  link code, redeemed only by the screen that is waiting for it. */
-export type PendingBrowserSignIn = { provider: BrowserProvider; verifier: string; startedAt: number; link?: boolean };
+ *  link code, redeemed only by the screen that is waiting for it. `server` is
+ *  the server the sign-in was started on — its code is redeemed only there. */
+export type PendingBrowserSignIn = { provider: BrowserProvider; verifier: string; startedAt: number; link?: boolean; server?: string };
 
 export function isBrowserProvider(p: unknown): p is BrowserProvider {
   return p === "github" || p === "google" || p === "apple";
@@ -306,7 +307,13 @@ export function parsePending(raw: string | null | undefined): PendingBrowserSign
   try {
     const v = JSON.parse(raw) as Partial<PendingBrowserSignIn>;
     if (isBrowserProvider(v.provider) && typeof v.verifier === "string" && v.verifier.length >= 43 && typeof v.startedAt === "number") {
-      return { provider: v.provider, verifier: v.verifier, startedAt: v.startedAt, ...(v.link === true ? { link: true } : {}) };
+      return {
+        provider: v.provider,
+        verifier: v.verifier,
+        startedAt: v.startedAt,
+        ...(v.link === true ? { link: true } : {}),
+        ...(typeof v.server === "string" && v.server ? { server: v.server } : {}),
+      };
     }
   } catch {}
   return null;

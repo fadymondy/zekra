@@ -75,6 +75,7 @@ function Shell() {
         <Stack.Screen name="index" />
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="cancel-deletion" options={{ animation: "slide_from_right" }} />
+        <Stack.Screen name="connect" options={{ animation: "slide_from_bottom" }} />
         <Stack.Screen name="(tabs)" />
       </Stack>
       <ToastHost />

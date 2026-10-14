@@ -3,8 +3,10 @@ import { appleCredential } from "@/features/social/apple";
 import { browserGrant } from "@/features/social/browser-flow";
 import { googleIdToken } from "@/features/social/google";
 import type { SocialProvider, SocialVia } from "@/features/social/social-core";
+import { sessionKey } from "@/lib/server-core";
+import { activateServer, apiBase, bindToken, DEFAULT_SERVER, forgetServer, loadServer, unbindToken } from "@/lib/server";
 import { getStored, removeStored, setStored } from "@/lib/storage";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
 
 import { ApiError, authApi, type AuthAnswer, type User } from "@/lib/api";
 
@@ -40,7 +42,8 @@ async function socialAnswer(provider: SocialProvider, via: SocialVia): Promise<A
   }
 }
 
-const SESSION_KEY = "zekra.mobile.session.v1";
+/** Before servers could be chosen there was one session, for the default server. */
+const LEGACY_SESSION_KEY = "zekra.mobile.session.v1";
 
 type AuthContextValue = {
   ready: boolean;
@@ -58,14 +61,45 @@ type AuthContextValue = {
   signInWith(provider: SocialProvider, via?: SocialVia): Promise<AuthAnswer | null>;
   /** Adopt a session obtained elsewhere (a browser sign-in finished after a cold start). */
   acceptSession(answer: AuthAnswer): Promise<AuthAnswer>;
+  /** Sign out of the active server (sessions on other servers are kept). */
   signOut(): Promise<void>;
+  /** Connect to another server (normalised and checked by the caller) and
+   *  pick up the session this device already has there, if any. */
+  switchServer(base: string): Promise<void>;
+  /** Forget a saved server that is not the active one, and its session here. */
+  removeServer(base: string): Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function saveSession(answer: AuthAnswer | null) {
-  if (!answer) return removeStored(SESSION_KEY);
-  await setStored(SESSION_KEY, JSON.stringify({ token: answer.token, user: answer.user }));
+/*
+One session per server, each under its own secure-store key (sessionKey), so
+switching servers never carries a token across: the token is bound to the
+server that issued it (server.ts bindToken) and only ever sent there.
+*/
+async function saveSession(base: string, answer: AuthAnswer | null) {
+  if (!answer) return removeStored(sessionKey(base));
+  await setStored(sessionKey(base), JSON.stringify({ token: answer.token, user: answer.user }));
+}
+
+async function readSession(base: string): Promise<AuthAnswer | null> {
+  let raw = await getStored(sessionKey(base));
+  if (!raw && base === DEFAULT_SERVER) {
+    // The session an older version kept, before servers could be chosen.
+    raw = await getStored(LEGACY_SESSION_KEY);
+    if (raw) {
+      await setStored(sessionKey(base), raw);
+      await removeStored(LEGACY_SESSION_KEY);
+    }
+  }
+  if (!raw) return null;
+  try {
+    const saved = JSON.parse(raw) as AuthAnswer;
+    return saved?.token ? saved : null;
+  } catch {
+    await saveSession(base, null);
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -73,41 +107,48 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    void (async () => {
+  // Bumped on every server switch so a slow restore for the previous server
+  // cannot land after the switch.
+  const generation = useRef(0);
+
+  /** Adopt the saved session for `base` (if any) and check it is still valid. */
+  const restore = useCallback(async (base: string) => {
+    const gen = ++generation.current;
+    const current = () => gen === generation.current;
+    try {
+      const saved = await readSession(base);
+      if (!current() || !saved) return;
+      bindToken(saved.token, base);
+      setToken(saved.token);
+      setUser(saved.user ?? null);
       try {
-        const raw = await getStored(SESSION_KEY);
-        if (!raw) return;
-        const saved = JSON.parse(raw) as AuthAnswer;
-        if (!saved.token) return;
-        setToken(saved.token);
-        setUser(saved.user ?? null);
-        try {
-          const me = await authApi.me(saved.token);
-          if (!alive) return;
-          const wrapped = me as { user?: User };
-          const resolved = wrapped.user ?? (("id" in me && "email" in me) ? me as User : undefined);
-          if (resolved) setUser(resolved);
-        } catch (error) {
-          if (error instanceof ApiError && error.status === 401) {
-            await saveSession(null);
-            if (alive) { setToken(null); setUser(null); }
-          }
+        const me = await authApi.me(saved.token);
+        if (!current()) return;
+        const wrapped = me as { user?: User };
+        const resolved = wrapped.user ?? (("id" in me && "email" in me) ? me as User : undefined);
+        if (resolved) setUser(resolved);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          await saveSession(base, null);
+          if (current()) { setToken(null); setUser(null); }
         }
-      } catch {
-        await saveSession(null);
-      } finally {
-        if (alive) setReady(true);
       }
-    })();
-    return () => { alive = false; };
+    } finally {
+      if (current()) setReady(true);
+    }
   }, []);
 
+  useEffect(() => {
+    void loadServer().then(restore);
+    return () => { generation.current++; };
+  }, [restore]);
+
   const accept = useCallback(async (answer: AuthAnswer) => {
+    const base = apiBase();
+    bindToken(answer.token, base);
     setToken(answer.token);
     setUser(answer.user);
-    await saveSession(answer);
+    await saveSession(base, answer);
     return answer;
   }, []);
 
@@ -134,13 +175,35 @@ export function AuthProvider({ children }: PropsWithChildren) {
     if (current) await unregisterPush(current);
     setToken(null);
     setUser(null);
-    await saveSession(null);
-    if (current) await authApi.logout(current).catch(() => undefined);
+    await saveSession(apiBase(), null);
+    if (current) {
+      await authApi.logout(current).catch(() => undefined);
+      unbindToken(current);
+    }
   }, [token]);
 
+  const switchServer = useCallback(async (base: string) => {
+    if (base === apiBase()) return;
+    // Drop the current session from memory before the base changes, so
+    // nothing in flight pairs the old token with the new server. It stays
+    // saved for that server, ready when the user switches back.
+    generation.current++;
+    setToken(null);
+    setUser(null);
+    setReady(false);
+    await activateServer(base);
+    await restore(base);
+  }, [restore]);
+
+  const removeServer = useCallback(async (base: string) => {
+    if (base === apiBase()) return;
+    await saveSession(base, null);
+    await forgetServer(base);
+  }, []);
+
   const value = useMemo(
-    () => ({ ready, token, user, signIn, register, finishChallenge, signInWith, acceptSession: accept, signOut }),
-    [ready, token, user, signIn, register, finishChallenge, signInWith, accept, signOut],
+    () => ({ ready, token, user, signIn, register, finishChallenge, signInWith, acceptSession: accept, signOut, switchServer, removeServer }),
+    [ready, token, user, signIn, register, finishChallenge, signInWith, accept, signOut, switchServer, removeServer],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

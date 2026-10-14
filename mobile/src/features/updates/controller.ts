@@ -2,7 +2,7 @@ import * as Application from "expo-application";
 import { getLocales } from "expo-localization";
 import { Linking, Platform } from "react-native";
 
-import { API_URL } from "@/lib/api";
+import { CLOUD_URL } from "@/lib/server-core";
 import { getStored, setStored } from "@/lib/storage";
 
 import { patch } from "./patch";
@@ -43,7 +43,9 @@ development too.
 */
 
 const DISMISSED_STORE_KEY = "zekra.updates.dismissedStore";
-const MANIFEST_URL = `${API_URL}/zekra-app.json`;
+// App updates are published by Zekra itself, whichever server the user is
+// connected to — a self-hosted server does not ship app builds.
+const MANIFEST_URL = `${CLOUD_URL}/zekra-app.json`;
 const FETCH_TIMEOUT_MS = 8000;
 
 export type OtaPhase = "idle" | "checking" | "downloading" | "ready" | "installing" | "up-to-date" | "error";

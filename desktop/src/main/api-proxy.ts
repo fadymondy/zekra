@@ -24,6 +24,8 @@
 import { net } from "electron";
 
 import type { BinaryResponse, ProxyRequest, ProxyResponse } from "../shared/ipc";
+import { sameServer } from "../shared/server-url";
+import { getSettings } from "./settings-store";
 
 export type { ProxyRequest, ProxyResponse };
 
@@ -50,8 +52,11 @@ function multipart(file: NonNullable<ProxyRequest["file"]>): { body: Buffer; con
   return { body: Buffer.concat(parts), contentType: `multipart/form-data; boundary=${boundary}` };
 }
 
-/** Only ever talk to the configured API base (https, or localhost for dev). */
+/** Only ever talk to the configured API base (https, or localhost for dev).
+ *  A renderer still holding the previous server's base — a request racing a
+ *  server switch — is refused, so its token never reaches another host. */
 function checkedBase(baseUrl: string): URL {
+  if (!sameServer(baseUrl, getSettings().apiBaseUrl)) throw new Error("refusing a server other than the configured one");
   const base = new URL(baseUrl);
   if (base.protocol !== "https:" && base.hostname !== "localhost" && base.hostname !== "127.0.0.1") {
     throw new Error("refusing a non-HTTPS API base");

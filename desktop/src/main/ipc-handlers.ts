@@ -40,6 +40,8 @@ import {
 import { proxyBinary, proxyRequest } from "./api-proxy";
 import { broadcast, focusMainWindow, markRendererReady, sendNotificationClick } from "./renderer-events";
 import { clearSession, getSettings, patchSettings } from "./settings-store";
+import { sameServer } from "../shared/server-url";
+import { checkServer } from "./server-check";
 import { setTrayState, setTrayStatus } from "./tray";
 import { checkForUpdates, getUpdateState, installUpdate, snoozeUpdate } from "./updater";
 import { setWindowEdited } from "./unsaved-work";
@@ -62,18 +64,36 @@ function senderWindow(e: IpcMainInvokeEvent): BrowserWindow | null {
 // before the user clicks.
 const liveNotifications = new Set<Notification>();
 
+let settingsChanged: SettingsChanged | null = null;
+
+/** Store a patch and let main and every window follow. Also zekra://connect. */
+export function applySettingsPatch(safe: SettingsPatch): AppSettings {
+  const next = patchSettings(safe);
+  settingsChanged?.(next, safe);
+  // Every window follows at once: theme, language, the session (a sign-out
+  // in the Settings window signs the main window out too).
+  broadcast(IPC.evSettingsChanged, next);
+  return next;
+}
+
 export function registerIpc(onSettingsChanged: SettingsChanged): void {
+  settingsChanged = onSettingsChanged;
   /* ------------------------------------------------------- settings */
   ipcMain.handle(IPC.settingsGet, (): AppSettings => getSettings());
-  ipcMain.handle(IPC.settingsPatch, (_e, patch: SettingsPatch): AppSettings => {
+  ipcMain.handle(IPC.settingsPatch, async (_e, patch: SettingsPatch): Promise<AppSettings> => {
     // windowBounds is owned by main (window-state.ts).
     const { windowBounds: _ignored, ...safe } = (patch ?? {}) as SettingsPatch & { windowBounds?: unknown };
-    const next = patchSettings(safe);
-    onSettingsChanged(next, safe);
-    // Every window follows at once: theme, language, the session (a sign-out
-    // in the Settings window signs the main window out too).
-    broadcast(IPC.evSettingsChanged, next);
-    return next;
+    if (safe.apiBaseUrl !== undefined && !sameServer(String(safe.apiBaseUrl), getSettings().apiBaseUrl)) {
+      // A new server must be one: https (http only for a local server in a
+      // development build) and answering /api/health as Zekra. The renderer
+      // reads the reason from the message ("server: <reason>").
+      const r = await checkServer(String(safe.apiBaseUrl));
+      if (!r.ok) throw new Error(`server: ${r.reason}`);
+      safe.apiBaseUrl = r.url;
+    } else if (safe.apiBaseUrl !== undefined) {
+      delete safe.apiBaseUrl;
+    }
+    return applySettingsPatch(safe);
   });
   ipcMain.handle(IPC.settingsClearSession, (): AppSettings => {
     const next = clearSession();
