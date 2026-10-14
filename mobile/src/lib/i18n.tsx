@@ -509,7 +509,7 @@ export function I18nProvider({ children }: PropsWithChildren) {
     void setStored(STORE_KEY, next);
   }, []);
 
-  // The UI face follows the language (Inter / Lusail); set before children render.
+  // The UI face follows the language (Inter / IBM Plex Sans Arabic); set before children render.
   setUiFontLocale(locale);
 
   const value = useMemo<I18nValue>(() => ({

@@ -238,8 +238,8 @@
         "react-native-android-widget",
         {
           "fonts": [
-            "./assets/fonts/Lusail-Regular.ttf",
-            "./assets/fonts/Lusail-Medium.ttf",
+            "./assets/fonts/IBMPlexSansArabic-Regular.ttf",
+            "./assets/fonts/IBMPlexSansArabic-Medium.ttf",
             "./node_modules/@expo-google-fonts/jetbrains-mono/500Medium/JetBrainsMono_500Medium.ttf"
           ],
           "widgets": [

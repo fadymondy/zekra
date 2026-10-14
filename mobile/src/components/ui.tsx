@@ -35,7 +35,7 @@ import { fonts, metrics, type, usePalette } from "@/theme";
 type Variant = "bigHeader" | "title" | "rowTitle" | "body" | "meta" | "micro" | "latin" | "mono";
 
 /**
- * Text with the design's rules baked in: Inter for English, Lusail for
+ * Text with the design's rules baked in: Inter for English, IBM Plex Sans Arabic for
  * Arabic; Arabic is never letter-spaced and never set in mono. `micro` is a
  * section label; `latin` is one that stays left-to-right in both languages.
  *

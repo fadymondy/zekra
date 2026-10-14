@@ -83,17 +83,17 @@ const DARK = derive(dark, "dark");
 export type ThemeMode = "system" | "light" | "dark";
 
 // UI type faces by language: Inter for English (a UI face, designed for
-// screens), Lusail for Arabic (it ships no 600 and 700 is banned by the
+// screens), IBM Plex Sans Arabic for Arabic (the app ships no 600 and 700 is banned by the
 // design, so 600-weight text uses Medium). React Native can't fall back to a
 // custom font glyph-by-glyph, so the face follows the app language rather
 // than the script. Mono is JetBrains Mono ("monospace" is not a family on iOS).
 const INTER = { light: "Inter_300Light", regular: "Inter_400Regular", medium: "Inter_500Medium", semibold: "Inter_600SemiBold" };
-const LUSAIL = { light: "Lusail-Light", regular: "Lusail-Regular", medium: "Lusail-Medium", semibold: "Lusail-Medium" };
+const PLEX = { light: "IBMPlexSansArabic-Light", regular: "IBMPlexSansArabic-Regular", medium: "IBMPlexSansArabic-Medium", semibold: "IBMPlexSansArabic-Medium" };
 let face = INTER;
 
 /** Switch the UI face (called by the i18n provider before it re-renders). */
 export function setUiFontLocale(locale: "en" | "ar"): void {
-  face = locale === "ar" ? LUSAIL : INTER;
+  face = locale === "ar" ? PLEX : INTER;
 }
 
 // Getters, so styles built during render always get the current language's
@@ -122,7 +122,7 @@ export const metrics = {
 } as const;
 
 // Readability scale (iOS HIG-like): body 16, secondary 14, and nothing below
-// 12 (Arabic 13 — Lusail needs ~1px more than Latin at small sizes). Text
+// 12 (Arabic 13 — Plex needs ~1px more than Latin at small sizes). Text
 // still follows Dynamic Type (allowFontScaling stays on).
 export const type = {
   bigHeader: 32,

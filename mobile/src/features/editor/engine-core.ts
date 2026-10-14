@@ -33,8 +33,8 @@ const MONO_STACK = `ui-monospace, SFMono-Regular, Menlo, "Roboto Mono", "Droid S
 /**
  * CSS font stacks for the WebView. Mirrors web's FONT_FAMILIES
  * (web/lib/notes/note-settings.ts), except where web points at its own
- * var(--grid-font-*) — those resolve to Lusail/JetBrains Mono, which the page
- * embeds as "Lusail" when available, so "system" leads with it.
+ * var(--grid-font-*) — those resolve to Inter + IBM Plex Sans Arabic / JetBrains Mono, which the page
+ * embeds as "IBM Plex Sans Arabic" when available, so "system" leads with it.
  */
 export function fontStack(id: FontFamilyId): string {
   switch (id) {
@@ -47,7 +47,7 @@ export function fontStack(id: FontFamilyId): string {
     case "reading":
       return `"Iowan Old Style", "Palatino Linotype", Palatino, serif`;
     default:
-      return `Lusail, ${SYSTEM_STACK}`;
+      return `"IBM Plex Sans Arabic", ${SYSTEM_STACK}`;
   }
 }
 

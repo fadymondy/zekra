@@ -31,7 +31,7 @@ export function LanguageList({ onPicked }: { onPicked?: (code: Locale) => void }
               accessibilityState={{ checked: on }}
               style={{
                 // Each name in its own script and direction, whatever the UI language.
-                fontFamily: lang.rtl ? "Lusail-Medium" : on ? fonts.medium : fonts.regular,
+                fontFamily: lang.rtl ? "IBMPlexSansArabic-Medium" : on ? fonts.medium : fonts.regular,
                 fontSize: 16,
                 color: on ? p.ink : p.body,
                 writingDirection: lang.rtl ? "rtl" : "ltr",
