@@ -93,6 +93,8 @@ function hasFeedConfig(): boolean {
 }
 
 function enabled(): boolean {
+  // The App Store updates Mac App Store builds; a self-updater is a rejection.
+  if (process.mas) return false;
   if (process.env.ZEKRA_FORCE_UPDATES === "1") return true;
   return app.isPackaged && hasFeedConfig();
 }

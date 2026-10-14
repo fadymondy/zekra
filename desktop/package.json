@@ -19,6 +19,7 @@
     "icons": "node build/make-icons.mjs",
     "pack": "npm run build && electron-builder --mac --dir",
     "dist": "npm run build && electron-builder --mac",
+    "dist:mas": "npm run build && electron-builder --mac mas:universal --config build/mas-config.cjs --publish never",
     "dist:publish": "npm run build && electron-builder --mac --publish always",
     "dist:publish:win": "npm run build && electron-builder --win --publish always",
     "dist:publish:linux": "npm run build && electron-builder --linux --publish always",
@@ -36,6 +37,7 @@
     "esbuild": "^0.25.12",
     "katex": "^0.16.47",
     "mermaid": "^11.17.2",
+    "sonner": "^1.7.4",
     "typescript": "^5.6.3"
   },
   "author": {

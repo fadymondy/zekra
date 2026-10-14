@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  App Sandbox entitlements for the Mac App Store build (the main app only;
+  helpers get entitlements.mas.inherit.plist). The provisioning profile
+  (build/zekra-mas.provisionprofile, MAC_APP_STORE, com.fadymondy.zekra)
+  must allow every identifier below.
+-->
+<plist version="1.0">
+<dict>
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <key>com.apple.application-identifier</key>
+  <string>JW9HJH86GC.com.fadymondy.zekra</string>
+  <key>com.apple.developer.team-identifier</key>
+  <string>JW9HJH86GC</string>
+  <!-- Electron's helpers share Mach ports through the team-prefixed group. -->
+  <key>com.apple.security.application-groups</key>
+  <array>
+    <string>JW9HJH86GC.com.fadymondy.zekra</string>
+  </array>
+  <!-- safeStorage keeps the session-token key in the Keychain. -->
+  <key>keychain-access-groups</key>
+  <array>
+    <string>JW9HJH86GC.com.fadymondy.zekra</string>
+  </array>
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <!-- The Zekra API. -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- Open Markdown… / exports via the open and save panels. -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <!-- Import from Apple Notes and Quick Capture "From browser" (AppleScript,
+       src/main/browser-tab.ts). A sandboxed app may only send Apple Events
+       to the apps listed here. -->
+  <key>com.apple.security.automation.apple-events</key>
+  <true/>
+  <key>com.apple.security.temporary-exception.apple-events</key>
+  <array>
+    <string>com.apple.Notes</string>
+    <string>com.apple.Safari</string>
+    <string>com.apple.SafariTechnologyPreview</string>
+    <string>com.google.Chrome</string>
+    <string>com.google.Chrome.beta</string>
+    <string>com.google.Chrome.canary</string>
+    <string>com.brave.Browser</string>
+    <string>com.microsoft.edgemac</string>
+    <string>com.vivaldi.Vivaldi</string>
+    <string>com.operasoftware.Opera</string>
+  </array>
+</dict>
+</plist>
