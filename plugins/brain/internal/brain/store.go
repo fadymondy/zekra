@@ -832,7 +832,7 @@ const rerankMaxDocs = 32
 
 // rerankBudget bounds how long Recall waits for the cross-encoder.
 //
-// Measured on production (LXC 109, bge-reranker-v2-m3 on CPU, 2026-09-23):
+// Measured on production (a 24-core CPU host, bge-reranker-v2-m3 on CPU, 2026-09-23):
 // ~2.2s per document regardless of batching — 40 docs took 87–124s whether sent
 // as one request, 40 singles, or parallel batches, because the CPU is the limit.
 // Waiting for that turned every recall into a 30s+ call that MCP clients timed

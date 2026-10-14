@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Zekra** is a memory organ for AI agents (hybrid BM25 + vector recall on Postgres/
 VectorChord, hot/cold tiers, Redis L1, write-decision dedupe), built as a **togo** app
-(Go + sqlc + Atlas + GraphQL/REST, Vite/React console in `web/`). Design: `SPEC.md`;
+(Go + sqlc + Atlas + GraphQL/REST, Next.js console in `web/`). Design: `SPEC.md`;
 build plan: `PLAN.md`; decision log: `contracts/internal/decisions.md`; deploy: `DEPLOY.md`.
 
 ## Commands
@@ -32,13 +32,11 @@ build plan: `PLAN.md`; decision log: `contracts/internal/decisions.md`; deploy: 
   `web/`). In-repo plugins are blank-imported in `internal/plugins/local.go` — keep them out
   of `plugins.gen.go`, which `togo install` rewrites. `cmd/migrate` blank-imports
   `internal/plugins` too, so plugin schemas (e.g. db-postgres) apply on migrate.
-- Module resolution: `go.mod` replaces `brain` → `./plugins/brain`; `go.work` shadows the
-  parent `E:\Sites\togo\go.work` and pulls sibling togo plugins from `..\*`.
+- Module resolution: `go.mod` replaces `brain` → `./plugins/brain` (and the other in-repo plugins).
 - `cmd/zekra-mcp` is the MCP server (memory_retain/recall/get/forget/…) — a thin stdio
   adapter over the brain's REST API (`ZEKRA_API_URL`, identity via `ZEKRA_AGENT_ID` →
   `X-Agent-Id` header). All scoping/validation stays server-side.
-- `scripts/*.py` are ingestion/sync jobs (FlowOS sync, graph edges, code indexing, rollups)
-  run against the live API/DB.
+- `scripts/*.py` are maintenance jobs (backfills, brain refresh) run against a live API/DB.
 
 ## togo conventions
 
@@ -49,42 +47,16 @@ build plan: `PLAN.md`; decision log: `contracts/internal/decisions.md`; deploy: 
 
 See `.claude/rules/` for detail.
 
-## The FlowOS brain (zekra MCP)
+## Using Zekra while working on Zekra
 
-The **zekra** MCP server connects to Zekra's remote Streamable HTTP endpoint at
-`https://mcp.zekra.dev` and exposes this project's memory organ. Configure it in the
-active client's MCP settings and authenticate with OAuth. Two
-brains are loaded:
-- **`flowos`** (~1,780 memories) — the FlowOS / OneStudio hub: ventures, domain-expert
-  agents, people, issues, posts, roadmaps, releases, goals, learnings, harvested research.
-- **`avo`** (~2,490 memories) — the **AVO "Founder Readiness Lab"** repo markdown
-  (board pack, playbooks, kaizen engine, kickstart legal/finance, pitch/fundraising,
-  research, theses, drills). Use for AVO / founder-readiness / KSA-GCC founder-prep
-  questions.
+The project dogfoods itself. If a **zekra** MCP server is configured (the hosted endpoint is
+`https://mcp.zekra.dev`, or your own instance), use the `zekra` namespace for this
+project's development knowledge (repo docs and git history):
 
-- **`zekra`** — this project's own dev knowledge (repo docs + git history). Use when
-  developing/following up on Zekra itself.
+- `memory_recall` before answering questions about the codebase's history or decisions,
+  and cite what it returns; if it returns nothing, say so.
+- `memory_retain` durable decisions, gotchas and contract details you produce.
+- After committing, `python3 scripts/refresh-zekra-brain.py` re-ingests the docs and git log
+  (needs `ZEKRA_API_URL` and a token).
 
-Pick the namespace matching the question (`flowos` studio, `avo` founder readiness,
-`zekra` this project's dev); recall both/all and merge only if genuinely ambiguous.
-Manage brains with the MCP tools `brain_list`, `brain_details`, `memory_edit`,
-`brain_delete`, and knowledge gaps with `memory_gaps` / `memory_resolve_gap`.
-
-**MEMORY-FIRST IS MANDATORY. Every turn: recall → answer/act → retain.** For ANY
-question or task touching FlowOS / OneStudio — a venture, portfolio, person, agent,
-issue, task, post, decision, or learning — you **MUST** call the zekra MCP
-`memory_recall` tool with `namespace: "flowos"` **before** answering, base the answer
-on what it returns (and cite it), and `memory_retain` anything new you produce. If
-recall returns nothing, say so — never invent facts.
-
-Examples that must trigger a recall first: "who is X?", "what is the Sentra venture?",
-"which agent does Saudi HR?", "what open OAuth issues exist?", "what have we learned
-about auth gates?".
-
-- Prefer concise/keyword queries (e.g. `"Sentra"`, `"PDPL compliance kit"`).
-- `memory_retain` to store, `memory_get` to fetch by id, `memory_forget` to retire.
-- The brain is the hosted instance at `https://app.zekra.dev` (production: LXC 109 on
-  `pve-3x1`, systemd `zekra.service`). If recall fails to connect, check that service.
-
-**Full mandatory ruleset: `.claude/rules/memory-first.md` (R1–R8).** Also see
-`contracts/internal/flowos-brain.md`.
+See `.claude/rules/memory-first.md`.

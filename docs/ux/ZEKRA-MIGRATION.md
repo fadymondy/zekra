@@ -2,7 +2,7 @@
 
 How we get from [CURRENT-IA](ZEKRA-CURRENT-IA.md) to [TARGET-IA](ZEKRA-TARGET-IA.md) without
 breaking a working feature or a bookmarked URL. Every phase is shipped as its own commits,
-pushed and deployed to production (LXC 109) before the next starts. Desktop/mobile apps are out
+pushed and deployed to production before the next starts. Desktop/mobile apps are out
 of scope.
 
 ## 1. Feature verdicts

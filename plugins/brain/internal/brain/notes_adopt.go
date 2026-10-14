@@ -13,7 +13,7 @@ Two mechanisms get it there.
    memories are re-pointed at the note. Grouping (groupDocuments):
 
      - chunked documents: a source_ref with a chunk suffix — '#<n>' (what
-       ingestDocuments, refresh-zekra-brain.py and code-index.py write), and the
+       ingestDocuments, and refresh-zekra-brain.py write), and the
        defensive variants '#chunk-<n>', ':chunk-<n>', '/part-<n>', '?part=<n>' —
        is grouped by the ref minus the suffix (the document key). One note per
        document, chunks in suffix order (then valid_at / ingested_at). A bare ref

@@ -1,0 +1,101 @@
+# Self-hosted Zekra: Postgres (VectorChord), a one-shot schema job, the API, the console and
+# TEI embeddings + reranker.
+#
+#   cp .env.selfhost.example .env.selfhost   # fill in the secrets
+#   docker compose -f docker-compose.selfhost.yml --env-file .env.selfhost up -d --build
+#
+# Then open http://localhost:${ZEKRA_PORT:-3020}. The TEI containers download their models on
+# first start (a few GB) and run on CPU; point TEI_* at a GPU host for speed.
+
+x-api-env: &api-env
+  APP_ENV: production
+  APP_URL: ${APP_URL:-http://localhost:3020}
+  DB_DRIVER: pgx
+  DATABASE_URL: postgres://zekra:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/zekra?sslmode=disable
+  AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET}
+  ZEKRA_SECRETS_KEY: ${ZEKRA_SECRETS_KEY:?set ZEKRA_SECRETS_KEY}
+  VAULT_KEY: ${ZEKRA_SECRETS_KEY}
+  MFA_CHALLENGE_SECRET: ${MFA_CHALLENGE_SECRET:?set MFA_CHALLENGE_SECRET}
+  ZEKRA_REQUIRE_AUTH: "1"
+  ZEKRA_REQUIRE_TOKEN: "1"
+  ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+  ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+  TEI_EMBEDDINGS_URL: http://tei-embed:80
+  TEI_EMBEDDINGS_MODEL: Qwen/Qwen3-Embedding-0.6B
+  TEI_EMBEDDINGS_DIM: "1024"
+  TEI_RERANKER_URL: http://tei-rerank:80
+  TEI_RERANKER_MODEL: BAAI/bge-reranker-v2-m3
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  MAIL_FROM: ${MAIL_FROM:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+services:
+  db:
+    build: docker/postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zekra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: zekra
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zekra -d zekra"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/selfhost.Dockerfile
+    image: zekra-selfhost
+    entrypoint: ["/app/zekractl", "migrate"]
+    environment: *api-env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: zekra-selfhost
+    restart: unless-stopped
+    environment: *api-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        API_ORIGIN: http://api:8080
+    restart: unless-stopped
+    ports:
+      - "${ZEKRA_PORT:-3020}:3020"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3020/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  tei-embed:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.8
+    command: ["--model-id", "Qwen/Qwen3-Embedding-0.6B"]
+    restart: unless-stopped
+    volumes:
+      - tei-models:/data
+
+  tei-rerank:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.8
+    command: ["--model-id", "BAAI/bge-reranker-v2-m3"]
+    restart: unless-stopped
+    volumes:
+      - tei-models:/data
+
+volumes:
+  pgdata:
+  tei-models:

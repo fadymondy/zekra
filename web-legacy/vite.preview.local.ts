@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 // Local-only visual preview against production data (not committed).
-const target = "https://cabrain-app.fadymondy.com";
+const target = "https://app.zekra.dev";
 const headers = { "X-Zekra-Token": process.env.ZT || "", "X-Agent-Id": "fadymondy-agent" };
 export default defineConfig({
   plugins: [react(), tailwindcss(), {

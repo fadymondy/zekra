@@ -9,7 +9,7 @@ import (
 // rerankGovernor sizes each rerank call to what the cross-encoder can actually
 // finish inside the budget.
 //
-// Measured on production (LXC 109, bge-reranker-v2-m3 on CPU, 2026-10-14):
+// Measured on production (a 24-core CPU host, bge-reranker-v2-m3 on CPU, 2026-10-14):
 // ~4s per document — 1 doc 3.9s, 8 docs 31.8s, 16 docs 66s. Sending the usual
 // 32-doc head with a 4s budget therefore ALWAYS timed out: every recall waited
 // the full 4s for nothing, and TEI kept scoring the abandoned batch for minutes

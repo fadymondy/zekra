@@ -2,7 +2,7 @@
 @import "@togo-framework/ui/styles.css";
 
 /* The grid — fadymondy.com's design system. GENERATED copies: never edit them; re-sync with
-   node E:/Sites/fadymondy.com-v2/packages/sync-grid.mjs web E:/Sites/ToGo/cabrain/web/src/styles */
+   fadymondy.com-v2/packages/sync-grid.mjs (web-legacy/src/styles is the target) */
 @import "./styles/grid-fonts.css";
 @import "./styles/grid-tokens.css";
 @import "./styles/grid.css";

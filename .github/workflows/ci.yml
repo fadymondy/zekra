@@ -1,0 +1,69 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Codegen (sqlc + gqlgen)
+        env:
+          GOFLAGS: -mod=mod
+        run: |
+          go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+          sqlc generate
+          go run github.com/99designs/gqlgen generate
+      - name: Build
+        env:
+          GOFLAGS: -mod=mod
+        run: go build ./...
+      - name: Test (harness and plugins)
+        env:
+          GOFLAGS: -mod=mod
+        run: |
+          go test -count=1 ./...
+          for m in plugins/*/; do (cd "$m" && go test -count=1 ./...); done
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run build
+
+  selfhost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot the self-host stack (without the TEI model servers)
+        run: |
+          cat > .env.selfhost <<ENV
+          POSTGRES_PASSWORD=$(openssl rand -hex 16)
+          AUTH_SECRET=$(openssl rand -hex 32)
+          ZEKRA_SECRETS_KEY=$(openssl rand -hex 32)
+          MFA_CHALLENGE_SECRET=$(openssl rand -hex 32)
+          ENV
+          docker compose -f docker-compose.selfhost.yml --env-file .env.selfhost up -d --build --wait --wait-timeout 600 db migrate api web
+      - name: Check the console and API
+        run: |
+          curl -fsS http://localhost:3020/api/health
+          curl -fsS -o /dev/null -w '%{http_code}\n' http://localhost:3020/en/login
+      - name: Logs
+        if: failure()
+        run: docker compose -f docker-compose.selfhost.yml --env-file .env.selfhost logs --tail 200
