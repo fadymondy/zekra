@@ -37,6 +37,7 @@
     // Without the second one, react, react-dom and lucide-react all read as
     // missing and every JSX tag errors.
     "paths": {
+      "@/components/ui/*": ["./src/renderer/ui/*"],
       "@/*": ["../web/*", "../mobile/src/*"],
       "@mobile/*": ["../mobile/src/*"],
       // React ships no types of its own, and the wildcard below would resolve

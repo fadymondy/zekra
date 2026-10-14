@@ -17,6 +17,7 @@
 // Aliases (mirrored in tsconfig.renderer.json "paths"):
 //   @/        -> ../web          shadcn components, web lib
 //   @mobile/  -> ../mobile/src   shared pure-TS modules (i18n dictionaries)
+//   @/components/ui/* -> src/renderer/ui   the shadcn layer (see desktopUi)
 // Files under mobile/src use "@/" for THEIR OWN root, so an import of "@/…"
 // from a mobile file is resolved against mobile/src, not web (plugin below).
 import { createRequire } from "node:module";
@@ -51,6 +52,21 @@ const mobileSelfAlias = {
   },
 };
 
+/**
+ * "@/components/ui/x" means src/renderer/ui/x. The web console swapped its
+ * shadcn layer for Nasaq (d31e8ef) and deleted web/components/ui; the desktop
+ * keeps the last copy of the components it uses, vendored in src/renderer/ui.
+ */
+const DESKTOP_UI = path.join(DESKTOP, "src", "renderer", "ui");
+const desktopUi = {
+  name: "desktop-ui",
+  setup(build) {
+    build.onResolve({ filter: /^@\/components\/ui\// }, (args) => ({
+      path: path.join(DESKTOP_UI, args.path.slice("@/components/ui/".length) + ".tsx"),
+    }));
+  },
+};
+
 async function bundleJs({ dev, entry = "main.tsx", outfile = "app.js" }) {
   await esbuild.build({
     entryPoints: [path.join(DESKTOP, "src", "renderer", entry)],
@@ -65,10 +81,18 @@ async function bundleJs({ dev, entry = "main.tsx", outfile = "app.js" }) {
     sourcemap: dev,
     // shadcn components import "@/lib/utils" and "@/components/ui/*" — point
     // that alias at the web app so they resolve to the real components.
-    alias: { "@": WEB, "@mobile": MOBILE_SRC },
-    plugins: [mobileSelfAlias],
-    // Everything (react, base-ui, cva, lucide…) lives in web/node_modules.
-    nodePaths: [path.join(WEB, "node_modules")],
+    // react/react-dom are pinned to the web's copy: sonner's peer install puts
+    // a second React in desktop/node_modules, and two Reacts break hooks.
+    alias: {
+      "@": WEB,
+      "@mobile": MOBILE_SRC,
+      react: path.join(WEB, "node_modules", "react"),
+      "react-dom": path.join(WEB, "node_modules", "react-dom"),
+    },
+    plugins: [mobileSelfAlias, desktopUi],
+    // Everything (react, base-ui, cva, lucide…) lives in web/node_modules;
+    // sonner (gone from the web with its ui layer) is a desktop devDependency.
+    nodePaths: [path.join(WEB, "node_modules"), path.join(DESKTOP, "node_modules")],
     define: { "process.env.NODE_ENV": JSON.stringify(dev ? "development" : "production") },
     loader: { ".woff2": "file", ".png": "file", ".svg": "file" },
     logLevel: "warning",
@@ -113,7 +137,6 @@ async function bundleCss() {
     sources: [
       { base: path.join(DESKTOP, "src", "renderer"), pattern: "**/*.{ts,tsx,css}", negated: false },
       { base: path.join(WEB, "components", "notes"), pattern: "**/*.tsx", negated: false },
-      { base: path.join(WEB, "components", "ui"), pattern: "**/*.tsx", negated: false },
       // MH-450 presentations: the web viewers the Presentations tab renders
       // (deck/report/page + scenes; not admin/, the web-only editor).
       { base: path.join(WEB, "components", "presentations"), pattern: "*.tsx", negated: false },

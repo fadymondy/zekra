@@ -101,6 +101,30 @@ mac:
     - target: zip
       arch: universal
 
+# ─── Mac App Store ──────────────────────────────────────────────────────────
+#   npm run dist:mas                  dist-mas/mas-universal/Zekra-<v>-universal.pkg
+# Built under the App Store app's bundle id (com.fadymondy.zekra, app
+# 6815005965 — shared with iOS), set with the store version and build number
+# by build/mas-config.cjs, so the direct-download app
+# (com.fadymondy.zekra.desktop) keeps its own id. Signed
+# with "Apple Distribution" (app) + "3rd Party Mac Developer Installer" (pkg),
+# both found by the team qualifier below. The profile is MAC_APP_STORE
+# S6A58H95Q5 (created via the ASC API; a profile holds no secret). App
+# Sandbox instead of the hardened runtime; the updater is off (process.mas).
+# CFBundleShortVersionString follows the ASC macOS version record (1.0) and
+# CFBundleVersion must grow with every upload (MAS_BUILD_NUMBER=2 npm run
+# dist:mas). Upload:
+#   xcrun altool --upload-app -t macos -f dist-mas/mas-universal/*.pkg \
+#     --apiKey <id> --apiIssuer <issuer>
+mas:
+  identity: Fady Nasef (JW9HJH86GC)
+  hardenedRuntime: false
+  entitlements: build/entitlements.mas.plist
+  entitlementsInherit: build/entitlements.mas.inherit.plist
+  provisioningProfile: build/zekra-mas.provisionprofile
+  extendInfo:
+    ITSAppUsesNonExemptEncryption: false
+
 dmg:
   title: Zekra ${version}
   icon: build/icon.icns
