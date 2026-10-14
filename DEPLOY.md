@@ -165,12 +165,29 @@ systemctl restart zekra-web      # curl :3020/en/login -> 200
     signing). App build env: `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`,
     `GOOGLE_IOS_URL_SCHEME` (the reversed iOS client id; without it the SDK is left out and the
     app uses the browser flow).
-  - Apple — `POST /api/auth/apple/token {identity_token, nonce, full_name?}`, on only when
-    `APPLE_BUNDLE_IDS=com.fadymondy.zekra` (the token's audience; the key/Services ID above are
-    for the web flow only). The nonce is required and must SHA-256 to the token's claim. Enable
-    the **Sign in with Apple** capability on the App ID `com.fadymondy.zekra` and regenerate its
-    profiles (the app ships the entitlement). The iOS app shows the button only when the server
-    reports `apple.native`.
+  - Apple, iOS (`native`) — `POST /api/auth/apple/token {identity_token, nonce, full_name?,
+    authorization_code?}`, on only when `APPLE_BUNDLE_IDS=com.fadymondy.zekra` (the token's
+    audience). The nonce is required and must SHA-256 to the token's claim. Enable the **Sign in
+    with Apple** capability on the App ID `com.fadymondy.zekra` and regenerate its profiles (the
+    app ships the entitlement). The iOS app uses the sheet when the server reports `apple.native`.
+  - Apple, Android and any build without the sheet (`app`) — the web flow in the system browser
+    (`/api/auth/apple?app=1&return=zekra://auth/apple&code_challenge=…`); Apple form-posts to the
+    callback, which redirects to the app with a one-time code traded at
+    `POST /api/auth/apple/exchange {code, code_verifier}`. On when the web flow is configured
+    (`APPLE_SERVICES_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY[_PATH]`). Return
+    scheme `APPLE_APP_SCHEME` (default `zekra`).
+  - Apple token revocation (App Review 5.1.1(v)) — every Apple authorization code (web/app
+    callback; the iOS sheet's `authorization_code`) is traded at `appleid.apple.com/auth/token`
+    with the ES256 client secret (client id = the Services ID, or the bundle id for the sheet's
+    codes). The refresh token is sealed with `VAULT_KEY` in `account_apple_tokens` and revoked at
+    `appleid.apple.com/auth/revoke` when Apple is disconnected and when the account is purged.
+    Needs the key above (team id, key id, .p8) even for an iOS-only setup; without it sign-in
+    still works and nothing is revoked.
+
+  Apple Developer setup: App ID `com.fadymondy.zekra` with Sign in with Apple (primary App ID);
+  a Services ID (e.g. `com.fadymondy.zekra.web`) grouped with it, domain `app.zekra.dev`, Return
+  URL `https://app.zekra.dev/api/auth/apple/callback`; a key with Sign in with Apple enabled for
+  that primary App ID (`APPLE_KEY_ID` + the .p8).
   - GitHub — the app runs the web flow in an auth session
     (`/api/auth/github?app=1&return=zekra://auth/github&code_challenge=…`), so it needs only the
     web credentials and callback URL above. The return must use `GITHUB_APP_SCHEME` (default
@@ -178,6 +195,14 @@ systemctl restart zekra-web      # curl :3020/en/login -> 200
     `POST /api/auth/github/exchange {code, code_verifier}`.
   - App-flow failures come back as `zekra://auth/<provider>?error=` `cancelled`, `state`,
     `email` (GitHub), `closed`, `disabled` or `failed`.
+  - Linking: accounts link by verified email on first sign-in. The app's Account → Connected
+    accounts connects more (`&link=1` app flows, or the sheets) and disconnects
+    (`/api/me/identities`; the last way to sign in cannot be removed).
+  - Deleting an account works for every account: `POST /api/me/delete` takes the password or a
+    code from `POST /api/me/delete/code` (accounts made with Google / Apple / GitHub have no
+    password). Scheduling signs out everywhere, so cancelling is public:
+    `POST /api/me/delete/cancel/code {email}` mails a code when a deletion is pending, then
+    `POST /api/me/delete/cancel {email, code}` (or `{email, password}`). Needs mail (Resend).
 
 ## Mobile push notifications (FCM, MH-373)
 
