@@ -7,6 +7,7 @@ export default defineDict({
     "brain.tab.notes": "Notes",
     "brain.tab.presentations": "Presentations",
     "brain.tab.vault": "Vault",
+    "brain.tab.media": "Media",
     "brain.missing": "This brain is not available to you.",
 
     "brains.stat.brains": "Brains",
@@ -81,6 +82,7 @@ export default defineDict({
     "brain.tab.notes": "الملاحظات",
     "brain.tab.presentations": "العروض",
     "brain.tab.vault": "الخزنة",
+    "brain.tab.media": "الوسائط",
     "brain.missing": "هذا الدماغ غير متاح لك.",
 
     "brains.stat.brains": "الأدمغة",

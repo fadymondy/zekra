@@ -6,6 +6,7 @@ import { AwaitNote, StackHeader } from "@/components/kit";
 import { Row, Screen, Segmented } from "@/components/ui";
 import { BrainAvatar } from "@/features/brains/brain-avatar";
 import { ROLE_KEYS } from "@/features/brains/brain-card";
+import { BrainMedia } from "@/features/media/brain-media";
 import { BrainNotes } from "@/features/notes/brain-notes";
 import { BrainPresentations } from "@/features/presentations/brain-presentations";
 import { BrainVault } from "@/features/vault/brain-vault";
@@ -13,16 +14,17 @@ import { useI18n } from "@/lib/i18n";
 import { useBrains } from "@/providers/brains";
 import { metrics } from "@/theme";
 
-type Tab = "notes" | "presentations" | "vault";
+type Tab = "notes" | "media" | "presentations" | "vault";
+const TABS: Tab[] = ["notes", "media", "presentations", "vault"];
 
-// A brain, as on the web console (/b/{ns}): its notes, presentations and
-// vault, one tab at a time. Opening a brain also makes it the "this brain"
+// A brain, as on the web console (/b/{ns}): its notes, media, presentations
+// and vault, one tab at a time. Opening a brain also makes it the "this brain"
 // scope for Search.
 export default function BrainScreen() {
   const { ns, tab: initialTab } = useLocalSearchParams<{ ns: string; tab?: Tab }>();
   const { t } = useI18n();
   const { brains, select, loading } = useBrains();
-  const [tab, setTab] = useState<Tab>(initialTab === "presentations" || initialTab === "vault" ? initialTab : "notes");
+  const [tab, setTab] = useState<Tab>(initialTab && TABS.includes(initialTab) ? initialTab : "notes");
   const brain = brains.find((b) => b.namespace === ns);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function BrainScreen() {
               onChange={setTab}
               options={[
                 { value: "notes", label: t("brain.tab.notes") },
+                { value: "media", label: t("brain.tab.media") },
                 { value: "presentations", label: t("brain.tab.presentations") },
                 { value: "vault", label: t("brain.tab.vault") },
               ]}
@@ -58,6 +61,8 @@ export default function BrainScreen() {
         </Row>
       ) : tab === "notes" ? (
         <BrainNotes brain={brain} />
+      ) : tab === "media" ? (
+        <BrainMedia brain={brain} />
       ) : tab === "presentations" ? (
         <BrainPresentations brain={brain} />
       ) : (

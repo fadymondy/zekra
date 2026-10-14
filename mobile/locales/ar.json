@@ -1,7 +1,8 @@
 {
   "ios": {
     "CFBundleDisplayName": "ذكرى",
-    "NSPhotoLibraryUsageDescription": "تحتاج ذكرى إلى الوصول إلى صورك لتتمكن من إضافة صور إلى ملاحظة.",
+    "NSPhotoLibraryUsageDescription": "تحتاج ذكرى إلى الوصول إلى صورك لتتمكن من إضافة صور إلى ملاحظة، أو إضافة صور وفيديو إلى دماغ ليقرأها.",
+    "NSCameraUsageDescription": "تستخدم ذكرى الكاميرا لتصوّر صفحة أو سبورة وتضيف نصها إلى دماغ.",
     "NSFaceIDUsageDescription": "تستخدم ذكرى Face ID لفتح التطبيق وللتأكد من هويتك قبل عرض سرّ من الخزنة."
   },
   "android": {

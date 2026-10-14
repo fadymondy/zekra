@@ -7,6 +7,9 @@ Expo / React Native client for Zekra on Android and iOS. The first product slice
 - brain listing, selection, and creation;
 - searchable notes with create, edit, pin, archive, delete, and version-conflict handling;
 - an interactive, sampled knowledge graph with links back to notes;
+- a Media tab per brain: photograph a page, pick photos/videos or a PDF/audio file, watch it being
+  read (OCR in any script, PDF pages, video keyframes, speech), read the text, open its note, read
+  again or delete;
 - automatic light and dark appearance.
 
 ## Run locally
