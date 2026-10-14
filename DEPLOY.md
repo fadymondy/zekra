@@ -102,8 +102,10 @@ Tunables worth knowing:
 | Var | Default | Why |
 |---|---|---|
 | `BRAIN_BM25_TOKENIZER` | `zekra_ml` | llmlingua2 multilingual tokenizer in `tokenizer_catalog`. |
-| `BRAIN_RERANK_TIMEOUT` | `4s` | The CPU reranker costs ~2.2s per document; past this budget recall keeps the hybrid (RRF) order instead of timing out. `0` disables reranking. |
+| `BRAIN_RERANK_TIMEOUT` | `4s` | The CPU reranker costs ~2–4s per document; past this budget recall and search keep the hybrid (RRF) order instead of timing out. The API learns the per-document cost and only sends what fits (none on today's CPU, re-probed in the background every 10 min). `0` disables reranking. |
 | `BRAIN_HNSW_EF_SEARCH` | `200` | Candidate list for the vector index; lower values drop results because most rows are superseded. |
+| `BRAIN_SEARCH_CONCURRENCY` | `6` | Brains queried at once by cross-brain search (`/api/brain/search`). |
+| `BRAIN_SEARCH_BRAIN_TIMEOUT` | `5s` | Per-brain limit in cross-brain search; a brain past it is left out (`partial: true`, `skipped: [...]`) instead of failing the request. |
 
 ## Legacy manual deploy (rollback reference only)
 

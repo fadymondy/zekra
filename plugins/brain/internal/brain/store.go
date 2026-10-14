@@ -853,27 +853,36 @@ func rerankBudget() time.Duration {
 	return 4 * time.Second
 }
 
-// rerankHead reranks at most the first rerankMaxDocs of pool, in place. The
+// rerankHead reranks the head of pool, in place: at most rerankMaxDocs, and no
+// more than rerankGov says the cross-encoder can finish inside the budget. The
 // head is RRF-ordered already, so it holds the likeliest answers; the tail keeps
-// its RRF order after the reranked head. On a timeout or an error the pool is
-// left exactly as it was.
+// its RRF order after the reranked head. On a timeout, an error, or a reranker
+// too slow to use, the pool is left exactly as it was.
 func rerankHead(ctx context.Context, rr Reranker, query string, pool []Recalled) {
 	budget := rerankBudget()
-	if budget == 0 {
+	if budget == 0 || len(pool) < 2 {
 		return
 	}
-	head := pool
-	if len(head) > rerankMaxDocs {
-		head = head[:rerankMaxDocs]
+	g := rerankGov
+	n, probe := g.plan(min(len(pool), rerankMaxDocs))
+	if probe {
+		// Re-measure off the request path: the caller keeps the RRF order.
+		docs := []string{pool[0].Content, pool[1].Content}
+		go func() {
+			defer g.probeDone()
+			g.timedRerank(context.Background(), rr, query, docs, budget)
+		}()
 	}
+	if n < 2 {
+		return
+	}
+	head := pool[:n]
 	docs := make([]string, len(head))
 	for i := range head {
 		docs[i] = head[i].Content
 	}
-	rctx, cancel := context.WithTimeout(ctx, budget)
-	defer cancel()
-	scores, err := rr.Rerank(rctx, query, docs)
-	if err != nil || len(scores) != len(head) {
+	scores, ok := g.timedRerank(ctx, rr, query, docs, budget)
+	if !ok {
 		return
 	}
 	for i := range head {

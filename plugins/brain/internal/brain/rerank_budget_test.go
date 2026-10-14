@@ -44,8 +44,20 @@ func ids(p []Recalled) string {
 	return s
 }
 
+// withRerankGov gives a test its own governor; limit < 0 leaves it unmeasured.
+func withRerankGov(t *testing.T, limit int) *rerankGovernor {
+	t.Helper()
+	prev := rerankGov
+	g := newRerankGovernor()
+	g.limit = limit
+	rerankGov = g
+	t.Cleanup(func() { rerankGov = prev })
+	return g
+}
+
 func TestRerankReordersWithinBudget(t *testing.T) {
 	t.Setenv("BRAIN_RERANK_TIMEOUT", "1s")
+	withRerankGov(t, -1)
 	p := pool("a", "b", "c")
 	rerankHead(context.Background(), &fakeReranker{scores: map[string]float64{"a": 0.1, "b": 0.9, "c": 0.5}}, "q", p)
 	if got := ids(p); got != "bca" {
@@ -58,6 +70,7 @@ func TestSlowRerankKeepsTheHybridOrder(t *testing.T) {
 	// CPU, so waiting made every recall a 30s call. Past the budget the RRF
 	// order must be returned untouched — not partially rescored, not empty.
 	t.Setenv("BRAIN_RERANK_TIMEOUT", "50ms")
+	withRerankGov(t, -1)
 	p := pool("a", "b", "c")
 	start := time.Now()
 	rerankHead(context.Background(), &fakeReranker{delay: 2 * time.Second, scores: map[string]float64{"c": 9}}, "q", p)
@@ -76,6 +89,7 @@ func TestRerankNeverSendsMoreThanTEIAccepts(t *testing.T) {
 	// TEI rejects batches over its max-client-batch-size (32) with HTTP 413,
 	// which Recall swallowed — so a full 40-row pool was never reranked at all.
 	t.Setenv("BRAIN_RERANK_TIMEOUT", "1s")
+	withRerankGov(t, rerankMaxDocs) // a reranker fast enough for the full head
 	var names []string
 	for i := 0; i < 40; i++ {
 		names = append(names, fmt.Sprintf("%02d", i))
@@ -98,6 +112,7 @@ func TestRerankNeverSendsMoreThanTEIAccepts(t *testing.T) {
 
 func TestRerankBudgetZeroDisables(t *testing.T) {
 	t.Setenv("BRAIN_RERANK_TIMEOUT", "0")
+	withRerankGov(t, -1)
 	fr := &fakeReranker{scores: map[string]float64{"c": 9}}
 	p := pool("a", "b", "c")
 	rerankHead(context.Background(), fr, "q", p)
