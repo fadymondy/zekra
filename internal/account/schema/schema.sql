@@ -15,7 +15,7 @@
 -- plugin has created that table on a fresh database.
 
 -- A 6-digit code mailed to an address, stored as a bcrypt hash. One live code per
--- address and purpose (verify | reset | login); a new request replaces it. Five
+-- address and purpose (verify | reset | login | delete | undelete); a new request replaces it. Five
 -- wrong tries kill it.
 CREATE TABLE IF NOT EXISTS account_codes (
     email       TEXT        NOT NULL,
@@ -98,6 +98,21 @@ CREATE TABLE IF NOT EXISTS auth_identities (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS auth_identities_provider_subject_key ON auth_identities (provider, subject);
 CREATE UNIQUE INDEX IF NOT EXISTS auth_identities_user_provider_key ON auth_identities (user_id, provider);
+
+-- Apple refresh tokens, kept only to revoke them when the Apple identity is
+-- disconnected or the account is deleted (internal/account/apple_tokens.go).
+-- refresh_token is sealed with the account vault key (AES-256-GCM, "vault:v1:").
+-- One row per Apple subject and client id (Services ID or bundle id).
+CREATE TABLE IF NOT EXISTS account_apple_tokens (
+    user_id       TEXT        NOT NULL,
+    subject       TEXT        NOT NULL,
+    client_id     TEXT        NOT NULL,
+    refresh_token TEXT        NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (subject, client_id)
+);
+CREATE INDEX IF NOT EXISTS account_apple_tokens_user_idx ON account_apple_tokens (user_id);
 
 -- The account area: display name, avatar, timezone.
 CREATE TABLE IF NOT EXISTS account_profiles (

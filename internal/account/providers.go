@@ -18,7 +18,9 @@ back (?app=1&return=zekra://…, then POST /api/auth/<name>/exchange). It needs 
 native SDK or per-platform OAuth client:
   - google: the web client is configured (id + secret);
   - github: the OAuth app is configured;
-  - apple:  never — Apple's web flow is a form_post, the app uses the sheet.
+  - apple:  the web flow is configured (Services ID, team, key id, key). The
+    callback is Apple's form_post; it redirects to the app's return URL just
+    as Google's and GitHub's do. This is how Android signs in with Apple.
 
 "native" means the provider's own native sheet works:
   - google: an ID-token audience is configured (the web client id, plus any
@@ -52,7 +54,8 @@ func configuredProviders() []providerStatus {
 	g := loadGoogleConfig()
 	add(providerStatus{Name: "google", Web: g.webReady(), App: g.webReady(), Native: len(g.audiences) > 0})
 	a, err := loadAppleConfig()
-	add(providerStatus{Name: "apple", Web: err == nil && a.webReady(), Native: len(a.bundleIDs) > 0})
+	appleWeb := err == nil && a.webReady()
+	add(providerStatus{Name: "apple", Web: appleWeb, App: appleWeb, Native: len(a.bundleIDs) > 0})
 	gh := loadGitHubConfig()
 	add(providerStatus{Name: "github", Web: gh.ready(), App: gh.ready(), Native: gh.ready()})
 	return out

@@ -23,8 +23,10 @@ CSRF token (X-CSRF-Token echoing the togo_csrf cookie); bearer calls are exempt.
 	GET/PUT  /api/me/account/notifications
 	GET/POST /api/me/account/export
 	GET      /api/me/account/export/download?token=
-	GET/POST /api/me/delete
-	POST     /api/me/delete/cancel      (public: email + password)
+	GET/POST /api/me/delete             POST takes the password or an emailed code
+	POST     /api/me/delete/code        mails the code that confirms a deletion
+	POST     /api/me/delete/cancel      (public: email + password, or email + code)
+	POST     /api/me/delete/cancel/code (public: mails a cancel code when a deletion is pending)
 */
 
 type accountProfile struct {
@@ -271,6 +273,8 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		switch {
 		case errors.Is(err, ErrWrongPassword), errors.Is(err, ErrBadCredentials):
 			return huma.Error403Forbidden(err.Error())
+		case errors.Is(err, ErrWrongCode), errors.Is(err, ErrNoProof):
+			return huma.Error422UnprocessableEntity(err.Error())
 		case errors.Is(err, ErrRateLimited):
 			return huma.Error429TooManyRequests(err.Error())
 		case errors.Is(err, ErrBadMode):
@@ -294,15 +298,17 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 	}
 	huma.Register(api, huma.Operation{
 		OperationID: "account-delete", Method: http.MethodPost, Path: "/api/me/delete",
-		Summary:     "Schedule deletion of your account",
-		Description: "Re-authenticates with the password, schedules deletion 14 days out, and signs the account out everywhere immediately.",
-		Tags:        tags, Errors: []int{401, 403, 409, 422, 429},
+		Summary: "Schedule deletion of your account",
+		Description: "Re-authenticates with the password or a code from POST /api/me/delete/code (accounts without a password " +
+			"use the code), schedules deletion 14 days out, and signs the account out everywhere immediately.",
+		Tags: tags, Errors: []int{401, 403, 409, 422, 429},
 	}, func(ctx context.Context, in *struct {
 		ForwardedFor   string `header:"X-Forwarded-For"`
 		ForwardedProto string `header:"X-Forwarded-Proto"`
 		RequestID      string `header:"X-Request-Id"`
 		Body           struct {
-			Password     string `json:"password" minLength:"1" maxLength:"1024" doc:"The account password. Required: a session alone cannot delete an account."`
+			Password     string `json:"password,omitempty" maxLength:"1024" doc:"The account password. Either it or code is required: a session alone cannot delete an account."`
+			Code         string `json:"code,omitempty" maxLength:"16" doc:"The 6-digit code from POST /api/me/delete/code."`
 			Testimonials string `json:"testimonials,omitempty" enum:"anonymise,withdraw" doc:"Accepted for fadymondy parity; Zekra has no testimonials."`
 		}
 	}) (*deleteOut, error) {
@@ -315,7 +321,7 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			return nil, huma.Error409Conflict("the site owner's account cannot be deleted from here")
 		}
 		meta := metaFromHeaders(in.ForwardedFor, in.RequestID)
-		row, err := s.Schedule(ctx, id.ID, in.Body.Password, in.Body.Testimonials, meta)
+		row, err := s.Schedule(ctx, id.ID, Proof{Password: in.Body.Password, Code: strings.TrimSpace(in.Body.Code)}, in.Body.Testimonials, meta)
 		if err != nil {
 			return nil, fail(err)
 		}
@@ -323,6 +329,46 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		out.SetCookie = *ClearSessionCookie(strings.EqualFold(in.ForwardedProto, "https"))
 		out.Body.Status = StatusScheduled
 		out.Body.ScheduledFor = row.ScheduledFor.UTC().Format(time.RFC3339)
+		return out, nil
+	})
+
+	type sentOut struct {
+		Body struct {
+			Status string `json:"status" example:"sent"`
+		}
+	}
+	huma.Register(api, huma.Operation{
+		OperationID: "account-delete-code", Method: http.MethodPost, Path: "/api/me/delete/code",
+		Summary:     "Email me a code to confirm deleting my account",
+		Description: "For accounts without a password (Google / Apple / GitHub sign-ins), and as an alternative to the password.",
+		Tags:        tags, Errors: []int{401, 403, 409, 429},
+	}, func(ctx context.Context, in *struct {
+		CSRFIn
+		ForwardedFor string `header:"X-Forwarded-For"`
+		RequestID    string `header:"X-Request-Id"`
+		Body         struct {
+			Locale string `json:"locale,omitempty" enum:"en,ar"`
+		}
+	}) (*sentOut, error) {
+		id, err := sessionAccount(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !in.ok() {
+			return nil, huma.Error403Forbidden("invalid csrf token")
+		}
+		if isAdmin(id) {
+			return nil, huma.Error409Conflict("the site owner's account cannot be deleted from here")
+		}
+		locale := in.Body.Locale
+		if locale == "" {
+			locale = "en"
+		}
+		if err := s.RequestDeletionCode(ctx, id.ID, locale, metaFromHeaders(in.ForwardedFor, in.RequestID)); err != nil {
+			return nil, fail(err)
+		}
+		out := &sentOut{}
+		out.Body.Status = "sent"
 		return out, nil
 	})
 
@@ -371,23 +417,50 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 	}
 	huma.Register(api, huma.Operation{
 		OperationID: "account-delete-cancel", Method: http.MethodPost, Path: "/api/me/delete/cancel",
-		Summary:     "Cancel a pending account deletion",
-		Description: "No session needed: deleting signed you out. The same 403 answers an unknown email and a wrong password.",
-		Tags:        tags, Errors: []int{403, 409, 429},
+		Summary: "Cancel a pending account deletion",
+		Description: "No session needed: deleting signed you out. Proven by the password, or by a code from " +
+			"POST /api/me/delete/cancel/code. The same 403 answers an unknown email, a wrong password and a wrong code.",
+		Tags: tags, Errors: []int{403, 409, 422, 429},
 	}, func(ctx context.Context, in *struct {
 		ForwardedFor string `header:"X-Forwarded-For"`
 		RequestID    string `header:"X-Request-Id"`
 		Body         struct {
 			Email    string `json:"email" minLength:"1" maxLength:"320"`
-			Password string `json:"password" minLength:"1" maxLength:"1024"`
+			Password string `json:"password,omitempty" maxLength:"1024"`
+			Code     string `json:"code,omitempty" maxLength:"16"`
 		}
 	}) (*cancelOut, error) {
 		meta := metaFromHeaders(in.ForwardedFor, in.RequestID)
-		if err := s.Cancel(ctx, in.Body.Email, in.Body.Password, meta); err != nil {
+		if err := s.Cancel(ctx, in.Body.Email, Proof{Password: in.Body.Password, Code: strings.TrimSpace(in.Body.Code)}, meta); err != nil {
 			return nil, fail(err)
 		}
 		out := &cancelOut{RequestID: meta.RequestID}
 		out.Body.Status = StatusCancelled
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "account-delete-cancel-code", Method: http.MethodPost, Path: "/api/me/delete/cancel/code",
+		Summary:     "Email me a code to cancel a pending deletion",
+		Description: "No session needed. A code is mailed only when the address has a deletion pending; the answer is the same either way.",
+		Tags:        tags, Errors: []int{429},
+	}, func(ctx context.Context, in *struct {
+		ForwardedFor string `header:"X-Forwarded-For"`
+		RequestID    string `header:"X-Request-Id"`
+		Body         struct {
+			Email  string `json:"email" minLength:"3" maxLength:"320"`
+			Locale string `json:"locale,omitempty" enum:"en,ar"`
+		}
+	}) (*sentOut, error) {
+		locale := in.Body.Locale
+		if locale == "" {
+			locale = "en"
+		}
+		if err := s.RequestCancelCode(ctx, in.Body.Email, locale, metaFromHeaders(in.ForwardedFor, in.RequestID)); err != nil {
+			return nil, fail(err)
+		}
+		out := &sentOut{}
+		out.Body.Status = "sent"
 		return out, nil
 	})
 }

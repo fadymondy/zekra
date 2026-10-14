@@ -201,7 +201,7 @@ func TestLimiter(t *testing.T) {
 
 func TestCodeEmail(t *testing.T) {
 	for _, loc := range []string{"en", "ar"} {
-		for _, p := range []string{purposeVerify, purposeReset, purposeLogin} {
+		for _, p := range []string{purposeVerify, purposeReset, purposeLogin, purposeDelete, purposeUndelete} {
 			subject, text, html := CodeEmail(loc, p, "123456")
 			if subject == "" || !strings.Contains(text, "1 2 3 4 5 6") || !strings.Contains(html, "123456") {
 				t.Errorf("%s/%s: %q", loc, p, text)

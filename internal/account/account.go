@@ -59,6 +59,9 @@ type Service struct {
 	// handler, which Zekra's route of the same path replaces; a challenge the
 	// plugin minted (its TOTP, auth-mfa) is handed back to it. See twofactor.go.
 	pluginChallenge http.Handler
+	// appleTokens trades and revokes Apple refresh tokens (apple_tokens.go);
+	// set by mountApple, replaced in tests.
+	appleTokens *appleTokens
 }
 
 // ErrUnavailable is returned when the database or the auth service is missing.

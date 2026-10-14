@@ -194,7 +194,7 @@ func (s *Service) freshRoles(ctx context.Context, id *auth.Identity) ([]string, 
 // isPublicMe: account routes that must work without a session.
 func isPublicMe(r *http.Request) bool {
 	p := strings.TrimRight(r.URL.Path, "/")
-	return r.Method == http.MethodPost && p == "/api/me/delete/cancel"
+	return r.Method == http.MethodPost && (p == "/api/me/delete/cancel" || p == "/api/me/delete/cancel/code")
 }
 
 // RequireSession authenticates /api/me/* and /api/admin/* and answers

@@ -57,8 +57,13 @@ var (
 	errAccountDisabled    = errors.New("account disabled")
 )
 
-// ssoIdentity is what a provider proved: its stable id and the address it reported.
-type ssoIdentity struct{ Provider, Subject, Email string }
+// ssoIdentity is what a provider proved: its stable id and the address it
+// reported. RefreshToken/TokenClient carry an Apple refresh token (and the
+// client id that obtained it) to keep for revocation; empty otherwise.
+type ssoIdentity struct {
+	Provider, Subject, Email  string
+	RefreshToken, TokenClient string
+}
 
 func knownProvider(p string) bool {
 	for _, x := range ssoProviders {
@@ -105,6 +110,7 @@ func (s *Service) link(ctx context.Context, userID string, id ssoIdentity) error
 			return errIdentityTaken
 		}
 		s.identityTouch(ctx, id)
+		s.keepProviderToken(ctx, userID, id)
 		return nil
 	}
 	var other string
@@ -126,6 +132,7 @@ func (s *Service) link(ctx context.Context, userID string, id ssoIdentity) error
 	case err != nil:
 		return err
 	case found && owner == userID:
+		s.keepProviderToken(ctx, userID, id)
 		return nil
 	case found:
 		return errIdentityTaken
@@ -205,10 +212,10 @@ func (s *Service) unlink(ctx context.Context, userID, ref string) error {
 	if err != nil {
 		return err
 	}
-	target := ""
+	target, provider := "", ""
 	for _, r := range rows {
 		if r.provider == ref || r.id == ref {
-			target = r.id
+			target, provider = r.id, r.provider
 		}
 	}
 	if target == "" {
@@ -223,8 +230,13 @@ func (s *Service) unlink(ctx context.Context, userID, ref string) error {
 			return errLastMethod
 		}
 	}
-	_, err = s.DB.ExecContext(ctx, `DELETE FROM auth_identities WHERE id = $1 AND user_id = $2`, target, userID)
-	return err
+	if _, err = s.DB.ExecContext(ctx, `DELETE FROM auth_identities WHERE id = $1 AND user_id = $2`, target, userID); err != nil {
+		return err
+	}
+	if provider == "apple" {
+		s.revokeAppleTokens(ctx, userID) // disconnecting Apple also ends Zekra's authorization at Apple
+	}
+	return nil
 }
 
 // ---- sign-in resolution ------------------------------------------------------------
@@ -270,6 +282,7 @@ func (s *Service) resolveProviderUser(ctx context.Context, pid ssoIdentity) (*au
 			if g := s.Auth.Guard(""); g != nil {
 				if u, err := g.Auth.ByID(ctx, uid); err == nil && u != nil && u.ID != "" {
 					s.identityTouch(ctx, pid)
+					s.keepProviderToken(ctx, u.ID, pid)
 					id = u
 				}
 			}
