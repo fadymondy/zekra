@@ -1,5 +1,10 @@
 {
-  "CFBundleDisplayName": "Zekra",
-  "NSPhotoLibraryUsageDescription": "Zekra needs access to your photos so you can add images to a note.",
-  "NSFaceIDUsageDescription": "Zekra uses Face ID to unlock the app and to confirm it is you before revealing a vault secret."
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "Zekra needs access to your photos so you can add images to a note.",
+    "NSFaceIDUsageDescription": "Zekra uses Face ID to unlock the app and to confirm it is you before revealing a vault secret."
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
 }

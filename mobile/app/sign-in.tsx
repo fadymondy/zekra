@@ -1,13 +1,13 @@
 import { Redirect, router } from "expo-router";
 import { Eye, EyeOff, Globe } from "lucide-react-native";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageList } from "@/components/language-list";
 import { BottomSheet, ErrorLine, useChevrons } from "@/components/kit";
 import { AppText, CodeField, Field, IconButton, PrimaryButton } from "@/components/ui";
-import { cancelBrowserSignIn, SocialSignInError } from "@/features/social/browser-flow";
+import { cancelBrowserSignIn, onBrowserCode, SocialSignInError } from "@/features/social/browser-flow";
 import { PROVIDER_NAME, SocialButtons, useSocialProviders } from "@/features/social/social-buttons";
 import { socialErrorKey, type SocialProvider } from "@/features/social/social-core";
 import { ZekraMark } from "@/features/splash/zekra-mark";
@@ -105,6 +105,9 @@ export default function SignInScreen() {
   const { token, signIn, register, finishChallenge, signInWith } = useAuth();
   const social = useSocialProviders();
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
+  // The browser handed the code back: the sign-in is now being finished here.
+  const [socialReturned, setSocialReturned] = useState(false);
+  useEffect(() => onBrowserCode(() => setSocialReturned(true)), []);
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -161,6 +164,7 @@ export default function SignInScreen() {
   async function signInWithProvider(provider: SocialProvider) {
     if (busy || socialBusy) return;
     setSocialBusy(provider);
+    setSocialReturned(false);
     setError("");
     setNotice("");
     try {
@@ -174,6 +178,7 @@ export default function SignInScreen() {
       setError(t(key, { provider: PROVIDER_NAME[provider] }));
     } finally {
       setSocialBusy(null);
+      setSocialReturned(false);
     }
   }
 
@@ -293,9 +298,9 @@ export default function SignInScreen() {
         // Sign-in continues in the system browser; it returns via zekra://.
         <View style={{ alignItems: "center", gap: 2 }}>
           <AppText variant="meta" style={{ textAlign: "center" }}>
-            {t("social.inBrowser", { provider: PROVIDER_NAME[socialBusy] })}
+            {socialReturned ? t("social.signingIn") : t("social.inBrowser", { provider: PROVIDER_NAME[socialBusy] })}
           </AppText>
-          <TextLink label={t("social.cancelBrowser")} onPress={cancelBrowserSignIn} />
+          {socialReturned ? null : <TextLink label={t("social.cancelBrowser")} onPress={cancelBrowserSignIn} />}
         </View>
       ) : null}
     </>

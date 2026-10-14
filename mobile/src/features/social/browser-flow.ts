@@ -114,6 +114,19 @@ export async function browserGrant(provider: BrowserProvider, options: { link?: 
   });
 }
 
+// The waiting sign-in got its code back from the browser and is now trading it
+// (the sign-in screen swaps "finish in your browser" for "Signing you in…").
+type CodeListener = (provider: BrowserProvider) => void;
+const codeListeners = new Set<CodeListener>();
+
+/** Called when a browser return hands a code to the waiting sign-in. Returns the unsubscribe. */
+export function onBrowserCode(listener: CodeListener): () => void {
+  codeListeners.add(listener);
+  return () => {
+    codeListeners.delete(listener);
+  };
+}
+
 export type ReturnResult =
   | { kind: "waiting" } // handed to the sign-in that is waiting in this process
   | { kind: "signedIn"; answer: AuthAnswer } // finished here after a cold start
@@ -132,7 +145,10 @@ export async function completeBrowserReturn(provider: BrowserProvider, url: stri
   const answer = readAuthReturn(url, authReturn(provider));
   if (waiter && waiter.provider === provider) {
     const w = settle()!;
-    if (answer.kind === "code") w.resolve({ code: answer.code, verifier: w.verifier });
+    if (answer.kind === "code") {
+      w.resolve({ code: answer.code, verifier: w.verifier });
+      for (const listener of codeListeners) listener(provider);
+    }
     else if (answer.kind === "cancelled") w.resolve(null);
     else w.reject(new SocialSignInError(provider, answer.reason));
     return { kind: "waiting" };
