@@ -30,9 +30,19 @@ Deleting your own account (ported from fadymondy's account.go / purge.go, FM-50)
     the account area holds. The request row and the audit trail keep only the
     user id and a SHA-256 of the email.
 
-Zekra's brains are not owned by a user (they are namespaces governed by brain
-tokens and grants), so a purge does not touch memories; fadymondy's
-"testimonials" choice is accepted for contract parity and recorded, nothing more.
+    The purge also deletes the account's data in the brain plugin
+    (plugins/brain/internal/brain/userpurge.go): every brain the account owns
+    alone, with its memories, notes and versions, images and files,
+    presentations and share links, secrets and data sources; in brains someone
+    else also owns, the membership goes and the account's id is cleared from
+    what stays. Push tokens, notifications, MCP connections and camera pairings
+    are deleted, and the profile photo file. Scheduling already removes push
+    tokens and MCP connections, so nothing reaches the account during the grace
+    period. The audit trail keeps the user id and the email hash; its IP
+    addresses are cleared.
+
+fadymondy's "testimonials" choice is accepted for contract parity and recorded,
+nothing more.
 */
 
 const (
@@ -332,6 +342,13 @@ func (s *Service) revokeCredentials(ctx context.Context, userID string) map[stri
 		out[t.key] = n
 	}
 	out["sessions"] = s.sweepSessions(ctx, userID)
+	// Push tokens and MCP connections: no push and no agent reaches an account
+	// that asked to be deleted.
+	if p := s.userData(); p != nil {
+		for k, v := range p.RevokeUserDevices(ctx, userID) {
+			out[k] = v
+		}
+	}
 	return out
 }
 
@@ -461,11 +478,25 @@ func (s *Service) PurgeUser(ctx context.Context, userID, email string) (map[stri
 	summary := s.revokeCredentials(ctx, userID)
 	// Before the identities go: Apple must be told (App Review 5.1.1(v)).
 	summary["apple_tokens_revoked"] = s.revokeAppleTokens(ctx, userID)
+	// The account's brains, notes, files and presentations (App Review
+	// 5.1.1(v), Google Play). Before the user row, so a failure leaves the
+	// request scheduled and the next run tries again.
+	if p := s.userData(); p != nil {
+		data, err := p.PurgeUserData(ctx, userID)
+		for k, v := range data {
+			summary["brain."+k] = v
+		}
+		if err != nil {
+			return summary, fmt.Errorf("purge brain data: %w", err)
+		}
+	}
+	summary["avatar_files"] = s.purgeAvatar(ctx, userID)
 	byUser := []struct{ table, col string }{
 		{"account_apple_tokens", "user_id"}, {"auth_identities", "user_id"}, {"account_totp", "user_id"}, {"account_recovery_codes", "user_id"},
 		{"account_challenges", "user_id"}, {"account_unverified", "user_id"}, {"account_profiles", "user_id"},
 		{"account_prefs", "user_id"}, {"account_password_resets", "user_id"}, {"account_session_revocations", "user_id"},
-		{"account_disabled", "user_id"}, {"auth_totp", "subject"}, {"auth_pins", "subject"},
+		{"account_disabled", "user_id"}, {"account_activity", "user_id"}, {"auth_totp", "subject"}, {"auth_pins", "subject"},
+		{"circlexo_user_links", "user_id"}, {"circlexo_org_members", "user_id"}, {"circlexo_sessions", "user_id"},
 	}
 	for _, t := range byUser {
 		if !s.tableExists(ctx, t.table) {
@@ -488,5 +519,9 @@ func (s *Service) PurgeUser(ctx context.Context, userID, email string) (map[stri
 		return summary, fmt.Errorf("purge users: %w", err)
 	}
 	summary["users"] = n
+	// The audit trail stays (user id, actions, email hash) without IP addresses.
+	if s.tableExists(ctx, "account_audit") {
+		_, _ = s.DB.ExecContext(ctx, `UPDATE account_audit SET ip = '' WHERE ip <> '' AND (actor_id = $1 OR subject = $2)`, userID, "user:"+userID)
+	}
 	return summary, nil
 }

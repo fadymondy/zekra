@@ -9,6 +9,7 @@ import { defineDict } from "@/i18n/define";
 export default defineDict({
   en: {
     "social.or": "or",
+    "legal.agree": "By creating an account or signing in, you agree to Zekra's Terms of service and Privacy policy.",
     "social.inBrowser": "Finish signing in with {provider} in your browser — you'll come right back here.",
     "social.cancelBrowser": "Cancel",
     "social.apple": "Continue with Apple",
@@ -64,6 +65,7 @@ export default defineDict({
     "lock.offerNo": "Not now",
   },
   ar: {
+    "legal.agree": "بإنشاء حساب أو تسجيل الدخول، فإنك توافق على شروط خدمة ذكرى وسياسة الخصوصية.",
     "social.or": "أو",
     "social.inBrowser": "أكمل تسجيل الدخول عبر {provider} في المتصفح، وستعود إلى هنا مباشرة.",
     "social.cancelBrowser": "إلغاء",

@@ -38,6 +38,7 @@ rule (sessionWriteOK).
 	PUT    /api/presentations/{id}               (PATCH too) partial update; content replaces one locale
 	DELETE /api/presentations/{id}
 	POST   /api/presentations/{id}/translate     {to?, content?}
+	GET    /api/presentations/translate/provider (who translates; presentations_provider.go)
 	POST   /api/presentations/{id}/share         {locale?, label?, expires_in_days?, domain_id?} → {share, token, url, recoverable, downloads}
 	DELETE /api/presentations/{id}/shares/{share}
 	DELETE /api/presentations/{id}/shares        revoke every link
@@ -66,6 +67,7 @@ func (s *Service) mountPresentations(r chi.Router, sec func(http.HandlerFunc) ht
 	r.Post("/api/presentations", sec(s.CreatePresentation))
 	r.Get("/api/presentations/catalog", sec(s.PresentationCatalog))
 	r.Get("/api/presentations/templates", sec(s.PresentationTemplates))
+	r.Get("/api/presentations/translate/provider", sec(s.PresentationTranslateProvider))
 	r.Post("/api/presentations/validate", sec(s.ValidatePresentation))
 	r.Post("/api/presentations/from-outline", sec(s.PresentationFromOutline))
 	r.Post("/api/presentations/from-brain", sec(s.PresentationFromBrain))

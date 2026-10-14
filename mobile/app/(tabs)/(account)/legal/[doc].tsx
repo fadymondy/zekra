@@ -11,8 +11,8 @@ import { fonts, usePalette } from "@/theme";
 // pages. They are authored once on the marketing site; the app links out rather
 // than forking the copy (which would drift out of sync with the legal text).
 const DOCS = {
-  privacy: { key: "legal.privacy", path: "/legal/privacy" },
-  terms: { key: "legal.terms", path: "/legal/terms" },
+  privacy: { key: "legal.privacy", path: "/privacy" },
+  terms: { key: "legal.terms", path: "/terms" },
   support: { key: "legal.support", path: "/support" },
 } as const;
 

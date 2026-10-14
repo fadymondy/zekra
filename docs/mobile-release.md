@@ -177,9 +177,13 @@ icon, `assets/store/play-icon-512.png`).
 **Both stores**
 - [ ] Name `Zekra`; short description / subtitle; full description in **English and Arabic**.
 - [ ] Category **Productivity**.
-- [ ] Privacy policy URL **https://zekra.dev/en/legal/privacy** (the page the
+- [ ] Privacy policy URL **https://zekra.dev/en/privacy** (the page the
       app's Settings → Privacy opens — confirm it is live before submitting);
-      terms https://zekra.dev/en/legal/terms; support URL **https://zekra.dev/en/support**.
+      terms https://zekra.dev/en/terms; support URL **https://zekra.dev/en/support**.
+- [ ] Store builds are prebuilt **without** `ZEKRA_DEV_CLIENT=1`, so
+      `plugins/with-store-info-plist.js` drops expo-dev-client's local-network
+      prompt (`npm run ios` sets it for dev builds). Check the archive's Info.plist
+      has no `NSLocalNetworkUsageDescription` and has `ar.lproj/InfoPlist.strings`.
 - [ ] **Reviewer account**: the app requires sign-in — give App Review / Play a
       working demo account (email + password, no 2FA) with a brain that has notes.
 - [ ] Account deletion: in the app (Settings → Delete account) — both stores
