@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Zapisz w Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Zapisz bieżącą stronę lub zaznaczony tekst jako notatkę w mózgu Zekra."
+  },
+  "commandCapture": {
+    "message": "Zapisz zaznaczenie/stronę w Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Zapisz zaznaczenie w Zekra"
+  },
+  "menuSavePage": {
+    "message": "Zapisz stronę w Zekra"
+  },
+  "connectIntro": {
+    "message": "Połącz konto Zekra, aby zapisywać strony, notatki i sekrety prosto w mózgu."
+  },
+  "connectButton": {
+    "message": "Połącz konto Zekra"
+  },
+  "connectHint": {
+    "message": "Otwiera Zekra w nowym oknie, aby się zalogować i zatwierdzić dostęp. Nic nie jest zapisywane poza tokenem dostępu wydanym przez to uprawnienie."
+  },
+  "tabNote": {
+    "message": "Notatka"
+  },
+  "tabVault": {
+    "message": "Sejf"
+  },
+  "labelBrain": {
+    "message": "Mózg"
+  },
+  "labelTitle": {
+    "message": "Tytuł"
+  },
+  "labelNote": {
+    "message": "Notatka"
+  },
+  "labelTags": {
+    "message": "Tagi (oddzielone przecinkami)"
+  },
+  "tagsPlaceholder": {
+    "message": "czytanie, później"
+  },
+  "reloadPage": {
+    "message": "Odśwież stronę"
+  },
+  "reloadPageHint": {
+    "message": "Odśwież tytuł/URL/zaznaczenie strony"
+  },
+  "secretName": {
+    "message": "Nazwa sekretu"
+  },
+  "secretValue": {
+    "message": "Wartość"
+  },
+  "secretValuePlaceholder": {
+    "message": "wartość"
+  },
+  "saveToVault": {
+    "message": "Zapisz w sejfie"
+  },
+  "vaultNote": {
+    "message": "Zapieczętowane w sejfie mózgu. Wartości są tylko do zapisu — nigdy nie są tu odczytywane z powrotem."
+  },
+  "options": {
+    "message": "Opcje"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Opcje"
+  },
+  "apiBase": {
+    "message": "Bazowy URL API"
+  },
+  "agentLabel": {
+    "message": "Etykieta agenta (X-Agent-Id, nie dane uwierzytelniające)"
+  },
+  "save": {
+    "message": "Zapisz"
+  },
+  "account": {
+    "message": "Konto"
+  },
+  "disconnect": {
+    "message": "Rozłącz"
+  },
+  "accessToken": {
+    "message": "Token dostępu"
+  },
+  "accessTokenHint": {
+    "message": "Token dostępu OAuth wydany przez to uprawnienie. Użyj go jako tokenu Bearer w punkcie końcowym MCP. Traktuj go jak hasło."
+  },
+  "show": {
+    "message": "Pokaż"
+  },
+  "hide": {
+    "message": "Ukryj"
+  },
+  "copy": {
+    "message": "Kopiuj"
+  },
+  "workerDown": {
+    "message": "Proces rozszerzenia działający w tle nie jest uruchomiony. Załaduj rozszerzenie ponownie."
+  },
+  "loadingYourBrains": {
+    "message": "Wczytywanie Twoich mózgów…"
+  },
+  "loadingBrains": {
+    "message": "Wczytywanie mózgów…"
+  },
+  "noWritableBrains": {
+    "message": "To połączenie nie ma mózgów z możliwością zapisu. Połącz ponownie i zaznacz mózg z dostępem do zapisu."
+  },
+  "refreshFailed": {
+    "message": "Nie udało się odświeżyć mózgów: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Nie wczytano żadnych mózgów"
+  },
+  "openingZekraPopup": {
+    "message": "Otwieranie Zekra… dokończ logowanie w nowym oknie. To okienko może się zamknąć; otwórz je ponownie, gdy skończysz."
+  },
+  "openingZekra": {
+    "message": "Otwieranie Zekra… dokończ logowanie w nowym oknie."
+  },
+  "pickBrain": {
+    "message": "Najpierw wybierz mózg."
+  },
+  "brainsStillLoading": {
+    "message": "Mózgi wciąż się wczytują — spróbuj za chwilę."
+  },
+  "savingBackground": {
+    "message": "Zapisywanie… (możesz zamknąć to okienko — zapis trwa w tle)"
+  },
+  "saving": {
+    "message": "Zapisywanie…"
+  },
+  "savedTo": {
+    "message": "Zapisano w: $1."
+  },
+  "savedSecret": {
+    "message": "Zapisano „$1” w: $2."
+  },
+  "nameValueRequired": {
+    "message": "Nazwa i wartość są wymagane."
+  },
+  "signInInProgress": {
+    "message": "Logowanie trwa w oknie Zekra — dokończ je tam, a potem otwórz to okienko ponownie."
+  },
+  "disconnected": {
+    "message": "Rozłączono."
+  },
+  "connected": {
+    "message": "Połączono."
+  },
+  "connectedTo": {
+    "message": "Połączono z: $1."
+  },
+  "notConnected": {
+    "message": "Brak połączenia."
+  },
+  "expires": {
+    "message": "Wygasa: $1 (odnawiane automatycznie)."
+  },
+  "noExpiry": {
+    "message": "Brak informacji o wygaśnięciu."
+  },
+  "enterHttpsUrl": {
+    "message": "Wpisz adres URL https:// (lub http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome nie przyznał dostępu do: $1."
+  },
+  "saved": {
+    "message": "Zapisano."
+  },
+  "enterValidBase": {
+    "message": "Najpierw wpisz prawidłowy bazowy URL API."
+  },
+  "signInFailed": {
+    "message": "Logowanie nie powiodło się."
+  },
+  "copied": {
+    "message": "Skopiowano do schowka."
+  },
+  "errUnreachable": {
+    "message": "Nie można połączyć się z $1. Sprawdź połączenie."
+  },
+  "errUnreachableDetail": {
+    "message": "Nie można połączyć się z $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Brak połączenia. Połącz konto Zekra."
+  },
+  "errSessionExpired": {
+    "message": "Twoja sesja Zekra wygasła. Połącz ponownie."
+  },
+  "errRateLimited": {
+    "message": "Zekra ogranicza liczbę żądań. Poczekaj chwilę i spróbuj ponownie."
+  },
+  "errServer": {
+    "message": "Zekra napotkała problem ($1). Spróbuj ponownie za chwilę."
+  },
+  "errUnexpected": {
+    "message": "Nieoczekiwana odpowiedź od Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Żądanie nie powiodło się ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Żądanie nie powiodło się"
+  },
+  "errBrainList": {
+    "message": "Nie udało się odczytać listy mózgów z Zekra"
+  },
+  "errDiscovery": {
+    "message": "Wykrywanie logowania nie powiodło się ($1) pod adresem $2."
+  },
+  "errNoRegistration": {
+    "message": "Ten serwer Zekra nie przyjmuje nowych rejestracji aplikacji."
+  },
+  "errRegistration": {
+    "message": "Rejestracja aplikacji nie powiodła się ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Logowanie zostało anulowane."
+  },
+  "errNotFinished": {
+    "message": "Logowanie nie zostało zakończone: $1"
+  },
+  "errNotApproved": {
+    "message": "Dostęp nie został zatwierdzony."
+  },
+  "errStateMismatch": {
+    "message": "Niezgodność parametru state — logowanie odrzucone."
+  },
+  "errNoCode": {
+    "message": "Nie zwrócono kodu autoryzacji."
+  },
+  "errTokenExchange": {
+    "message": "Wymiana tokenu nie powiodła się ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Twoje połączenie z Zekra zakończyło się ($1). Połącz ponownie."
+  },
+  "errRefresh": {
+    "message": "Nie udało się odświeżyć sesji Zekra ($1)."
+  },
+  "errSignedOut": {
+    "message": "Wylogowano. Połącz ponownie."
+  },
+  "langTag": {
+    "message": "pl"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

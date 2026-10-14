@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "已连接的应用",
+  "apps.micro": "账户",
+  "apps.title": "已连接的应用",
+  "apps.description": "你已允许通过 MCP 使用你的大脑的 AI 应用。撤销后，它的访问权限会立即失效。",
+  "apps.read": "只读",
+  "apps.readWrite": "读写",
+  "apps.lastUsed": "上次使用：{when}",
+  "apps.neverUsed": "尚未使用",
+  "apps.connected": "连接于 {date}",
+  "apps.revoke": "撤销",
+  "apps.revokeTitle": "撤销 {name}？",
+  "apps.revokeBody": "该应用将立即失去对你的大脑的访问权限。若要再次使用，需要重新连接。",
+  "apps.revoked": "已撤销访问权限",
+  "apps.revokedOn": "撤销于 {date}",
+  "apps.revokedSection": "已撤销（{n}）",
+  "apps.emptyTitle": "还没有已连接的应用",
+  "apps.emptyBody": "连接 Claude、ChatGPT、Cursor 或其他 MCP 客户端后，它会显示在这里。",
+  "apps.connectCta": "连接智能体",
+  "apps.noBrains": "没有大脑"
+}

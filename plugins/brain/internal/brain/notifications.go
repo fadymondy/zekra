@@ -385,10 +385,9 @@ func (s *Service) brainDisplayName(ctx context.Context, ns string) string {
 
 func brainAccessMessage(ns, name string) pushMessage {
 	return pushMessage{
-		Text: map[string]pushText{
-			"en": {Title: "A brain was shared with you", Body: "You were given access to " + name + "."},
-			"ar": {Title: "تمت مشاركة دماغ معك", Body: "حصلت على صلاحية الوصول إلى " + name + "."},
-		},
+		Text: pushTexts("push.brainAccess", map[string]string{"name": name},
+			pushText{Title: "A brain was shared with you", Body: "You were given access to " + name + "."},
+			pushText{Title: "تمت مشاركة دماغ معك", Body: "حصلت على صلاحية الوصول إلى " + name + "."}),
 		Data: map[string]string{"type": "brain_access", "route": "/brain/" + url.PathEscape(ns), "namespace": ns},
 	}
 }
@@ -462,10 +461,9 @@ func presentationTitle(title string) string {
 func presentationViewedPush(docID, title string) pushMessage {
 	title = presentationTitle(title)
 	return pushMessage{
-		Text: map[string]pushText{
-			"en": {Title: "Your presentation was opened", Body: "“" + title + "” was just opened from a share link."},
-			"ar": {Title: "تم فتح العرض", Body: "فُتح «" + title + "» للتو من رابط المشاركة."},
-		},
+		Text: pushTexts("push.presentationViewed", map[string]string{"title": title},
+			pushText{Title: "Your presentation was opened", Body: "“" + title + "” was just opened from a share link."},
+			pushText{Title: "تم فتح العرض", Body: "فُتح «" + title + "» للتو من رابط المشاركة."}),
 		Data: map[string]string{"type": "presentation_viewed", "route": "/presentation/" + url.PathEscape(docID), "presentation_id": docID},
 	}
 }
@@ -473,10 +471,9 @@ func presentationViewedPush(docID, title string) pushMessage {
 func presentationDownloadedPush(docID, title string) pushMessage {
 	title = presentationTitle(title)
 	return pushMessage{
-		Text: map[string]pushText{
-			"en": {Title: "Your presentation was downloaded", Body: "“" + title + "” was just downloaded from a share link."},
-			"ar": {Title: "تم تنزيل العرض", Body: "نُزِّل «" + title + "» للتو من رابط المشاركة."},
-		},
+		Text: pushTexts("push.presentationDownloaded", map[string]string{"title": title},
+			pushText{Title: "Your presentation was downloaded", Body: "“" + title + "” was just downloaded from a share link."},
+			pushText{Title: "تم تنزيل العرض", Body: "نُزِّل «" + title + "» للتو من رابط المشاركة."}),
 		Data: map[string]string{"type": "presentation_downloaded", "route": "/presentation/" + url.PathEscape(docID), "presentation_id": docID},
 	}
 }

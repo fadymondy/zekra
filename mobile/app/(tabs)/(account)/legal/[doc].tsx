@@ -4,7 +4,7 @@ import { Linking, View } from "react-native";
 
 import { ForwardChevron, ListItem, StackHeader, Tile } from "@/components/kit";
 import { AppText, Row, Rows, Screen, SecondaryButton } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, tallScript } from "@/lib/i18n";
 import { fonts, usePalette } from "@/theme";
 
 // The App Store and Play Store both require reachable privacy/terms/support
@@ -31,7 +31,7 @@ export default function LegalScreen() {
     <Screen scroll header={<StackHeader title={t(entry.key)} subtitle={url.replace(/^https:\/\//, "").toUpperCase()} />}>
       <Rows style={{ paddingTop: 16 }}>
         <Row>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: tallScript(locale) ? 30 : 26, color: p.body }}>
             {support ? t("legal.supportBody") : t("legal.intro")}
           </AppText>
           {support ? (

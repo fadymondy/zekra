@@ -26,6 +26,8 @@
 //    closes the moment the sign-in window takes focus, which would kill the
 //    code exchange half-way.
 
+import { t } from "./i18n.js";
+
 const DEFAULT_BASE = "https://app.zekra.dev";
 const SCOPES = "brains:read brains:write";
 const TOKEN_KEYS = ["accessToken", "refreshToken", "tokenExpiresAt", "tokenBase"];
@@ -58,7 +60,7 @@ export async function fetchWithTimeout(url, init = {}, ms = NET_TIMEOUT_MS) {
     if (e?.name === "TimeoutError" || e?.name === "AbortError") {
       throw new AuthError(`${host} did not answer within ${Math.round(ms / 1000)}s.`);
     }
-    throw new AuthError(`Could not reach ${host} (${e?.message || e}).`);
+    throw new AuthError(t("errUnreachableDetail", host, e?.message || e));
   }
 }
 
@@ -88,7 +90,7 @@ async function discover(apiBase, { fresh = false } = {}) {
     if (oauthMeta && oauthMetaBase === apiBase) return oauthMeta;
   }
   const res = await fetchWithTimeout(new URL("/.well-known/oauth-authorization-server", apiBase));
-  if (!res.ok) throw new AuthError(`Sign-in discovery failed (${res.status}) at ${apiBase}.`);
+  if (!res.ok) throw new AuthError(t("errDiscovery", res.status, apiBase));
   const meta = await res.json();
   if (!meta.authorization_endpoint || !meta.token_endpoint) {
     throw new AuthError(`${apiBase} did not publish OAuth endpoints.`);
@@ -120,7 +122,7 @@ async function registerClient(apiBase, meta, { fresh = false } = {}) {
     ]);
     if (clientId && clientBase === apiBase && (!clientRedirect || clientRedirect === redirectUri)) return clientId;
   }
-  if (!meta.registration_endpoint) throw new AuthError("This Zekra server does not accept new app registrations.");
+  if (!meta.registration_endpoint) throw new AuthError(t("errNoRegistration"));
 
   const res = await fetchWithTimeout(meta.registration_endpoint, {
     method: "POST",
@@ -134,7 +136,7 @@ async function registerClient(apiBase, meta, { fresh = false } = {}) {
       scope: SCOPES,
     }),
   });
-  if (!res.ok) throw new AuthError(`App registration failed (${res.status}): ${await errorText(res)}`);
+  if (!res.ok) throw new AuthError(t("errRegistration", res.status, await errorText(res)));
   const client = await res.json();
   await chrome.storage.local.set({ clientId: client.client_id, clientBase: apiBase, clientRedirect: redirectUri });
   return client.client_id;
@@ -176,24 +178,24 @@ export async function signIn(apiBase = DEFAULT_BASE) {
     redirect = await chrome.identity.launchWebAuthFlow({ url: authUrl.toString(), interactive: true });
   } catch (e) {
     const msg = e?.message || String(e);
-    if (/did not approve|closed|cancel/i.test(msg)) throw new AuthError("Sign-in was cancelled.");
+    if (/did not approve|closed|cancel/i.test(msg)) throw new AuthError(t("errCancelled"));
     // The consent page could not continue (for example a client the server no
     // longer knows). Forget the registration so the next attempt starts clean
     // instead of failing the same way again.
     await chrome.storage.local.remove(["clientId", "clientBase", "clientRedirect"]);
-    throw new AuthError(`Sign-in did not finish: ${msg}`);
+    throw new AuthError(t("errNotFinished", msg));
   }
-  if (!redirect) throw new AuthError("Sign-in was cancelled.");
+  if (!redirect) throw new AuthError(t("errCancelled"));
 
   const returned = new URL(redirect);
   const error = returned.searchParams.get("error");
   if (error) {
     if (error === "invalid_client") await chrome.storage.local.remove(["clientId", "clientBase", "clientRedirect"]);
-    throw new AuthError(error === "access_denied" ? "Access was not approved." : `${error}: ${returned.searchParams.get("error_description") || ""}`);
+    throw new AuthError(error === "access_denied" ? t("errNotApproved") : `${error}: ${returned.searchParams.get("error_description") || ""}`);
   }
-  if (returned.searchParams.get("state") !== state) throw new AuthError("State mismatch — sign-in rejected.");
+  if (returned.searchParams.get("state") !== state) throw new AuthError(t("errStateMismatch"));
   const code = returned.searchParams.get("code");
-  if (!code) throw new AuthError("No authorization code returned.");
+  if (!code) throw new AuthError(t("errNoCode"));
 
   const tokenRes = await fetchWithTimeout(meta.token_endpoint, {
     method: "POST",
@@ -207,7 +209,7 @@ export async function signIn(apiBase = DEFAULT_BASE) {
       resource,
     }),
   });
-  if (!tokenRes.ok) throw new AuthError(`Token exchange failed (${tokenRes.status}): ${await errorText(tokenRes)}`);
+  if (!tokenRes.ok) throw new AuthError(t("errTokenExchange", tokenRes.status, await errorText(tokenRes)));
   const tok = await tokenRes.json();
   await storeTokens(tok, apiBase);
   // Brains from a previous account must not flash in the picker.
@@ -244,9 +246,9 @@ async function refreshNow(stored, apiBase) {
     // or the refresh token was already used). Retrying cannot help.
     const why = await errorText(res);
     await clearSession();
-    throw new AuthError(`Your Zekra connection ended (${why}). Connect again.`, { signedOut: true });
+    throw new AuthError(t("errConnectionEnded", why), { signedOut: true });
   }
-  if (!res.ok) throw new AuthError(`Could not refresh your Zekra session (${res.status}).`);
+  if (!res.ok) throw new AuthError(t("errRefresh", res.status));
   const tok = await res.json();
   await storeTokens(tok, apiBase, stored.refreshToken);
   return tok.access_token;
@@ -267,7 +269,7 @@ export async function getAccessToken({ force = false } = {}) {
   if (!first.refreshToken) {
     if (force || (first.tokenExpiresAt && Date.now() >= first.tokenExpiresAt)) {
       await clearSession();
-      throw new AuthError("Your Zekra session expired. Connect again.", { signedOut: true });
+      throw new AuthError(t("errSessionExpired"), { signedOut: true });
     }
     return first.accessToken;
   }
@@ -275,7 +277,7 @@ export async function getAccessToken({ force = false } = {}) {
   return withRefreshLock(async () => {
     // Re-read inside the lock: another context may have refreshed already.
     const s = await chrome.storage.local.get([...TOKEN_KEYS, "apiBase", "clientId"]);
-    if (!s.accessToken) throw new AuthError("Signed out. Connect again.", { signedOut: true });
+    if (!s.accessToken) throw new AuthError(t("errSignedOut"), { signedOut: true });
     if (s.accessToken !== first.accessToken && fresh(s)) return s.accessToken;
     if (!force && fresh(s)) return s.accessToken;
     return refreshNow(s, normBase(s.tokenBase || s.apiBase));

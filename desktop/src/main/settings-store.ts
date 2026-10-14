@@ -5,7 +5,7 @@
 // Schema: see AppSettings in src/shared/ipc.ts —
 //   apiBaseUrl    string            API origin, no trailing slash
 //   theme         system|light|dark drives nativeTheme.themeSource
-//   locale        en|ar             UI + native menu language
+//   locale        LocaleId          UI + native menu language; unset = follow the OS
 //   activeBrain   string|null       last opened brain namespace
 //   authUser      SessionUser|null  who is signed in (not secret)
 //   windowBounds  WindowBounds|null owned by main (window-state.ts)
@@ -38,6 +38,7 @@ import {
   type ThemeChoice,
   type WindowBounds,
 } from "../shared/ipc";
+import { matchSystemLocale } from "./i18n";
 import { sameServer } from "../shared/server-url";
 
 /** What is actually on disk. */
@@ -72,7 +73,8 @@ interface StoredSettings {
   auxBounds?: Record<string, WindowBounds>;
 }
 
-const { authToken: _t, ...STORED_DEFAULTS } = DEFAULT_SETTINGS;
+// No stored default for locale: until the user picks one, the app follows the OS language.
+const { authToken: _t, locale: _l, ...STORED_DEFAULTS } = DEFAULT_SETTINGS;
 
 let store: Store<StoredSettings> | null = null;
 let tokenCache: { value: string | null } | null = null;
@@ -156,12 +158,21 @@ export function migrateSettings(): void {
   if (!s.get("lock")) s.set("lock", DEFAULT_SETTINGS.lock);
 }
 
+/** The OS languages, matched to a shipped locale; English when none matches. */
+function systemLocale(): AppSettings["locale"] {
+  try {
+    return matchSystemLocale(app.getPreferredSystemLanguages()) ?? DEFAULT_SETTINGS.locale;
+  } catch {
+    return DEFAULT_SETTINGS.locale;
+  }
+}
+
 export function getSettings(): AppSettings {
   const s = getStore();
   return {
     apiBaseUrl: s.get("apiBaseUrl", DEFAULT_SETTINGS.apiBaseUrl),
     theme: normaliseTheme(s.get("theme")),
-    locale: s.get("locale", DEFAULT_SETTINGS.locale),
+    locale: s.get("locale") ?? systemLocale(),
     activeBrain: s.get("activeBrain", DEFAULT_SETTINGS.activeBrain),
     authToken: readToken(),
     authUser: s.get("authUser", DEFAULT_SETTINGS.authUser),

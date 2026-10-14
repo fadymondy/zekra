@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "कनेक्टेड ऐप्स",
+  "apps.micro": "अकाउंट",
+  "apps.title": "कनेक्टेड ऐप्स",
+  "apps.description": "वे AI ऐप्स जिन्हें आपने MCP के ज़रिए अपने ब्रेन इस्तेमाल करने की अनुमति दी है। किसी को रद्द करते ही उसकी पहुँच तुरंत बंद हो जाती है।",
+  "apps.read": "रीड",
+  "apps.readWrite": "रीड + राइट",
+  "apps.lastUsed": "आखिरी बार उपयोग: {when}",
+  "apps.neverUsed": "अभी उपयोग नहीं हुआ",
+  "apps.connected": "{date} को कनेक्ट हुआ",
+  "apps.revoke": "रद्द करें",
+  "apps.revokeTitle": "{name} को रद्द करें?",
+  "apps.revokeBody": "ऐप की आपके ब्रेन तक पहुँच तुरंत बंद हो जाएगी। दोबारा उपयोग के लिए आपको उसे फिर से कनेक्ट करना होगा।",
+  "apps.revoked": "पहुँच रद्द की गई",
+  "apps.revokedOn": "{date} को रद्द किया गया",
+  "apps.revokedSection": "रद्द किए गए ({n})",
+  "apps.emptyTitle": "अभी कोई ऐप कनेक्ट नहीं है",
+  "apps.emptyBody": "Claude, ChatGPT, Cursor या कोई और MCP क्लाइंट कनेक्ट करें, वह यहाँ दिखेगा।",
+  "apps.connectCta": "एजेंट कनेक्ट करें",
+  "apps.noBrains": "कोई ब्रेन नहीं"
+}

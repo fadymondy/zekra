@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { ListItem } from "@/components/kit";
 import { AppText } from "@/components/ui";
 import { LANGUAGES, useI18n, type Locale } from "@/lib/i18n";
-import { fonts, usePalette } from "@/theme";
+import { faceForScript, usePalette } from "@/theme";
 
 /** The language switcher: a list of every shipped language (never a
  *  two-way toggle — more languages are coming), the current one checked. */
@@ -30,8 +30,8 @@ export function LanguageList({ onPicked }: { onPicked?: (code: Locale) => void }
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
               style={{
-                // Each name in its own script and direction, whatever the UI language.
-                fontFamily: lang.rtl ? "IBMPlexSansArabic-Medium" : on ? fonts.medium : fonts.regular,
+                // Each name in its own script, face and direction, whatever the UI language.
+                fontFamily: faceForScript(lang.script as Parameters<typeof faceForScript>[0])[on ? "medium" : "regular"],
                 fontSize: 16,
                 color: on ? p.ink : p.body,
                 writingDirection: lang.rtl ? "rtl" : "ltr",

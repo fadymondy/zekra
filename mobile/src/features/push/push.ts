@@ -6,13 +6,14 @@ import { PermissionsAndroid, Platform } from "react-native";
 import { markReadFromPush } from "@/features/notify/api";
 import { emitNotify, onNotify } from "@/features/notify/bus";
 import { showPushBanner } from "@/features/push/banner";
-import { bannerFrom, derivePushState, pushLocale, pushUserAgent, type OsPermission, type PushState } from "@/features/push/push-core";
+import { bannerFrom, derivePushState, pushUserAgent, type OsPermission, type PushState } from "@/features/push/push-core";
 import { openPushRoute } from "@/features/push/route-queue";
 import { logEvent } from "@/lib/analytics";
 import { request } from "@/lib/api";
 import { breadcrumb, firebaseReady, reportError } from "@/lib/crash";
 import { rnfbMessaging } from "@/lib/firebase";
 import { getStored, removeStored, setStored } from "@/lib/storage";
+import { isLocale, matchLocale, type Locale } from "@shared/intl/locales";
 
 // Push on the phone (MH-373), through Firebase Cloud Messaging (APNs is reached
 // via Firebase). Ported from fadymondy.com/mobile/src/lib/push.ts.
@@ -73,11 +74,12 @@ async function osPermission(m: Messaging, ask: boolean): Promise<OsPermission> {
   return "undetermined";
 }
 
-async function locale(): Promise<"en" | "ar"> {
+async function locale(): Promise<Locale> {
   const app = await getStored(APP_LOCALE_KEY);
-  if (app === "ar" || app === "en") return app;
+  if (isLocale(app)) return app;
   try {
-    return pushLocale(getLocales()[0]?.languageTag);
+    // The device language when Zekra ships it ("pt-BR", "zh-Hant-TW" → zh-Hans…), else English.
+    return matchLocale(getLocales().map((l) => l.languageTag)) ?? "en";
   } catch {
     return "en";
   }

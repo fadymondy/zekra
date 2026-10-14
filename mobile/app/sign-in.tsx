@@ -14,7 +14,7 @@ import { ServerLine } from "@/features/servers/server-picker";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { ApiError, authApi } from "@/lib/api";
 import { reportError } from "@/lib/crash";
-import { languageName, useI18n } from "@/lib/i18n";
+import { languageName, useI18n, tallScript } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { fonts, metrics, usePalette } from "@/theme";
 
@@ -448,7 +448,7 @@ function LegalLine() {
   const open = (doc: "terms" | "privacy") => void Linking.openURL(`${SITE}/${locale}/${doc}`);
   return (
     <View style={{ alignItems: "center", gap: 2 }}>
-      <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: locale === "ar" ? 22 : 19, color: p.muted, textAlign: "center" }}>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: tallScript(locale) ? 22 : 19, color: p.muted, textAlign: "center" }}>
         {t("legal.agree")}
       </AppText>
       <View style={{ flexDirection: "row", gap: 18, justifyContent: "center" }}>

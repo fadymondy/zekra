@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Thông báo",
+  "notifications.bellUnread": "Thông báo, {count} chưa đọc",
+  "notifications.title": "Thông báo",
+  "notifications.markAllRead": "Đánh dấu đã đọc tất cả",
+  "notifications.delete": "Xóa thông báo",
+  "notifications.loadMore": "Tải thêm",
+  "notifications.empty": "Bạn đã xem hết rồi",
+  "notifications.emptyHint": "Khi có bộ não được chia sẻ với bạn hoặc ai đó mở bản trình bày bạn đã chia sẻ, thông báo sẽ hiện ở đây.",
+  "notifications.error": "Không tải được thông báo.",
+  "notifications.failed": "Không cập nhật được thông báo. Hãy thử lại.",
+  "notifications.unread": "Chưa đọc",
+  "notifications.open": "Mở",
+  "notifications.markRead": "Đánh dấu đã đọc"
+}

@@ -5,6 +5,7 @@ import { PagePreview } from "@/components/presentations/page-preview";
 import { PresTheme } from "@/components/presentations/pres-theme";
 import { ReportView } from "@/components/presentations/report-view";
 import { I18nProvider as WebI18nProvider, trans } from "@/lib/i18n";
+import { dirForLocale } from "@/lib/intl/locales";
 import type { DeckContent, PageContent, ReportContent } from "@/lib/presentations/types";
 import { customerLine } from "@mobile/features/presentations/presentations-core";
 import type { Detail, PLocale } from "@mobile/features/presentations/types";
@@ -61,7 +62,7 @@ export function PresentationPreview({ token, doc, locale, fill = false }: {
   const { t, locale: uiLocale } = useI18n();
   const embeds = useEmbeds(token, doc, locale);
   const content = doc.content?.[locale];
-  const dir = locale === "ar" ? "rtl" : "ltr";
+  const dir = dirForLocale(locale);
   const who = customerLine(doc.customer);
 
   if (!content) {

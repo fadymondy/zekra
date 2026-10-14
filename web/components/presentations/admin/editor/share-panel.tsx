@@ -1,6 +1,7 @@
 "use client"
 
 import { Alert, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Field, FieldLabel, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@fadymondy/nasaq/web"
+import { intlTag } from "@/lib/i18n-locale"
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CheckIcon, ExternalLinkIcon, KeyRoundIcon, PencilIcon, RefreshCwIcon, XIcon } from "lucide-react"
@@ -60,7 +61,7 @@ export function SharePanel({ t, doc, locale, lang, namespace, onChanged }: { t: 
   const [editing, setEditing] = useState<{ id: string; label: string; days: string; domain: string } | null>(null)
   const [canEdit, setCanEdit] = useState(true)
   const form = useRef<HTMLDivElement>(null)
-  const tag = locale === "ar" ? "ar-EG" : "en-US"
+  const tag = intlTag(locale)
   const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat(tag, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso)) : "—")
   const appHost = domains.builtinHost || (typeof window === "undefined" ? "" : window.location.host)
 

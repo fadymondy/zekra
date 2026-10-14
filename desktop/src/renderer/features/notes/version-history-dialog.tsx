@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { intlTag } from "@/lib/intl/locales";
 
 import { ConfirmDialog } from "../../components/confirm-dialog";
 import { Markdown } from "../../components/markdown";
@@ -76,7 +77,7 @@ export function VersionHistoryDialog({ note, token, canWrite, onOpenChange, onRe
 
   const fmt = (iso: string) => {
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(locale === "ar" ? "ar" : "en", { dateStyle: "medium", timeStyle: "short" });
+    return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(intlTag(locale), { dateStyle: "medium", timeStyle: "short" });
   };
 
   return (

@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Сохранить в Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Сохраняйте текущую страницу или выделенный текст в мозг Zekra в виде заметки."
+  },
+  "commandCapture": {
+    "message": "Сохранить выделение/страницу в Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Сохранить выделение в Zekra"
+  },
+  "menuSavePage": {
+    "message": "Сохранить страницу в Zekra"
+  },
+  "connectIntro": {
+    "message": "Подключите аккаунт Zekra, чтобы сохранять страницы, заметки и секреты прямо в мозг."
+  },
+  "connectButton": {
+    "message": "Подключить аккаунт Zekra"
+  },
+  "connectHint": {
+    "message": "Откроет Zekra в новом окне для входа и подтверждения доступа. Хранится только токен доступа, выданный этим разрешением."
+  },
+  "tabNote": {
+    "message": "Заметка"
+  },
+  "tabVault": {
+    "message": "Сейф"
+  },
+  "labelBrain": {
+    "message": "Мозг"
+  },
+  "labelTitle": {
+    "message": "Заголовок"
+  },
+  "labelNote": {
+    "message": "Заметка"
+  },
+  "labelTags": {
+    "message": "Теги (через запятую)"
+  },
+  "tagsPlaceholder": {
+    "message": "чтение, потом"
+  },
+  "reloadPage": {
+    "message": "Обновить страницу"
+  },
+  "reloadPageHint": {
+    "message": "Обновить заголовок, URL и выделение страницы"
+  },
+  "secretName": {
+    "message": "Название секрета"
+  },
+  "secretValue": {
+    "message": "Значение"
+  },
+  "secretValuePlaceholder": {
+    "message": "значение"
+  },
+  "saveToVault": {
+    "message": "Сохранить в сейф"
+  },
+  "vaultNote": {
+    "message": "Хранится в сейфе мозга. Значения только записываются — здесь они никогда не показываются."
+  },
+  "options": {
+    "message": "Настройки"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Настройки"
+  },
+  "apiBase": {
+    "message": "Базовый URL API"
+  },
+  "agentLabel": {
+    "message": "Метка агента (X-Agent-Id, не учётные данные)"
+  },
+  "save": {
+    "message": "Сохранить"
+  },
+  "account": {
+    "message": "Аккаунт"
+  },
+  "disconnect": {
+    "message": "Отключить"
+  },
+  "accessToken": {
+    "message": "Токен доступа"
+  },
+  "accessTokenHint": {
+    "message": "OAuth-токен доступа, выданный этим разрешением. Используйте его как Bearer-токен для конечной точки MCP. Относитесь к нему как к паролю."
+  },
+  "show": {
+    "message": "Показать"
+  },
+  "hide": {
+    "message": "Скрыть"
+  },
+  "copy": {
+    "message": "Копировать"
+  },
+  "workerDown": {
+    "message": "Фоновый процесс расширения не запущен. Перезагрузите расширение."
+  },
+  "loadingYourBrains": {
+    "message": "Загрузка ваших мозгов…"
+  },
+  "loadingBrains": {
+    "message": "Загрузка мозгов…"
+  },
+  "noWritableBrains": {
+    "message": "У этого подключения нет мозгов с правом записи. Подключитесь заново и отметьте мозг с доступом на запись."
+  },
+  "refreshFailed": {
+    "message": "Не удалось обновить мозги: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Мозги не загружены"
+  },
+  "openingZekraPopup": {
+    "message": "Открываем Zekra… завершите вход в новом окне. Это всплывающее окно может закрыться; откройте его снова, когда закончите."
+  },
+  "openingZekra": {
+    "message": "Открываем Zekra… завершите вход в новом окне."
+  },
+  "pickBrain": {
+    "message": "Сначала выберите мозг."
+  },
+  "brainsStillLoading": {
+    "message": "Мозги ещё загружаются — повторите через мгновение."
+  },
+  "savingBackground": {
+    "message": "Сохранение… (можно закрыть это окно — сохранение продолжится в фоне)"
+  },
+  "saving": {
+    "message": "Сохранение…"
+  },
+  "savedTo": {
+    "message": "Сохранено в $1."
+  },
+  "savedSecret": {
+    "message": "«$1» сохранён в $2."
+  },
+  "nameValueRequired": {
+    "message": "Название и значение обязательны."
+  },
+  "signInInProgress": {
+    "message": "Вход выполняется в окне Zekra — завершите его там и снова откройте это окно."
+  },
+  "disconnected": {
+    "message": "Отключено."
+  },
+  "connected": {
+    "message": "Подключено."
+  },
+  "connectedTo": {
+    "message": "Подключено к $1."
+  },
+  "notConnected": {
+    "message": "Не подключено."
+  },
+  "expires": {
+    "message": "Истекает $1 (продлевается автоматически)."
+  },
+  "noExpiry": {
+    "message": "Срок действия не указан."
+  },
+  "enterHttpsUrl": {
+    "message": "Введите URL с https:// (или http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome не предоставил доступ к $1."
+  },
+  "saved": {
+    "message": "Сохранено."
+  },
+  "enterValidBase": {
+    "message": "Сначала введите корректный базовый URL API."
+  },
+  "signInFailed": {
+    "message": "Не удалось войти."
+  },
+  "copied": {
+    "message": "Скопировано в буфер обмена."
+  },
+  "errUnreachable": {
+    "message": "Не удалось связаться с $1. Проверьте подключение."
+  },
+  "errUnreachableDetail": {
+    "message": "Не удалось связаться с $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Не подключено. Подключите аккаунт Zekra."
+  },
+  "errSessionExpired": {
+    "message": "Сессия Zekra истекла. Подключитесь снова."
+  },
+  "errRateLimited": {
+    "message": "Zekra ограничивает частоту запросов. Подождите немного и повторите."
+  },
+  "errServer": {
+    "message": "В Zekra возникла проблема ($1). Повторите чуть позже."
+  },
+  "errUnexpected": {
+    "message": "Неожиданный ответ от Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Запрос не выполнен ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Запрос не выполнен"
+  },
+  "errBrainList": {
+    "message": "Не удалось прочитать список мозгов из Zekra"
+  },
+  "errDiscovery": {
+    "message": "Не удалось определить параметры входа ($1) по адресу $2."
+  },
+  "errNoRegistration": {
+    "message": "Этот сервер Zekra не принимает новые регистрации приложений."
+  },
+  "errRegistration": {
+    "message": "Не удалось зарегистрировать приложение ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Вход отменён."
+  },
+  "errNotFinished": {
+    "message": "Вход не завершён: $1"
+  },
+  "errNotApproved": {
+    "message": "Доступ не подтверждён."
+  },
+  "errStateMismatch": {
+    "message": "Несовпадение состояния — вход отклонён."
+  },
+  "errNoCode": {
+    "message": "Код авторизации не получен."
+  },
+  "errTokenExchange": {
+    "message": "Не удалось обменять токен ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Подключение к Zekra завершено ($1). Подключитесь снова."
+  },
+  "errRefresh": {
+    "message": "Не удалось обновить сессию Zekra ($1)."
+  },
+  "errSignedOut": {
+    "message": "Вы вышли. Подключитесь снова."
+  },
+  "langTag": {
+    "message": "ru"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

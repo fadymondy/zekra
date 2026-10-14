@@ -1,5 +1,6 @@
 import * as brainsCore from "@/features/brains/brains-core";
 import { translate, type Locale } from "@/lib/i18n";
+import { isRtlLocale } from "@shared/intl/locales";
 
 import type { BrainsHelpers, WidgetLabels } from "./widgets-core";
 
@@ -10,6 +11,7 @@ export const helpers: BrainsHelpers = brainsCore;
 export function widgetLabels(locale: Locale): WidgetLabels {
   const t = (k: Parameters<typeof translate>[1]) => translate(locale, k);
   return {
+    rtl: isRtlLocale(locale),
     title: t("widgets.title"),
     memories: t("widgets.memories"),
     recalls: t("widgets.recalls"),

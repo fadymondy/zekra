@@ -62,10 +62,11 @@ func maskDeviceToken(t string) string {
 	return t[:6] + "…" + t[len(t)-4:]
 }
 
-// normalizePushLocale maps a device locale ("ar-EG", "en_US") to a text language.
+// normalizePushLocale maps a device locale ("ar-EG", "de_AT", "zh-CN") to a shipped
+// language, English when Zekra does not ship it.
 func normalizePushLocale(l string) string {
-	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(l)), "ar") {
-		return "ar"
+	if m := matchLocale(l); m != "" {
+		return m
 	}
 	return "en"
 }

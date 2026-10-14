@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Salva su Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Salva la pagina corrente o il testo selezionato in un Brain di Zekra come nota."
+  },
+  "commandCapture": {
+    "message": "Salva selezione/pagina su Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Salva la selezione su Zekra"
+  },
+  "menuSavePage": {
+    "message": "Salva la pagina su Zekra"
+  },
+  "connectIntro": {
+    "message": "Collega il tuo account Zekra per salvare pagine, note e segreti direttamente in un Brain."
+  },
+  "connectButton": {
+    "message": "Collega l'account Zekra"
+  },
+  "connectHint": {
+    "message": "Apre Zekra in una nuova finestra per accedere e approvare l'accesso. Viene salvato solo il token di accesso emesso da questa autorizzazione."
+  },
+  "tabNote": {
+    "message": "Nota"
+  },
+  "tabVault": {
+    "message": "Vault"
+  },
+  "labelBrain": {
+    "message": "Brain"
+  },
+  "labelTitle": {
+    "message": "Titolo"
+  },
+  "labelNote": {
+    "message": "Nota"
+  },
+  "labelTags": {
+    "message": "Tag (separati da virgole)"
+  },
+  "tagsPlaceholder": {
+    "message": "lettura, dopo"
+  },
+  "reloadPage": {
+    "message": "Ricarica pagina"
+  },
+  "reloadPageHint": {
+    "message": "Ricarica titolo, URL e selezione della pagina"
+  },
+  "secretName": {
+    "message": "Nome del segreto"
+  },
+  "secretValue": {
+    "message": "Valore"
+  },
+  "secretValuePlaceholder": {
+    "message": "valore"
+  },
+  "saveToVault": {
+    "message": "Salva nel Vault"
+  },
+  "vaultNote": {
+    "message": "Custodito nel Vault del Brain. I valori sono solo in scrittura: qui non vengono mai riletti."
+  },
+  "options": {
+    "message": "Opzioni"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Opzioni"
+  },
+  "apiBase": {
+    "message": "URL di base dell'API"
+  },
+  "agentLabel": {
+    "message": "Etichetta agente (X-Agent-Id, non è una credenziale)"
+  },
+  "save": {
+    "message": "Salva"
+  },
+  "account": {
+    "message": "Account"
+  },
+  "disconnect": {
+    "message": "Scollega"
+  },
+  "accessToken": {
+    "message": "Token di accesso"
+  },
+  "accessTokenHint": {
+    "message": "Il token di accesso OAuth emesso da questa autorizzazione. Usalo come token Bearer sull'endpoint MCP. Trattalo come una password."
+  },
+  "show": {
+    "message": "Mostra"
+  },
+  "hide": {
+    "message": "Nascondi"
+  },
+  "copy": {
+    "message": "Copia"
+  },
+  "workerDown": {
+    "message": "Il worker in background dell'estensione non è in esecuzione. Ricarica l'estensione."
+  },
+  "loadingYourBrains": {
+    "message": "Caricamento dei tuoi Brain…"
+  },
+  "loadingBrains": {
+    "message": "Caricamento dei Brain…"
+  },
+  "noWritableBrains": {
+    "message": "Questa connessione non ha Brain scrivibili. Ricollegati e seleziona un Brain con accesso in scrittura."
+  },
+  "refreshFailed": {
+    "message": "Impossibile aggiornare i Brain: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Nessun Brain caricato"
+  },
+  "openingZekraPopup": {
+    "message": "Apertura di Zekra… completa l'accesso nella nuova finestra. Questo popup potrebbe chiudersi: riaprilo quando hai finito."
+  },
+  "openingZekra": {
+    "message": "Apertura di Zekra… completa l'accesso nella nuova finestra."
+  },
+  "pickBrain": {
+    "message": "Scegli prima un Brain."
+  },
+  "brainsStillLoading": {
+    "message": "I Brain sono ancora in caricamento: riprova tra un momento."
+  },
+  "savingBackground": {
+    "message": "Salvataggio… (puoi chiudere questo popup: il salvataggio continua in background)"
+  },
+  "saving": {
+    "message": "Salvataggio…"
+  },
+  "savedTo": {
+    "message": "Salvato in $1."
+  },
+  "savedSecret": {
+    "message": "\"$1\" salvato in $2."
+  },
+  "nameValueRequired": {
+    "message": "Nome e valore sono obbligatori."
+  },
+  "signInInProgress": {
+    "message": "L'accesso è in corso nella finestra di Zekra: completalo lì, poi riapri questo popup."
+  },
+  "disconnected": {
+    "message": "Scollegato."
+  },
+  "connected": {
+    "message": "Collegato."
+  },
+  "connectedTo": {
+    "message": "Collegato a $1."
+  },
+  "notConnected": {
+    "message": "Non collegato."
+  },
+  "expires": {
+    "message": "Scade il $1 (rinnovo automatico)."
+  },
+  "noExpiry": {
+    "message": "Nessuna scadenza indicata."
+  },
+  "enterHttpsUrl": {
+    "message": "Inserisci un URL https:// (o http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome non ha concesso l'accesso a $1."
+  },
+  "saved": {
+    "message": "Salvato."
+  },
+  "enterValidBase": {
+    "message": "Inserisci prima un URL di base dell'API valido."
+  },
+  "signInFailed": {
+    "message": "Accesso non riuscito."
+  },
+  "copied": {
+    "message": "Copiato negli appunti."
+  },
+  "errUnreachable": {
+    "message": "Impossibile raggiungere $1. Controlla la connessione."
+  },
+  "errUnreachableDetail": {
+    "message": "Impossibile raggiungere $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Non collegato. Collega il tuo account Zekra."
+  },
+  "errSessionExpired": {
+    "message": "La tua sessione Zekra è scaduta. Collegati di nuovo."
+  },
+  "errRateLimited": {
+    "message": "Zekra sta limitando le richieste. Attendi un momento e riprova."
+  },
+  "errServer": {
+    "message": "Zekra ha avuto un problema ($1). Riprova a breve."
+  },
+  "errUnexpected": {
+    "message": "Risposta imprevista da Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Richiesta non riuscita ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Richiesta non riuscita"
+  },
+  "errBrainList": {
+    "message": "Impossibile leggere l'elenco dei Brain da Zekra"
+  },
+  "errDiscovery": {
+    "message": "Rilevamento dell'accesso non riuscito ($1) su $2."
+  },
+  "errNoRegistration": {
+    "message": "Questo server Zekra non accetta nuove registrazioni di app."
+  },
+  "errRegistration": {
+    "message": "Registrazione dell'app non riuscita ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Accesso annullato."
+  },
+  "errNotFinished": {
+    "message": "Accesso non completato: $1"
+  },
+  "errNotApproved": {
+    "message": "L'accesso non è stato approvato."
+  },
+  "errStateMismatch": {
+    "message": "Stato non corrispondente: accesso rifiutato."
+  },
+  "errNoCode": {
+    "message": "Nessun codice di autorizzazione restituito."
+  },
+  "errTokenExchange": {
+    "message": "Scambio del token non riuscito ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "La tua connessione a Zekra è terminata ($1). Collegati di nuovo."
+  },
+  "errRefresh": {
+    "message": "Impossibile rinnovare la sessione Zekra ($1)."
+  },
+  "errSignedOut": {
+    "message": "Disconnesso. Collegati di nuovo."
+  },
+  "langTag": {
+    "message": "it"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

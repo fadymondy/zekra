@@ -148,10 +148,7 @@ func (s *Service) buildExport(ctx context.Context, id, userID, locale string) {
 		fail(err)
 		return
 	}
-	loc := "en"
-	if locale == "ar" {
-		loc = "ar"
-	}
+	loc := normLocale(locale)
 	base := publicURL()
 	if base == "" {
 		base = "https://app.zekra.dev"

@@ -5,6 +5,7 @@
 // The Arabic product name is ذكرى — never ذكرى.
 "use strict";
 
+import { localized } from "./i18n";
 import type { LocaleId } from "../shared/ipc";
 
 const en = {
@@ -250,7 +251,7 @@ const ar: MenuStrings = {
 let current: LocaleId = "en";
 
 export function setMenuLocale(locale: LocaleId): void {
-  current = locale === "ar" ? "ar" : "en";
+  current = locale;
 }
 
 export function getMenuLocale(): LocaleId {
@@ -259,7 +260,7 @@ export function getMenuLocale(): LocaleId {
 
 /** The dictionary for the current app locale. */
 export function s(): MenuStrings {
-  return current === "ar" ? ar : en;
+  return localized(current, "menu", en, ar) as MenuStrings;
 }
 
 export function fmt(template: string, vars: Record<string, string>): string {

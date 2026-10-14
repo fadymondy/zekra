@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "In Zekra speichern"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Speichere die aktuelle Seite oder einen markierten Text als Notiz in einem Zekra-Brain."
+  },
+  "commandCapture": {
+    "message": "Auswahl oder Seite in Zekra speichern"
+  },
+  "menuSaveSelection": {
+    "message": "Auswahl in Zekra speichern"
+  },
+  "menuSavePage": {
+    "message": "Seite in Zekra speichern"
+  },
+  "connectIntro": {
+    "message": "Verbinde dein Zekra-Konto, um Seiten, Notizen und Secrets direkt in einem Brain zu speichern."
+  },
+  "connectButton": {
+    "message": "Zekra-Konto verbinden"
+  },
+  "connectHint": {
+    "message": "Öffnet Zekra in einem neuen Fenster, um dich anzumelden und den Zugriff zu bestätigen. Gespeichert wird nur das Zugriffstoken, das diese Freigabe ausstellt."
+  },
+  "tabNote": {
+    "message": "Notiz"
+  },
+  "tabVault": {
+    "message": "Vault"
+  },
+  "labelBrain": {
+    "message": "Brain"
+  },
+  "labelTitle": {
+    "message": "Titel"
+  },
+  "labelNote": {
+    "message": "Notiz"
+  },
+  "labelTags": {
+    "message": "Tags (durch Kommas getrennt)"
+  },
+  "tagsPlaceholder": {
+    "message": "lesen, später"
+  },
+  "reloadPage": {
+    "message": "Seite neu laden"
+  },
+  "reloadPageHint": {
+    "message": "Titel, URL und Auswahl der Seite neu laden"
+  },
+  "secretName": {
+    "message": "Name des Secrets"
+  },
+  "secretValue": {
+    "message": "Wert"
+  },
+  "secretValuePlaceholder": {
+    "message": "Wert"
+  },
+  "saveToVault": {
+    "message": "Im Vault speichern"
+  },
+  "vaultNote": {
+    "message": "Im Vault des Brains versiegelt. Werte sind nur beschreibbar und werden hier nie wieder angezeigt."
+  },
+  "options": {
+    "message": "Optionen"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Optionen"
+  },
+  "apiBase": {
+    "message": "API-Basis-URL"
+  },
+  "agentLabel": {
+    "message": "Agent-Bezeichnung (X-Agent-Id, keine Zugangsdaten)"
+  },
+  "save": {
+    "message": "Speichern"
+  },
+  "account": {
+    "message": "Konto"
+  },
+  "disconnect": {
+    "message": "Trennen"
+  },
+  "accessToken": {
+    "message": "Zugriffstoken"
+  },
+  "accessTokenHint": {
+    "message": "Das OAuth-Zugriffstoken, das diese Freigabe ausgestellt hat. Verwende es als Bearer-Token für den MCP-Endpunkt. Behandle es wie ein Passwort."
+  },
+  "show": {
+    "message": "Anzeigen"
+  },
+  "hide": {
+    "message": "Verbergen"
+  },
+  "copy": {
+    "message": "Kopieren"
+  },
+  "workerDown": {
+    "message": "Der Hintergrundprozess der Erweiterung läuft nicht. Lade die Erweiterung neu."
+  },
+  "loadingYourBrains": {
+    "message": "Deine Brains werden geladen…"
+  },
+  "loadingBrains": {
+    "message": "Brains werden geladen…"
+  },
+  "noWritableBrains": {
+    "message": "Diese Verbindung hat keine beschreibbaren Brains. Verbinde dich erneut und wähle ein Brain mit Schreibzugriff aus."
+  },
+  "refreshFailed": {
+    "message": "Brains konnten nicht aktualisiert werden: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Keine Brains geladen"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra wird geöffnet… schließe die Anmeldung im neuen Fenster ab. Dieses Popup kann sich schließen; öffne es danach erneut."
+  },
+  "openingZekra": {
+    "message": "Zekra wird geöffnet… schließe die Anmeldung im neuen Fenster ab."
+  },
+  "pickBrain": {
+    "message": "Wähle zuerst ein Brain aus."
+  },
+  "brainsStillLoading": {
+    "message": "Die Brains werden noch geladen. Versuche es gleich noch einmal."
+  },
+  "savingBackground": {
+    "message": "Wird gespeichert… (du kannst dieses Popup schließen, das Speichern läuft im Hintergrund weiter)"
+  },
+  "saving": {
+    "message": "Wird gespeichert…"
+  },
+  "savedTo": {
+    "message": "In $1 gespeichert."
+  },
+  "savedSecret": {
+    "message": "„$1“ in $2 gespeichert."
+  },
+  "nameValueRequired": {
+    "message": "Name und Wert sind erforderlich."
+  },
+  "signInInProgress": {
+    "message": "Die Anmeldung läuft im Zekra-Fenster. Schließe sie dort ab und öffne dieses Popup dann erneut."
+  },
+  "disconnected": {
+    "message": "Getrennt."
+  },
+  "connected": {
+    "message": "Verbunden."
+  },
+  "connectedTo": {
+    "message": "Verbunden mit $1."
+  },
+  "notConnected": {
+    "message": "Nicht verbunden."
+  },
+  "expires": {
+    "message": "Läuft $1 ab (wird automatisch erneuert)."
+  },
+  "noExpiry": {
+    "message": "Kein Ablaufdatum angegeben."
+  },
+  "enterHttpsUrl": {
+    "message": "Gib eine https://-URL ein (oder http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome hat den Zugriff auf $1 nicht gewährt."
+  },
+  "saved": {
+    "message": "Gespeichert."
+  },
+  "enterValidBase": {
+    "message": "Gib zuerst eine gültige API-Basis-URL ein."
+  },
+  "signInFailed": {
+    "message": "Anmeldung fehlgeschlagen."
+  },
+  "copied": {
+    "message": "In die Zwischenablage kopiert."
+  },
+  "errUnreachable": {
+    "message": "$1 ist nicht erreichbar. Prüfe deine Verbindung."
+  },
+  "errUnreachableDetail": {
+    "message": "$1 ist nicht erreichbar ($2)."
+  },
+  "errNotConnected": {
+    "message": "Nicht verbunden. Verbinde dein Zekra-Konto."
+  },
+  "errSessionExpired": {
+    "message": "Deine Zekra-Sitzung ist abgelaufen. Verbinde dich erneut."
+  },
+  "errRateLimited": {
+    "message": "Zekra begrenzt die Anfragen. Warte einen Moment und versuche es erneut."
+  },
+  "errServer": {
+    "message": "Bei Zekra ist ein Problem aufgetreten ($1). Versuche es gleich noch einmal."
+  },
+  "errUnexpected": {
+    "message": "Unerwartete Antwort von Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Anfrage fehlgeschlagen ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Anfrage fehlgeschlagen"
+  },
+  "errBrainList": {
+    "message": "Die Brain-Liste konnte nicht von Zekra gelesen werden"
+  },
+  "errDiscovery": {
+    "message": "Erkennung der Anmeldung fehlgeschlagen ($1) bei $2."
+  },
+  "errNoRegistration": {
+    "message": "Dieser Zekra-Server akzeptiert keine neuen App-Registrierungen."
+  },
+  "errRegistration": {
+    "message": "App-Registrierung fehlgeschlagen ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Die Anmeldung wurde abgebrochen."
+  },
+  "errNotFinished": {
+    "message": "Die Anmeldung wurde nicht abgeschlossen: $1"
+  },
+  "errNotApproved": {
+    "message": "Der Zugriff wurde nicht bestätigt."
+  },
+  "errStateMismatch": {
+    "message": "State stimmt nicht überein, Anmeldung abgelehnt."
+  },
+  "errNoCode": {
+    "message": "Es wurde kein Autorisierungscode zurückgegeben."
+  },
+  "errTokenExchange": {
+    "message": "Token-Austausch fehlgeschlagen ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Deine Zekra-Verbindung wurde beendet ($1). Verbinde dich erneut."
+  },
+  "errRefresh": {
+    "message": "Deine Zekra-Sitzung konnte nicht erneuert werden ($1)."
+  },
+  "errSignedOut": {
+    "message": "Abgemeldet. Verbinde dich erneut."
+  },
+  "langTag": {
+    "message": "de"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

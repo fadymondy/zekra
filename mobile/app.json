@@ -19,7 +19,23 @@
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleLocalizations": [
           "en",
-          "ar"
+          "ar",
+          "es",
+          "fr",
+          "de",
+          "pt-BR",
+          "it",
+          "ru",
+          "tr",
+          "zh-Hans",
+          "ja",
+          "ko",
+          "hi",
+          "id",
+          "nl",
+          "pl",
+          "vi",
+          "uk"
         ]
       },
       "privacyManifests": {
@@ -287,7 +303,23 @@
     },
     "locales": {
       "en": "./locales/en.json",
-      "ar": "./locales/ar.json"
+      "ar": "./locales/ar.json",
+      "es": "./locales/es.json",
+      "fr": "./locales/fr.json",
+      "de": "./locales/de.json",
+      "pt-BR": "./locales/pt-BR.json",
+      "it": "./locales/it.json",
+      "ru": "./locales/ru.json",
+      "tr": "./locales/tr.json",
+      "zh-Hans": "./locales/zh-Hans.json",
+      "ja": "./locales/ja.json",
+      "ko": "./locales/ko.json",
+      "hi": "./locales/hi.json",
+      "id": "./locales/id.json",
+      "nl": "./locales/nl.json",
+      "pl": "./locales/pl.json",
+      "vi": "./locales/vi.json",
+      "uk": "./locales/uk.json"
     }
   }
 }

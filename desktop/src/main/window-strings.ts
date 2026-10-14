@@ -3,6 +3,7 @@
 // (menu-strings.ts). The Arabic product name is ذكرى — never ذكرى.
 "use strict";
 
+import { localized } from "./i18n";
 import { getMenuLocale } from "./menu-strings";
 
 const en = {
@@ -80,5 +81,5 @@ const ar: typeof en = {
 export type WindowStrings = typeof en;
 
 export function ws(): WindowStrings {
-  return getMenuLocale() === "ar" ? ar : en;
+  return localized(getMenuLocale(), "window", en, ar) as typeof en;
 }

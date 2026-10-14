@@ -18,6 +18,7 @@ const FILES = [
   "background.js",
   "api.js",
   "oauth.js",
+  "i18n.js",
   "popup.html",
   "popup.js",
   "options.html",
@@ -27,6 +28,7 @@ const FILES = [
   "icons/icon48.png",
   "icons/icon128.png",
   "icons/mark.svg",
+  ...readdirSync(join(root, "_locales")).map((l) => `_locales/${l}/messages.json`),
 ];
 
 rmSync(out, { recursive: true, force: true });
@@ -53,7 +55,7 @@ for (const f of FILES.filter((f) => f.endsWith(".html"))) {
     if (!existsSync(join(out, ref))) throw new Error(`${f} references missing ${ref}`);
   }
 }
-for (const f of ["api.js", "oauth.js", "background.js", "popup.js", "options.js"]) {
+for (const f of ["api.js", "oauth.js", "i18n.js", "background.js", "popup.js", "options.js"]) {
   const js = readFileSync(join(out, f), "utf8");
   for (const [, ref] of js.matchAll(/from "\.\/([^"]+)"/g)) {
     if (!existsSync(join(out, ref))) throw new Error(`${f} imports missing ${ref}`);

@@ -42,6 +42,27 @@ electronLanguages:
   - en
   - en-US
   - ar
+  # The other 16 Zekra languages (web/lib/intl/locales.ts). Electron names the
+  # Chinese pack zh-CN and macOS folders use "_" (pt_BR.lproj, zh_CN.lproj), so
+  # both spellings are listed; unmatched names are ignored.
+  - es
+  - fr
+  - de
+  - pt-BR
+  - pt_BR
+  - it
+  - ru
+  - tr
+  - zh-CN
+  - zh_CN
+  - ja
+  - ko
+  - hi
+  - id
+  - nl
+  - pl
+  - vi
+  - uk
 
 files:
   - out/**/*

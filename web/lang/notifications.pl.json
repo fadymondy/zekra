@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Powiadomienia",
+  "notifications.bellUnread": "Powiadomienia, nieprzeczytane: {count}",
+  "notifications.title": "Powiadomienia",
+  "notifications.markAllRead": "Oznacz wszystko jako przeczytane",
+  "notifications.delete": "Usuń powiadomienie",
+  "notifications.loadMore": "Wczytaj więcej",
+  "notifications.empty": "Wszystko przeczytane",
+  "notifications.emptyHint": "Gdy ktoś udostępni Ci mózg albo otworzy udostępnioną przez Ciebie prezentację, zobaczysz to tutaj.",
+  "notifications.error": "Nie udało się wczytać powiadomień.",
+  "notifications.failed": "Nie udało się zaktualizować powiadomień. Spróbuj ponownie.",
+  "notifications.unread": "Nieprzeczytane",
+  "notifications.open": "Otwórz",
+  "notifications.markRead": "Oznacz jako przeczytane"
+}

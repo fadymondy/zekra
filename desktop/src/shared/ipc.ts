@@ -17,7 +17,9 @@
  *  (main sets `nativeTheme.themeSource`, so native menus, dialogs, the
  *  vibrancy and `prefers-color-scheme` in the renderer all agree). */
 export type ThemeChoice = "system" | "light" | "dark";
-export type LocaleId = "en" | "ar";
+/** The languages Zekra ships — mirrors LOCALES in web/lib/intl/locales.ts (main can't import
+ *  the web tree, so the list is repeated; test/locales.test.cjs keeps them in step). */
+export type LocaleId = "en" | "ar" | "es" | "fr" | "de" | "pt-BR" | "it" | "ru" | "tr" | "zh-Hans" | "ja" | "ko" | "hi" | "id" | "nl" | "pl" | "vi" | "uk";
 
 export interface SessionUser {
   id: string;

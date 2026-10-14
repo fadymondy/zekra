@@ -87,10 +87,14 @@ func (s *Service) gatherForPresentation(ctx context.Context, ns string, src pres
 		}
 		if g.Summary == "" && sp.Nodes > 0 {
 			// Only what the graph reported: the root, its type and the counts.
-			if locale == "ar" {
+			switch locale {
+			case "ar":
 				g.Summary = fmt.Sprintf("%s (%s): %d عنصرًا مرتبطًا — %s.", sp.Root.Name, sp.Root.Type, sp.Nodes, strings.Join(roles, "، "))
-			} else {
+			case "en", "":
 				g.Summary = fmt.Sprintf("%s (%s): %d connected entities across %s.", sp.Root.Name, sp.Root.Type, sp.Nodes, strings.Join(roles, ", "))
+			default:
+				g.Summary = trText(normalizePushLocale(locale), "presentation.graphSummary", map[string]string{
+					"root": sp.Root.Name, "type": sp.Root.Type, "count": fmt.Sprint(sp.Nodes), "roles": strings.Join(roles, ", ")})
 			}
 		}
 	case "namespace":

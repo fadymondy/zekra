@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 import { dirForLocale, isLocale, type Locale } from "@/lib/i18n-locale"
+import { loadMessages } from "@/lib/i18n-server"
 
 export async function generateMetadata(): Promise<Metadata> {
   const ar = (await headers()).get("x-locale") === "ar"
@@ -31,10 +32,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale: Locale = isLocale(raw) ? raw : "en"
   // zekra.dev (proxy.ts sets this on its rewrites) is a website, not the installable console.
   const site = h.get("x-zekra-site") === "1"
+  // English and Arabic ship in the client bundle; any other language is sent once, from here.
+  const messages = locale === "en" || locale === "ar" ? undefined : await loadMessages(locale)
   return (
     <html lang={locale} dir={dirForLocale(locale)} data-brand="zekra" suppressHydrationWarning>
       <body className="min-h-dvh" suppressHydrationWarning>
-        <Providers locale={locale} pwa={!site}>
+        <Providers locale={locale} messages={messages} site={site}>
           {children}
         </Providers>
       </body>

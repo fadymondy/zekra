@@ -111,6 +111,29 @@
   unicode-bidi: isolate;
 }
 
+/* Chinese, Japanese, Korean and Hindi: Inter (and Nasaq's Alexandria fallback) have no glyphs
+   for them, and system-ui alone can render Chinese in a Japanese face (Han unification). So each
+   names its native system faces, with Noto as the cross-platform fallback. No web fonts load. */
+:root:lang(zh-Hans) {
+  --nq-font-ui: Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", system-ui, sans-serif;
+}
+:root:lang(ja) {
+  --nq-font-ui: Inter, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo UI", Meiryo, "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
+}
+:root:lang(ko) {
+  --nq-font-ui: Inter, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
+}
+:root:lang(hi) {
+  --nq-font-ui: Inter, "Kohinoor Devanagari", "Nirmala UI", "Noto Sans Devanagari", Mangal, system-ui, sans-serif;
+}
+/* Letter-spacing breaks CJK and Devanagari the same way it breaks Arabic joining. */
+:lang(zh-Hans) [class*="tracking-"]:not([dir="ltr"]),
+:lang(ja) [class*="tracking-"]:not([dir="ltr"]),
+:lang(ko) [class*="tracking-"]:not([dir="ltr"]),
+:lang(hi) [class*="tracking-"]:not([dir="ltr"]) {
+  letter-spacing: 0;
+}
+
 /* Arabic is never letter-spaced and never set in mono. */
 :lang(ar) .font-mono:not(.ltr-isolate):not([dir="ltr"]) {
   font-family: var(--nq-font-ui);

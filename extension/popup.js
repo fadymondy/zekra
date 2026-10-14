@@ -10,6 +10,7 @@
 //  4. Sign-in and saves run in the service worker, which outlives the popup.
 
 import { getSettings, listMyBrains, createNote, putSecret, ApiError } from "./api.js";
+import { t, localizePage } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,7 +33,7 @@ async function toWorker(message, fallback) {
   } catch {
     // no worker listening
   }
-  if (!fallback) return { ok: false, error: "The extension's background worker is not running. Reload the extension." };
+  if (!fallback) return { ok: false, error: t("workerDown") };
   try {
     await fallback();
     return { ok: true };
@@ -131,12 +132,12 @@ function renderBrainsPlaceholder(text) {
 async function refreshBrains(preferred) {
   if (state.refreshing) return state.refreshing;
   const note = $("brainsStatus");
-  if (!state.brainsLoaded) say(note, "Loading your brains…");
+  if (!state.brainsLoaded) say(note, t("loadingYourBrains"));
   state.refreshing = (async () => {
     try {
       const { brains = [] } = await listMyBrains();
       const n = renderBrains(brains, preferred);
-      say(note, n ? "" : "This connection has no writable brains. Reconnect and tick a brain with write access.", n ? "muted" : "error");
+      say(note, n ? "" : t("noWritableBrains"), n ? "muted" : "error");
     } catch (e) {
       if (e?.signedOut) {
         showSignedOut(e.message);
@@ -144,8 +145,8 @@ async function refreshBrains(preferred) {
       }
       // Keep the cached list usable; just say the refresh failed.
       const msg = e instanceof ApiError ? e.message : String(e);
-      say(note, state.brainsLoaded ? `Could not refresh brains: ${msg}` : msg, "error");
-      if (!state.brainsLoaded) renderBrainsPlaceholder("No brains loaded");
+      say(note, state.brainsLoaded ? t("refreshFailed", msg) : msg, "error");
+      if (!state.brainsLoaded) renderBrainsPlaceholder(t("noBrainsLoaded"));
     } finally {
       state.refreshing = null;
     }
@@ -184,7 +185,7 @@ function showSignedIn(cache, preferred) {
   // No cached list yet, but we know the brain used last: offer it right away
   // (the background refresh replaces it with the real list).
   else if (preferred) renderBrains([{ namespace: preferred }], preferred);
-  else renderBrainsPlaceholder("Loading brains…");
+  else renderBrainsPlaceholder(t("loadingBrains"));
 }
 
 // ---------------------------------------------------------------------------
@@ -194,7 +195,7 @@ function showSignedIn(cache, preferred) {
 async function onSignIn() {
   const btn = $("signInBtn");
   btn.disabled = true;
-  say($("authStatus"), "Opening Zekra… finish signing in in the new window. This popup may close; reopen it when you are done.");
+  say($("authStatus"), t("openingZekraPopup"));
   const { apiBase } = await getSettings();
   const res = await toWorker({ type: "zekra:signIn", apiBase });
   // Only reached if the popup survived the sign-in window.
@@ -204,7 +205,7 @@ async function onSignIn() {
 
 async function onSaveNote() {
   const namespace = $("brainSelect").value;
-  if (!namespace) return say($("status"), state.brainsLoaded ? "Pick a brain first." : "Brains are still loading — try again in a moment.", "error");
+  if (!namespace) return say($("status"), state.brainsLoaded ? t("pickBrain") : t("brainsStillLoading"), "error");
   const note = {
     namespace,
     title: $("titleInput").value.trim(),
@@ -213,10 +214,10 @@ async function onSaveNote() {
     url: state.activeUrl,
   };
   $("saveBtn").disabled = true;
-  say($("status"), "Saving… (you can close this popup — the save continues in the background)");
+  say($("status"), t("savingBackground"));
   const res = await toWorker({ type: "zekra:saveNote", note }, () => createNote(note));
   $("saveBtn").disabled = false;
-  if (res.ok) say($("status"), `Saved to ${namespace}.`, "success");
+  if (res.ok) say($("status"), t("savedTo", namespace), "success");
   else if (res.signedOut) showSignedOut(res.error);
   else say($("status"), res.error, "error");
 }
@@ -226,18 +227,18 @@ async function onSaveSecret() {
   const name = $("secretName").value.trim();
   const value = $("secretValue").value;
   const status = $("vaultStatus");
-  if (!namespace) return say(status, "Pick a brain first.", "error");
-  if (!name || !value) return say(status, "Name and value are both required.", "error");
+  if (!namespace) return say(status, t("pickBrain"), "error");
+  if (!name || !value) return say(status, t("nameValueRequired"), "error");
 
   $("saveSecretBtn").disabled = true;
-  say(status, "Saving…");
+  say(status, t("saving"));
   const secret = { namespace, name, value };
   const res = await toWorker({ type: "zekra:saveSecret", secret }, () => putSecret(secret));
   $("saveSecretBtn").disabled = false;
   if (res.ok) {
     $("secretName").value = "";
     $("secretValue").value = "";
-    say(status, `Saved "${name}" to ${namespace}.`, "success");
+    say(status, t("savedSecret", name, namespace), "success");
   } else if (res.signedOut) {
     showSignedOut(res.error);
   } else {
@@ -263,6 +264,7 @@ function wire() {
 }
 
 async function init() {
+  localizePage();
   wire(); // every control works from the first frame, in every state
 
   const [local, session, settings] = await Promise.all([
@@ -281,7 +283,7 @@ async function init() {
     fillFromPage(pending);
     refreshBrains(settings.namespace);
   } else if (session.signInPending && Date.now() - session.signInPending < 90_000) {
-    showSignedOut("Sign-in is in progress in the Zekra window — finish there, then reopen this popup.", "muted");
+    showSignedOut(t("signInInProgress"), "muted");
   } else {
     showSignedOut(session.signInError || "", "error");
     if (pending) fillFromPage(pending); // kept for after sign-in
@@ -296,7 +298,7 @@ async function init() {
       fillFromPage(pending);
       refreshBrains(settings.namespace);
     } else if (!changes.accessToken.newValue && state.signedIn) {
-      showSignedOut("Disconnected.", "muted");
+      showSignedOut(t("disconnected"), "muted");
     }
   });
 }

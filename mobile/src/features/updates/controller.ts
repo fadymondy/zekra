@@ -4,6 +4,7 @@ import { Linking, Platform } from "react-native";
 
 import { CLOUD_URL } from "@/lib/server-core";
 import { getStored, setStored } from "@/lib/storage";
+import { matchLocale } from "@shared/intl/locales";
 
 import { patch } from "./patch";
 import { hasUnsavedWork } from "./unsaved-work";
@@ -319,13 +320,13 @@ async function checkStore(force: boolean): Promise<void> {
     const latest = pickLatest(ios?.version, manifest.latestVersion, patchLatest);
     const dismissed = await getStored(DISMISSED_STORE_KEY);
     const decision = storeDecision({ installed, minimum: manifest.minimumVersion, latest, dismissedVersion: dismissed });
-    const locale = getLocales()[0]?.languageCode === "ar" ? "ar" : "en";
+    const locale = matchLocale(getLocales().map((l) => l.languageTag)) ?? "en";
     set({
       store: {
         decision,
         ui: decision.kind === "force" ? "force" : decision.kind === "prompt" ? "prompt" : "none",
         storeUrl: manifest.storeUrl ?? ios?.storeUrl ?? defaultStoreUrl(platform, appId),
-        message: manifest.message?.[locale] ?? manifest.message?.en,
+        message: (manifest.message as Record<string, string> | undefined)?.[locale] ?? manifest.message?.en,
         checkedAt: Date.now(),
       },
     });

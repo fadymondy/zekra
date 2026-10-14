@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "Thông báo đang hoạt động trên thiết bị này.",
+  "push.brainAccess.title": "Một bộ não đã được chia sẻ với bạn",
+  "push.brainAccess.body": "Bạn đã được cấp quyền truy cập {name}.",
+  "push.presentationViewed.title": "Bản trình bày của bạn vừa được mở",
+  "push.presentationViewed.body": "“{title}” vừa được mở từ một liên kết chia sẻ.",
+  "push.presentationDownloaded.title": "Bản trình bày của bạn đã được tải xuống",
+  "push.presentationDownloaded.body": "“{title}” vừa được tải xuống từ một liên kết chia sẻ.",
+  "presentation.graphSummary": "{root} ({type}): {count} thực thể được kết nối trong {roles}."
+}

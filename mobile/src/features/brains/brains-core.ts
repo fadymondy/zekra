@@ -149,7 +149,7 @@ export function topTypes(types: Record<string, number> | undefined, n = 3): { to
 
 // ─── Relative time ──────────────────────────────────────────────────────────
 // Hermes ships no Intl.RelativeTimeFormat (nor PluralRules) on iOS, so this is
-// done by hand. Arabic counted nouns follow the number: 1 alone, 2 in the
+// done by hand for en/ar; other languages come from the catalog via setAgoFormatter. Arabic counted nouns follow the number: 1 alone, 2 in the
 // dual, 3–10 plural, 11+ singular (accusative).
 
 export type AgoUnit = "now" | "m" | "h" | "d" | "w" | "mo" | "y";
@@ -186,8 +186,22 @@ const AR_UNITS: Record<Exclude<AgoUnit, "now">, [string, string, string, string]
 
 const EN_UNITS: Record<Exclude<AgoUnit, "now">, string> = { m: "m", h: "h", d: "d", w: "w", mo: "mo", y: "y" };
 
+/** Formats relative time in languages beyond en/ar from the app catalog (brains.ago.*); it
+ *  returns null for an untranslated string, which falls back to English. Registered by
+ *  src/lib/i18n.tsx, so this module stays free of React and the catalog. */
+export type AgoFormatter = (locale: string, unit: AgoUnit | "never", n: number) => string | null;
+let agoFormatter: AgoFormatter | null = null;
+export function setAgoFormatter(fn: AgoFormatter | null): void {
+  agoFormatter = fn;
+}
+
 /** "3h ago" / "منذ 3 ساعات"; "just now" / "الآن"; "never" / "أبدًا". */
 export function formatAgo(iso: string | null | undefined, locale: string, now: number = Date.now()): string {
+  if (locale !== "en" && locale !== "ar" && agoFormatter) {
+    const parts = isNever(iso) ? { n: 0, unit: "never" as const } : agoParts(iso as string, now);
+    const out = agoFormatter(locale, parts.unit, parts.n);
+    if (out != null) return out;
+  }
   const ar = locale === "ar";
   if (isNever(iso)) return ar ? "أبدًا" : "never";
   const { n, unit } = agoParts(iso as string, now);

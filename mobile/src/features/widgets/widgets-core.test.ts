@@ -129,7 +129,8 @@ test("parseSnapshot round-trips and rejects anything else", () => {
   assert.equal(parseSnapshot(null), null);
   assert.equal(parseSnapshot("{"), null);
   assert.equal(parseSnapshot(JSON.stringify({ ...s, v: 2 })), null);
-  assert.equal(parseSnapshot(JSON.stringify({ ...s, locale: "fr" })), null);
+  assert.equal(parseSnapshot(JSON.stringify({ ...s, locale: 42 })), null);
+  assert.equal(parseSnapshot(JSON.stringify({ ...s, locale: "fr" }))?.locale, "fr");
 });
 
 test("the fingerprint ignores when the data was fetched", () => {

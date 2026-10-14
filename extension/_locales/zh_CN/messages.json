@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "保存到 Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "将当前页面或所选文字作为笔记保存到 Zekra 大脑。"
+  },
+  "commandCapture": {
+    "message": "将所选内容/页面保存到 Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "将所选内容保存到 Zekra"
+  },
+  "menuSavePage": {
+    "message": "将页面保存到 Zekra"
+  },
+  "connectIntro": {
+    "message": "连接你的 Zekra 账户，即可把页面、笔记和密钥直接保存到大脑中。"
+  },
+  "connectButton": {
+    "message": "连接 Zekra 账户"
+  },
+  "connectHint": {
+    "message": "会在新窗口中打开 Zekra，用于登录并批准访问。除此次授权签发的访问令牌外，不会保存任何内容。"
+  },
+  "tabNote": {
+    "message": "笔记"
+  },
+  "tabVault": {
+    "message": "保险库"
+  },
+  "labelBrain": {
+    "message": "大脑"
+  },
+  "labelTitle": {
+    "message": "标题"
+  },
+  "labelNote": {
+    "message": "笔记"
+  },
+  "labelTags": {
+    "message": "标签（用逗号分隔）"
+  },
+  "tagsPlaceholder": {
+    "message": "阅读，稍后"
+  },
+  "reloadPage": {
+    "message": "重新载入页面"
+  },
+  "reloadPageHint": {
+    "message": "重新载入页面标题/URL/所选内容"
+  },
+  "secretName": {
+    "message": "密钥名称"
+  },
+  "secretValue": {
+    "message": "值"
+  },
+  "secretValuePlaceholder": {
+    "message": "值"
+  },
+  "saveToVault": {
+    "message": "保存到保险库"
+  },
+  "vaultNote": {
+    "message": "已封存在该大脑的保险库中。值只能写入，这里不会再读取显示。"
+  },
+  "options": {
+    "message": "选项"
+  },
+  "optionsTitle": {
+    "message": "Zekra - 选项"
+  },
+  "apiBase": {
+    "message": "API 基础 URL"
+  },
+  "agentLabel": {
+    "message": "智能体标签（X-Agent-Id，不是凭据）"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "account": {
+    "message": "账户"
+  },
+  "disconnect": {
+    "message": "断开连接"
+  },
+  "accessToken": {
+    "message": "访问令牌"
+  },
+  "accessTokenHint": {
+    "message": "本次授权签发的 OAuth 访问令牌。可作为 Bearer 令牌用于 MCP 端点。请像对待密码一样妥善保管。"
+  },
+  "show": {
+    "message": "显示"
+  },
+  "hide": {
+    "message": "隐藏"
+  },
+  "copy": {
+    "message": "复制"
+  },
+  "workerDown": {
+    "message": "扩展的后台进程未在运行。请重新加载扩展。"
+  },
+  "loadingYourBrains": {
+    "message": "正在加载你的大脑…"
+  },
+  "loadingBrains": {
+    "message": "正在加载大脑…"
+  },
+  "noWritableBrains": {
+    "message": "此连接没有可写入的大脑。请重新连接，并勾选具有写入权限的大脑。"
+  },
+  "refreshFailed": {
+    "message": "无法刷新大脑：$1"
+  },
+  "noBrainsLoaded": {
+    "message": "未加载任何大脑"
+  },
+  "openingZekraPopup": {
+    "message": "正在打开 Zekra…请在新窗口中完成登录。此弹窗可能会关闭，完成后请重新打开。"
+  },
+  "openingZekra": {
+    "message": "正在打开 Zekra…请在新窗口中完成登录。"
+  },
+  "pickBrain": {
+    "message": "请先选择一个大脑。"
+  },
+  "brainsStillLoading": {
+    "message": "大脑仍在加载，请稍后再试。"
+  },
+  "savingBackground": {
+    "message": "正在保存…（可以关闭此弹窗，保存会在后台继续）"
+  },
+  "saving": {
+    "message": "正在保存…"
+  },
+  "savedTo": {
+    "message": "已保存到 $1。"
+  },
+  "savedSecret": {
+    "message": "已将“$1”保存到 $2。"
+  },
+  "nameValueRequired": {
+    "message": "名称和值都必须填写。"
+  },
+  "signInInProgress": {
+    "message": "Zekra 窗口中正在登录，请在那里完成，然后重新打开此弹窗。"
+  },
+  "disconnected": {
+    "message": "已断开连接。"
+  },
+  "connected": {
+    "message": "已连接。"
+  },
+  "connectedTo": {
+    "message": "已连接到 $1。"
+  },
+  "notConnected": {
+    "message": "未连接。"
+  },
+  "expires": {
+    "message": "$1 到期（自动续期）。"
+  },
+  "noExpiry": {
+    "message": "未报告到期时间。"
+  },
+  "enterHttpsUrl": {
+    "message": "请输入 https:// URL（或 http://localhost）。"
+  },
+  "hostNotGranted": {
+    "message": "Chrome 未授予对 $1 的访问权限。"
+  },
+  "saved": {
+    "message": "已保存。"
+  },
+  "enterValidBase": {
+    "message": "请先输入有效的 API 基础 URL。"
+  },
+  "signInFailed": {
+    "message": "登录失败。"
+  },
+  "copied": {
+    "message": "已复制到剪贴板。"
+  },
+  "errUnreachable": {
+    "message": "无法连接到 $1。请检查网络连接。"
+  },
+  "errUnreachableDetail": {
+    "message": "无法连接到 $1（$2）。"
+  },
+  "errNotConnected": {
+    "message": "未连接。请连接你的 Zekra 账户。"
+  },
+  "errSessionExpired": {
+    "message": "你的 Zekra 会话已过期。请重新连接。"
+  },
+  "errRateLimited": {
+    "message": "Zekra 正在限制请求频率。请稍等片刻后重试。"
+  },
+  "errServer": {
+    "message": "Zekra 出现问题（$1）。请稍后重试。"
+  },
+  "errUnexpected": {
+    "message": "Zekra 返回了意外的响应。"
+  },
+  "errRequestFailedStatus": {
+    "message": "请求失败（$1）。"
+  },
+  "errRequestFailed": {
+    "message": "请求失败"
+  },
+  "errBrainList": {
+    "message": "无法从 Zekra 读取大脑列表"
+  },
+  "errDiscovery": {
+    "message": "登录发现失败（$1），地址 $2。"
+  },
+  "errNoRegistration": {
+    "message": "此 Zekra 服务器不接受新的应用注册。"
+  },
+  "errRegistration": {
+    "message": "应用注册失败（$1）：$2"
+  },
+  "errCancelled": {
+    "message": "登录已取消。"
+  },
+  "errNotFinished": {
+    "message": "登录未完成：$1"
+  },
+  "errNotApproved": {
+    "message": "访问未获批准。"
+  },
+  "errStateMismatch": {
+    "message": "状态不匹配，登录已被拒绝。"
+  },
+  "errNoCode": {
+    "message": "未返回授权码。"
+  },
+  "errTokenExchange": {
+    "message": "令牌交换失败（$1）：$2"
+  },
+  "errConnectionEnded": {
+    "message": "你的 Zekra 连接已结束（$1）。请重新连接。"
+  },
+  "errRefresh": {
+    "message": "无法刷新你的 Zekra 会话（$1）。"
+  },
+  "errSignedOut": {
+    "message": "已退出登录。请重新连接。"
+  },
+  "langTag": {
+    "message": "zh-Hans"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

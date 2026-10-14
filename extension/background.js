@@ -13,14 +13,15 @@
 
 import { getSettings, saveSettings, createNote, putSecret, ApiError } from "./api.js";
 import { signIn, signOut, isSignedIn } from "./oauth.js";
+import { t } from "./i18n.js";
 
 const MENU_SELECTION = "zekra-save-selection";
 const MENU_PAGE = "zekra-save-page";
 
 function createMenus() {
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({ id: MENU_SELECTION, title: "Save selection to Zekra", contexts: ["selection"] });
-    chrome.contextMenus.create({ id: MENU_PAGE, title: "Save page to Zekra", contexts: ["page"] });
+    chrome.contextMenus.create({ id: MENU_SELECTION, title: t("menuSaveSelection"), contexts: ["selection"] });
+    chrome.contextMenus.create({ id: MENU_PAGE, title: t("menuSavePage"), contexts: ["page"] });
   });
 }
 

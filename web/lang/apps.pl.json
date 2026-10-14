@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Połączone aplikacje",
+  "apps.micro": "Konto",
+  "apps.title": "Połączone aplikacje",
+  "apps.description": "Aplikacje AI, którym pozwalasz korzystać z Twoich mózgów przez MCP. Odwołaj jedną, aby natychmiast odciąć jej dostęp.",
+  "apps.read": "Odczyt",
+  "apps.readWrite": "Odczyt i zapis",
+  "apps.lastUsed": "Ostatnio użyta {when}",
+  "apps.neverUsed": "Jeszcze nieużywana",
+  "apps.connected": "Połączono {date}",
+  "apps.revoke": "Odwołaj",
+  "apps.revokeTitle": "Odwołać dostęp: {name}?",
+  "apps.revokeBody": "Aplikacja od razu straci dostęp do Twoich mózgów. Aby znów z niej korzystać, trzeba ją połączyć ponownie.",
+  "apps.revoked": "Dostęp odwołany",
+  "apps.revokedOn": "Odwołano {date}",
+  "apps.revokedSection": "Odwołane ({n})",
+  "apps.emptyTitle": "Brak połączonych aplikacji",
+  "apps.emptyBody": "Połącz Claude, ChatGPT, Cursor lub innego klienta MCP, a pojawi się tutaj.",
+  "apps.connectCta": "Połącz agenta",
+  "apps.noBrains": "Brak mózgów"
+}

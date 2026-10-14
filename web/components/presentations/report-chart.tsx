@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import { useTranslations } from "@/lib/i18n"
+import { intlTag } from "@/lib/i18n-locale"
 import type { ChartBlock } from "@/lib/presentations/types"
 import { seriesDrawOrder } from "@/lib/presentations/workflow"
 
@@ -45,7 +46,7 @@ export function ReportChart({ block, locale, dir }: { block: ChartBlock; locale:
   const config = chartConfig(block)
   const rows = chartRows(block)
   const keys = Object.keys(config)
-  const nf = new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { maximumFractionDigits: 2 })
+  const nf = new Intl.NumberFormat(intlTag(locale), { maximumFractionDigits: 2 })
   const tick = (v: number) => `${nf.format(v)}${block.unit ?? ""}`
   const rtl = dir === "rtl"
   /*

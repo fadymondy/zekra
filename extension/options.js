@@ -1,5 +1,6 @@
 import { getSettings, saveSettings, DEFAULT_BASE } from "./api.js";
 import { signOut, clearSession, normBase } from "./oauth.js";
+import { t, localizePage, formatDateTime } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 let revealed = false;
@@ -15,7 +16,7 @@ async function renderAuth() {
   ]);
   const signedIn = !!accessToken;
 
-  $("authState").textContent = signedIn ? `Connected${tokenBase ? ` to ${new URL(tokenBase).host}` : ""}.` : "Not connected.";
+  $("authState").textContent = signedIn ? (tokenBase ? t("connectedTo", new URL(tokenBase).host) : t("connected")) : t("notConnected");
   $("authState").className = "zk-muted";
   $("signInBtn").hidden = signedIn;
   $("signOutBtn").hidden = !signedIn;
@@ -23,10 +24,10 @@ async function renderAuth() {
 
   if (signedIn) {
     $("tokenValue").textContent = revealed ? accessToken : mask(accessToken);
-    $("revealBtn").textContent = revealed ? "Hide" : "Show";
+    $("revealBtn").textContent = revealed ? t("hide") : t("show");
     $("tokenMeta").textContent = tokenExpiresAt
-      ? `Expires ${new Date(tokenExpiresAt).toLocaleString()} (renewed automatically).`
-      : "No expiry reported.";
+      ? t("expires", formatDateTime(tokenExpiresAt))
+      : t("noExpiry");
   }
 }
 
@@ -50,6 +51,7 @@ function readBase() {
 }
 
 async function init() {
+  localizePage();
   const settings = await getSettings();
   $("apiBase").value = settings.apiBase || DEFAULT_BASE;
   $("agentId").value = settings.agentId || "extension";
@@ -57,11 +59,11 @@ async function init() {
   $("saveBtn").addEventListener("click", async () => {
     const base = readBase();
     if (!base) {
-      $("status").textContent = "Enter an https:// URL (or http://localhost).";
+      $("status").textContent = t("enterHttpsUrl");
       return;
     }
     if (!(await ensureHostPermission(base))) {
-      $("status").textContent = `Chrome did not grant access to ${new URL(base).host}.`;
+      $("status").textContent = t("hostNotGranted", new URL(base).host);
       return;
     }
     const { tokenBase } = await chrome.storage.local.get(["tokenBase"]);
@@ -70,7 +72,7 @@ async function init() {
     if (tokenBase && tokenBase !== base) await clearSession();
     await chrome.storage.local.remove(["brainsCache"]);
     $("apiBase").value = base;
-    $("status").textContent = "Saved.";
+    $("status").textContent = t("saved");
     setTimeout(() => ($("status").textContent = ""), 1600);
     await renderAuth();
   });
@@ -78,15 +80,15 @@ async function init() {
   $("signInBtn").addEventListener("click", async () => {
     const base = readBase();
     if (!base) {
-      $("authState").textContent = "Enter a valid API base URL first.";
+      $("authState").textContent = t("enterValidBase");
       return;
     }
     if (!(await ensureHostPermission(base))) {
-      $("authState").textContent = `Chrome did not grant access to ${new URL(base).host}.`;
+      $("authState").textContent = t("hostNotGranted", new URL(base).host);
       return;
     }
     $("signInBtn").disabled = true;
-    $("authState").textContent = "Opening Zekra… finish signing in in the new window.";
+    $("authState").textContent = t("openingZekra");
     let res;
     try {
       res = await chrome.runtime.sendMessage({ type: "zekra:signIn", apiBase: base });
@@ -99,7 +101,7 @@ async function init() {
       $("apiBase").value = base;
       await renderAuth();
     } else {
-      $("authState").textContent = res?.error || "Sign-in failed.";
+      $("authState").textContent = res?.error || t("signInFailed");
       $("authState").className = "zk-error";
     }
   });
@@ -119,7 +121,7 @@ async function init() {
     const { accessToken } = await chrome.storage.local.get(["accessToken"]);
     if (!accessToken) return;
     await navigator.clipboard.writeText(accessToken);
-    $("tokenMeta").textContent = "Copied to clipboard.";
+    $("tokenMeta").textContent = t("copied");
   });
 
   // Stay in sync with sign-in/out finishing in the worker or popup.

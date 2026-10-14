@@ -1,30 +1,38 @@
 "use client"
 
-// Frontend i18n, as in Managy: flat key dictionaries per locale. Each product area owns a pair of
-// files, lang/<area>.en.json and lang/<area>.ar.json, with keys prefixed by the area
-// ("brains.title"). A missing Arabic key falls back to English, and English to the key itself.
+// Frontend i18n, as in Managy: flat key dictionaries per locale. Each product area owns one file
+// per language, lang/<area>.<locale>.json, with keys prefixed by the area ("brains.title").
+// Messages are ICU (plurals, select). A missing key falls back to English, and English to the key
+// itself. English and Arabic are bundled; the root layout loads any other language on the server
+// and hands it to I18nProvider, which registers it here before anything renders.
 import { createContext, useContext, useMemo, type ReactNode } from "react"
 import { dirForLocale, intlTag, isLocale, type Locale } from "@/lib/i18n-locale"
+import { formatMessage } from "@/lib/intl/icu"
 import { AR, EN } from "@/lang"
 
 export { LOCALES, dirForLocale, isLocale } from "@/lib/i18n-locale"
 export type { Locale } from "@/lib/i18n-locale"
 
 type Dict = Record<string, string>
-const DICTIONARIES: Record<Locale, Dict> = { en: EN, ar: AR }
+const DICTIONARIES: Partial<Record<Locale, Dict>> = { en: EN, ar: AR }
+
+/** Makes a server-loaded dictionary available to trans() (I18nProvider calls it). */
+export function registerMessages(locale: Locale, messages: Dict) {
+  if (!DICTIONARIES[locale]) DICTIONARIES[locale] = messages
+}
 
 /** Non-reactive lookup — for use outside React. */
 export function trans(key: string, locale: string = "en", vars?: Record<string, string | number>): string {
-  const dict = DICTIONARIES[isLocale(locale) ? locale : "en"]
-  let str = dict[key] ?? DICTIONARIES.en[key] ?? key
-  if (vars) for (const [k, v] of Object.entries(vars)) str = str.replaceAll(`{${k}}`, String(v))
-  return str
+  const l: Locale = isLocale(locale) ? locale : "en"
+  const str = DICTIONARIES[l]?.[key] ?? EN[key] ?? key
+  return formatMessage(str, vars, intlTag(l))
 }
 
 const I18nContext = createContext<Locale | null>(null)
 
-export function I18nProvider({ locale: raw, children }: { locale: string; children: ReactNode }) {
+export function I18nProvider({ locale: raw, messages, children }: { locale: string; messages?: Dict; children: ReactNode }) {
   const locale = isLocale(raw) ? raw : "en"
+  if (messages) registerMessages(locale, messages)
   return <I18nContext.Provider value={locale}>{children}</I18nContext.Provider>
 }
 
@@ -47,7 +55,7 @@ export function useTranslations() {
     },
     [tag],
   )
-  // Data (counts, latency, ids) keeps Latin digits in both languages.
+  // Data (counts, latency, ids) keeps Latin digits in every language.
   const formatNumber = useMemo(
     () => (n: number, opts?: Intl.NumberFormatOptions) => new Intl.NumberFormat(`${tag}-u-nu-latn`, opts).format(n),
     [tag],

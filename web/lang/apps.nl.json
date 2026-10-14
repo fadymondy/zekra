@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Gekoppelde apps",
+  "apps.micro": "Account",
+  "apps.title": "Gekoppelde apps",
+  "apps.description": "AI-apps die je toegang hebt gegeven tot je breinen via MCP. Trek er een in om de toegang direct te stoppen.",
+  "apps.read": "Lezen",
+  "apps.readWrite": "Lezen en schrijven",
+  "apps.lastUsed": "Laatst gebruikt {when}",
+  "apps.neverUsed": "Nog niet gebruikt",
+  "apps.connected": "Gekoppeld op {date}",
+  "apps.revoke": "Intrekken",
+  "apps.revokeTitle": "{name} intrekken?",
+  "apps.revokeBody": "De app verliest meteen de toegang tot je breinen. Om hem opnieuw te gebruiken, moet je hem opnieuw koppelen.",
+  "apps.revoked": "Toegang ingetrokken",
+  "apps.revokedOn": "Ingetrokken op {date}",
+  "apps.revokedSection": "Ingetrokken ({n})",
+  "apps.emptyTitle": "Nog geen gekoppelde apps",
+  "apps.emptyBody": "Koppel Claude, ChatGPT, Cursor of een andere MCP-client en je ziet hem hier terug.",
+  "apps.connectCta": "Agent koppelen",
+  "apps.noBrains": "Geen breinen"
+}

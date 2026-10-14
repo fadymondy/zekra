@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "알림",
+  "notifications.bellUnread": "알림, 읽지 않음 {count}개",
+  "notifications.title": "알림",
+  "notifications.markAllRead": "모두 읽음으로 표시",
+  "notifications.delete": "알림 삭제",
+  "notifications.loadMore": "더 보기",
+  "notifications.empty": "모든 알림을 확인했어요",
+  "notifications.emptyHint": "브레인이 공유되거나 공유한 프레젠테이션을 누군가 열면 여기에 표시돼요.",
+  "notifications.error": "알림을 불러오지 못했어요.",
+  "notifications.failed": "알림을 업데이트하지 못했어요. 다시 시도하세요.",
+  "notifications.unread": "읽지 않음",
+  "notifications.open": "열기",
+  "notifications.markRead": "읽음으로 표시"
+}

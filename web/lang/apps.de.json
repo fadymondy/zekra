@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Verbundene Apps",
+  "apps.micro": "Konto",
+  "apps.title": "Verbundene Apps",
+  "apps.description": "KI-Apps, die du für die Nutzung deiner Brains über MCP freigegeben hast. Widerrufe eine App, um ihren Zugriff sofort zu beenden.",
+  "apps.read": "Lesen",
+  "apps.readWrite": "Lesen + Schreiben",
+  "apps.lastUsed": "Zuletzt genutzt {when}",
+  "apps.neverUsed": "Noch nicht genutzt",
+  "apps.connected": "Verbunden {date}",
+  "apps.revoke": "Widerrufen",
+  "apps.revokeTitle": "{name} widerrufen?",
+  "apps.revokeBody": "Die App verliert sofort den Zugriff auf deine Brains. Um sie wieder zu nutzen, musst du sie erneut verbinden.",
+  "apps.revoked": "Zugriff widerrufen",
+  "apps.revokedOn": "Widerrufen {date}",
+  "apps.revokedSection": "Widerrufen ({n})",
+  "apps.emptyTitle": "Noch keine verbundenen Apps",
+  "apps.emptyBody": "Verbinde Claude, ChatGPT, Cursor oder einen anderen MCP-Client, und er erscheint hier.",
+  "apps.connectCta": "Agent verbinden",
+  "apps.noBrains": "Keine Brains"
+}

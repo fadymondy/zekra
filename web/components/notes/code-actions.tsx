@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "@/lib/i18n"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { CopyIcon, DownloadIcon, HashIcon, ImageIcon } from "lucide-react"
 
@@ -56,6 +57,7 @@ export function useCodeActions(
   /** Changes whenever the body re-renders, so gutters are reapplied. */
   contentKey?: unknown,
 ) {
+  const { t: tr } = useTranslations()
   const [menu, setMenu] = useState<MenuState>(null)
   const [toast, setToast] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
@@ -125,11 +127,11 @@ export function useCodeActions(
       if (action === "copy") {
         try {
           await navigator.clipboard.writeText(code)
-          flash("Copied")
+          flash(tr("notes.block.copied"))
         } catch {
           // Clipboard is permission-gated and unavailable on insecure origins;
           // say so rather than failing silently.
-          flash("Clipboard blocked")
+          flash(tr("notes.block.clipboardBlocked"))
         }
         return
       }
@@ -151,10 +153,10 @@ export function useCodeActions(
         if (!blob) throw new Error("no blob")
         download(name.replace(/\.[^.]+$/, "") + ".png", blob)
       } catch {
-        flash("PNG export failed")
+        flash(tr("notes.block.pngFailed"))
       }
     },
-    [menu, flash],
+    [menu, flash, tr],
   )
 
   const element = (
@@ -166,13 +168,13 @@ export function useCodeActions(
           className="fixed z-50 min-w-44 -translate-x-full rounded-md border border-border bg-card py-1 text-sm shadow-lg"
           style={{ left: menu.x, top: menu.y }}
         >
-          <Item icon={<CopyIcon className="size-4" />} label="Copy" hint="⌘C" onClick={() => run("copy")} />
-          <Item icon={<DownloadIcon className="size-4" />} label="Download as file" onClick={() => run("download")} />
-          <Item icon={<ImageIcon className="size-4" />} label="Export as PNG" onClick={() => run("png")} />
+          <Item icon={<CopyIcon className="size-4" />} label={tr("notes.block.copy")} hint="⌘C" onClick={() => run("copy")} />
+          <Item icon={<DownloadIcon className="size-4" />} label={tr("notes.block.download")} onClick={() => run("download")} />
+          <Item icon={<ImageIcon className="size-4" />} label={tr("notes.block.exportPng")} onClick={() => run("png")} />
           <div className="my-1 border-t border-border" />
           <Item
             icon={<HashIcon className="size-4" />}
-            label={menu.figure.getAttribute("data-lines") === "on" ? "Hide line numbers" : "Show line numbers"}
+            label={menu.figure.getAttribute("data-lines") === "on" ? tr("notes.block.hideLines") : tr("notes.block.showLines")}
             onClick={() => run("lines")}
           />
         </div>

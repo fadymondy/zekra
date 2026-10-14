@@ -12,8 +12,9 @@ import { useSocialProviders } from "@/features/social/social-buttons";
 import { PROVIDER_NAME, SOCIAL_PROVIDERS, type SocialProvider } from "@/features/social/social-core";
 import { ApiError, zekraApi, type ConnectedIdentity } from "@/lib/api";
 import { reportError } from "@/lib/crash";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, tallScript } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
+import { intlTag } from "@shared/intl/locales";
 import { fonts, usePalette } from "@/theme";
 
 // Connected accounts: which Google / Apple / GitHub identities sign in as this
@@ -101,7 +102,7 @@ export default function ConnectionsScreen() {
   const when = (iso: string | null | undefined) => {
     if (!iso) return "";
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "" : new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en", { dateStyle: "medium" }).format(d);
+    return Number.isNaN(d.getTime()) ? "" : new Intl.DateTimeFormat(`${intlTag(locale)}-u-nu-latn`, { dateStyle: "medium" }).format(d);
   };
 
   const mark = (pr: SocialProvider) =>
@@ -110,7 +111,7 @@ export default function ConnectionsScreen() {
   return (
     <SettingsPage section="connections">
       <Row>
-        <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("connections.intro")}</AppText>
+        <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: tallScript(locale) ? 30 : 26, color: p.body }}>{t("connections.intro")}</AppText>
       </Row>
       {list.isPending || list.error ? (
         <QueryStatus q={list} lines={3} />

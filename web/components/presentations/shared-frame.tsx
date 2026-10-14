@@ -5,7 +5,7 @@ import type { T } from "@/lib/i18n-server"
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
 import { ThemeToggle } from "@/components/header-controls"
-import { dirForLocale, LOCALE_NAMES, LOCALES } from "@/lib/i18n-locale"
+import { dirForLocale, intlTag, LOCALE_NAMES, LOCALES } from "@/lib/i18n-locale"
 
 /*
 The slim bar above a shared document (FM-342): the mark (never the wordmark),
@@ -45,7 +45,7 @@ export function SharedFrame({
             {t("presentations.shared.by")}
             {expiresAt
               ? ` · ${t("presentations.shared.expires", {
-                  date: new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", { dateStyle: "medium" }).format(new Date(expiresAt)),
+                  date: new Intl.DateTimeFormat(intlTag(locale), { dateStyle: "medium" }).format(new Date(expiresAt)),
                 })}`
               : ""}
           </p>

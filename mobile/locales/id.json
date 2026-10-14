@@ -1,0 +1,11 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "Zekra memerlukan akses ke foto Anda agar Anda dapat menambahkan gambar ke catatan, atau menambahkan foto dan video ke brain untuk dibaca.",
+    "NSCameraUsageDescription": "Zekra menggunakan kamera agar Anda dapat memotret halaman atau papan tulis dan menambahkan teksnya ke brain.",
+    "NSFaceIDUsageDescription": "Zekra menggunakan Face ID untuk membuka kunci aplikasi dan memastikan itu Anda sebelum menampilkan rahasia di brankas."
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
+}

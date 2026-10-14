@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "通知",
+  "notifications.bellUnread": "通知、未読 {count} 件",
+  "notifications.title": "通知",
+  "notifications.markAllRead": "すべて既読にする",
+  "notifications.delete": "通知を削除",
+  "notifications.loadMore": "さらに読み込む",
+  "notifications.empty": "新しい通知はありません",
+  "notifications.emptyHint": "ブレインが共有されたときや、共有したプレゼンが開かれたときに、ここに表示されます。",
+  "notifications.error": "通知を読み込めませんでした。",
+  "notifications.failed": "通知を更新できませんでした。もう一度お試しください。",
+  "notifications.unread": "未読",
+  "notifications.open": "開く",
+  "notifications.markRead": "既読にする"
+}

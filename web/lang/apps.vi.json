@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Ứng dụng đã kết nối",
+  "apps.micro": "Tài khoản",
+  "apps.title": "Ứng dụng đã kết nối",
+  "apps.description": "Các ứng dụng AI bạn đã cho phép dùng bộ não của mình qua MCP. Thu hồi một ứng dụng để cắt quyền truy cập của nó ngay lập tức.",
+  "apps.read": "Đọc",
+  "apps.readWrite": "Đọc + ghi",
+  "apps.lastUsed": "Dùng lần cuối {when}",
+  "apps.neverUsed": "Chưa dùng",
+  "apps.connected": "Kết nối {date}",
+  "apps.revoke": "Thu hồi",
+  "apps.revokeTitle": "Thu hồi {name}?",
+  "apps.revokeBody": "Ứng dụng sẽ mất quyền truy cập vào các bộ não của bạn ngay lập tức. Muốn dùng lại, bạn cần kết nối lại.",
+  "apps.revoked": "Đã thu hồi quyền truy cập",
+  "apps.revokedOn": "Thu hồi {date}",
+  "apps.revokedSection": "Đã thu hồi ({n})",
+  "apps.emptyTitle": "Chưa có ứng dụng nào được kết nối",
+  "apps.emptyBody": "Kết nối Claude, ChatGPT, Cursor hoặc ứng dụng MCP khác và nó sẽ hiện ở đây.",
+  "apps.connectCta": "Kết nối agent",
+  "apps.noBrains": "Không có bộ não"
+}

@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Save to Zekra",
-  "short_name": "Zekra",
-  "description": "Capture the current page or a text selection into a Zekra brain as a note.",
+  "name": "__MSG_extName__",
+  "short_name": "__MSG_extShortName__",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "version": "0.2.1",
   "minimum_chrome_version": "116",
   "icons": {
@@ -12,7 +13,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Save to Zekra",
+    "default_title": "__MSG_extName__",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -48,7 +49,7 @@
         "default": "Ctrl+Shift+Z",
         "mac": "Command+Shift+Z"
       },
-      "description": "Save selection/page to Zekra"
+      "description": "__MSG_commandCapture__"
     }
   }
 }

@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Підключені застосунки",
+  "apps.micro": "Обліковий запис",
+  "apps.title": "Підключені застосунки",
+  "apps.description": "ШІ-застосунки, яким ви дозволили використовувати свої мозки через MCP. Відкличте доступ, щоб одразу його припинити.",
+  "apps.read": "Читання",
+  "apps.readWrite": "Читання й запис",
+  "apps.lastUsed": "Востаннє використано {when}",
+  "apps.neverUsed": "Ще не використовувався",
+  "apps.connected": "Підключено {date}",
+  "apps.revoke": "Відкликати",
+  "apps.revokeTitle": "Відкликати {name}?",
+  "apps.revokeBody": "Застосунок одразу втратить доступ до ваших мозків. Щоб користуватися ним знову, його потрібно буде підключити заново.",
+  "apps.revoked": "Доступ відкликано",
+  "apps.revokedOn": "Відкликано {date}",
+  "apps.revokedSection": "Відкликані ({n})",
+  "apps.emptyTitle": "Підключених застосунків ще немає",
+  "apps.emptyBody": "Підключіть Claude, ChatGPT, Cursor або інший клієнт MCP, і він з’явиться тут.",
+  "apps.connectCta": "Підключити агента",
+  "apps.noBrains": "Немає мозків"
+}

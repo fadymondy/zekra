@@ -1,0 +1,11 @@
+{
+  "push.test.title": "Zekra",
+  "push.test.body": "Notifications are working on this device.",
+  "push.brainAccess.title": "A brain was shared with you",
+  "push.brainAccess.body": "You were given access to {name}.",
+  "push.presentationViewed.title": "Your presentation was opened",
+  "push.presentationViewed.body": "“{title}” was just opened from a share link.",
+  "push.presentationDownloaded.title": "Your presentation was downloaded",
+  "push.presentationDownloaded.body": "“{title}” was just downloaded from a share link.",
+  "presentation.graphSummary": "{root} ({type}): {count} connected entities across {roles}."
+}

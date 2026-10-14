@@ -7,6 +7,7 @@ import { CheckIcon } from "lucide-react"
 import { cn } from "cn"
 
 import { useTranslations } from "@/lib/i18n"
+import { dirForLocale } from "@/lib/i18n-locale"
 import type { PageContent, PageSection } from "@/lib/presentations/types"
 import { STYLE_KEYS } from "@/lib/presentations/types"
 import { PresTheme } from "./pres-theme"
@@ -351,7 +352,7 @@ export function PagePreview({
 }) {
   const motion = !compact && !still
   const { t, locale } = useTranslations()
-  const dir = forced ?? (locale === "ar" ? "rtl" : "ltr")
+  const dir = forced ?? dirForLocale(locale)
   const key = (STYLE_KEYS as string[]).includes(style) ? style : "minimal"
   const page = (
     <PresTheme className={cn("pres-root", `pres-style-${key}`)}>

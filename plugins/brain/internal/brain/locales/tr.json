@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "Bildirimler bu cihazda çalışıyor.",
+  "push.brainAccess.title": "Bir beyin sizinle paylaşıldı",
+  "push.brainAccess.body": "{name} için erişim verildi.",
+  "push.presentationViewed.title": "Sunumunuz açıldı",
+  "push.presentationViewed.body": "“{title}” az önce bir paylaşım bağlantısından açıldı.",
+  "push.presentationDownloaded.title": "Sunumunuz indirildi",
+  "push.presentationDownloaded.body": "“{title}” az önce bir paylaşım bağlantısından indirildi.",
+  "presentation.graphSummary": "{root} ({type}): {roles} genelinde {count} bağlı varlık."
+}

@@ -1,5 +1,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { useColorScheme } from "react-native";
+import { Platform, useColorScheme } from "react-native";
+
+import { LOCALE_INFO, type LocaleInfo } from "@shared/intl/locales";
 
 import { mix, paletteFromTheme } from "@/features/editor/reading-core";
 import { hydrateReading, readingTheme, useReadingSettings } from "@/lib/reading-settings";
@@ -89,11 +91,24 @@ export type ThemeMode = "system" | "light" | "dark";
 // than the script. Mono is JetBrains Mono ("monospace" is not a family on iOS).
 const INTER = { light: "Inter_300Light", regular: "Inter_400Regular", medium: "Inter_500Medium", semibold: "Inter_600SemiBold" };
 const PLEX = { light: "IBMPlexSansArabic-Light", regular: "IBMPlexSansArabic-Regular", medium: "IBMPlexSansArabic-Medium", semibold: "IBMPlexSansArabic-Medium" };
+// Chinese, Japanese, Korean and Hindi use the platform face (PingFang / Hiragino / Apple SD
+// Gothic / Kohinoor on iOS, Noto on Android): Inter has no glyphs for them and bundling CJK
+// faces would add tens of MB.
+const SYSTEM = Platform.OS === "ios"
+  ? { light: "System", regular: "System", medium: "System", semibold: "System" }
+  : { light: "sans-serif-light", regular: "sans-serif", medium: "sans-serif-medium", semibold: "sans-serif-medium" };
 let face = INTER;
 
+/** The UI face for a script: Inter (Latin, Cyrillic, Vietnamese), Plex (Arabic) or the system face. */
+export function faceForScript(script: LocaleInfo["script"]): typeof INTER {
+  if (script === "arabic") return PLEX;
+  if (script === "latin" || script === "cyrillic") return INTER;
+  return SYSTEM;
+}
+
 /** Switch the UI face (called by the i18n provider before it re-renders). */
-export function setUiFontLocale(locale: "en" | "ar"): void {
-  face = locale === "ar" ? PLEX : INTER;
+export function setUiFontLocale(locale: string): void {
+  face = faceForScript(LOCALE_INFO[locale as keyof typeof LOCALE_INFO]?.script ?? "latin");
 }
 
 // Getters, so styles built during render always get the current language's

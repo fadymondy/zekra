@@ -8,7 +8,7 @@ import { AppText, CodeField, Field, Row, SecondaryButton } from "@/components/ui
 import { CancelDeletionForm } from "@/features/account/cancel-deletion";
 import { SettingsPage } from "@/features/settings/settings-nav";
 import { ApiError, zekraApi, type DeletionProof } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, tallScript } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { fonts, usePalette } from "@/theme";
 
@@ -78,7 +78,7 @@ export default function DeleteAccountScreen() {
               <TriangleAlert size={19} color={p.warn} strokeWidth={1.6} />
               <AppText style={{ flex: 1, fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, color: p.ink }}>{t("account.deleteScheduled")}</AppText>
             </View>
-            <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("deletion.scheduledBody")}</AppText>
+            <AppText style={{ fontFamily: fonts.light, fontSize: 15, lineHeight: tallScript(locale) ? 30 : 26, color: p.body }}>{t("deletion.scheduledBody")}</AppText>
             <View style={{ gap: 4 }}>
               <AppText style={{ fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 19, color: p.muted }}>{t("account.deleteScheduledFor")}</AppText>
               <AppText style={{ fontFamily: fonts.mono, fontSize: 14.5, lineHeight: 22, color: p.action, writingDirection: "ltr", alignSelf: "flex-start" }}>{when(date)}</AppText>
@@ -100,7 +100,7 @@ export default function DeleteAccountScreen() {
             <AppText variant="micro">{t("account.deleteWhat")}</AppText>
             <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
               <View style={{ width: 6, height: 6, marginTop: 9, backgroundColor: p.danger }} />
-              <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: locale === "ar" ? 30 : 26, color: p.body }}>{t("account.deleteWarn")}</AppText>
+              <AppText style={{ flex: 1, fontFamily: fonts.light, fontSize: 15, lineHeight: tallScript(locale) ? 30 : 26, color: p.body }}>{t("account.deleteWarn")}</AppText>
             </View>
           </Row>
           <Row>
@@ -125,11 +125,11 @@ export default function DeleteAccountScreen() {
             ) : (
               <View style={{ gap: 12 }}>
                 {!hasPassword ? (
-                  <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>{t("deletion.noPasswordBody")}</AppText>
+                  <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: tallScript(locale) ? 27 : 23, color: p.body }}>{t("deletion.noPasswordBody")}</AppText>
                 ) : null}
                 {codeSent ? (
                   <>
-                    <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>
+                    <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: tallScript(locale) ? 27 : 23, color: p.body }}>
                       {t("deletion.codeSent", { email: user?.email ?? "" })}
                     </AppText>
                     <CodeField label={t("deletion.code")} value={code} onChangeText={setCode} />

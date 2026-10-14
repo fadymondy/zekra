@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Lưu vào Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Lưu trang hiện tại hoặc đoạn văn bản đã chọn vào một bộ não Zekra dưới dạng ghi chú."
+  },
+  "commandCapture": {
+    "message": "Lưu phần chọn/trang vào Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Lưu phần chọn vào Zekra"
+  },
+  "menuSavePage": {
+    "message": "Lưu trang vào Zekra"
+  },
+  "connectIntro": {
+    "message": "Kết nối tài khoản Zekra để lưu trang, ghi chú và bí mật thẳng vào bộ não."
+  },
+  "connectButton": {
+    "message": "Kết nối tài khoản Zekra"
+  },
+  "connectHint": {
+    "message": "Mở Zekra trong cửa sổ mới để đăng nhập và phê duyệt quyền truy cập. Không có gì được lưu ngoài token truy cập do quyền này cấp."
+  },
+  "tabNote": {
+    "message": "Ghi chú"
+  },
+  "tabVault": {
+    "message": "Két bảo mật"
+  },
+  "labelBrain": {
+    "message": "Bộ não"
+  },
+  "labelTitle": {
+    "message": "Tiêu đề"
+  },
+  "labelNote": {
+    "message": "Ghi chú"
+  },
+  "labelTags": {
+    "message": "Thẻ (phân tách bằng dấu phẩy)"
+  },
+  "tagsPlaceholder": {
+    "message": "đọc, xem sau"
+  },
+  "reloadPage": {
+    "message": "Tải lại trang"
+  },
+  "reloadPageHint": {
+    "message": "Tải lại tiêu đề/URL/phần chọn của trang"
+  },
+  "secretName": {
+    "message": "Tên bí mật"
+  },
+  "secretValue": {
+    "message": "Giá trị"
+  },
+  "secretValuePlaceholder": {
+    "message": "giá trị"
+  },
+  "saveToVault": {
+    "message": "Lưu vào két bảo mật"
+  },
+  "vaultNote": {
+    "message": "Được niêm phong trong két bảo mật của bộ não. Giá trị chỉ ghi, không bao giờ được đọc lại ở đây."
+  },
+  "options": {
+    "message": "Tùy chọn"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Tùy chọn"
+  },
+  "apiBase": {
+    "message": "URL gốc của API"
+  },
+  "agentLabel": {
+    "message": "Nhãn Agent (X-Agent-Id, không phải thông tin xác thực)"
+  },
+  "save": {
+    "message": "Lưu"
+  },
+  "account": {
+    "message": "Tài khoản"
+  },
+  "disconnect": {
+    "message": "Ngắt kết nối"
+  },
+  "accessToken": {
+    "message": "Token truy cập"
+  },
+  "accessTokenHint": {
+    "message": "Token truy cập OAuth do quyền này cấp. Dùng làm token Bearer với endpoint MCP. Hãy giữ nó như mật khẩu."
+  },
+  "show": {
+    "message": "Hiện"
+  },
+  "hide": {
+    "message": "Ẩn"
+  },
+  "copy": {
+    "message": "Sao chép"
+  },
+  "workerDown": {
+    "message": "Worker nền của tiện ích không chạy. Hãy tải lại tiện ích."
+  },
+  "loadingYourBrains": {
+    "message": "Đang tải các bộ não của bạn…"
+  },
+  "loadingBrains": {
+    "message": "Đang tải các bộ não…"
+  },
+  "noWritableBrains": {
+    "message": "Kết nối này không có bộ não nào cho phép ghi. Hãy kết nối lại và chọn một bộ não có quyền ghi."
+  },
+  "refreshFailed": {
+    "message": "Không thể làm mới các bộ não: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Chưa tải được bộ não nào"
+  },
+  "openingZekraPopup": {
+    "message": "Đang mở Zekra… hãy hoàn tất đăng nhập trong cửa sổ mới. Cửa sổ nhỏ này có thể đóng; hãy mở lại khi xong."
+  },
+  "openingZekra": {
+    "message": "Đang mở Zekra… hãy hoàn tất đăng nhập trong cửa sổ mới."
+  },
+  "pickBrain": {
+    "message": "Hãy chọn một bộ não trước."
+  },
+  "brainsStillLoading": {
+    "message": "Các bộ não vẫn đang tải — hãy thử lại sau giây lát."
+  },
+  "savingBackground": {
+    "message": "Đang lưu… (bạn có thể đóng cửa sổ này — việc lưu vẫn tiếp tục ở nền)"
+  },
+  "saving": {
+    "message": "Đang lưu…"
+  },
+  "savedTo": {
+    "message": "Đã lưu vào $1."
+  },
+  "savedSecret": {
+    "message": "Đã lưu “$1” vào $2."
+  },
+  "nameValueRequired": {
+    "message": "Cần nhập cả tên và giá trị."
+  },
+  "signInInProgress": {
+    "message": "Đang đăng nhập trong cửa sổ Zekra — hãy hoàn tất ở đó, rồi mở lại cửa sổ này."
+  },
+  "disconnected": {
+    "message": "Đã ngắt kết nối."
+  },
+  "connected": {
+    "message": "Đã kết nối."
+  },
+  "connectedTo": {
+    "message": "Đã kết nối với $1."
+  },
+  "notConnected": {
+    "message": "Chưa kết nối."
+  },
+  "expires": {
+    "message": "Hết hạn $1 (tự động gia hạn)."
+  },
+  "noExpiry": {
+    "message": "Không có thông tin hết hạn."
+  },
+  "enterHttpsUrl": {
+    "message": "Nhập URL https:// (hoặc http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome chưa cấp quyền truy cập $1."
+  },
+  "saved": {
+    "message": "Đã lưu."
+  },
+  "enterValidBase": {
+    "message": "Hãy nhập URL gốc API hợp lệ trước."
+  },
+  "signInFailed": {
+    "message": "Đăng nhập thất bại."
+  },
+  "copied": {
+    "message": "Đã sao chép vào bộ nhớ tạm."
+  },
+  "errUnreachable": {
+    "message": "Không thể kết nối tới $1. Hãy kiểm tra kết nối của bạn."
+  },
+  "errUnreachableDetail": {
+    "message": "Không thể kết nối tới $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Chưa kết nối. Hãy kết nối tài khoản Zekra."
+  },
+  "errSessionExpired": {
+    "message": "Phiên Zekra của bạn đã hết hạn. Hãy kết nối lại."
+  },
+  "errRateLimited": {
+    "message": "Zekra đang giới hạn số yêu cầu. Hãy đợi một lát rồi thử lại."
+  },
+  "errServer": {
+    "message": "Zekra gặp sự cố ($1). Hãy thử lại sau ít phút."
+  },
+  "errUnexpected": {
+    "message": "Phản hồi không mong đợi từ Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Yêu cầu thất bại ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Yêu cầu thất bại"
+  },
+  "errBrainList": {
+    "message": "Không thể đọc danh sách bộ não từ Zekra"
+  },
+  "errDiscovery": {
+    "message": "Khám phá đăng nhập thất bại ($1) tại $2."
+  },
+  "errNoRegistration": {
+    "message": "Máy chủ Zekra này không nhận đăng ký ứng dụng mới."
+  },
+  "errRegistration": {
+    "message": "Đăng ký ứng dụng thất bại ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Đã hủy đăng nhập."
+  },
+  "errNotFinished": {
+    "message": "Đăng nhập chưa hoàn tất: $1"
+  },
+  "errNotApproved": {
+    "message": "Quyền truy cập chưa được phê duyệt."
+  },
+  "errStateMismatch": {
+    "message": "State không khớp — đăng nhập bị từ chối."
+  },
+  "errNoCode": {
+    "message": "Không nhận được mã ủy quyền."
+  },
+  "errTokenExchange": {
+    "message": "Đổi token thất bại ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Kết nối Zekra của bạn đã kết thúc ($1). Hãy kết nối lại."
+  },
+  "errRefresh": {
+    "message": "Không thể làm mới phiên Zekra của bạn ($1)."
+  },
+  "errSignedOut": {
+    "message": "Đã đăng xuất. Hãy kết nối lại."
+  },
+  "langTag": {
+    "message": "vi"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

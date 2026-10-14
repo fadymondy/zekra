@@ -135,10 +135,9 @@ func (s *Service) TestPush(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
 	defer cancel()
 	res, err := p.sendNow(ctx, uid, pushMessage{
-		Text: map[string]pushText{
-			"en": {Title: "Zekra", Body: "Notifications are working on this device."},
-			"ar": {Title: "ذكرى", Body: "الإشعارات تعمل على هذا الجهاز."},
-		},
+		Text: pushTexts("push.test", nil,
+			pushText{Title: "Zekra", Body: "Notifications are working on this device."},
+			pushText{Title: "ذكرى", Body: "الإشعارات تعمل على هذا الجهاز."}),
 		Data: map[string]string{"type": "test"},
 	})
 	if err != nil {

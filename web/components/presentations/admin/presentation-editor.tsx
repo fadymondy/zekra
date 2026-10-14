@@ -24,6 +24,7 @@ import {
 import { cn } from "cn"
 
 import { useTranslations } from "@/lib/i18n"
+import { dirForLocale } from "@/lib/i18n-locale"
 import { useDocumentTitle } from "@/lib/title"
 import { ApiError, deletePresentation, getCatalog, getPresentation, listPresentations, translatePresentation, updatePresentation, validateContent } from "@/lib/presentations/api"
 import { blankLike, convertType, errorsUnder, getIn, historyOf, insertAt, pathKey, record, redo, removeAt, setIn, undo, type History, type Path } from "@/lib/presentations/edit-path"
@@ -355,8 +356,8 @@ export function PresentationEditor({ id, locale, namespace }: { id: string; loca
   }
 
   const Icon = KIND_ICONS[doc.kind]
-  const Back = locale === "ar" ? ArrowRightIcon : ArrowLeftIcon
-  const dir = lang === "ar" ? "rtl" : "ltr"
+  const Back = dirForLocale(locale) === "rtl" ? ArrowRightIcon : ArrowLeftIcon
+  const dir = dirForLocale(lang)
   const other: PLocale = lang === "en" ? "ar" : "en"
   const schemas = (catalog?.schemas ?? {}) as Record<string, Schema>
   const docSchema = schemas[doc.kind]

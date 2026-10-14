@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Chip, Tile } from "@/components/kit";
 import { useI18n } from "@/lib/i18n";
 import { usePalette } from "@/theme";
+import { intlTag } from "@shared/intl/locales";
 
 import { STYLES, ago, expiry, isKind, orderedLocales, statusTone } from "./presentations-core";
 import type { PStyle } from "./types";
@@ -40,7 +41,7 @@ export function LocaleChips({ locales }: { locales: string[] | null | undefined 
 export function useFormat() {
   const { t, locale } = useI18n();
   return useMemo(() => {
-    const tag = locale === "ar" ? "ar-EG" : "en-US";
+    const tag = intlTag(locale);
     const date = (iso: string) => new Date(iso).toLocaleDateString(tag, { day: "numeric", month: "short", year: "numeric" });
     return {
       kind: (k: string) => (isKind(k) ? t(`presentations.kind.${k}`) : k),

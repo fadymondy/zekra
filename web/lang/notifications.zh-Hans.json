@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "通知",
+  "notifications.bellUnread": "通知，{count} 条未读",
+  "notifications.title": "通知",
+  "notifications.markAllRead": "全部标为已读",
+  "notifications.delete": "删除通知",
+  "notifications.loadMore": "加载更多",
+  "notifications.empty": "你已看完所有通知",
+  "notifications.emptyHint": "当有大脑与你共享，或有人打开了你分享的演示文稿时，会显示在这里。",
+  "notifications.error": "无法加载通知。",
+  "notifications.failed": "无法更新通知，请重试。",
+  "notifications.unread": "未读",
+  "notifications.open": "打开",
+  "notifications.markRead": "标为已读"
+}

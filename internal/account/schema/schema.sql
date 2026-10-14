@@ -123,6 +123,8 @@ CREATE TABLE IF NOT EXISTS account_profiles (
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- The account's language (en, ar, de, zh-Hans, …; '' = follow the device). Additive.
+ALTER TABLE account_profiles ADD COLUMN IF NOT EXISTS locale TEXT NOT NULL DEFAULT '';
 
 -- Notification preferences: a flat object of booleans (the console's contract).
 CREATE TABLE IF NOT EXISTS account_prefs (
