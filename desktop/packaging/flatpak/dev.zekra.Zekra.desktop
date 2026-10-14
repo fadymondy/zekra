@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Zekra
+Comment=Memory for you and your AI agents
+Exec=zekra %U
+Icon=dev.zekra.Zekra
+Terminal=false
+StartupWMClass=Zekra
+Categories=Office;
+Keywords=notes;markdown;memory;brain;ai;
+MimeType=x-scheme-handler/zekra;text/markdown;text/mdx;

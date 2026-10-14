@@ -37,9 +37,13 @@ const platform = process.platform;
 
 const LINUX_AUTOSTART = () => path.join(os.homedir(), ".config", "autostart", "zekra-desktop.desktop");
 
-/** The executable a login launch should run (AppImage path when bundled so). */
+/** The Exec= command a login launch should run, quoted for a .desktop file. */
 function linuxExec(): string {
-  return process.env.APPIMAGE || process.execPath;
+  // Inside a sandbox process.execPath only exists in the sandbox; snapd's own
+  // autostart runs the snap app and ignores Exec=, but keep it truthful.
+  if (process.env.FLATPAK_ID) return `flatpak run ${process.env.FLATPAK_ID}`;
+  if (process.env.SNAP_NAME) return `/snap/bin/${process.env.SNAP_NAME}`;
+  return `"${(process.env.APPIMAGE || process.execPath).replace(/"/g, '\\"')}"`;
 }
 
 export async function applyLoginItem(open: boolean, hidden: boolean): Promise<{ ok: boolean; message?: string }> {
@@ -57,7 +61,7 @@ export async function applyLoginItem(open: boolean, hidden: boolean): Promise<{ 
     } else {
       const file = LINUX_AUTOSTART();
       if (open) {
-        const exec = `"${linuxExec().replace(/"/g, '\\"')}"${hidden ? " --hidden" : ""}`;
+        const exec = `${linuxExec()}${hidden ? " --hidden" : ""}`;
         await fs.mkdir(path.dirname(file), { recursive: true });
         await fs.writeFile(
           file,
