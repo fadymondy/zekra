@@ -34,6 +34,7 @@ import {
   type ShortcutResult,
 } from "../shared/ipc";
 import { proxyRequest } from "./api-proxy";
+import { appleEvents } from "./browser-tab";
 import { setDeepLinkInterceptor } from "./deep-links";
 import { SyncEngine, type HttpResponse } from "./offline/engine";
 import { OfflineStore } from "./offline/store";
@@ -145,7 +146,7 @@ async function servicesInfo(): Promise<ServicesInfo> {
     shortcutError: sc.error,
     launchAtLogin: await loginItemEnabled().catch(() => false),
     shareMenu: platform === "darwin",
-    browserCapture: platform === "darwin",
+    browserCapture: appleEvents,
     notificationActions: notificationActionsSupported(),
   };
 }
@@ -166,7 +167,7 @@ async function captureInit(): Promise<CaptureInit> {
     platform,
     material: platform === "darwin" ? "vibrancy" : platform === "win32" && isWindows11() ? "acrylic" : "none",
     shortcut: displayAccelerator(captureShortcutState().accelerator),
-    browserCapture: platform === "darwin",
+    browserCapture: appleEvents,
     signedIn: Boolean(s.authToken && s.authUser),
     online: e.isOnline,
   };

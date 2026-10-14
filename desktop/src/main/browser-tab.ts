@@ -11,6 +11,10 @@
 //     (electron-builder.yml) or macOS refuses without even prompting.
 //     A denial (-1743) comes back as status "denied" with a hint.
 //
+// Mac App Store builds send no Apple Events at all (appleEvents below): App
+// Review questions the temporary-exception entitlement it would need, so the
+// MAS sandbox (build/entitlements.mas.plist) doesn't ask for one.
+//
 // Firefox has no AppleScript dictionary; it (and every browser on Windows /
 // Linux, where there is no equivalent API) reports "unsupported" and the
 // panel offers the clipboard instead.
@@ -19,6 +23,13 @@
 import { execFile } from "node:child_process";
 
 import type { BrowserTabResult } from "../shared/ipc";
+
+/**
+ * Zekra may drive other apps over AppleScript: browser-tab capture and the
+ * Apple Notes importer. macOS only, and never in a Mac App Store build
+ * (process.mas — set by Electron in MAS binaries only).
+ */
+export const appleEvents = process.platform === "darwin" && !process.mas;
 
 type Flavour = "safari" | "chromium";
 
@@ -85,7 +96,7 @@ export function tabScript(bundleId: string): string | null {
 
 /** Ask `bundleId` (the app that was frontmost) for its active tab. */
 export async function activeBrowserTab(bundleId: string | null): Promise<BrowserTabResult> {
-  if (process.platform !== "darwin") return { status: "unsupported" };
+  if (!appleEvents) return { status: "unsupported" };
   if (!bundleId) return { status: "no-browser" };
   const script = tabScript(bundleId);
   if (!script) return { status: "no-browser", message: bundleId };

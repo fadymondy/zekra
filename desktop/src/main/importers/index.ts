@@ -32,6 +32,7 @@ import type {
   ImportSource,
 } from "../../shared/ipc";
 import { IPC } from "../../shared/ipc";
+import { appleEvents } from "../browser-tab";
 import { AppleNotesError, importAppleNotes } from "./apple-notes";
 import { extractZip, isDir, removeDir } from "./fs-util";
 import { importGoogleKeep } from "./google-keep";
@@ -119,8 +120,8 @@ export async function scanImport(win: BrowserWindow | null, req: ImportScanReque
     ...extra,
   });
   if (!IMPORTERS[source]) return empty("error", { errorCode: "unsupported", error: `Unknown source ${source}` });
-  if (source === "apple-notes" && process.platform !== "darwin") {
-    return empty("error", { errorCode: "unsupported", error: "Apple Notes import is only available on macOS." });
+  if (source === "apple-notes" && !appleEvents) {
+    return empty("error", { errorCode: "unsupported", error: "Apple Notes import is not available in this build." });
   }
 
   await release(id);

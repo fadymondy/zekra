@@ -78,7 +78,8 @@ export function buildMenu(): Menu {
       {
         label: t.importFrom,
         submenu: [
-          cmd(t.importAppleNotes, "import:apple-notes"),
+          // Not in Mac App Store builds (no Apple Events there; browser-tab.ts).
+          ...(process.mas ? [] : [cmd(t.importAppleNotes, "import:apple-notes")]),
           cmd(t.importGoogleKeep, "import:google-keep"),
           cmd(t.importNotion, "import:notion"),
           { type: "separator" },

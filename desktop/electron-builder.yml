@@ -110,7 +110,9 @@ mac:
 # with "Apple Distribution" (app) + "3rd Party Mac Developer Installer" (pkg),
 # both found by the team qualifier below. The profile is MAC_APP_STORE
 # S6A58H95Q5 (created via the ASC API; a profile holds no secret). App
-# Sandbox instead of the hardened runtime; the updater is off (process.mas).
+# Sandbox instead of the hardened runtime. Off in MAS builds (process.mas):
+# the updater, and everything that sends Apple Events (Apple Notes import,
+# Quick Capture "From browser"), so the sandbox needs no temporary exception.
 # CFBundleShortVersionString follows the ASC macOS version record (1.0) and
 # CFBundleVersion must grow with every upload (MAS_BUILD_NUMBER=2 npm run
 # dist:mas). Upload:
