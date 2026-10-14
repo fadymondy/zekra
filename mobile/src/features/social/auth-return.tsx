@@ -13,7 +13,9 @@ import { pickReturnUrl, RETURN_WATCHDOG_MS, returnStep, type ReturnParams } from
 import { cancelBrowserSignIn, completeBrowserReturn } from "./browser-flow";
 import { PROVIDER_NAME, socialErrorKey, type BrowserProvider } from "./social-core";
 
-type Phase = { kind: "working" } | { kind: "failed"; message: string };
+// The failure keeps the string KEY, translated at render: after a cold start the
+// saved language may load after the failure, and the message must follow it.
+type Phase = { kind: "working" } | { kind: "failed"; key: string };
 
 // zekra://auth/github, zekra://auth/google and zekra://auth/apple — where the system browser sends
 // the user back after signing in (browser-flow.ts). The code goes to the
@@ -40,10 +42,10 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
   const settled = useRef(false);
 
   const fail = useCallback(
-    (message: string) => {
+    (key: string) => {
       if (settled.current) return;
       settled.current = true;
-      setPhase({ kind: "failed", message });
+      setPhase({ kind: "failed", key });
     },
     [],
   );
@@ -54,7 +56,7 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
     const url = pickReturnUrl(provider, params, Linking.getLinkingURL());
     breadcrumb(`auth return ${provider} ${url ? "url" : "nourl"}`);
     if (!url) {
-      fail(t("social.returnFailed", { provider: PROVIDER_NAME[provider] }));
+      fail("social.returnFailed");
       return;
     }
     void (async () => {
@@ -73,7 +75,7 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
         const step = returnStep(result.kind);
         if (step === "error") {
           const reason = result.kind === "error" ? result.error.reason : "failed";
-          fail(t(socialErrorKey(provider, { reason }), { provider: PROVIDER_NAME[provider] }));
+          fail(socialErrorKey(provider, { reason }));
           return;
         }
         settled.current = true;
@@ -83,14 +85,14 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
         else router.replace("/");
       } catch (caught) {
         reportError(caught, `auth return ${provider}`);
-        fail(t("social.failed", { provider: PROVIDER_NAME[provider] }));
+        fail("social.failed");
       }
     })();
   }, [provider, params, acceptSession, t, fail]);
 
   // Watchdog: whatever happens above, the user is never left on this screen.
   useEffect(() => {
-    const timer = setTimeout(() => fail(t("social.returnTimeout")), RETURN_WATCHDOG_MS);
+    const timer = setTimeout(() => fail("social.returnTimeout"), RETURN_WATCHDOG_MS);
     return () => clearTimeout(timer);
   }, [fail, t]);
 
@@ -119,7 +121,7 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
             {t("social.returnTitle")}
           </AppText>
           <AppText style={{ fontFamily: fonts.regular, fontSize: 15, lineHeight: 24, color: p.muted, textAlign: "center", maxWidth: 320 }}>
-            {phase.message}
+            {t(phase.key as Parameters<typeof t>[0], { provider: PROVIDER_NAME[provider] })}
           </AppText>
           <View style={{ alignSelf: "stretch", gap: 10, marginTop: 8 }}>
             <PrimaryButton label={t("social.tryAgain")} onPress={tryAgain} />
