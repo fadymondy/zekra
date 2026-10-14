@@ -1,0 +1,11 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "Zekra potrzebuje dostępu do zdjęć, aby można było dodawać obrazy do notatki albo zdjęcia i filmy do mózgu, by mógł je odczytać.",
+    "NSCameraUsageDescription": "Zekra używa aparatu, aby można było sfotografować stronę lub tablicę i dodać jej tekst do mózgu.",
+    "NSFaceIDUsageDescription": "Zekra używa Face ID do odblokowania aplikacji i potwierdzenia, że to Ty, zanim pokaże sekret z sejfu."
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
+}

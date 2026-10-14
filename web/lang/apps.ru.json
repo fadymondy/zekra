@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Подключённые приложения",
+  "apps.micro": "Аккаунт",
+  "apps.title": "Подключённые приложения",
+  "apps.description": "ИИ-приложения, которым вы разрешили использовать ваши мозги по MCP. Отзовите доступ, и он прекратится сразу.",
+  "apps.read": "Чтение",
+  "apps.readWrite": "Чтение и запись",
+  "apps.lastUsed": "Последнее использование: {when}",
+  "apps.neverUsed": "Ещё не использовалось",
+  "apps.connected": "Подключено {date}",
+  "apps.revoke": "Отозвать",
+  "apps.revokeTitle": "Отозвать доступ {name}?",
+  "apps.revokeBody": "Приложение сразу потеряет доступ к вашим мозгам. Чтобы пользоваться им снова, его придётся подключить заново.",
+  "apps.revoked": "Доступ отозван",
+  "apps.revokedOn": "Отозвано {date}",
+  "apps.revokedSection": "Отозванные ({n})",
+  "apps.emptyTitle": "Подключённых приложений пока нет",
+  "apps.emptyBody": "Подключите Claude, ChatGPT, Cursor или другой MCP-клиент, и он появится здесь.",
+  "apps.connectCta": "Подключить агента",
+  "apps.noBrains": "Нет мозгов"
+}

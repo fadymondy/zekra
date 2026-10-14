@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Zekra में सेव करें"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "मौजूदा पेज या चुने हुए टेक्स्ट को नोट के रूप में Zekra ब्रेन में सेव करें।"
+  },
+  "commandCapture": {
+    "message": "चयन/पेज को Zekra में सेव करें"
+  },
+  "menuSaveSelection": {
+    "message": "चयन को Zekra में सेव करें"
+  },
+  "menuSavePage": {
+    "message": "पेज को Zekra में सेव करें"
+  },
+  "connectIntro": {
+    "message": "अपना Zekra अकाउंट कनेक्ट करें और पेज, नोट और सीक्रेट सीधे किसी ब्रेन में सेव करें।"
+  },
+  "connectButton": {
+    "message": "Zekra अकाउंट कनेक्ट करें"
+  },
+  "connectHint": {
+    "message": "साइन इन करने और एक्सेस मंज़ूर करने के लिए Zekra नई विंडो में खुलेगा। इस अनुमति से जारी एक्सेस टोकन के अलावा कुछ भी सेव नहीं किया जाता।"
+  },
+  "tabNote": {
+    "message": "नोट"
+  },
+  "tabVault": {
+    "message": "वॉल्ट"
+  },
+  "labelBrain": {
+    "message": "ब्रेन"
+  },
+  "labelTitle": {
+    "message": "शीर्षक"
+  },
+  "labelNote": {
+    "message": "नोट"
+  },
+  "labelTags": {
+    "message": "टैग (कॉमा से अलग करें)"
+  },
+  "tagsPlaceholder": {
+    "message": "पढ़ना, बाद में"
+  },
+  "reloadPage": {
+    "message": "पेज रीलोड करें"
+  },
+  "reloadPageHint": {
+    "message": "पेज का शीर्षक/URL/चयन दोबारा लोड करें"
+  },
+  "secretName": {
+    "message": "सीक्रेट का नाम"
+  },
+  "secretValue": {
+    "message": "वैल्यू"
+  },
+  "secretValuePlaceholder": {
+    "message": "वैल्यू"
+  },
+  "saveToVault": {
+    "message": "वॉल्ट में सेव करें"
+  },
+  "vaultNote": {
+    "message": "ब्रेन के वॉल्ट में सुरक्षित बंद। वैल्यू सिर्फ़ लिखी जा सकती है, यहाँ दोबारा नहीं पढ़ी जाती।"
+  },
+  "options": {
+    "message": "विकल्प"
+  },
+  "optionsTitle": {
+    "message": "Zekra - विकल्प"
+  },
+  "apiBase": {
+    "message": "API बेस URL"
+  },
+  "agentLabel": {
+    "message": "एजेंट लेबल (X-Agent-Id, यह क्रेडेंशियल नहीं है)"
+  },
+  "save": {
+    "message": "सेव करें"
+  },
+  "account": {
+    "message": "अकाउंट"
+  },
+  "disconnect": {
+    "message": "डिस्कनेक्ट करें"
+  },
+  "accessToken": {
+    "message": "एक्सेस टोकन"
+  },
+  "accessTokenHint": {
+    "message": "इस अनुमति से जारी OAuth एक्सेस टोकन। इसे MCP एंडपॉइंट पर Bearer टोकन की तरह इस्तेमाल करें। इसे पासवर्ड की तरह सँभालकर रखें।"
+  },
+  "show": {
+    "message": "दिखाएँ"
+  },
+  "hide": {
+    "message": "छिपाएँ"
+  },
+  "copy": {
+    "message": "कॉपी करें"
+  },
+  "workerDown": {
+    "message": "एक्सटेंशन का बैकग्राउंड वर्कर नहीं चल रहा है। एक्सटेंशन रीलोड करें।"
+  },
+  "loadingYourBrains": {
+    "message": "आपके ब्रेन लोड हो रहे हैं…"
+  },
+  "loadingBrains": {
+    "message": "ब्रेन लोड हो रहे हैं…"
+  },
+  "noWritableBrains": {
+    "message": "इस कनेक्शन में लिखने योग्य कोई ब्रेन नहीं है। दोबारा कनेक्ट करें और राइट एक्सेस वाला ब्रेन चुनें।"
+  },
+  "refreshFailed": {
+    "message": "ब्रेन रीफ़्रेश नहीं हो सके: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "कोई ब्रेन लोड नहीं हुआ"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra खुल रहा है… नई विंडो में साइन इन पूरा करें। यह पॉपअप बंद हो सकता है; पूरा होने पर इसे दोबारा खोलें।"
+  },
+  "openingZekra": {
+    "message": "Zekra खुल रहा है… नई विंडो में साइन इन पूरा करें।"
+  },
+  "pickBrain": {
+    "message": "पहले एक ब्रेन चुनें।"
+  },
+  "brainsStillLoading": {
+    "message": "ब्रेन अभी लोड हो रहे हैं। थोड़ी देर में दोबारा कोशिश करें।"
+  },
+  "savingBackground": {
+    "message": "सेव हो रहा है… (आप यह पॉपअप बंद कर सकते हैं, सेव बैकग्राउंड में जारी रहेगा)"
+  },
+  "saving": {
+    "message": "सेव हो रहा है…"
+  },
+  "savedTo": {
+    "message": "$1 में सेव हो गया।"
+  },
+  "savedSecret": {
+    "message": "\"$1\" को $2 में सेव किया गया।"
+  },
+  "nameValueRequired": {
+    "message": "नाम और वैल्यू दोनों ज़रूरी हैं।"
+  },
+  "signInInProgress": {
+    "message": "Zekra विंडो में साइन इन चल रहा है। वहाँ पूरा करें, फिर यह पॉपअप दोबारा खोलें।"
+  },
+  "disconnected": {
+    "message": "डिस्कनेक्ट हो गया।"
+  },
+  "connected": {
+    "message": "कनेक्ट हो गया।"
+  },
+  "connectedTo": {
+    "message": "$1 से कनेक्ट हो गया।"
+  },
+  "notConnected": {
+    "message": "कनेक्ट नहीं है।"
+  },
+  "expires": {
+    "message": "$1 को समाप्त होगा (अपने आप रिन्यू होता है)।"
+  },
+  "noExpiry": {
+    "message": "समाप्ति की कोई जानकारी नहीं मिली।"
+  },
+  "enterHttpsUrl": {
+    "message": "https:// URL (या http://localhost) दर्ज करें।"
+  },
+  "hostNotGranted": {
+    "message": "Chrome ने $1 का एक्सेस नहीं दिया।"
+  },
+  "saved": {
+    "message": "सेव हो गया।"
+  },
+  "enterValidBase": {
+    "message": "पहले मान्य API बेस URL दर्ज करें।"
+  },
+  "signInFailed": {
+    "message": "साइन इन नहीं हो सका।"
+  },
+  "copied": {
+    "message": "क्लिपबोर्ड पर कॉपी हो गया।"
+  },
+  "errUnreachable": {
+    "message": "$1 तक नहीं पहुँचा जा सका। अपना कनेक्शन जाँचें।"
+  },
+  "errUnreachableDetail": {
+    "message": "$1 तक नहीं पहुँचा जा सका ($2)।"
+  },
+  "errNotConnected": {
+    "message": "कनेक्ट नहीं है। अपना Zekra अकाउंट कनेक्ट करें।"
+  },
+  "errSessionExpired": {
+    "message": "आपका Zekra सेशन समाप्त हो गया। दोबारा कनेक्ट करें।"
+  },
+  "errRateLimited": {
+    "message": "Zekra अनुरोधों पर सीमा लगा रहा है। थोड़ा रुककर दोबारा कोशिश करें।"
+  },
+  "errServer": {
+    "message": "Zekra में समस्या आई ($1)। थोड़ी देर में दोबारा कोशिश करें।"
+  },
+  "errUnexpected": {
+    "message": "Zekra से अप्रत्याशित जवाब मिला।"
+  },
+  "errRequestFailedStatus": {
+    "message": "अनुरोध विफल रहा ($1)।"
+  },
+  "errRequestFailed": {
+    "message": "अनुरोध विफल रहा"
+  },
+  "errBrainList": {
+    "message": "Zekra से ब्रेन की सूची नहीं पढ़ी जा सकी"
+  },
+  "errDiscovery": {
+    "message": "साइन-इन डिस्कवरी विफल रही ($1), $2 पर।"
+  },
+  "errNoRegistration": {
+    "message": "यह Zekra सर्वर नए ऐप रजिस्ट्रेशन स्वीकार नहीं करता।"
+  },
+  "errRegistration": {
+    "message": "ऐप रजिस्ट्रेशन विफल रहा ($1): $2"
+  },
+  "errCancelled": {
+    "message": "साइन इन रद्द कर दिया गया।"
+  },
+  "errNotFinished": {
+    "message": "साइन इन पूरा नहीं हुआ: $1"
+  },
+  "errNotApproved": {
+    "message": "एक्सेस मंज़ूर नहीं किया गया।"
+  },
+  "errStateMismatch": {
+    "message": "state मेल नहीं खाया, साइन इन अस्वीकार किया गया।"
+  },
+  "errNoCode": {
+    "message": "कोई ऑथराइज़ेशन कोड नहीं मिला।"
+  },
+  "errTokenExchange": {
+    "message": "टोकन एक्सचेंज विफल रहा ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "आपका Zekra कनेक्शन समाप्त हो गया ($1)। दोबारा कनेक्ट करें।"
+  },
+  "errRefresh": {
+    "message": "आपका Zekra सेशन रीफ़्रेश नहीं हो सका ($1)।"
+  },
+  "errSignedOut": {
+    "message": "साइन आउट हो गया। दोबारा कनेक्ट करें।"
+  },
+  "langTag": {
+    "message": "hi"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

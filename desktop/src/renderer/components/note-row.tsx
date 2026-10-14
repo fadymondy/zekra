@@ -2,6 +2,7 @@ import { memo, type MouseEvent } from "react";
 import { Archive, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { intlTag } from "@/lib/intl/locales";
 
 import { NoteIconTile } from "../features/editor/appearance-picker";
 import { ago, rowSnippet } from "../features/notes/notes-model";
@@ -41,7 +42,7 @@ export type OpenHow = "open" | "open-new-tab" | "open-side";
  *  "Yesterday", the weekday this week, else the date. */
 export function useListDate() {
   const { t, locale } = useI18n();
-  const loc = locale === "ar" ? "ar" : "en";
+  const loc = intlTag(locale);
   return (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
@@ -68,7 +69,7 @@ export function useAgo() {
           ? t("notes.x.hours", { n: age.n })
           : age.unit === "d"
             ? t("notes.x.days", { n: age.n })
-            : new Date(iso).toLocaleDateString(locale === "ar" ? "ar" : "en", { month: "short", day: "numeric" });
+            : new Date(iso).toLocaleDateString(intlTag(locale), { month: "short", day: "numeric" });
   };
 }
 

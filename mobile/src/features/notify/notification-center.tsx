@@ -11,6 +11,7 @@ import { formatAgo } from "@/features/brains/brains-core";
 import { routeFromData } from "@/features/push/push-core";
 import { useI18n } from "@/lib/i18n";
 import { fonts, metrics, usePalette, type Palette } from "@/theme";
+import { intlTag } from "@shared/intl/locales";
 
 import { groupByDay, kindVisual, type AppNotification, type DaySection } from "./notify-core";
 import { inboxUnavailable, useNotificationActions, useNotifications, useUnreadCount } from "./use-notifications";
@@ -127,7 +128,7 @@ export function NotificationCenter() {
     if (s.day === "today") return t("notify.today");
     if (s.day === "yesterday") return t("notify.yesterday");
     const sameYear = s.date.getFullYear() === new Date(now).getFullYear();
-    return s.date.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short", day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) });
+    return s.date.toLocaleDateString(intlTag(locale), { weekday: "short", day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) });
   }, [locale, now, t]);
 
   const renderItem = useCallback<ListRenderItem<DaySection>>(({ item: s }) => (

@@ -6,6 +6,7 @@ import { EditorContent, useEditor } from "@tiptap/react"
 import { editorExtensions } from "./editor-extensions"
 import { findLossyConstructs } from "./lossy-markdown"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "@/lib/i18n"
 import { useNoteSettings } from "./note-settings-panel"
 import { readerStyle } from "@/lib/notes/note-settings"
 import { ImageUploadError, imageFilesFrom, uploadNoteImage } from "@/lib/notes/upload-image"
@@ -75,6 +76,7 @@ export function NoteEditorWysiwyg({
   every keystroke.
   */
   const [override, setOverride] = useState(false)
+  const { t: tr, locale } = useTranslations()
   const lossy = useMemo(() => findLossyConstructs(value), [value])
   // A new note being opened must re-arm the guard.
   useEffect(() => setOverride(false), [value])
@@ -203,16 +205,18 @@ export function NoteEditorWysiwyg({
       <div className="space-y-3 rounded-md border border-nq-accent/50 bg-nq-surface-soft p-4">
         <div>
           <p className="text-sm font-medium text-foreground">
-            This note uses markdown the visual editor cannot preserve.
+            {tr("notes.lossy.title")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Editing it here would remove {lossy.map((l) => l.label.toLowerCase()).join(" and ")} when it saves.
+            {tr("notes.lossy.detail", {
+              items: new Intl.ListFormat(locale, { type: "conjunction" }).format(lossy.map((l) => tr(`notes.lossy.${l.label}Inline`))),
+            })}
           </p>
         </div>
         <ul className="space-y-1">
           {lossy.map((l) => (
             <li key={l.kind} className="font-mono text-xs text-muted-foreground">
-              {l.label}: <span className="text-foreground">{l.sample}</span>
+              {tr(`notes.lossy.${l.label}`)}: <span className="text-foreground">{l.sample}</span>
             </li>
           ))}
         </ul>
@@ -221,7 +225,7 @@ export function NoteEditorWysiwyg({
           onClick={() => setOverride(true)}
           className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-card"
         >
-          Edit anyway and lose them
+          {tr("notes.lossy.override")}
         </button>
       </div>
     )

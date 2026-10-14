@@ -12,6 +12,7 @@
 // done atomically (temp file + rename).
 "use strict";
 
+import { localized } from "./i18n";
 import { BrowserWindow, dialog } from "electron";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
@@ -43,7 +44,7 @@ const STRINGS = {
 } as const;
 
 function str(key: keyof (typeof STRINGS)["en"], tool: string): string {
-  return STRINGS[getMenuLocale() === "ar" ? "ar" : "en"][key].replace("{tool}", tool);
+  return localized(getMenuLocale(), "mcp", STRINGS.en, STRINGS.ar)[key].replace("{tool}", tool);
 }
 
 function configPath(target: McpTarget): string {

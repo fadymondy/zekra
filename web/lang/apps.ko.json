@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "연결된 앱",
+  "apps.micro": "계정",
+  "apps.title": "연결된 앱",
+  "apps.description": "MCP로 내 브레인을 쓰도록 허용한 AI 앱이에요. 해제하면 접근이 즉시 끊겨요.",
+  "apps.read": "읽기",
+  "apps.readWrite": "읽기 + 쓰기",
+  "apps.lastUsed": "마지막 사용 {when}",
+  "apps.neverUsed": "아직 사용 안 함",
+  "apps.connected": "{date}에 연결됨",
+  "apps.revoke": "해제",
+  "apps.revokeTitle": "{name} 연결을 해제할까요?",
+  "apps.revokeBody": "앱이 내 브레인에 대한 접근 권한을 즉시 잃어요. 다시 쓰려면 다시 연결해야 해요.",
+  "apps.revoked": "접근을 해제했어요",
+  "apps.revokedOn": "{date}에 해제됨",
+  "apps.revokedSection": "해제됨 ({n})",
+  "apps.emptyTitle": "연결된 앱이 아직 없어요",
+  "apps.emptyBody": "Claude, ChatGPT, Cursor 또는 다른 MCP 클라이언트를 연결하면 여기에 표시돼요.",
+  "apps.connectCta": "에이전트 연결",
+  "apps.noBrains": "브레인 없음"
+}

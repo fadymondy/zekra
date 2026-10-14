@@ -3,6 +3,7 @@
 import { useDocumentTitle } from "@/lib/title"
 import type { DeckContent, PageContent, PublicPresentation, ReportContent } from "@/lib/presentations/types"
 import { useTranslations } from "@/lib/i18n"
+import { dirForLocale } from "@/lib/i18n-locale"
 import { DeckViewer } from "./deck-viewer"
 import { PagePreview } from "./page-preview"
 import { ReportView } from "./report-view"
@@ -14,7 +15,7 @@ charts are; the page is still server-rendered on first load.
 export function SharedView({ doc, who, token }: { doc: PublicPresentation; who: string; token?: string }) {
   const { t } = useTranslations()
   useDocumentTitle(doc.title)
-  const dir = doc.locale === "ar" ? "rtl" : "ltr"
+  const dir = dirForLocale(doc.locale)
   switch (doc.kind) {
     case "deck":
       return (

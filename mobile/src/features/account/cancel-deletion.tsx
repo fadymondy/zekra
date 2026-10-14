@@ -5,7 +5,7 @@ import { View } from "react-native";
 import { ErrorLine } from "@/components/kit";
 import { AppText, CodeField, Field, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { ApiError, zekraApi } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, tallScript } from "@/lib/i18n";
 import { fonts, usePalette } from "@/theme";
 
 // Cancelling a scheduled deletion. Scheduling signs the account out everywhere
@@ -79,7 +79,7 @@ export function CancelDeletionForm({ initialEmail = "", onCancelled }: { initial
       />
       {sentTo ? (
         <>
-          <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: locale === "ar" ? 27 : 23, color: p.body }}>
+          <AppText style={{ fontFamily: fonts.light, fontSize: 14.5, lineHeight: tallScript(locale) ? 27 : 23, color: p.body }}>
             {t("deletion.cancelCodeSent", { email: sentTo })}
           </AppText>
           <CodeField label={t("deletion.code")} value={code} onChangeText={setCode} onComplete={(v) => void cancel(v)} />

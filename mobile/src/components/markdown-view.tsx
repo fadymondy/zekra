@@ -161,7 +161,7 @@ export function MarkdownView({ text, palette: base }: { text: string; palette: P
   const { t } = useI18n();
   const copyLabel = t("code.copy");
   const blocks = parseBlocks(text);
-  if (!blocks.length) return <Text style={{ color: palette.muted }}>Nothing written yet.</Text>;
+  if (!blocks.length) return <Text style={{ color: palette.muted }}>{t("note.nothingYet")}</Text>;
   return (
     <View style={styles.wrap}>
       {blocks.map((block, index) => {

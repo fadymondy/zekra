@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Save to Zekra</title>
+  <title data-i18n="extName">Save to Zekra</title>
   <link rel="stylesheet" href="tokens.css" />
   <style>
     body { width: 360px; padding: 0 0 14px; }
@@ -11,67 +11,67 @@
   </style>
 </head>
 <body>
-  <h1><img src="icons/mark.svg" alt="" width="22" height="18" /> Save to Zekra</h1>
+  <h1><img src="icons/mark.svg" alt="" width="22" height="18" /> <span data-i18n="extName">Save to Zekra</span></h1>
 
   <!-- Signed out: OAuth, not a pasted token. -->
   <div id="signedOut" class="zk-card zk-stack" hidden>
-    <p class="zk-muted">Connect your Zekra account to save pages, notes and secrets straight into a brain.</p>
-    <button id="signInBtn">Connect Zekra account</button>
+    <p class="zk-muted" data-i18n="connectIntro">Connect your Zekra account to save pages, notes and secrets straight into a brain.</p>
+    <button id="signInBtn" data-i18n="connectButton">Connect Zekra account</button>
     <div id="authStatus"></div>
-    <p class="zk-muted">Opens Zekra in a new window to sign in and approve access. Nothing is stored except the access token this grant issues.</p>
+    <p class="zk-muted" data-i18n="connectHint">Opens Zekra in a new window to sign in and approve access. Nothing is stored except the access token this grant issues.</p>
   </div>
 
   <div id="tabs" class="zk-tabs" hidden>
-    <button id="tabNote" class="zk-tab zk-tab-active" type="button">Note</button>
-    <button id="tabVault" class="zk-tab" type="button">Vault</button>
+    <button id="tabNote" class="zk-tab zk-tab-active" type="button" data-i18n="tabNote">Note</button>
+    <button id="tabVault" class="zk-tab" type="button" data-i18n="tabVault">Vault</button>
   </div>
 
   <div id="captureForm" class="zk-card zk-stack" hidden>
     <div>
-      <label class="zk-label" for="brainSelect">Brain</label>
+      <label class="zk-label" for="brainSelect" data-i18n="labelBrain">Brain</label>
       <select id="brainSelect"></select>
       <div id="brainsStatus" class="zk-muted"></div>
     </div>
     <div>
-      <label class="zk-label" for="titleInput">Title</label>
+      <label class="zk-label" for="titleInput" data-i18n="labelTitle">Title</label>
       <input id="titleInput" type="text" />
     </div>
     <div>
-      <label class="zk-label" for="bodyInput">Note</label>
+      <label class="zk-label" for="bodyInput" data-i18n="labelNote">Note</label>
       <textarea id="bodyInput" rows="5"></textarea>
     </div>
     <div>
-      <label class="zk-label" for="tagsInput">Tags (comma separated)</label>
-      <input id="tagsInput" type="text" placeholder="reading, later" />
+      <label class="zk-label" for="tagsInput" data-i18n="labelTags">Tags (comma separated)</label>
+      <input id="tagsInput" type="text" placeholder="reading, later" data-i18n-placeholder="tagsPlaceholder" />
     </div>
     <div class="zk-row">
-      <button id="saveBtn">Save to Zekra</button>
-      <button id="refreshBtn" class="zk-secondary" title="Reload page title/URL/selection">Reload page</button>
+      <button id="saveBtn" data-i18n="extName">Save to Zekra</button>
+      <button id="refreshBtn" class="zk-secondary" title="Reload page title/URL/selection" data-i18n="reloadPage" data-i18n-title="reloadPageHint">Reload page</button>
     </div>
     <div id="status"></div>
   </div>
 
   <div id="vaultForm" class="zk-card zk-stack" hidden>
     <div>
-      <label class="zk-label" for="vaultBrainSelect">Brain</label>
+      <label class="zk-label" for="vaultBrainSelect" data-i18n="labelBrain">Brain</label>
       <select id="vaultBrainSelect"></select>
     </div>
     <div>
-      <label class="zk-label" for="secretName">Secret name</label>
+      <label class="zk-label" for="secretName" data-i18n="secretName">Secret name</label>
       <input id="secretName" type="text" placeholder="stripe-api-key" autocomplete="off" />
     </div>
     <div>
-      <label class="zk-label" for="secretValue">Value</label>
-      <input id="secretValue" type="password" placeholder="value" autocomplete="off" />
+      <label class="zk-label" for="secretValue" data-i18n="secretValue">Value</label>
+      <input id="secretValue" type="password" placeholder="value" data-i18n-placeholder="secretValuePlaceholder" autocomplete="off" />
     </div>
-    <button id="saveSecretBtn">Save to vault</button>
+    <button id="saveSecretBtn" data-i18n="saveToVault">Save to vault</button>
     <div id="vaultStatus"></div>
-    <p class="zk-muted">Sealed in the brain's vault. Values are write-only — never read back here.</p>
+    <p class="zk-muted" data-i18n="vaultNote">Sealed in the brain's vault. Values are write-only — never read back here.</p>
   </div>
 
   <div class="zk-footer">
     <span class="zk-muted" id="baseLabel"></span>
-    <a id="optionsLink" href="#" class="zk-muted">Options</a>
+    <a id="optionsLink" href="#" class="zk-muted" data-i18n="options">Options</a>
   </div>
 
   <script src="browser-shim.js"></script>

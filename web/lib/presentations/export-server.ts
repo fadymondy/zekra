@@ -4,7 +4,7 @@ One export path for both doors: the customer's share link
 (/{locale}/b/{namespace}/presentations/{id}/export/{format}). Both hand over already-loaded
 content; this renders it. Server only.
 */
-import { translate } from "@/lib/i18n-server"
+import { loadMessages, translate } from "@/lib/i18n-server"
 
 import { deckPrintHTML, reportPrintHTML } from "./export-html.ts"
 import { markdownToHtml } from "./md-html.ts"
@@ -84,6 +84,7 @@ export async function renderExport(input: {
   if (!formatsFor(kind).includes(format)) {
     return text(`This ${kind} has no ${format} export. Available: ${formatsFor(kind).join(", ") || "none"}.`, 404)
   }
+  await loadMessages(locale)
   const t = (key: string) => translate(key, locale)
   const title = String(input.content.title ?? "document")
   const headers = {

@@ -36,6 +36,7 @@
 //     exercises the flow from `npm run dev`.
 "use strict";
 
+import { localized } from "./i18n";
 import { app, BrowserWindow, dialog, Notification, powerMonitor } from "electron";
 import { autoUpdater, type ProgressInfo, type UpdateInfo } from "electron-updater";
 import * as fs from "node:fs";
@@ -71,7 +72,7 @@ const T = {
     installing: "جارٍ تثبيت التحديث…",
   },
 } as const;
-const tt = () => T[getMenuLocale() === "ar" ? "ar" : "en"];
+const tt = () => localized(getMenuLocale(), "updater", T.en, T.ar);
 
 let state: UpdateState = { status: "idle" };
 let wired = false;

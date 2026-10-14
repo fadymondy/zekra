@@ -4,6 +4,7 @@ import { memo } from "react"
 import { ArchiveIcon, AlertTriangleIcon, Loader2Icon } from "lucide-react"
 
 import { useTranslations } from "@/lib/i18n"
+import { intlTag } from "@/lib/i18n-locale"
 import type { Note } from "@/lib/notes"
 import { listDate, rowSnippet } from "@/lib/notes/note-groups"
 import { noteIcon } from "@/lib/notes/note-icon"
@@ -48,7 +49,7 @@ export const NoteListRow = memo(function NoteListRow({ note, selected, onSelect,
   onAppearance: (patch: { icon?: string; color?: string }) => void
 }) {
   const { t, locale } = useTranslations()
-  const when = listDate(note.updatedAt, locale === "ar" ? "ar" : "en", t("notes.grp.yesterday"))
+  const when = listDate(note.updatedAt, intlTag(locale), t("notes.grp.yesterday"))
   const text = rowSnippet(note)
   return (
     <NoteRowActions

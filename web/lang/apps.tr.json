@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Bağlı uygulamalar",
+  "apps.micro": "Hesap",
+  "apps.title": "Bağlı uygulamalar",
+  "apps.description": "MCP üzerinden beyinlerinizi kullanmasına izin verdiğiniz yapay zekâ uygulamaları. Birinin erişimini iptal ederseniz erişim hemen kesilir.",
+  "apps.read": "Okuma",
+  "apps.readWrite": "Okuma + yazma",
+  "apps.lastUsed": "Son kullanım: {when}",
+  "apps.neverUsed": "Henüz kullanılmadı",
+  "apps.connected": "Bağlanma tarihi: {date}",
+  "apps.revoke": "İptal et",
+  "apps.revokeTitle": "{name} iptal edilsin mi?",
+  "apps.revokeBody": "Uygulama beyinlerinize erişimini hemen kaybeder. Yeniden kullanmak için tekrar bağlamanız gerekir.",
+  "apps.revoked": "Erişim iptal edildi",
+  "apps.revokedOn": "İptal tarihi: {date}",
+  "apps.revokedSection": "İptal edilenler ({n})",
+  "apps.emptyTitle": "Henüz bağlı uygulama yok",
+  "apps.emptyBody": "Claude, ChatGPT, Cursor veya başka bir MCP istemcisini bağlayın; burada görünür.",
+  "apps.connectCta": "Ajan bağla",
+  "apps.noBrains": "Beyin yok"
+}

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKe
 import { createRoot } from "react-dom/client";
 
 import type { CaptureInit } from "../../shared/ipc";
+import { dirForLocale } from "@/lib/intl/locales";
+
+import { sectionStrings } from "../i18n/sections";
 import { installAppearanceSync } from "../lib/appearance";
 
 /*
@@ -74,7 +77,7 @@ function applyChrome(init: CaptureInit) {
   root.dataset.platform = init.platform;
   root.dataset.material = init.material;
   root.lang = init.locale;
-  root.dir = init.locale === "ar" ? "rtl" : "ltr";
+  root.dir = dirForLocale(init.locale);
 }
 
 function Capture() {
@@ -87,7 +90,7 @@ function Capture() {
   const [note, setNote] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-  const t: Strings = STR[init?.locale === "ar" ? "ar" : "en"];
+  const t: Strings = sectionStrings(init?.locale ?? "en", "capture", STR.en, STR.ar);
 
   const receive = useCallback((next: CaptureInit) => {
     applyChrome(next);

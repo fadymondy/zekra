@@ -272,7 +272,7 @@ func TestPushNotConfiguredIsNoop(t *testing.T) {
 
 func TestPushTextAndMasking(t *testing.T) {
 	m := brainAccessMessage("team-x", "Team X")
-	if m.textFor("ar").Title == m.textFor("en").Title || m.textFor("fr").Title != m.textFor("en").Title {
+	if m.textFor("ar").Title == m.textFor("en").Title || m.textFor("fr").Title == m.textFor("en").Title || m.textFor("xx").Title != m.textFor("en").Title {
 		t.Fatal("locale selection / fallback broken")
 	}
 	if m.Data["route"] != "/brain/team-x" {
@@ -284,7 +284,7 @@ func TestPushTextAndMasking(t *testing.T) {
 	if r := presentationViewedPush("p1", "").Data["route"]; r != "/presentation/p1" {
 		t.Fatalf("route = %q", r)
 	}
-	for in, want := range map[string]string{"ar-EG": "ar", "AR": "ar", "en_US": "en", "": "en", "fr": "en"} {
+	for in, want := range map[string]string{"ar-EG": "ar", "AR": "ar", "en_US": "en", "": "en", "fr": "fr", "sv": "en"} {
 		if got := normalizePushLocale(in); got != want {
 			t.Errorf("normalizePushLocale(%q) = %q", in, got)
 		}

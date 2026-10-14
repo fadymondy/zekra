@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Zekra에 저장"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "현재 페이지나 선택한 텍스트를 노트로 Zekra 브레인에 저장해요."
+  },
+  "commandCapture": {
+    "message": "선택 영역/페이지를 Zekra에 저장"
+  },
+  "menuSaveSelection": {
+    "message": "선택 영역을 Zekra에 저장"
+  },
+  "menuSavePage": {
+    "message": "페이지를 Zekra에 저장"
+  },
+  "connectIntro": {
+    "message": "Zekra 계정을 연결하면 페이지, 노트, 비밀 정보를 브레인에 바로 저장할 수 있어요."
+  },
+  "connectButton": {
+    "message": "Zekra 계정 연결"
+  },
+  "connectHint": {
+    "message": "새 창에서 Zekra를 열어 로그인하고 접근을 승인해요. 이 권한으로 발급된 액세스 토큰 외에는 아무것도 저장되지 않아요."
+  },
+  "tabNote": {
+    "message": "노트"
+  },
+  "tabVault": {
+    "message": "보관함"
+  },
+  "labelBrain": {
+    "message": "브레인"
+  },
+  "labelTitle": {
+    "message": "제목"
+  },
+  "labelNote": {
+    "message": "노트"
+  },
+  "labelTags": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "tagsPlaceholder": {
+    "message": "읽을거리, 나중에"
+  },
+  "reloadPage": {
+    "message": "페이지 새로고침"
+  },
+  "reloadPageHint": {
+    "message": "페이지 제목/URL/선택 영역을 다시 불러와요"
+  },
+  "secretName": {
+    "message": "비밀 정보 이름"
+  },
+  "secretValue": {
+    "message": "값"
+  },
+  "secretValuePlaceholder": {
+    "message": "값"
+  },
+  "saveToVault": {
+    "message": "보관함에 저장"
+  },
+  "vaultNote": {
+    "message": "브레인의 보관함에 안전하게 봉인돼요. 값은 쓰기 전용이라 여기에서 다시 읽을 수 없어요."
+  },
+  "options": {
+    "message": "옵션"
+  },
+  "optionsTitle": {
+    "message": "Zekra - 옵션"
+  },
+  "apiBase": {
+    "message": "API 기본 URL"
+  },
+  "agentLabel": {
+    "message": "에이전트 라벨 (X-Agent-Id, 자격 증명 아님)"
+  },
+  "save": {
+    "message": "저장"
+  },
+  "account": {
+    "message": "계정"
+  },
+  "disconnect": {
+    "message": "연결 해제"
+  },
+  "accessToken": {
+    "message": "액세스 토큰"
+  },
+  "accessTokenHint": {
+    "message": "이 권한으로 발급된 OAuth 액세스 토큰이에요. MCP 엔드포인트에 Bearer 토큰으로 사용하세요. 비밀번호처럼 다루세요."
+  },
+  "show": {
+    "message": "표시"
+  },
+  "hide": {
+    "message": "숨기기"
+  },
+  "copy": {
+    "message": "복사"
+  },
+  "workerDown": {
+    "message": "확장 프로그램의 백그라운드 워커가 실행되고 있지 않아요. 확장 프로그램을 다시 로드하세요."
+  },
+  "loadingYourBrains": {
+    "message": "브레인을 불러오는 중…"
+  },
+  "loadingBrains": {
+    "message": "브레인을 불러오는 중…"
+  },
+  "noWritableBrains": {
+    "message": "이 연결에는 쓰기 가능한 브레인이 없어요. 다시 연결하고 쓰기 권한이 있는 브레인을 선택하세요."
+  },
+  "refreshFailed": {
+    "message": "브레인을 새로 고치지 못했어요: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "불러온 브레인이 없어요"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra를 여는 중… 새 창에서 로그인을 마치세요. 이 팝업이 닫힐 수 있으니, 끝나면 다시 여세요."
+  },
+  "openingZekra": {
+    "message": "Zekra를 여는 중… 새 창에서 로그인을 마치세요."
+  },
+  "pickBrain": {
+    "message": "먼저 브레인을 선택하세요."
+  },
+  "brainsStillLoading": {
+    "message": "브레인을 아직 불러오는 중이에요. 잠시 후 다시 시도하세요."
+  },
+  "savingBackground": {
+    "message": "저장하는 중… (이 팝업을 닫아도 저장은 백그라운드에서 계속돼요)"
+  },
+  "saving": {
+    "message": "저장하는 중…"
+  },
+  "savedTo": {
+    "message": "$1에 저장했어요."
+  },
+  "savedSecret": {
+    "message": "\"$1\"을(를) $2에 저장했어요."
+  },
+  "nameValueRequired": {
+    "message": "이름과 값을 모두 입력하세요."
+  },
+  "signInInProgress": {
+    "message": "Zekra 창에서 로그인이 진행 중이에요. 그곳에서 마친 뒤 이 팝업을 다시 여세요."
+  },
+  "disconnected": {
+    "message": "연결을 해제했어요."
+  },
+  "connected": {
+    "message": "연결됐어요."
+  },
+  "connectedTo": {
+    "message": "$1에 연결됐어요."
+  },
+  "notConnected": {
+    "message": "연결되지 않았어요."
+  },
+  "expires": {
+    "message": "$1에 만료돼요 (자동으로 갱신돼요)."
+  },
+  "noExpiry": {
+    "message": "만료 시간이 보고되지 않았어요."
+  },
+  "enterHttpsUrl": {
+    "message": "https:// URL(또는 http://localhost)을 입력하세요."
+  },
+  "hostNotGranted": {
+    "message": "Chrome이 $1에 대한 접근을 허용하지 않았어요."
+  },
+  "saved": {
+    "message": "저장했어요."
+  },
+  "enterValidBase": {
+    "message": "먼저 올바른 API 기본 URL을 입력하세요."
+  },
+  "signInFailed": {
+    "message": "로그인하지 못했어요."
+  },
+  "copied": {
+    "message": "클립보드에 복사했어요."
+  },
+  "errUnreachable": {
+    "message": "$1에 연결할 수 없어요. 네트워크 연결을 확인하세요."
+  },
+  "errUnreachableDetail": {
+    "message": "$1에 연결할 수 없어요 ($2)."
+  },
+  "errNotConnected": {
+    "message": "연결되지 않았어요. Zekra 계정을 연결하세요."
+  },
+  "errSessionExpired": {
+    "message": "Zekra 세션이 만료됐어요. 다시 연결하세요."
+  },
+  "errRateLimited": {
+    "message": "Zekra가 요청을 제한하고 있어요. 잠시 기다렸다가 다시 시도하세요."
+  },
+  "errServer": {
+    "message": "Zekra에 문제가 생겼어요 ($1). 잠시 후 다시 시도하세요."
+  },
+  "errUnexpected": {
+    "message": "Zekra에서 예상하지 못한 응답이 왔어요."
+  },
+  "errRequestFailedStatus": {
+    "message": "요청에 실패했어요 ($1)."
+  },
+  "errRequestFailed": {
+    "message": "요청에 실패했어요"
+  },
+  "errBrainList": {
+    "message": "Zekra에서 브레인 목록을 읽지 못했어요"
+  },
+  "errDiscovery": {
+    "message": "로그인 정보를 찾지 못했어요 ($1): $2."
+  },
+  "errNoRegistration": {
+    "message": "이 Zekra 서버는 새 앱 등록을 받지 않아요."
+  },
+  "errRegistration": {
+    "message": "앱 등록에 실패했어요 ($1): $2"
+  },
+  "errCancelled": {
+    "message": "로그인이 취소됐어요."
+  },
+  "errNotFinished": {
+    "message": "로그인을 마치지 못했어요: $1"
+  },
+  "errNotApproved": {
+    "message": "접근이 승인되지 않았어요."
+  },
+  "errStateMismatch": {
+    "message": "state가 일치하지 않아 로그인을 거부했어요."
+  },
+  "errNoCode": {
+    "message": "인증 코드가 반환되지 않았어요."
+  },
+  "errTokenExchange": {
+    "message": "토큰 교환에 실패했어요 ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Zekra 연결이 종료됐어요 ($1). 다시 연결하세요."
+  },
+  "errRefresh": {
+    "message": "Zekra 세션을 갱신하지 못했어요 ($1)."
+  },
+  "errSignedOut": {
+    "message": "로그아웃됐어요. 다시 연결하세요."
+  },
+  "langTag": {
+    "message": "ko"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

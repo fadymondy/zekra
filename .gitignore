@@ -48,3 +48,6 @@ web/vite.preview.local.ts
 togo.db
 
 .mahaam-pending.md
+
+# i18n translation workspace (scripts/i18n/export.mjs)
+/.i18n-work/

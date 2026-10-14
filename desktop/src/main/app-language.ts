@@ -4,13 +4,14 @@
 // app launches, from the app's preferred localization — Electron can't flip an
 // NSMenu to RTL at runtime. So the app's own `AppleLanguages` default (its
 // defaults domain only, never the system's) mirrors the Zekra UI language, and
-// the app relaunches when that default had to change. The bundle ships
-// ar.lproj + en.lproj, so AppKit honours both.
+// the app relaunches when that default had to change. The bundle ships an
+// .lproj per Zekra language (electronLanguages), so AppKit honours all of them.
 "use strict";
 
 import { app, systemPreferences } from "electron";
 
 import type { LocaleId } from "../shared/ipc";
+import { isRtlLocale } from "./i18n";
 
 /** Passed on the one automatic relaunch, so a default that doesn't stick can
  *  never loop relaunches. */
@@ -18,12 +19,12 @@ const RELAUNCH_FLAG = "--zekra-language-applied";
 
 /** Whether AppKit laid this process out right-to-left: fixed at launch, so
  *  captured before the default is rewritten. The traffic lights follow it
- *  (top-right in Arabic). */
+ *  (top-right in Arabic or any other RTL language). */
 let launchedRtl: boolean | null = null;
 
 export function nativeRtl(): boolean {
   if (process.platform !== "darwin") return false;
-  if (launchedRtl === null) launchedRtl = currentAppLanguage().toLowerCase().startsWith("ar");
+  if (launchedRtl === null) launchedRtl = isRtlLocale(currentAppLanguage());
   return launchedRtl;
 }
 
@@ -33,7 +34,8 @@ function currentAppLanguage(): string {
 }
 
 function matches(locale: LocaleId): boolean {
-  return currentAppLanguage().toLowerCase().split(/[-_]/)[0] === locale;
+  const primary = (tag: string) => tag.toLowerCase().split(/[-_]/)[0];
+  return primary(currentAppLanguage()) === primary(locale);
 }
 
 /** Point this app's AppKit language at `locale`. True if it changed (the

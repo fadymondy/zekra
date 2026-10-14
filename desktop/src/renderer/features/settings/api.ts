@@ -1,3 +1,4 @@
+import { isLocale } from "@/lib/intl/locales";
 import { request } from "../../lib/api";
 
 /*
@@ -31,5 +32,5 @@ export const SITE = "https://zekra.dev";
 export const SUPPORT_EMAIL = "info@3x1.io";
 export function legalUrl(doc: "privacy" | "terms" | "support", locale: string): string {
   const path = doc === "support" ? "/support" : `/legal/${doc}`;
-  return `${SITE}/${locale === "ar" ? "ar" : "en"}${path}`;
+  return `${SITE}/${isLocale(locale) ? locale : "en"}${path}`;
 }

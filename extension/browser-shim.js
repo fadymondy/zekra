@@ -72,6 +72,29 @@
         throw new Error("OAuth sign-in only works in the real extension, not this web preview.");
       },
     },
+    // English messages, read synchronously like the real API (the preview has no other locale).
+    i18n: (() => {
+      let messages = null;
+      const load = () => {
+        if (messages) return messages;
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", "_locales/en/messages.json", false);
+          xhr.send();
+          messages = JSON.parse(xhr.responseText);
+        } catch {
+          messages = {};
+        }
+        return messages;
+      };
+      return {
+        getUILanguage() { return "en"; },
+        getMessage(key, subs = []) {
+          const m = load()[key]?.message || "";
+          return [].concat(subs).reduce((s, v, i) => s.replaceAll("$" + (i + 1), String(v)), m);
+        },
+      };
+    })(),
     permissions: {
       async contains() { return true; },
       async request() { return true; },

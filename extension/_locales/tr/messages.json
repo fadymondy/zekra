@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Zekra'ya Kaydet"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Geçerli sayfayı veya seçili metni not olarak bir Zekra beynine kaydedin."
+  },
+  "commandCapture": {
+    "message": "Seçimi/sayfayı Zekra'ya kaydet"
+  },
+  "menuSaveSelection": {
+    "message": "Seçimi Zekra'ya kaydet"
+  },
+  "menuSavePage": {
+    "message": "Sayfayı Zekra'ya kaydet"
+  },
+  "connectIntro": {
+    "message": "Sayfaları, notları ve gizli bilgileri doğrudan bir beyne kaydetmek için Zekra hesabınızı bağlayın."
+  },
+  "connectButton": {
+    "message": "Zekra hesabını bağla"
+  },
+  "connectHint": {
+    "message": "Giriş yapıp erişimi onaylamak için Zekra'yı yeni bir pencerede açar. Bu yetkinin verdiği erişim belirteci dışında hiçbir şey saklanmaz."
+  },
+  "tabNote": {
+    "message": "Not"
+  },
+  "tabVault": {
+    "message": "Kasa"
+  },
+  "labelBrain": {
+    "message": "Beyin"
+  },
+  "labelTitle": {
+    "message": "Başlık"
+  },
+  "labelNote": {
+    "message": "Not"
+  },
+  "labelTags": {
+    "message": "Etiketler (virgülle ayırın)"
+  },
+  "tagsPlaceholder": {
+    "message": "okuma, sonra"
+  },
+  "reloadPage": {
+    "message": "Sayfayı yenile"
+  },
+  "reloadPageHint": {
+    "message": "Sayfa başlığını/URL'sini/seçimini yenile"
+  },
+  "secretName": {
+    "message": "Gizli bilgi adı"
+  },
+  "secretValue": {
+    "message": "Değer"
+  },
+  "secretValuePlaceholder": {
+    "message": "değer"
+  },
+  "saveToVault": {
+    "message": "Kasaya kaydet"
+  },
+  "vaultNote": {
+    "message": "Beynin kasasında mühürlenir. Değerler yalnızca yazılabilir; burada asla geri okunmaz."
+  },
+  "options": {
+    "message": "Seçenekler"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Seçenekler"
+  },
+  "apiBase": {
+    "message": "API temel URL'si"
+  },
+  "agentLabel": {
+    "message": "Ajan etiketi (X-Agent-Id, kimlik bilgisi değildir)"
+  },
+  "save": {
+    "message": "Kaydet"
+  },
+  "account": {
+    "message": "Hesap"
+  },
+  "disconnect": {
+    "message": "Bağlantıyı kes"
+  },
+  "accessToken": {
+    "message": "Erişim belirteci"
+  },
+  "accessTokenHint": {
+    "message": "Bu yetkinin verdiği OAuth erişim belirteci. MCP uç noktasında Bearer belirteci olarak kullanın. Parola gibi koruyun."
+  },
+  "show": {
+    "message": "Göster"
+  },
+  "hide": {
+    "message": "Gizle"
+  },
+  "copy": {
+    "message": "Kopyala"
+  },
+  "workerDown": {
+    "message": "Uzantının arka plan işlemi çalışmıyor. Uzantıyı yeniden yükleyin."
+  },
+  "loadingYourBrains": {
+    "message": "Beyinleriniz yükleniyor…"
+  },
+  "loadingBrains": {
+    "message": "Beyinler yükleniyor…"
+  },
+  "noWritableBrains": {
+    "message": "Bu bağlantıda yazılabilir beyin yok. Yeniden bağlanın ve yazma erişimi olan bir beyni işaretleyin."
+  },
+  "refreshFailed": {
+    "message": "Beyinler yenilenemedi: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Yüklenen beyin yok"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra açılıyor… girişi yeni pencerede tamamlayın. Bu açılır pencere kapanabilir; işiniz bitince yeniden açın."
+  },
+  "openingZekra": {
+    "message": "Zekra açılıyor… girişi yeni pencerede tamamlayın."
+  },
+  "pickBrain": {
+    "message": "Önce bir beyin seçin."
+  },
+  "brainsStillLoading": {
+    "message": "Beyinler hâlâ yükleniyor — birazdan tekrar deneyin."
+  },
+  "savingBackground": {
+    "message": "Kaydediliyor… (bu pencereyi kapatabilirsiniz — kayıt arka planda sürer)"
+  },
+  "saving": {
+    "message": "Kaydediliyor…"
+  },
+  "savedTo": {
+    "message": "$1 içine kaydedildi."
+  },
+  "savedSecret": {
+    "message": "\"$1\", $2 içine kaydedildi."
+  },
+  "nameValueRequired": {
+    "message": "Ad ve değer birlikte gerekli."
+  },
+  "signInInProgress": {
+    "message": "Giriş Zekra penceresinde sürüyor — orada tamamlayın, sonra bu pencereyi yeniden açın."
+  },
+  "disconnected": {
+    "message": "Bağlantı kesildi."
+  },
+  "connected": {
+    "message": "Bağlandı."
+  },
+  "connectedTo": {
+    "message": "$1 hesabına bağlandı."
+  },
+  "notConnected": {
+    "message": "Bağlı değil."
+  },
+  "expires": {
+    "message": "Bitiş: $1 (otomatik yenilenir)."
+  },
+  "noExpiry": {
+    "message": "Bitiş tarihi bildirilmedi."
+  },
+  "enterHttpsUrl": {
+    "message": "Bir https:// URL'si girin (veya http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome, $1 için erişim vermedi."
+  },
+  "saved": {
+    "message": "Kaydedildi."
+  },
+  "enterValidBase": {
+    "message": "Önce geçerli bir API temel URL'si girin."
+  },
+  "signInFailed": {
+    "message": "Giriş başarısız."
+  },
+  "copied": {
+    "message": "Panoya kopyalandı."
+  },
+  "errUnreachable": {
+    "message": "$1 adresine ulaşılamadı. Bağlantınızı kontrol edin."
+  },
+  "errUnreachableDetail": {
+    "message": "$1 adresine ulaşılamadı ($2)."
+  },
+  "errNotConnected": {
+    "message": "Bağlı değil. Zekra hesabınızı bağlayın."
+  },
+  "errSessionExpired": {
+    "message": "Zekra oturumunuzun süresi doldu. Yeniden bağlanın."
+  },
+  "errRateLimited": {
+    "message": "Zekra istekleri sınırlıyor. Biraz bekleyip tekrar deneyin."
+  },
+  "errServer": {
+    "message": "Zekra'da bir sorun oluştu ($1). Birazdan tekrar deneyin."
+  },
+  "errUnexpected": {
+    "message": "Zekra'dan beklenmeyen yanıt geldi."
+  },
+  "errRequestFailedStatus": {
+    "message": "İstek başarısız ($1)."
+  },
+  "errRequestFailed": {
+    "message": "İstek başarısız"
+  },
+  "errBrainList": {
+    "message": "Zekra'dan beyin listesi okunamadı"
+  },
+  "errDiscovery": {
+    "message": "Giriş keşfi başarısız ($1), adres: $2."
+  },
+  "errNoRegistration": {
+    "message": "Bu Zekra sunucusu yeni uygulama kaydı kabul etmiyor."
+  },
+  "errRegistration": {
+    "message": "Uygulama kaydı başarısız ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Giriş iptal edildi."
+  },
+  "errNotFinished": {
+    "message": "Giriş tamamlanmadı: $1"
+  },
+  "errNotApproved": {
+    "message": "Erişim onaylanmadı."
+  },
+  "errStateMismatch": {
+    "message": "Durum uyuşmazlığı — giriş reddedildi."
+  },
+  "errNoCode": {
+    "message": "Yetkilendirme kodu alınamadı."
+  },
+  "errTokenExchange": {
+    "message": "Belirteç değişimi başarısız ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Zekra bağlantınız sona erdi ($1). Yeniden bağlanın."
+  },
+  "errRefresh": {
+    "message": "Zekra oturumunuz yenilenemedi ($1)."
+  },
+  "errSignedOut": {
+    "message": "Çıkış yapıldı. Yeniden bağlanın."
+  },
+  "langTag": {
+    "message": "tr"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

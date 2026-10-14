@@ -1,0 +1,11 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "Zekra को आपकी फ़ोटो तक पहुँच चाहिए, ताकि आप नोट में तस्वीरें जोड़ सकें, या ब्रेन में फ़ोटो और वीडियो जोड़ सकें जिन्हें वह पढ़ सके।",
+    "NSCameraUsageDescription": "Zekra कैमरे का उपयोग करता है, ताकि आप किसी पन्ने या व्हाइटबोर्ड की फ़ोटो लेकर उसका टेक्स्ट ब्रेन में जोड़ सकें।",
+    "NSFaceIDUsageDescription": "Zekra ऐप अनलॉक करने और वॉल्ट का सीक्रेट दिखाने से पहले यह पुष्टि करने के लिए Face ID का उपयोग करता है कि वह आप ही हैं।"
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
+}

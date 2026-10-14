@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Zekra に保存"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "表示中のページや選択したテキストを、ノートとして Zekra のブレインに保存します。"
+  },
+  "commandCapture": {
+    "message": "選択範囲/ページを Zekra に保存"
+  },
+  "menuSaveSelection": {
+    "message": "選択範囲を Zekra に保存"
+  },
+  "menuSavePage": {
+    "message": "ページを Zekra に保存"
+  },
+  "connectIntro": {
+    "message": "Zekra アカウントを接続すると、ページ、ノート、シークレットをそのままブレインに保存できます。"
+  },
+  "connectButton": {
+    "message": "Zekra アカウントを接続"
+  },
+  "connectHint": {
+    "message": "新しいウィンドウで Zekra を開き、サインインとアクセスの承認を行います。この許可で発行されるアクセストークン以外は保存されません。"
+  },
+  "tabNote": {
+    "message": "ノート"
+  },
+  "tabVault": {
+    "message": "ボールト"
+  },
+  "labelBrain": {
+    "message": "ブレイン"
+  },
+  "labelTitle": {
+    "message": "タイトル"
+  },
+  "labelNote": {
+    "message": "ノート"
+  },
+  "labelTags": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "tagsPlaceholder": {
+    "message": "読書, あとで"
+  },
+  "reloadPage": {
+    "message": "ページを再読み込み"
+  },
+  "reloadPageHint": {
+    "message": "ページのタイトル/URL/選択範囲を再読み込みします"
+  },
+  "secretName": {
+    "message": "シークレット名"
+  },
+  "secretValue": {
+    "message": "値"
+  },
+  "secretValuePlaceholder": {
+    "message": "値"
+  },
+  "saveToVault": {
+    "message": "ボールトに保存"
+  },
+  "vaultNote": {
+    "message": "ブレインのボールトに封印されます。値は書き込み専用で、ここには再表示されません。"
+  },
+  "options": {
+    "message": "オプション"
+  },
+  "optionsTitle": {
+    "message": "Zekra - オプション"
+  },
+  "apiBase": {
+    "message": "API ベース URL"
+  },
+  "agentLabel": {
+    "message": "エージェントラベル（X-Agent-Id、認証情報ではありません）"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "account": {
+    "message": "アカウント"
+  },
+  "disconnect": {
+    "message": "接続を解除"
+  },
+  "accessToken": {
+    "message": "アクセストークン"
+  },
+  "accessTokenHint": {
+    "message": "この許可で発行された OAuth アクセストークンです。MCP エンドポイントに Bearer トークンとして使用できます。パスワードと同様に扱ってください。"
+  },
+  "show": {
+    "message": "表示"
+  },
+  "hide": {
+    "message": "非表示"
+  },
+  "copy": {
+    "message": "コピー"
+  },
+  "workerDown": {
+    "message": "拡張機能のバックグラウンドワーカーが動作していません。拡張機能を再読み込みしてください。"
+  },
+  "loadingYourBrains": {
+    "message": "ブレインを読み込み中…"
+  },
+  "loadingBrains": {
+    "message": "ブレインを読み込み中…"
+  },
+  "noWritableBrains": {
+    "message": "この接続には書き込み可能なブレインがありません。再接続して、書き込み権限のあるブレインにチェックを入れてください。"
+  },
+  "refreshFailed": {
+    "message": "ブレインを更新できませんでした：$1"
+  },
+  "noBrainsLoaded": {
+    "message": "ブレインが読み込まれていません"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra を開いています…新しいウィンドウでサインインを完了してください。このポップアップは閉じることがあります。完了後に開き直してください。"
+  },
+  "openingZekra": {
+    "message": "Zekra を開いています…新しいウィンドウでサインインを完了してください。"
+  },
+  "pickBrain": {
+    "message": "先にブレインを選択してください。"
+  },
+  "brainsStillLoading": {
+    "message": "ブレインを読み込み中です。しばらくしてからもう一度お試しください。"
+  },
+  "savingBackground": {
+    "message": "保存中…（このポップアップを閉じても、保存はバックグラウンドで続行されます）"
+  },
+  "saving": {
+    "message": "保存中…"
+  },
+  "savedTo": {
+    "message": "$1 に保存しました。"
+  },
+  "savedSecret": {
+    "message": "「$1」を $2 に保存しました。"
+  },
+  "nameValueRequired": {
+    "message": "名前と値の両方が必要です。"
+  },
+  "signInInProgress": {
+    "message": "Zekra のウィンドウでサインイン中です。そちらで完了してから、このポップアップを開き直してください。"
+  },
+  "disconnected": {
+    "message": "接続を解除しました。"
+  },
+  "connected": {
+    "message": "接続しました。"
+  },
+  "connectedTo": {
+    "message": "$1 に接続しました。"
+  },
+  "notConnected": {
+    "message": "接続されていません。"
+  },
+  "expires": {
+    "message": "有効期限：$1（自動で更新されます）。"
+  },
+  "noExpiry": {
+    "message": "有効期限は報告されていません。"
+  },
+  "enterHttpsUrl": {
+    "message": "https:// の URL（または http://localhost）を入力してください。"
+  },
+  "hostNotGranted": {
+    "message": "Chrome が $1 へのアクセスを許可しませんでした。"
+  },
+  "saved": {
+    "message": "保存しました。"
+  },
+  "enterValidBase": {
+    "message": "先に有効な API ベース URL を入力してください。"
+  },
+  "signInFailed": {
+    "message": "サインインに失敗しました。"
+  },
+  "copied": {
+    "message": "クリップボードにコピーしました。"
+  },
+  "errUnreachable": {
+    "message": "$1 に接続できませんでした。ネットワーク接続を確認してください。"
+  },
+  "errUnreachableDetail": {
+    "message": "$1 に接続できませんでした（$2）。"
+  },
+  "errNotConnected": {
+    "message": "接続されていません。Zekra アカウントを接続してください。"
+  },
+  "errSessionExpired": {
+    "message": "Zekra のセッションが期限切れです。もう一度接続してください。"
+  },
+  "errRateLimited": {
+    "message": "Zekra がリクエストを制限しています。少し待ってからもう一度お試しください。"
+  },
+  "errServer": {
+    "message": "Zekra で問題が発生しました（$1）。しばらくしてからもう一度お試しください。"
+  },
+  "errUnexpected": {
+    "message": "Zekra から予期しない応答がありました。"
+  },
+  "errRequestFailedStatus": {
+    "message": "リクエストに失敗しました（$1）。"
+  },
+  "errRequestFailed": {
+    "message": "リクエストに失敗しました"
+  },
+  "errBrainList": {
+    "message": "Zekra からブレイン一覧を読み取れませんでした"
+  },
+  "errDiscovery": {
+    "message": "サインインの検出に失敗しました（$1）：$2。"
+  },
+  "errNoRegistration": {
+    "message": "この Zekra サーバーは新しいアプリ登録を受け付けていません。"
+  },
+  "errRegistration": {
+    "message": "アプリの登録に失敗しました（$1）：$2"
+  },
+  "errCancelled": {
+    "message": "サインインがキャンセルされました。"
+  },
+  "errNotFinished": {
+    "message": "サインインが完了しませんでした：$1"
+  },
+  "errNotApproved": {
+    "message": "アクセスが承認されませんでした。"
+  },
+  "errStateMismatch": {
+    "message": "state が一致しません。サインインを拒否しました。"
+  },
+  "errNoCode": {
+    "message": "認可コードが返されませんでした。"
+  },
+  "errTokenExchange": {
+    "message": "トークンの交換に失敗しました（$1）：$2"
+  },
+  "errConnectionEnded": {
+    "message": "Zekra との接続が終了しました（$1）。もう一度接続してください。"
+  },
+  "errRefresh": {
+    "message": "Zekra のセッションを更新できませんでした（$1）。"
+  },
+  "errSignedOut": {
+    "message": "サインアウトしました。もう一度接続してください。"
+  },
+  "langTag": {
+    "message": "ja"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

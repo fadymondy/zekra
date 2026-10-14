@@ -9,6 +9,8 @@
 /* ------------------------------------------------------------ notes */
 
 /** Fields an offline edit can change (the PUT /api/notes/{id} body). */
+import type { LocaleId } from "./ipc";
+
 export interface OfflineNotePatch {
   title?: string;
   /** Short summary under the title; "" clears it. Older servers ignore it. */
@@ -220,7 +222,7 @@ export interface CaptureBrain {
 export interface CaptureInit {
   brains: CaptureBrain[];
   lastBrain: string | null;
-  locale: "en" | "ar";
+  locale: LocaleId;
   dark: boolean;
   platform: "darwin" | "win32" | "linux";
   /** The system material behind the panel (macOS hud vibrancy, Windows 11 acrylic). */

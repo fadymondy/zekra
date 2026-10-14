@@ -8,8 +8,8 @@ The notification center for the signed-in account (MH-360; notifications.go).
 	POST   /api/me/notifications/read {ids?: [...], all?: true} → {updated, unread}
 	DELETE /api/me/notifications/{id}                    → {deleted: true} | 404
 
-Item: {id, kind, title, body, route, data, createdAt, readAt}. `locale` (en|ar;
-default: the Accept-Language, else the language the item was stored in) picks
+Item: {id, kind, title, body, route, data, createdAt, readAt}. `locale` (any shipped
+language; default: the Accept-Language, else the language the item was stored in) picks
 the text. Caller resolution, CSRF and refusals are the device-token endpoints'
 (deviceUser): a signed-in USER only — never an ACL token or an OAuth agent — and
 the account always comes from the session, so one user can never read, mark or
@@ -29,17 +29,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// notificationLocale is the language a reader asked for: ?locale=, else the
-// first Accept-Language tag, else "" (the stored text).
+// notificationLocale is the language a reader asked for: ?locale=, else the best
+// shipped Accept-Language tag, else "" (the stored text).
 func notificationLocale(r *http.Request) string {
-	l := strings.TrimSpace(r.URL.Query().Get("locale"))
-	if l == "" {
-		l = strings.TrimSpace(strings.Split(r.Header.Get("Accept-Language"), ",")[0])
+	if l := strings.TrimSpace(r.URL.Query().Get("locale")); l != "" {
+		return normalizePushLocale(l)
 	}
-	if l == "" {
-		return ""
-	}
-	return normalizePushLocale(l)
+	return localeFromAcceptLanguage(r.Header.Get("Accept-Language"))
 }
 
 // ListNotifications — GET /api/me/notifications

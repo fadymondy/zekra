@@ -8,7 +8,7 @@ import {
   type Locale,
 } from "@/lib/i18n-locale"
 import { SHARE_PAGE_CSP } from "@/lib/presentations/code-scene"
-import { APP_URL, SITE_URL, siteHosts } from "@/lib/site/config"
+import { APP_URL, SITE_LOCALES, SITE_URL, siteHosts } from "@/lib/site/config"
 
 // Set by the togo auth plugin on login/register (HttpOnly).
 const SESSION_COOKIE = "togo_session"
@@ -158,6 +158,12 @@ function isSiteRequest(request: NextRequest): boolean {
   return request.cookies.get(SITE_COOKIE)?.value === "1"
 }
 
+/** zekra.dev is published in fewer languages than the console: fall back to English there. */
+function preferredSiteLocale(request: NextRequest): Locale {
+  const l = preferredLocale(request)
+  return (SITE_LOCALES as readonly string[]).includes(l) ? l : DEFAULT_LOCALE
+}
+
 function siteProxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl
   const host = requestHost(request)
@@ -193,7 +199,7 @@ function siteProxy(request: NextRequest): NextResponse {
   const { locale, rest } = splitLocale(pathname)
   if (!locale) {
     const url = request.nextUrl.clone()
-    url.pathname = `/${preferredLocale(request)}${pathname === "/" ? "" : pathname}`
+    url.pathname = `/${preferredSiteLocale(request)}${pathname === "/" ? "" : pathname}`
     url.searchParams.delete("site")
     return withFlag(NextResponse.redirect(url))
   }

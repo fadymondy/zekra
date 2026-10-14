@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Opslaan in Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Sla de huidige pagina of een tekstselectie op als notitie in een Zekra-brein."
+  },
+  "commandCapture": {
+    "message": "Selectie/pagina opslaan in Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Selectie opslaan in Zekra"
+  },
+  "menuSavePage": {
+    "message": "Pagina opslaan in Zekra"
+  },
+  "connectIntro": {
+    "message": "Koppel je Zekra-account om pagina’s, notities en geheimen direct in een brein op te slaan."
+  },
+  "connectButton": {
+    "message": "Zekra-account koppelen"
+  },
+  "connectHint": {
+    "message": "Opent Zekra in een nieuw venster om in te loggen en toegang goed te keuren. Er wordt niets opgeslagen behalve het toegangstoken dat deze toestemming uitgeeft."
+  },
+  "tabNote": {
+    "message": "Notitie"
+  },
+  "tabVault": {
+    "message": "Kluis"
+  },
+  "labelBrain": {
+    "message": "Brein"
+  },
+  "labelTitle": {
+    "message": "Titel"
+  },
+  "labelNote": {
+    "message": "Notitie"
+  },
+  "labelTags": {
+    "message": "Tags (gescheiden door komma’s)"
+  },
+  "tagsPlaceholder": {
+    "message": "lezen, later"
+  },
+  "reloadPage": {
+    "message": "Pagina opnieuw laden"
+  },
+  "reloadPageHint": {
+    "message": "Paginatitel/URL/selectie opnieuw laden"
+  },
+  "secretName": {
+    "message": "Naam van geheim"
+  },
+  "secretValue": {
+    "message": "Waarde"
+  },
+  "secretValuePlaceholder": {
+    "message": "waarde"
+  },
+  "saveToVault": {
+    "message": "Opslaan in kluis"
+  },
+  "vaultNote": {
+    "message": "Verzegeld in de kluis van het brein. Waarden zijn alleen te schrijven — ze worden hier nooit teruggelezen."
+  },
+  "options": {
+    "message": "Opties"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Opties"
+  },
+  "apiBase": {
+    "message": "API-basis-URL"
+  },
+  "agentLabel": {
+    "message": "Agentlabel (X-Agent-Id, geen inloggegevens)"
+  },
+  "save": {
+    "message": "Opslaan"
+  },
+  "account": {
+    "message": "Account"
+  },
+  "disconnect": {
+    "message": "Verbinding verbreken"
+  },
+  "accessToken": {
+    "message": "Toegangstoken"
+  },
+  "accessTokenHint": {
+    "message": "Het OAuth-toegangstoken dat deze toestemming heeft uitgegeven. Gebruik het als Bearer-token bij het MCP-eindpunt. Behandel het als een wachtwoord."
+  },
+  "show": {
+    "message": "Tonen"
+  },
+  "hide": {
+    "message": "Verbergen"
+  },
+  "copy": {
+    "message": "Kopiëren"
+  },
+  "workerDown": {
+    "message": "De achtergrondworker van de extensie draait niet. Laad de extensie opnieuw."
+  },
+  "loadingYourBrains": {
+    "message": "Je breinen laden…"
+  },
+  "loadingBrains": {
+    "message": "Breinen laden…"
+  },
+  "noWritableBrains": {
+    "message": "Deze verbinding heeft geen breinen met schrijfrechten. Koppel opnieuw en vink een brein met schrijftoegang aan."
+  },
+  "refreshFailed": {
+    "message": "Kon breinen niet vernieuwen: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Geen breinen geladen"
+  },
+  "openingZekraPopup": {
+    "message": "Zekra openen… rond het inloggen af in het nieuwe venster. Deze popup kan sluiten; open hem opnieuw als je klaar bent."
+  },
+  "openingZekra": {
+    "message": "Zekra openen… rond het inloggen af in het nieuwe venster."
+  },
+  "pickBrain": {
+    "message": "Kies eerst een brein."
+  },
+  "brainsStillLoading": {
+    "message": "Breinen worden nog geladen — probeer het zo opnieuw."
+  },
+  "savingBackground": {
+    "message": "Opslaan… (je kunt deze popup sluiten — het opslaan gaat op de achtergrond door)"
+  },
+  "saving": {
+    "message": "Opslaan…"
+  },
+  "savedTo": {
+    "message": "Opgeslagen in $1."
+  },
+  "savedSecret": {
+    "message": "“$1” opgeslagen in $2."
+  },
+  "nameValueRequired": {
+    "message": "Naam en waarde zijn allebei verplicht."
+  },
+  "signInInProgress": {
+    "message": "Het inloggen loopt in het Zekra-venster — rond het daar af en open deze popup dan opnieuw."
+  },
+  "disconnected": {
+    "message": "Verbinding verbroken."
+  },
+  "connected": {
+    "message": "Verbonden."
+  },
+  "connectedTo": {
+    "message": "Verbonden met $1."
+  },
+  "notConnected": {
+    "message": "Niet verbonden."
+  },
+  "expires": {
+    "message": "Verloopt $1 (wordt automatisch verlengd)."
+  },
+  "noExpiry": {
+    "message": "Geen vervaldatum gemeld."
+  },
+  "enterHttpsUrl": {
+    "message": "Voer een https://-URL in (of http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome heeft geen toegang tot $1 verleend."
+  },
+  "saved": {
+    "message": "Opgeslagen."
+  },
+  "enterValidBase": {
+    "message": "Voer eerst een geldige API-basis-URL in."
+  },
+  "signInFailed": {
+    "message": "Inloggen mislukt."
+  },
+  "copied": {
+    "message": "Gekopieerd naar klembord."
+  },
+  "errUnreachable": {
+    "message": "Kon $1 niet bereiken. Controleer je verbinding."
+  },
+  "errUnreachableDetail": {
+    "message": "Kon $1 niet bereiken ($2)."
+  },
+  "errNotConnected": {
+    "message": "Niet verbonden. Koppel je Zekra-account."
+  },
+  "errSessionExpired": {
+    "message": "Je Zekra-sessie is verlopen. Koppel opnieuw."
+  },
+  "errRateLimited": {
+    "message": "Zekra beperkt het aantal verzoeken. Wacht even en probeer het opnieuw."
+  },
+  "errServer": {
+    "message": "Zekra had een probleem ($1). Probeer het zo opnieuw."
+  },
+  "errUnexpected": {
+    "message": "Onverwacht antwoord van Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Verzoek mislukt ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Verzoek mislukt"
+  },
+  "errBrainList": {
+    "message": "Kon de lijst met breinen niet uit Zekra lezen"
+  },
+  "errDiscovery": {
+    "message": "Ontdekking van inloggen mislukt ($1) bij $2."
+  },
+  "errNoRegistration": {
+    "message": "Deze Zekra-server accepteert geen nieuwe app-registraties."
+  },
+  "errRegistration": {
+    "message": "App-registratie mislukt ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Inloggen is geannuleerd."
+  },
+  "errNotFinished": {
+    "message": "Inloggen is niet voltooid: $1"
+  },
+  "errNotApproved": {
+    "message": "Toegang is niet goedgekeurd."
+  },
+  "errStateMismatch": {
+    "message": "State komt niet overeen — inloggen geweigerd."
+  },
+  "errNoCode": {
+    "message": "Geen autorisatiecode teruggekregen."
+  },
+  "errTokenExchange": {
+    "message": "Tokenuitwisseling mislukt ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Je Zekra-verbinding is beëindigd ($1). Koppel opnieuw."
+  },
+  "errRefresh": {
+    "message": "Kon je Zekra-sessie niet vernieuwen ($1)."
+  },
+  "errSignedOut": {
+    "message": "Uitgelogd. Koppel opnieuw."
+  },
+  "langTag": {
+    "message": "nl"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

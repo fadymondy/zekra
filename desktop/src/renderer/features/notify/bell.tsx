@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { intlTag } from "@/lib/intl/locales";
 
 import { ApiError } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
@@ -163,7 +164,7 @@ function NotificationCenter({ onNavigate }: { onNavigate: () => void }) {
     }
   }
 
-  const fmtLocale = locale === "ar" ? "ar" : "en";
+  const fmtLocale = intlTag(locale);
   const dayLabel = (day: "today" | "yesterday" | "earlier", date: Date) =>
     day === "today"
       ? t("notify.today")

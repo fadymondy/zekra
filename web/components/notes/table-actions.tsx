@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "@/lib/i18n"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { CopyIcon, FileJsonIcon, FileSpreadsheetIcon, ImageIcon, SheetIcon, TableIcon, XIcon } from "lucide-react"
 
@@ -83,6 +84,7 @@ function download(name: string, blob: Blob) {
 
 
 export function useTableActions(containerRef: React.RefObject<HTMLElement | null>) {
+  const { t: tr } = useTranslations()
   const [menu, setMenu] = useState<MenuState>(null)
   const [toast, setToast] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
@@ -179,9 +181,9 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
       if (action === "md") {
         try {
           await navigator.clipboard.writeText(toMarkdown(data))
-          flash("Copied as Markdown")
+          flash(tr("notes.block.copiedMarkdown"))
         } catch {
-          flash("Clipboard blocked")
+          flash(tr("notes.block.clipboardBlocked"))
         }
         return
       }
@@ -199,7 +201,7 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
         // No spreadsheet writer is bundled. Rather than ship a file named
         // .xlsx that Excel would reject, say so plainly and leave CSV — which
         // Excel opens natively — as the working path.
-        flash("XLSX needs a spreadsheet library — use CSV for now")
+        flash(tr("notes.block.xlsxUnavailable"))
         return
       }
       try {
@@ -211,10 +213,10 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
         if (!blob) throw new Error("no blob")
         download("table.png", blob)
       } catch {
-        flash("PNG export failed")
+        flash(tr("notes.block.pngFailed"))
       }
     },
-    [menu, flash],
+    [menu, flash, tr],
   )
 
   const sorted = menu ? sortState(menu.figure) : { col: null, dir: "asc" as const }
@@ -228,21 +230,21 @@ export function useTableActions(containerRef: React.RefObject<HTMLElement | null
           className="fixed z-50 min-w-56 -translate-x-full rounded-md border border-border bg-card py-1 text-sm shadow-lg"
           style={{ left: menu.x, top: menu.y }}
         >
-          <Item icon={<CopyIcon className="size-4" />} label="Copy as Markdown" onClick={() => run("md")} />
-          <Item icon={<ImageIcon className="size-4" />} label="Export as PNG" onClick={() => run("png")} />
-          <Item icon={<FileSpreadsheetIcon className="size-4" />} label="Download CSV" onClick={() => run("csv")} />
-          <Item icon={<SheetIcon className="size-4" />} label="Download Excel (.xlsx)" onClick={() => run("xlsx")} />
-          <Item icon={<FileJsonIcon className="size-4" />} label="Download JSON" onClick={() => run("json")} />
+          <Item icon={<CopyIcon className="size-4" />} label={tr("notes.block.copyMarkdown")} onClick={() => run("md")} />
+          <Item icon={<ImageIcon className="size-4" />} label={tr("notes.block.exportPng")} onClick={() => run("png")} />
+          <Item icon={<FileSpreadsheetIcon className="size-4" />} label={tr("notes.block.downloadCsv")} onClick={() => run("csv")} />
+          <Item icon={<SheetIcon className="size-4" />} label={tr("notes.block.downloadXlsx")} onClick={() => run("xlsx")} />
+          <Item icon={<FileJsonIcon className="size-4" />} label={tr("notes.block.downloadJson")} onClick={() => run("json")} />
           <div className="my-1 border-t border-border" />
           {sorted.col === null ? (
             <div className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground">
               <XIcon className="size-4" />
-              <span>No sort active</span>
+              <span>{tr("notes.block.noSort")}</span>
             </div>
           ) : (
             <Item
               icon={<TableIcon className="size-4" />}
-              label={`Clear sort (${sorted.dir})`}
+              label={tr(sorted.dir === "desc" ? "notes.block.clearSortDesc" : "notes.block.clearSortAsc")}
               onClick={() => run("clear")}
             />
           )}

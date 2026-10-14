@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "Notificaties werken op dit apparaat.",
+  "push.brainAccess.title": "Er is een brein met je gedeeld",
+  "push.brainAccess.body": "Je hebt toegang gekregen tot {name}.",
+  "push.presentationViewed.title": "Je presentatie is geopend",
+  "push.presentationViewed.body": "“{title}” is zojuist geopend via een deellink.",
+  "push.presentationDownloaded.title": "Je presentatie is gedownload",
+  "push.presentationDownloaded.body": "“{title}” is zojuist gedownload via een deellink.",
+  "presentation.graphSummary": "{root} ({type}): {count} verbonden entiteiten in {roles}."
+}

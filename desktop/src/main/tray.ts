@@ -34,6 +34,7 @@
 // (setTrayRecent / setTrayState), the sync line from the sync engine.
 "use strict";
 
+import { localized } from "./i18n";
 import { app, dialog, Menu, nativeImage, Tray, type MenuItemConstructorOptions } from "electron";
 import * as path from "node:path";
 
@@ -79,7 +80,7 @@ const T = {
     restartToUpdate: "أعد التشغيل للتحديث إلى {version}",
   },
 } as const;
-const tt = () => T[getMenuLocale() === "ar" ? "ar" : "en"];
+const tt = () => localized(getMenuLocale(), "tray", T.en, T.ar);
 
 const TOOL: Record<McpTarget, string> = { claude: "Claude Code", cursor: "Cursor" };
 

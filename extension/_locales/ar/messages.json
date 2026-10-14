@@ -1,0 +1,263 @@
+{
+  "langTag": {
+    "message": "ar"
+  },
+  "langDir": {
+    "message": "rtl"
+  },
+  "extName": {
+    "message": "احفظ في ذكرى"
+  },
+  "extShortName": {
+    "message": "ذكرى"
+  },
+  "extDescription": {
+    "message": "احفظ الصفحة الحالية أو نصًا محددًا في عقل من عقول ذكرى كملاحظة."
+  },
+  "commandCapture": {
+    "message": "احفظ التحديد أو الصفحة في ذكرى"
+  },
+  "menuSaveSelection": {
+    "message": "احفظ التحديد في ذكرى"
+  },
+  "menuSavePage": {
+    "message": "احفظ الصفحة في ذكرى"
+  },
+  "connectIntro": {
+    "message": "اربط حسابك في ذكرى لتحفظ الصفحات والملاحظات والأسرار مباشرةً في عقل."
+  },
+  "connectButton": {
+    "message": "اربط حساب ذكرى"
+  },
+  "connectHint": {
+    "message": "يفتح ذكرى في نافذة جديدة لتسجّل الدخول وتوافق على الوصول. لا يُحفظ شيء سوى رمز الوصول الذي يصدره هذا الإذن."
+  },
+  "tabNote": {
+    "message": "ملاحظة"
+  },
+  "tabVault": {
+    "message": "الخزنة"
+  },
+  "labelBrain": {
+    "message": "العقل"
+  },
+  "labelTitle": {
+    "message": "العنوان"
+  },
+  "labelNote": {
+    "message": "الملاحظة"
+  },
+  "labelTags": {
+    "message": "الوسوم (مفصولة بفواصل)"
+  },
+  "tagsPlaceholder": {
+    "message": "قراءة، لاحقًا"
+  },
+  "reloadPage": {
+    "message": "أعد تحميل الصفحة"
+  },
+  "reloadPageHint": {
+    "message": "أعد قراءة عنوان الصفحة ورابطها والنص المحدد"
+  },
+  "secretName": {
+    "message": "اسم السر"
+  },
+  "secretValue": {
+    "message": "القيمة"
+  },
+  "secretValuePlaceholder": {
+    "message": "القيمة"
+  },
+  "saveToVault": {
+    "message": "احفظ في الخزنة"
+  },
+  "vaultNote": {
+    "message": "يُختم في خزنة العقل. القيم للكتابة فقط — لا تُقرأ هنا أبدًا."
+  },
+  "options": {
+    "message": "الخيارات"
+  },
+  "optionsTitle": {
+    "message": "ذكرى - الخيارات"
+  },
+  "apiBase": {
+    "message": "عنوان الـ API الأساسي"
+  },
+  "agentLabel": {
+    "message": "اسم الوكيل (X-Agent-Id، ليس بيانات دخول)"
+  },
+  "save": {
+    "message": "حفظ"
+  },
+  "account": {
+    "message": "الحساب"
+  },
+  "disconnect": {
+    "message": "قطع الاتصال"
+  },
+  "accessToken": {
+    "message": "رمز الوصول"
+  },
+  "accessTokenHint": {
+    "message": "رمز وصول OAuth الذي أصدره هذا الإذن. استخدمه كرمز Bearer مع نقطة MCP. عامِله ككلمة مرور."
+  },
+  "show": {
+    "message": "إظهار"
+  },
+  "hide": {
+    "message": "إخفاء"
+  },
+  "copy": {
+    "message": "نسخ"
+  },
+  "workerDown": {
+    "message": "العامل الخلفي للإضافة لا يعمل. أعد تحميل الإضافة."
+  },
+  "loadingYourBrains": {
+    "message": "جارٍ تحميل عقولك…"
+  },
+  "loadingBrains": {
+    "message": "جارٍ تحميل العقول…"
+  },
+  "noWritableBrains": {
+    "message": "هذا الاتصال لا يملك عقولًا قابلة للكتابة. أعد الربط واختر عقلًا بصلاحية كتابة."
+  },
+  "refreshFailed": {
+    "message": "تعذّر تحديث العقول: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "لم تُحمَّل أي عقول"
+  },
+  "openingZekraPopup": {
+    "message": "جارٍ فتح ذكرى… أكمل تسجيل الدخول في النافذة الجديدة. قد تُغلق هذه النافذة؛ افتحها من جديد عند الانتهاء."
+  },
+  "openingZekra": {
+    "message": "جارٍ فتح ذكرى… أكمل تسجيل الدخول في النافذة الجديدة."
+  },
+  "pickBrain": {
+    "message": "اختر عقلًا أولًا."
+  },
+  "brainsStillLoading": {
+    "message": "ما زالت العقول قيد التحميل — حاول بعد لحظة."
+  },
+  "savingBackground": {
+    "message": "جارٍ الحفظ… (يمكنك إغلاق هذه النافذة — يستمر الحفظ في الخلفية)"
+  },
+  "saving": {
+    "message": "جارٍ الحفظ…"
+  },
+  "savedTo": {
+    "message": "حُفظ في $1."
+  },
+  "savedSecret": {
+    "message": "حُفظ «$1» في $2."
+  },
+  "nameValueRequired": {
+    "message": "الاسم والقيمة مطلوبان كلاهما."
+  },
+  "signInInProgress": {
+    "message": "تسجيل الدخول جارٍ في نافذة ذكرى — أكمله هناك ثم افتح هذه النافذة من جديد."
+  },
+  "disconnected": {
+    "message": "انقطع الاتصال."
+  },
+  "connected": {
+    "message": "متصل."
+  },
+  "connectedTo": {
+    "message": "متصل بـ $1."
+  },
+  "notConnected": {
+    "message": "غير متصل."
+  },
+  "expires": {
+    "message": "ينتهي $1 (يتجدد تلقائيًا)."
+  },
+  "noExpiry": {
+    "message": "لم يُذكر موعد انتهاء."
+  },
+  "enterHttpsUrl": {
+    "message": "أدخل رابط https:// (أو http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "لم يمنح Chrome الوصول إلى $1."
+  },
+  "saved": {
+    "message": "حُفظ."
+  },
+  "enterValidBase": {
+    "message": "أدخل عنوان API أساسيًا صالحًا أولًا."
+  },
+  "signInFailed": {
+    "message": "فشل تسجيل الدخول."
+  },
+  "copied": {
+    "message": "نُسخ إلى الحافظة."
+  },
+  "errUnreachable": {
+    "message": "تعذّر الوصول إلى $1. تحقّق من اتصالك."
+  },
+  "errUnreachableDetail": {
+    "message": "تعذّر الوصول إلى $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "غير متصل. اربط حسابك في ذكرى."
+  },
+  "errSessionExpired": {
+    "message": "انتهت جلستك في ذكرى. اربط من جديد."
+  },
+  "errRateLimited": {
+    "message": "ذكرى يحدّ من عدد الطلبات. انتظر لحظة ثم حاول مجددًا."
+  },
+  "errServer": {
+    "message": "واجه ذكرى مشكلة ($1). حاول بعد قليل."
+  },
+  "errUnexpected": {
+    "message": "رد غير متوقع من ذكرى."
+  },
+  "errRequestFailedStatus": {
+    "message": "فشل الطلب ($1)."
+  },
+  "errRequestFailed": {
+    "message": "فشل الطلب"
+  },
+  "errBrainList": {
+    "message": "تعذّرت قراءة قائمة العقول من ذكرى"
+  },
+  "errDiscovery": {
+    "message": "فشل اكتشاف تسجيل الدخول ($1) على $2."
+  },
+  "errNoRegistration": {
+    "message": "خادم ذكرى هذا لا يقبل تسجيل تطبيقات جديدة."
+  },
+  "errRegistration": {
+    "message": "فشل تسجيل التطبيق ($1): $2"
+  },
+  "errCancelled": {
+    "message": "أُلغي تسجيل الدخول."
+  },
+  "errNotFinished": {
+    "message": "لم يكتمل تسجيل الدخول: $1"
+  },
+  "errNotApproved": {
+    "message": "لم تتم الموافقة على الوصول."
+  },
+  "errStateMismatch": {
+    "message": "عدم تطابق الحالة — رُفض تسجيل الدخول."
+  },
+  "errNoCode": {
+    "message": "لم يُرجَع رمز تفويض."
+  },
+  "errTokenExchange": {
+    "message": "فشل تبادل الرمز ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "انتهى اتصالك بذكرى ($1). اربط من جديد."
+  },
+  "errRefresh": {
+    "message": "تعذّر تجديد جلستك في ذكرى ($1)."
+  },
+  "errSignedOut": {
+    "message": "تم تسجيل الخروج. اربط من جديد."
+  }
+}

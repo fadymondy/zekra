@@ -169,7 +169,7 @@ export type Recalled = {
   namespace?: string;
 };
 
-export type AccountProfile = { name?: string; email?: string; avatar?: string; timezone?: string; has_password?: boolean };
+export type AccountProfile = { name?: string; email?: string; avatar?: string; timezone?: string; locale?: string; has_password?: boolean };
 
 /** One connected sign-in (GET /api/me/identities, internal/account/identities.go). */
 export type ConnectedIdentity = {
@@ -255,7 +255,7 @@ export const zekraApi = {
     request<{ status?: string }>("/api/brain/secrets/delete", { token, json: { namespace, name } }),
   // --- account (internal/account/area_api.go) ---
   profile: (token: string) => request<AccountProfile>("/api/me/account/profile", { token }),
-  updateProfile: (token: string, body: { name?: string; avatar?: string; timezone?: string }) =>
+  updateProfile: (token: string, body: { name?: string; avatar?: string; timezone?: string; locale?: string }) =>
     request<AccountProfile>("/api/me/account/profile", { method: "PUT", token, json: body }),
   // --- connected accounts (internal/account/identities.go) ---
   identities: (token: string) => request<ConnectedIdentity[]>("/api/me/identities", { token }),

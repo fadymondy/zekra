@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "이 기기에서 알림이 잘 작동해요.",
+  "push.brainAccess.title": "브레인이 공유됐어요",
+  "push.brainAccess.body": "{name}에 대한 접근 권한을 받았어요.",
+  "push.presentationViewed.title": "프레젠테이션이 열렸어요",
+  "push.presentationViewed.body": "공유 링크로 \"{title}\"이(가) 방금 열렸어요.",
+  "push.presentationDownloaded.title": "프레젠테이션이 다운로드됐어요",
+  "push.presentationDownloaded.body": "공유 링크로 \"{title}\"이(가) 방금 다운로드됐어요.",
+  "presentation.graphSummary": "{root} ({type}): {roles}에 걸쳐 연결된 엔티티 {count}개."
+}

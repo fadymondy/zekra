@@ -30,10 +30,13 @@ CSRF token (X-CSRF-Token echoing the togo_csrf cookie); bearer calls are exempt.
 */
 
 type accountProfile struct {
-	Email       string `json:"email"`
-	Name        string `json:"name"`
-	Avatar      string `json:"avatar"`
-	Timezone    string `json:"timezone"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Avatar   string `json:"avatar"`
+	Timezone string `json:"timezone"`
+	// Locale is the account's language ("" = follow the device): emails, pushes and the
+	// console use it when a request does not name one.
+	Locale      string `json:"locale"`
 	Verified    bool   `json:"verified"`
 	HasPassword bool   `json:"has_password"`
 }
@@ -68,7 +71,7 @@ func (s *Service) loadProfile(ctx context.Context, userID string) accountProfile
 	_ = s.DB.QueryRowContext(ctx, `SELECT lower(email), password_hash FROM users WHERE id = $1`, userID).Scan(&p.Email, &hash)
 	p.HasPassword = strings.HasPrefix(hash, "$2") // bcrypt; SSO accounts carry a marker
 	p.Verified = s.Verified(ctx, userID)
-	_ = s.DB.QueryRowContext(ctx, `SELECT name, avatar, timezone FROM account_profiles WHERE user_id = $1`, userID).Scan(&p.Name, &p.Avatar, &p.Timezone)
+	_ = s.DB.QueryRowContext(ctx, `SELECT name, avatar, timezone, locale FROM account_profiles WHERE user_id = $1`, userID).Scan(&p.Name, &p.Avatar, &p.Timezone, &p.Locale)
 	return p
 }
 
@@ -97,7 +100,7 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "account-profile-update", Method: http.MethodPut, Path: "/api/me/account/profile",
-		Summary: "Update your display name, avatar and timezone", Tags: tags, Errors: []int{401, 403, 422},
+		Summary: "Update your display name, avatar, timezone and language", Tags: tags, Errors: []int{401, 403, 422},
 	}, func(ctx context.Context, in *struct {
 		CSRFIn
 		// Each field is optional: one left out keeps its saved value (the apps
@@ -106,6 +109,8 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			Name     *string `json:"name,omitempty" maxLength:"80"`
 			Avatar   *string `json:"avatar,omitempty" maxLength:"500"`
 			Timezone *string `json:"timezone,omitempty" maxLength:"64"`
+			// "" clears it (follow the device).
+			Locale *string `json:"locale,omitempty" maxLength:"16"`
 		}
 	}) (*struct{ Body accountProfile }, error) {
 		id, err := sessionAccount(ctx)
@@ -123,6 +128,12 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			return strings.TrimSpace(*v)
 		}
 		name, avatar, tz := pick(in.Body.Name, cur.Name), pick(in.Body.Avatar, cur.Avatar), pick(in.Body.Timezone, cur.Timezone)
+		lang := pick(in.Body.Locale, cur.Locale)
+		if lang != "" {
+			if lang = matchLocale(lang); lang == "" {
+				return nil, huma.Error422UnprocessableEntity("that language is not supported")
+			}
+		}
 		if avatar != "" && (avatarKey(avatar) == "" || avatar != cur.Avatar) {
 			if u, err := url.Parse(avatar); err != nil || u.Scheme != "https" || u.Host == "" {
 				return nil, huma.Error422UnprocessableEntity("the avatar must be an https address")
@@ -134,9 +145,9 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			}
 		}
 		if _, err := s.DB.ExecContext(ctx, `
-			INSERT INTO account_profiles (user_id, name, avatar, timezone) VALUES ($1,$2,$3,$4)
+			INSERT INTO account_profiles (user_id, name, avatar, timezone, locale) VALUES ($1,$2,$3,$4,$5)
 			ON CONFLICT (user_id) DO UPDATE SET name = EXCLUDED.name, avatar = EXCLUDED.avatar,
-				timezone = EXCLUDED.timezone, updated_at = now()`, id.ID, name, avatar, tz); err != nil {
+				timezone = EXCLUDED.timezone, locale = EXCLUDED.locale, updated_at = now()`, id.ID, name, avatar, tz, lang); err != nil {
 			return nil, huma.Error500InternalServerError("could not save your profile", err)
 		}
 		return &struct{ Body accountProfile }{Body: s.loadProfile(ctx, id.ID)}, nil
@@ -214,8 +225,9 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		Summary: "Request a copy of your data; the link arrives by email", Tags: tags, Errors: []int{401, 403, 429},
 	}, func(ctx context.Context, in *struct {
 		CSRFIn
-		Body struct {
-			Locale string `json:"locale,omitempty" enum:"en,ar"`
+		AcceptLanguage string `header:"Accept-Language"`
+		Body           struct {
+			Locale string `json:"locale,omitempty" enum:"en,ar,es,fr,de,pt-BR,it,ru,tr,zh-Hans,ja,ko,hi,id,nl,pl,vi,uk"`
 		}
 	}) (*struct{ Body ExportState }, error) {
 		id, err := sessionAccount(ctx)
@@ -225,10 +237,7 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		if !in.ok() {
 			return nil, huma.Error403Forbidden("invalid csrf token")
 		}
-		locale := in.Body.Locale
-		if locale == "" {
-			locale = "en"
-		}
+		locale := resolveLocale(in.Body.Locale, s.profileLocale(ctx, id.ID), in.AcceptLanguage)
 		st, err := s.RequestExport(ctx, id.ID, locale, false)
 		if errors.Is(err, ErrExportTooSoon) {
 			return nil, huma.Error429TooManyRequests(err.Error())
@@ -344,10 +353,11 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		Tags:        tags, Errors: []int{401, 403, 409, 429},
 	}, func(ctx context.Context, in *struct {
 		CSRFIn
-		ForwardedFor string `header:"X-Forwarded-For"`
-		RequestID    string `header:"X-Request-Id"`
-		Body         struct {
-			Locale string `json:"locale,omitempty" enum:"en,ar"`
+		ForwardedFor   string `header:"X-Forwarded-For"`
+		RequestID      string `header:"X-Request-Id"`
+		AcceptLanguage string `header:"Accept-Language"`
+		Body           struct {
+			Locale string `json:"locale,omitempty" enum:"en,ar,es,fr,de,pt-BR,it,ru,tr,zh-Hans,ja,ko,hi,id,nl,pl,vi,uk"`
 		}
 	}) (*sentOut, error) {
 		id, err := sessionAccount(ctx)
@@ -360,10 +370,7 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		if isAdmin(id) {
 			return nil, huma.Error409Conflict("the site owner's account cannot be deleted from here")
 		}
-		locale := in.Body.Locale
-		if locale == "" {
-			locale = "en"
-		}
+		locale := resolveLocale(in.Body.Locale, s.profileLocale(ctx, id.ID), in.AcceptLanguage)
 		if err := s.RequestDeletionCode(ctx, id.ID, locale, metaFromHeaders(in.ForwardedFor, in.RequestID)); err != nil {
 			return nil, fail(err)
 		}
@@ -422,9 +429,10 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 			"POST /api/me/delete/cancel/code. The same 403 answers an unknown email, a wrong password and a wrong code.",
 		Tags: tags, Errors: []int{403, 409, 422, 429},
 	}, func(ctx context.Context, in *struct {
-		ForwardedFor string `header:"X-Forwarded-For"`
-		RequestID    string `header:"X-Request-Id"`
-		Body         struct {
+		ForwardedFor   string `header:"X-Forwarded-For"`
+		RequestID      string `header:"X-Request-Id"`
+		AcceptLanguage string `header:"Accept-Language"`
+		Body           struct {
 			Email    string `json:"email" minLength:"1" maxLength:"320"`
 			Password string `json:"password,omitempty" maxLength:"1024"`
 			Code     string `json:"code,omitempty" maxLength:"16"`
@@ -445,17 +453,15 @@ func RegisterAreaAPI(api huma.API, s *Service) {
 		Description: "No session needed. A code is mailed only when the address has a deletion pending; the answer is the same either way.",
 		Tags:        tags, Errors: []int{429},
 	}, func(ctx context.Context, in *struct {
-		ForwardedFor string `header:"X-Forwarded-For"`
-		RequestID    string `header:"X-Request-Id"`
-		Body         struct {
+		ForwardedFor   string `header:"X-Forwarded-For"`
+		RequestID      string `header:"X-Request-Id"`
+		AcceptLanguage string `header:"Accept-Language"`
+		Body           struct {
 			Email  string `json:"email" minLength:"3" maxLength:"320"`
-			Locale string `json:"locale,omitempty" enum:"en,ar"`
+			Locale string `json:"locale,omitempty" enum:"en,ar,es,fr,de,pt-BR,it,ru,tr,zh-Hans,ja,ko,hi,id,nl,pl,vi,uk"`
 		}
 	}) (*sentOut, error) {
-		locale := in.Body.Locale
-		if locale == "" {
-			locale = "en"
-		}
+		locale := resolveLocale(in.Body.Locale, "", in.AcceptLanguage)
 		if err := s.RequestCancelCode(ctx, in.Body.Email, locale, metaFromHeaders(in.ForwardedFor, in.RequestID)); err != nil {
 			return nil, fail(err)
 		}

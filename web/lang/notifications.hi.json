@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "सूचनाएं",
+  "notifications.bellUnread": "सूचनाएं, {count} अपठित",
+  "notifications.title": "सूचनाएं",
+  "notifications.markAllRead": "सभी पढ़ी हुई चिह्नित करें",
+  "notifications.delete": "सूचना हटाएं",
+  "notifications.loadMore": "और लोड करें",
+  "notifications.empty": "सब कुछ देख लिया गया है",
+  "notifications.emptyHint": "जब कोई ब्रेन आपके साथ साझा होगा या कोई आपका साझा किया प्रेजेंटेशन खोलेगा, तो वह यहाँ दिखेगा।",
+  "notifications.error": "सूचनाएं लोड नहीं हो सकीं।",
+  "notifications.failed": "सूचनाएं अपडेट नहीं हो सकीं। फिर कोशिश करें।",
+  "notifications.unread": "अपठित",
+  "notifications.open": "खोलें",
+  "notifications.markRead": "पढ़ा हुआ चिह्नित करें"
+}

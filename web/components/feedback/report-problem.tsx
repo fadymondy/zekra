@@ -71,7 +71,7 @@ export function ReportProblemDialog({
       open={open}
       onOpenChange={onOpenChange}
       onSubmit={onSubmit}
-      locale={locale}
+      locale={locale === "ar" ? "ar" : "en"} // the Mahaam SDK dialog ships English and Arabic only
       types={TYPES}
       defaultType="bug"
       typeLabels={{ bug: t("feedback.type.bug"), feature: t("feedback.type.feature"), task: t("feedback.type.task") }}

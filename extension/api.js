@@ -16,6 +16,7 @@
 // human message; `signedOut` tells the UI to show "Connect" instead of an error.
 
 import { DEFAULT_BASE, getAccessToken, clearSession, normBase, AuthError } from "./oauth.js";
+import { t } from "./i18n.js";
 
 // brain_list is a read (server does a GROUP BY over every memory, so give it
 // room); memory_retain embeds + runs the write decision synchronously.
@@ -76,7 +77,7 @@ async function post(apiBase, agentId, token, name, args, timeoutMs) {
     if (e?.name === "TimeoutError" || e?.name === "AbortError") {
       throw new ApiError(0, `${host} did not answer within ${Math.round(timeoutMs / 1000)}s. Try again.`);
     }
-    throw new ApiError(0, `Could not reach ${host}. Check your connection.`);
+    throw new ApiError(0, t("errUnreachable", host));
   }
 }
 
@@ -93,7 +94,7 @@ async function callTool(name, args, { timeoutMs = READ_TIMEOUT_MS } = {}) {
   try {
     const { apiBase, agentId } = await getSettings();
     let token = await getAccessToken();
-    if (!token) throw new ApiError(401, "Not connected. Connect your Zekra account.", { signedOut: true });
+    if (!token) throw new ApiError(401, t("errNotConnected"), { signedOut: true });
 
     let res = await post(apiBase, agentId, token, name, args, timeoutMs);
     if (res.status === 401) {
@@ -107,27 +108,27 @@ async function callTool(name, args, { timeoutMs = READ_TIMEOUT_MS } = {}) {
       if (token) res = await post(apiBase, agentId, token, name, args, timeoutMs);
       if (!token || res.status === 401) {
         await clearSession();
-        throw new ApiError(401, "Your Zekra session expired. Connect again.", { signedOut: true });
+        throw new ApiError(401, t("errSessionExpired"), { signedOut: true });
       }
     }
 
     const text = await res.text();
     if (res.status === 404) throw new ApiError(404, `${new URL(apiBase).host} has no MCP endpoint at /api/mcp. Check the API base in Options.`);
-    if (res.status === 429) throw new ApiError(429, "Zekra is rate-limiting requests. Wait a moment and try again.");
-    if (res.status >= 500) throw new ApiError(res.status, `Zekra had a problem (${res.status}). Try again shortly.`);
+    if (res.status === 429) throw new ApiError(429, t("errRateLimited"));
+    if (res.status >= 500) throw new ApiError(res.status, t("errServer", res.status));
 
     let payload;
     try {
       payload = parseRpc(text);
     } catch {
-      throw new ApiError(res.status, res.ok ? "Unexpected response from Zekra." : `Request failed (${res.status}).`);
+      throw new ApiError(res.status, res.ok ? t("errUnexpected") : t("errRequestFailedStatus", res.status));
     }
-    if (payload.error) throw new ApiError(res.status, payload.error.message || "Request failed");
-    if (!res.ok) throw new ApiError(res.status, `Request failed (${res.status}).`);
+    if (payload.error) throw new ApiError(res.status, payload.error.message || t("errRequestFailed"));
+    if (!res.ok) throw new ApiError(res.status, t("errRequestFailedStatus", res.status));
 
     const result = payload.result;
     // MCP reports tool-level failures with isError, not an HTTP status.
-    if (result?.isError) throw new ApiError(400, result.content?.[0]?.text || "Request failed");
+    if (result?.isError) throw new ApiError(400, result.content?.[0]?.text || t("errRequestFailed"));
     return result?.content?.[0]?.text ?? "";
   } catch (e) {
     throw toApiError(e);
@@ -142,7 +143,7 @@ export async function listMyBrains() {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new ApiError(0, "Could not read the brain list from Zekra");
+    throw new ApiError(0, t("errBrainList"));
   }
   const brains = (parsed.brains || []).map((b) => ({
     namespace: b.namespace,

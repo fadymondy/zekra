@@ -176,6 +176,20 @@ func CodeEmail(locale, purpose, code string) (subject, text, htmlBody string) {
 			"Enter this code to activate your account:",
 			"It works for 15 minutes. If you did not create an account, ignore this email."}
 	}
+	if locale != "en" && locale != "ar" {
+		p := purpose
+		switch p {
+		case purposeDelete, purposeUndelete, purposeLogin, purposeReset:
+		default:
+			p = purposeVerify
+		}
+		k := "code." + p + "."
+		c = copyText{
+			strings.ReplaceAll(tr(locale, k+"subject", enText[k+"subject"], nil), "{code}", "%s"),
+			tr(locale, k+"lead", enText[k+"lead"], nil), tr(locale, k+"heading", enText[k+"heading"], nil),
+			tr(locale, k+"intro", enText[k+"intro"], nil), tr(locale, k+"foot", enText[k+"foot"], nil),
+		}
+	}
 	// The code leads the subject so every message has its own subject: Gmail threads
 	// mails that share one, which buried each new code inside an old conversation.
 	subject = fmt.Sprintf(c.subject, code)
@@ -194,6 +208,14 @@ func ExportEmail(locale, link string, hours int) (subject, text, htmlBody string
 		"The copy of your data you asked for is ready: a zip with a readable page and a JSON file.",
 		"Download your data",
 		fmt.Sprintf("The link works once, for %d hours. If you did not ask for this, change your password — someone signed in to your account.", hours),
+	}
+	if locale != "en" && locale != "ar" {
+		h := map[string]string{"hours": fmt.Sprint(hours)}
+		c = copyText{
+			tr(locale, "export.subject", enText["export.subject"], nil), tr(locale, "export.heading", enText["export.heading"], nil),
+			tr(locale, "export.intro", enText["export.intro"], nil), tr(locale, "export.button", enText["export.button"], nil),
+			tr(locale, "export.foot", enText["export.foot"], h),
+		}
 	}
 	if locale == "ar" {
 		c = copyText{
@@ -214,13 +236,16 @@ func ExportEmail(locale, link string, hours int) (subject, text, htmlBody string
 }
 
 // shell wraps body content in a simple table-based frame (inline styles only:
-// mail clients drop stylesheets). Arabic renders RTL.
+// mail clients drop stylesheets). Right-to-left languages (Arabic) render RTL; CJK and
+// Hindi name their native faces.
 func shell(locale, heading, bodyHTML string) string {
 	dir, align := "ltr", "left"
 	font := "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
-	if locale == "ar" {
+	if isRTL(locale) {
 		dir, align = "rtl", "right"
 		font = "'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+	} else if f := mailFonts[locale]; f != "" {
+		font = f + ", -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
 	}
 	return fmt.Sprintf(`<!doctype html>
 <html dir="%s" lang="%s">
@@ -242,4 +267,48 @@ func shell(locale, heading, bodyHTML string) string {
 		align, font, html.EscapeString(heading),
 		align, font, bodyHTML,
 		align, html.EscapeString(brandHost()))
+}
+
+// mailFonts puts each CJK / Devanagari language's own system faces first.
+var mailFonts = map[string]string{
+	"zh-Hans": "'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC'",
+	"ja":      "'Hiragino Sans', 'Yu Gothic', Meiryo, 'Noto Sans JP'",
+	"ko":      "'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR'",
+	"hi":      "'Kohinoor Devanagari', 'Nirmala UI', 'Noto Sans Devanagari'",
+}
+
+// enText is the English copy the catalogs translate (locales/en.json mirrors it; a test
+// keeps the two equal). Placeholders are {name}.
+var enText = map[string]string{
+	"code.verify.subject":   "{code} is your " + brand + " verification code",
+	"code.verify.lead":      "Your code to verify the email for your new " + brand + " account:",
+	"code.verify.heading":   "Verify your email",
+	"code.verify.intro":     "Enter this code to activate your account:",
+	"code.verify.foot":      "It works for 15 minutes. If you did not create an account, ignore this email.",
+	"code.login.subject":    "{code} is your " + brand + " sign-in code",
+	"code.login.lead":       "Your code to sign in to " + brand + ":",
+	"code.login.heading":    "Sign in",
+	"code.login.intro":      "Enter this code to sign in:",
+	"code.login.foot":       "It works for 15 minutes. If you did not ask for this, ignore this email — nobody can sign in without the code.",
+	"code.reset.subject":    "{code} is your " + brand + " password reset code",
+	"code.reset.lead":       "Your code to reset your " + brand + " password:",
+	"code.reset.heading":    "Reset your password",
+	"code.reset.intro":      "Enter this code to choose a new password:",
+	"code.reset.foot":       "It works for 15 minutes. If you did not ask for this, ignore this email — your password has not changed.",
+	"code.delete.subject":   "{code}: confirm deleting your " + brand + " account",
+	"code.delete.lead":      "Your code to confirm deleting your " + brand + " account:",
+	"code.delete.heading":   "Confirm account deletion",
+	"code.delete.intro":     "Enter this code to confirm deleting your account. Deletion is scheduled 14 days out and you can cancel it until then:",
+	"code.delete.foot":      "It works for 15 minutes. If you did not ask for this, ignore this email and secure the Google, Apple or GitHub account you sign in with — nothing is deleted without the code.",
+	"code.undelete.subject": "{code}: cancel deleting your " + brand + " account",
+	"code.undelete.lead":    "Your code to cancel deleting your " + brand + " account:",
+	"code.undelete.heading": "Cancel account deletion",
+	"code.undelete.intro":   "Enter this code to cancel the scheduled deletion of your account:",
+	"code.undelete.foot":    "It works for 15 minutes. If you did not ask for this, ignore this email — the deletion stays scheduled.",
+	"export.subject":        "Your " + brand + " data is ready",
+	"export.heading":        "Your data export",
+	"export.intro":          "The copy of your data you asked for is ready: a zip with a readable page and a JSON file.",
+	"export.button":         "Download your data",
+	"export.foot":           "The link works once, for {hours} hours. If you did not ask for this, change your password — someone signed in to your account.",
+	"signup.unverified":     "Check your inbox: we sent a 6-digit code to {email}. Enter it to activate your account, then sign in.",
 }

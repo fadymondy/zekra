@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "Benachrichtigungen funktionieren auf diesem Gerät.",
+  "push.brainAccess.title": "Ein Brain wurde mit dir geteilt",
+  "push.brainAccess.body": "Du hast Zugriff auf {name} erhalten.",
+  "push.presentationViewed.title": "Deine Präsentation wurde geöffnet",
+  "push.presentationViewed.body": "„{title}“ wurde gerade über einen Freigabelink geöffnet.",
+  "push.presentationDownloaded.title": "Deine Präsentation wurde heruntergeladen",
+  "push.presentationDownloaded.body": "„{title}“ wurde gerade über einen Freigabelink heruntergeladen.",
+  "presentation.graphSummary": "{root} ({type}): {count} verbundene Entitäten in {roles}."
+}

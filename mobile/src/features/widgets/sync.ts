@@ -4,6 +4,7 @@ import { requestWidgetUpdate } from "react-native-android-widget";
 import type { BrainDetail, BrainListItem, BrainStats } from "@/features/brains/brains-core";
 import { ApiError, request, type Brain } from "@/lib/api";
 import { getStored } from "@/lib/storage";
+import { isLocale } from "@shared/intl/locales";
 
 import { ANDROID_WIDGET_NAMES, renderAndroidWidget } from "./android-widgets";
 import type { updateIosWidget as UpdateIosWidget } from "./brains-widget";
@@ -94,7 +95,8 @@ const LOCALE_KEY = "zekra.locale";
 const PINNED_KEY = "zekra.mobile.brain.v1";
 
 async function storedLocale(): Promise<WidgetLocale> {
-  return (await getStored(LOCALE_KEY)) === "ar" ? "ar" : "en";
+  const saved = await getStored(LOCALE_KEY);
+  return isLocale(saved) ? saved : "en";
 }
 
 async function storedToken(): Promise<string | null> {

@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "連携アプリ",
+  "apps.micro": "アカウント",
+  "apps.title": "連携アプリ",
+  "apps.description": "MCP 経由でブレインの利用を許可した AI アプリです。取り消すと、そのアクセスはただちに無効になります。",
+  "apps.read": "読み取り",
+  "apps.readWrite": "読み取り + 書き込み",
+  "apps.lastUsed": "最終利用: {when}",
+  "apps.neverUsed": "未使用",
+  "apps.connected": "連携日: {date}",
+  "apps.revoke": "取り消す",
+  "apps.revokeTitle": "{name} を取り消しますか?",
+  "apps.revokeBody": "このアプリはすぐにブレインへアクセスできなくなります。再び使うには、もう一度連携する必要があります。",
+  "apps.revoked": "アクセスを取り消しました",
+  "apps.revokedOn": "取り消し日: {date}",
+  "apps.revokedSection": "取り消し済み ({n})",
+  "apps.emptyTitle": "連携アプリはまだありません",
+  "apps.emptyBody": "Claude、ChatGPT、Cursor などの MCP クライアントを連携すると、ここに表示されます。",
+  "apps.connectCta": "エージェントを連携",
+  "apps.noBrains": "ブレインなし"
+}

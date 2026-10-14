@@ -77,6 +77,15 @@ export default defineDict({
     "brains.delete.submit": "Delete brain",
     "brains.delete.done": "Deleted {brain} ({count} memories)",
     "brains.error.network": "Could not reach Zekra. Check your connection.",
+    // Relative time for languages beyond en/ar (brains-core formats those two by hand).
+    "brains.ago.never": "never",
+    "brains.ago.now": "just now",
+    "brains.ago.m": "{n}m ago",
+    "brains.ago.h": "{n}h ago",
+    "brains.ago.d": "{n}d ago",
+    "brains.ago.w": "{n}w ago",
+    "brains.ago.mo": "{n}mo ago",
+    "brains.ago.y": "{n}y ago",
   },
   ar: {
     "brain.tab.notes": "الملاحظات",
@@ -152,5 +161,14 @@ export default defineDict({
     "brains.delete.submit": "حذف الدماغ",
     "brains.delete.done": "حُذف {brain} ({count} ذكرى)",
     "brains.error.network": "تعذّر الوصول إلى ذكرى. تحقّق من اتصالك.",
+    // Relative time for languages beyond en/ar (brains-core formats those two by hand).
+    "brains.ago.never": "أبدًا",
+    "brains.ago.now": "الآن",
+    "brains.ago.m": "{n, plural, one {منذ دقيقة} two {منذ دقيقتين} few {منذ # دقائق} other {منذ # دقيقة}}",
+    "brains.ago.h": "{n, plural, one {منذ ساعة} two {منذ ساعتين} few {منذ # ساعات} other {منذ # ساعة}}",
+    "brains.ago.d": "{n, plural, one {منذ يوم} two {منذ يومين} few {منذ # أيام} other {منذ # يومًا}}",
+    "brains.ago.w": "{n, plural, one {منذ أسبوع} two {منذ أسبوعين} few {منذ # أسابيع} other {منذ # أسبوعًا}}",
+    "brains.ago.mo": "{n, plural, one {منذ شهر} two {منذ شهرين} few {منذ # أشهر} other {منذ # شهرًا}}",
+    "brains.ago.y": "{n, plural, one {منذ سنة} two {منذ سنتين} few {منذ # سنوات} other {منذ # سنة}}",
   },
 });

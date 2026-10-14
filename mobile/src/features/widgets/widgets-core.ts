@@ -15,13 +15,15 @@
 
 import type * as BrainsCore from "../brains/brains-core";
 import type { BrainDetail, BrainListItem, BrainStats } from "../brains/brains-core";
+import type { Locale } from "../../../../web/lib/intl/locales.ts";
 
 export type BrainsHelpers = Pick<
   typeof BrainsCore,
   "mergeBrains" | "brainHex" | "brainName" | "monogram" | "clampIcon" | "formatAgo" | "formatCount" | "isNever"
 >;
 
-export type WidgetLocale = "en" | "ar";
+/** The app language (web/lib/intl/locales.ts). */
+export type WidgetLocale = Locale;
 
 /** One brain as the widget snapshot keeps it. */
 export type SnapshotBrain = {
@@ -129,7 +131,7 @@ export function parseSnapshot(raw: string | null | undefined): WidgetSnapshot | 
   try {
     const v = JSON.parse(raw) as Partial<WidgetSnapshot>;
     if (!v || v.v !== SNAPSHOT_VERSION || typeof v.signedIn !== "boolean" || !Array.isArray(v.brains)) return null;
-    if (v.locale !== "en" && v.locale !== "ar") return null;
+    if (typeof v.locale !== "string" || !v.locale) return null;
     if (typeof v.updatedAt !== "number") return null;
     const brains = v.brains.filter(
       (b): b is SnapshotBrain => !!b && typeof b.namespace === "string" && typeof b.memories === "number" && typeof b.colorHex === "string",
@@ -167,6 +169,8 @@ export const brainsUrl = () => `${APP_SCHEME}://brains`;
 
 /** Every translated string a widget shows; resolved by labels.ts. */
 export type WidgetLabels = {
+  /** The language reads right to left (from the app's locale table). */
+  rtl?: boolean;
   title: string;
   memories: string;
   recalls: string;
@@ -267,7 +271,7 @@ function row(b: SnapshotBrain, locale: WidgetLocale, now: number, h: BrainsHelpe
 
 /** Everything a widget shows, for the moment `now`. */
 export function buildWidgetProps(s: WidgetSnapshot, labels: WidgetLabels, h: BrainsHelpers, now: number = Date.now()): WidgetProps {
-  const rtl = s.locale === "ar";
+  const rtl = labels.rtl ?? s.locale === "ar";
   const base = {
     rtl,
     title: labels.title,

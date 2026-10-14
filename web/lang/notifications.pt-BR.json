@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Notificações",
+  "notifications.bellUnread": "Notificações, {count} não lidas",
+  "notifications.title": "Notificações",
+  "notifications.markAllRead": "Marcar tudo como lido",
+  "notifications.delete": "Excluir notificação",
+  "notifications.loadMore": "Carregar mais",
+  "notifications.empty": "Tudo em dia",
+  "notifications.emptyHint": "Quando um cérebro for compartilhado com você ou alguém abrir uma apresentação que você compartilhou, aparecerá aqui.",
+  "notifications.error": "Não foi possível carregar as notificações.",
+  "notifications.failed": "Não foi possível atualizar as notificações. Tente novamente.",
+  "notifications.unread": "Não lida",
+  "notifications.open": "Abrir",
+  "notifications.markRead": "Marcar como lida"
+}

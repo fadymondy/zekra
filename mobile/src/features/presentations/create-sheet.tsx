@@ -19,6 +19,7 @@ import {
   errorMessages,
   formProblems,
   fromBrainBody,
+  isLocale,
   toggleId,
   toggleKind,
   type FormProblem,
@@ -34,6 +35,11 @@ recall query, or picked notes — in one language; the other language comes
 from Translate on the presentation. Documents start as drafts.
 */
 
+/** Decks are written in English or Arabic; any other app language starts an English one. */
+function deckLocale(locale: string): PLocale {
+  return isLocale(locale) ? locale : "en";
+}
+
 function blank(locale: PLocale): FromBrainForm {
   return { mode: "namespace", q: "", noteIds: [], kinds: [...KINDS], locale, name: "", company: "", email: "", title: "", style: "minimal" };
 }
@@ -44,7 +50,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
   const f = useFormat();
   const { token } = useAuth();
   const client = useQueryClient();
-  const [form, setForm] = useState<FromBrainForm>(() => blank(locale));
+  const [form, setForm] = useState<FromBrainForm>(() => blank(deckLocale(locale)));
   const [problems, setProblems] = useState<FormProblem[]>([]);
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [noteSearch, setNoteSearch] = useState("");
@@ -75,7 +81,7 @@ export function CreateFromBrainSheet({ brain, open, onClose }: { brain: Brain; o
     onSuccess: (out) => {
       toast(t("presentations.fb.created", { n: out.documents?.length ?? 0 }), "ok");
       void client.invalidateQueries({ queryKey: ["presentations"] });
-      setForm(blank(locale));
+      setForm(blank(deckLocale(locale)));
       setPicked({});
       setNoteSearch("");
       onClose();

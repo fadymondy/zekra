@@ -67,7 +67,7 @@ type pushText struct {
 // pushMessage is one notification, in every language the app ships. Each
 // device gets the text for the locale it registered with (English fallback).
 type pushMessage struct {
-	Text map[string]pushText // "en", "ar"
+	Text map[string]pushText // by locale: en, ar, de, zh-Hans, … (pushTexts)
 	// Data rides in the FCM data block; the app routes on data["route"].
 	Data map[string]string
 }

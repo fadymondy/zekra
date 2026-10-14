@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "此设备上的通知运行正常。",
+  "push.brainAccess.title": "有人与你共享了一个大脑",
+  "push.brainAccess.body": "你已获得 {name} 的访问权限。",
+  "push.presentationViewed.title": "你的演示文稿被打开了",
+  "push.presentationViewed.body": "“{title}”刚刚通过分享链接被打开。",
+  "push.presentationDownloaded.title": "你的演示文稿被下载了",
+  "push.presentationDownloaded.body": "“{title}”刚刚通过分享链接被下载。",
+  "presentation.graphSummary": "{root}（{type}）：涉及 {roles}，共 {count} 个相连实体。"
+}

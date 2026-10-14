@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "このデバイスで通知が届いています。",
+  "push.brainAccess.title": "ブレインが共有されました",
+  "push.brainAccess.body": "{name} へのアクセス権が付与されました。",
+  "push.presentationViewed.title": "プレゼンが開かれました",
+  "push.presentationViewed.body": "「{title}」が共有リンクから開かれました。",
+  "push.presentationDownloaded.title": "プレゼンがダウンロードされました",
+  "push.presentationDownloaded.body": "「{title}」が共有リンクからダウンロードされました。",
+  "presentation.graphSummary": "{root}（{type}）：{roles} にわたる {count} 件の関連エンティティ。"
+}

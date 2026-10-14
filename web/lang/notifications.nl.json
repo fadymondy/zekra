@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Meldingen",
+  "notifications.bellUnread": "Meldingen, {count} ongelezen",
+  "notifications.title": "Meldingen",
+  "notifications.markAllRead": "Alles als gelezen markeren",
+  "notifications.delete": "Melding verwijderen",
+  "notifications.loadMore": "Meer laden",
+  "notifications.empty": "Je bent helemaal bij",
+  "notifications.emptyHint": "Als een brein met je wordt gedeeld of iemand een presentatie opent die je hebt gedeeld, zie je dat hier.",
+  "notifications.error": "Meldingen laden mislukt.",
+  "notifications.failed": "Meldingen bijwerken mislukt. Probeer het opnieuw.",
+  "notifications.unread": "Ongelezen",
+  "notifications.open": "Openen",
+  "notifications.markRead": "Als gelezen markeren"
+}

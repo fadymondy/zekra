@@ -1,0 +1,12 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "push.test.title": "Zekra",
+  "push.test.body": "Powiadomienia działają na tym urządzeniu.",
+  "push.brainAccess.title": "Udostępniono Ci mózg",
+  "push.brainAccess.body": "Dostęp do {name} został Ci przyznany.",
+  "push.presentationViewed.title": "Twoja prezentacja została otwarta",
+  "push.presentationViewed.body": "Ktoś właśnie otworzył „{title}” z linku udostępniania.",
+  "push.presentationDownloaded.title": "Twoja prezentacja została pobrana",
+  "push.presentationDownloaded.body": "Ktoś właśnie pobrał „{title}” z linku udostępniania.",
+  "presentation.graphSummary": "{root} ({type}): powiązanych encji: {count}, rodzaje: {roles}."
+}

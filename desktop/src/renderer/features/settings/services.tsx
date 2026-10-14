@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import type { ServicesInfo, SyncConflict, SyncStatus } from "../../../shared/ipc";
 import { bridge } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
+import { sectionStrings } from "../../i18n/sections";
 import { clearCache, dismissConflict, syncNow, useSyncStatus } from "../../services/offline";
 import { useSession } from "../../shell/session";
 import { toast } from "../../shell/toast";
@@ -216,7 +217,7 @@ export function displayAccelerator(accel: string, mac: boolean): string {
 
 export function ServicesSettings({ embedded = false }: { embedded?: boolean }) {
   const { locale } = useI18n();
-  const t = (k: Key, vars?: Record<string, string | number>) => fmt(STR[locale === "ar" ? "ar" : "en"][k], vars);
+  const t = (k: Key, vars?: Record<string, string | number>) => fmt(sectionStrings(locale, "settingsServices", STR.en, STR.ar)[k], vars);
   const { settings, patch } = useSession();
   const status = useSyncStatus();
   const [info, setInfo] = useState<ServicesInfo | null>(null);

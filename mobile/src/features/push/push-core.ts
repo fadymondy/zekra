@@ -92,7 +92,3 @@ export function pushUserAgent(os: string, osVersion: string | number, appVersion
   return `zekra-mobile/${appVersion || "0"} (${build || "dev"}) ${os} ${osVersion}`.slice(0, 300);
 }
 
-/** "ar-EG" / "ar" → "ar"; everything else → "en" (the server's two languages). */
-export function pushLocale(tag: string | null | undefined): "en" | "ar" {
-  return (tag ?? "").toLowerCase().startsWith("ar") ? "ar" : "en";
-}

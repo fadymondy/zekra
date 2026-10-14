@@ -1,13 +1,16 @@
 import { LanguageList } from "@/components/language-list";
 import { Row, Segmented } from "@/components/ui";
 import { SettingsLabel, SettingsPage } from "@/features/settings/settings-nav";
+import { zekraApi } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/providers/auth";
 import { useTheme, type ThemeMode } from "@/theme";
 
 // Settings → Appearance: light/dark and the app language, side by side.
 export default function AppearanceScreen() {
   const { t } = useI18n();
   const { mode, setMode } = useTheme();
+  const { token } = useAuth();
   return (
     <SettingsPage section="appearance">
       <Row>
@@ -24,7 +27,8 @@ export default function AppearanceScreen() {
       </Row>
       <Row>
         <SettingsLabel title={t("settings.language")} body={t("settings.x.languageBody")} />
-        <LanguageList />
+        {/* Saved on the account too, so emails and notifications follow it (best effort). */}
+        <LanguageList onPicked={(code) => token && void zekraApi.updateProfile(token, { locale: code }).catch(() => {})} />
       </Row>
     </SettingsPage>
   );

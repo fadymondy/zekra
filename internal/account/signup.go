@@ -59,20 +59,13 @@ var (
 
 var errBadCode = errors.New("that code is wrong or has expired — request a new one")
 
-func localeOf(r *http.Request, fallback string) string {
-	if fallback == "ar" || fallback == "en" {
-		return fallback
-	}
-	if strings.HasPrefix(strings.ToLower(r.Header.Get("Accept-Language")), "ar") {
-		return "ar"
-	}
-	return "en"
-}
-
 func unverifiedResponse(w http.ResponseWriter, email, locale string) {
 	msg := "Check your inbox: we sent a 6-digit code to " + email + ". Enter it to activate your account, then sign in."
-	if locale == "ar" {
+	switch {
+	case locale == "ar":
 		msg = "تحقق من بريدك: أرسلنا رمزًا من 6 أرقام إلى " + email + ". أدخله لتفعيل حسابك ثم سجّل الدخول."
+	case locale != "en":
+		msg = tr(locale, "signup.unverified", enText["signup.unverified"], map[string]string{"email": email})
 	}
 	writeJSON(w, http.StatusForbidden, map[string]string{"error": msg, "code": CodeEmailUnverified, "email": email})
 }

@@ -1,0 +1,22 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "nav.connectedApps": "Aplikasi terhubung",
+  "apps.micro": "Akun",
+  "apps.title": "Aplikasi terhubung",
+  "apps.description": "Aplikasi AI yang Anda izinkan menggunakan brain Anda lewat MCP. Cabut untuk memutus aksesnya seketika.",
+  "apps.read": "Baca",
+  "apps.readWrite": "Baca + tulis",
+  "apps.lastUsed": "Terakhir digunakan {when}",
+  "apps.neverUsed": "Belum pernah digunakan",
+  "apps.connected": "Terhubung {date}",
+  "apps.revoke": "Cabut",
+  "apps.revokeTitle": "Cabut {name}?",
+  "apps.revokeBody": "Aplikasi langsung kehilangan akses ke brain Anda. Untuk menggunakannya lagi, Anda perlu menghubungkannya kembali.",
+  "apps.revoked": "Akses dicabut",
+  "apps.revokedOn": "Dicabut {date}",
+  "apps.revokedSection": "Dicabut ({n})",
+  "apps.emptyTitle": "Belum ada aplikasi terhubung",
+  "apps.emptyBody": "Hubungkan Claude, ChatGPT, Cursor, atau klien MCP lain dan aplikasinya akan muncul di sini.",
+  "apps.connectCta": "Hubungkan agen",
+  "apps.noBrains": "Tidak ada brain"
+}

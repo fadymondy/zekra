@@ -18,8 +18,8 @@ export type LossyConstruct = "footnote" | "html-block"
 
 export interface LossyFinding {
   kind: LossyConstruct
-  /** Human-readable, shown in the warning. */
-  label: string
+  /** Catalog key under notes.lossy.* (the warning copy is translated). */
+  label: "footnotes" | "htmlBlocks"
   /** First matched snippet, to show the user what was found. */
   sample: string
 }
@@ -46,7 +46,7 @@ export function findLossyConstructs(markdown: string): LossyFinding[] {
   if (fn) {
     out.push({
       kind: "footnote",
-      label: "Footnotes",
+      label: "footnotes",
       sample: fn[0].trim().slice(0, 60),
     })
   }
@@ -55,7 +55,7 @@ export function findLossyConstructs(markdown: string): LossyFinding[] {
   if (html) {
     out.push({
       kind: "html-block",
-      label: "Raw HTML blocks",
+      label: "htmlBlocks",
       sample: html[0].trim().slice(0, 60),
     })
   }

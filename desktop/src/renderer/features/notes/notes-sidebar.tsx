@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { intlTag } from "@/lib/intl/locales";
 
 import { IconButton } from "../../components/chrome";
 import { NoteRow, type OpenHow } from "../../components/note-row";
@@ -55,7 +56,7 @@ function useGroups(notes: Note[], filter: ListFilter, sort: NoteSort): Group[] {
   const rest = pinned.length ? notes.filter((n) => !n.pinned) : notes;
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const loc = locale === "ar" ? "ar" : "en";
+  const loc = intlTag(locale);
   const by = new Map<string, Group>();
   for (const n of rest) {
     const d = new Date(n.updatedAt);

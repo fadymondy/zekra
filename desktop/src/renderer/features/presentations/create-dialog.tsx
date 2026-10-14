@@ -19,6 +19,7 @@ import {
   type FromBrainForm,
   type SourceMode,
 } from "@mobile/features/presentations/presentations-core";
+import { isLocale as isDeckLocale } from "@mobile/features/presentations/presentations-core";
 import type { PLocale, PStyle } from "@mobile/features/presentations/types";
 
 import { ApiError, zekraApi, type Brain, type Note } from "../../lib/api";
@@ -36,6 +37,11 @@ brain's own material only — the whole brain, a recall query, or picked notes
 presentation. Documents start as drafts. 422s list their field errors.
 */
 
+/** Decks are written in English or Arabic; any other app language starts an English one. */
+function deckLocale(locale: string): PLocale {
+  return isDeckLocale(locale) ? locale : "en";
+}
+
 function blank(locale: PLocale): FromBrainForm {
   return { mode: "namespace", q: "", noteIds: [], kinds: [...KINDS], locale, name: "", company: "", email: "", title: "", style: "minimal" };
 }
@@ -50,7 +56,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
 }) {
   const { t, locale } = useI18n();
   const f = useFormat();
-  const [form, setForm] = useState<FromBrainForm>(() => blank(locale));
+  const [form, setForm] = useState<FromBrainForm>(() => blank(deckLocale(locale)));
   const [problems, setProblems] = useState<FormProblem[]>([]);
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -95,7 +101,7 @@ export function CreateFromBrainDialog({ brain, token, open, onClose, onCreated }
       const out = await presentationsApi.fromBrain(token, fromBrainBody(brain.namespace, form));
       const docs = out.documents ?? [];
       toast.success(t("presentations.fb.created", { n: docs.length }));
-      setForm(blank(locale));
+      setForm(blank(deckLocale(locale)));
       setPicked({});
       setNoteSearch("");
       onCreated(docs.map((d) => d.id));

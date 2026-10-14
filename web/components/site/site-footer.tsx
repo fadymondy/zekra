@@ -3,8 +3,8 @@ import { GithubIcon } from "lucide-react"
 
 import { CubeMark } from "@/components/brand/cube-mark"
 import { ZEKRA_MARK } from "@/lib/brand/mark"
-import { dirForLocale, LOCALE_NAMES, LOCALES } from "@/lib/i18n-locale"
-import { APP_URL } from "@/lib/site/config"
+import { dirForLocale, LOCALE_NAMES } from "@/lib/i18n-locale"
+import { APP_URL, SITE_LOCALES } from "@/lib/site/config"
 import type { Landing } from "@/lib/site/landing"
 
 /*
@@ -50,7 +50,7 @@ export function SiteFooter({
           {isArabic ? "اللوحة" : "Console"}
         </a>
         {/* Every other language as a plain link (crawlable; the header has the menu). */}
-        {LOCALES.filter((l) => l !== locale).map((l) => (
+        {SITE_LOCALES.filter((l) => l !== locale).map((l) => (
           <a key={l} href={`/${l}${path}`} hrefLang={l} lang={l} dir={dirForLocale(l)} className={link}>
             {LOCALE_NAMES[l]}
           </a>

@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Bildirimler",
+  "notifications.bellUnread": "Bildirimler, {count} okunmamış",
+  "notifications.title": "Bildirimler",
+  "notifications.markAllRead": "Tümünü okundu işaretle",
+  "notifications.delete": "Bildirimi sil",
+  "notifications.loadMore": "Daha fazla yükle",
+  "notifications.empty": "Hepsini gördünüz",
+  "notifications.emptyHint": "Bir beyin sizinle paylaşıldığında veya biri paylaştığınız bir sunumu açtığında burada görünür.",
+  "notifications.error": "Bildirimler yüklenemedi.",
+  "notifications.failed": "Bildirimler güncellenemedi. Tekrar deneyin.",
+  "notifications.unread": "Okunmamış",
+  "notifications.open": "Aç",
+  "notifications.markRead": "Okundu işaretle"
+}

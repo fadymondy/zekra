@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { bannerFrom, derivePushState, pushLocale, pushUserAgent, routeFromData } from "./push-core.ts";
+import { bannerFrom, derivePushState, pushUserAgent, routeFromData } from "./push-core.ts";
 
 test("routeFromData accepts the three routes the server sends", () => {
   assert.equal(routeFromData({ route: "/note/abc-123" }), "/note/abc-123");
@@ -62,9 +62,6 @@ test("bannerFrom uses the notification, then data, then the app name", () => {
   assert.notEqual(a.id, b.id);
 });
 
-test("pushUserAgent and pushLocale", () => {
+test("pushUserAgent", () => {
   assert.equal(pushUserAgent("ios", "18.2", "0.1.0", "7"), "zekra-mobile/0.1.0 (7) ios 18.2");
-  assert.equal(pushLocale("ar-EG"), "ar");
-  assert.equal(pushLocale("en"), "en");
-  assert.equal(pushLocale(undefined), "en");
 });

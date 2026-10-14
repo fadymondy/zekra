@@ -1,0 +1,263 @@
+{
+  "extName": {
+    "message": "Simpan ke Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Simpan halaman atau teks yang dipilih ke Brain Zekra sebagai catatan."
+  },
+  "commandCapture": {
+    "message": "Simpan pilihan/halaman ke Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Simpan pilihan ke Zekra"
+  },
+  "menuSavePage": {
+    "message": "Simpan halaman ke Zekra"
+  },
+  "connectIntro": {
+    "message": "Hubungkan akun Zekra Anda untuk menyimpan halaman, catatan, dan rahasia langsung ke Brain."
+  },
+  "connectButton": {
+    "message": "Hubungkan akun Zekra"
+  },
+  "connectHint": {
+    "message": "Membuka Zekra di jendela baru untuk masuk dan menyetujui akses. Tidak ada yang disimpan selain token akses yang diterbitkan izin ini."
+  },
+  "tabNote": {
+    "message": "Catatan"
+  },
+  "tabVault": {
+    "message": "Brankas"
+  },
+  "labelBrain": {
+    "message": "Brain"
+  },
+  "labelTitle": {
+    "message": "Judul"
+  },
+  "labelNote": {
+    "message": "Catatan"
+  },
+  "labelTags": {
+    "message": "Tag (pisahkan dengan koma)"
+  },
+  "tagsPlaceholder": {
+    "message": "bacaan, nanti"
+  },
+  "reloadPage": {
+    "message": "Muat ulang halaman"
+  },
+  "reloadPageHint": {
+    "message": "Muat ulang judul/URL/pilihan halaman"
+  },
+  "secretName": {
+    "message": "Nama rahasia"
+  },
+  "secretValue": {
+    "message": "Nilai"
+  },
+  "secretValuePlaceholder": {
+    "message": "nilai"
+  },
+  "saveToVault": {
+    "message": "Simpan ke brankas"
+  },
+  "vaultNote": {
+    "message": "Disegel di brankas Brain. Nilai hanya dapat ditulis — tidak pernah ditampilkan kembali di sini."
+  },
+  "options": {
+    "message": "Opsi"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Opsi"
+  },
+  "apiBase": {
+    "message": "URL dasar API"
+  },
+  "agentLabel": {
+    "message": "Label agen (X-Agent-Id, bukan kredensial)"
+  },
+  "save": {
+    "message": "Simpan"
+  },
+  "account": {
+    "message": "Akun"
+  },
+  "disconnect": {
+    "message": "Putuskan"
+  },
+  "accessToken": {
+    "message": "Token akses"
+  },
+  "accessTokenHint": {
+    "message": "Token akses OAuth yang diterbitkan izin ini. Gunakan sebagai token Bearer pada endpoint MCP. Perlakukan seperti kata sandi."
+  },
+  "show": {
+    "message": "Tampilkan"
+  },
+  "hide": {
+    "message": "Sembunyikan"
+  },
+  "copy": {
+    "message": "Salin"
+  },
+  "workerDown": {
+    "message": "Worker latar belakang ekstensi tidak berjalan. Muat ulang ekstensi."
+  },
+  "loadingYourBrains": {
+    "message": "Memuat Brain Anda…"
+  },
+  "loadingBrains": {
+    "message": "Memuat Brain…"
+  },
+  "noWritableBrains": {
+    "message": "Koneksi ini tidak punya Brain yang dapat ditulis. Hubungkan ulang dan centang Brain dengan akses tulis."
+  },
+  "refreshFailed": {
+    "message": "Tidak dapat memuat ulang Brain: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "Tidak ada Brain yang dimuat"
+  },
+  "openingZekraPopup": {
+    "message": "Membuka Zekra… selesaikan proses masuk di jendela baru. Popup ini mungkin tertutup; buka lagi setelah selesai."
+  },
+  "openingZekra": {
+    "message": "Membuka Zekra… selesaikan proses masuk di jendela baru."
+  },
+  "pickBrain": {
+    "message": "Pilih Brain terlebih dahulu."
+  },
+  "brainsStillLoading": {
+    "message": "Brain masih dimuat — coba lagi sebentar lagi."
+  },
+  "savingBackground": {
+    "message": "Menyimpan… (Anda dapat menutup popup ini — penyimpanan berlanjut di latar belakang)"
+  },
+  "saving": {
+    "message": "Menyimpan…"
+  },
+  "savedTo": {
+    "message": "Disimpan ke $1."
+  },
+  "savedSecret": {
+    "message": "“$1” disimpan ke $2."
+  },
+  "nameValueRequired": {
+    "message": "Nama dan nilai wajib diisi."
+  },
+  "signInInProgress": {
+    "message": "Proses masuk sedang berlangsung di jendela Zekra — selesaikan di sana, lalu buka lagi popup ini."
+  },
+  "disconnected": {
+    "message": "Terputus."
+  },
+  "connected": {
+    "message": "Terhubung."
+  },
+  "connectedTo": {
+    "message": "Terhubung ke $1."
+  },
+  "notConnected": {
+    "message": "Tidak terhubung."
+  },
+  "expires": {
+    "message": "Berakhir $1 (diperbarui otomatis)."
+  },
+  "noExpiry": {
+    "message": "Tidak ada masa berlaku yang dilaporkan."
+  },
+  "enterHttpsUrl": {
+    "message": "Masukkan URL https:// (atau http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome tidak memberikan akses ke $1."
+  },
+  "saved": {
+    "message": "Tersimpan."
+  },
+  "enterValidBase": {
+    "message": "Masukkan URL dasar API yang valid terlebih dahulu."
+  },
+  "signInFailed": {
+    "message": "Gagal masuk."
+  },
+  "copied": {
+    "message": "Disalin ke papan klip."
+  },
+  "errUnreachable": {
+    "message": "Tidak dapat menjangkau $1. Periksa koneksi Anda."
+  },
+  "errUnreachableDetail": {
+    "message": "Tidak dapat menjangkau $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Tidak terhubung. Hubungkan akun Zekra Anda."
+  },
+  "errSessionExpired": {
+    "message": "Sesi Zekra Anda telah berakhir. Hubungkan lagi."
+  },
+  "errRateLimited": {
+    "message": "Zekra membatasi permintaan. Tunggu sebentar lalu coba lagi."
+  },
+  "errServer": {
+    "message": "Zekra mengalami masalah ($1). Coba lagi sebentar lagi."
+  },
+  "errUnexpected": {
+    "message": "Respons tak terduga dari Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Permintaan gagal ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Permintaan gagal"
+  },
+  "errBrainList": {
+    "message": "Tidak dapat membaca daftar Brain dari Zekra"
+  },
+  "errDiscovery": {
+    "message": "Penemuan proses masuk gagal ($1) di $2."
+  },
+  "errNoRegistration": {
+    "message": "Server Zekra ini tidak menerima pendaftaran aplikasi baru."
+  },
+  "errRegistration": {
+    "message": "Pendaftaran aplikasi gagal ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Proses masuk dibatalkan."
+  },
+  "errNotFinished": {
+    "message": "Proses masuk tidak selesai: $1"
+  },
+  "errNotApproved": {
+    "message": "Akses tidak disetujui."
+  },
+  "errStateMismatch": {
+    "message": "State tidak cocok — proses masuk ditolak."
+  },
+  "errNoCode": {
+    "message": "Kode otorisasi tidak dikembalikan."
+  },
+  "errTokenExchange": {
+    "message": "Pertukaran token gagal ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Koneksi Zekra Anda berakhir ($1). Hubungkan lagi."
+  },
+  "errRefresh": {
+    "message": "Tidak dapat memperbarui sesi Zekra Anda ($1)."
+  },
+  "errSignedOut": {
+    "message": "Anda telah keluar. Hubungkan lagi."
+  },
+  "langTag": {
+    "message": "id"
+  },
+  "langDir": {
+    "message": "ltr"
+  }
+}

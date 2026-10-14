@@ -1,0 +1,11 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "Zekra, bir nota görsel eklemeniz veya bir beynin okuyabilmesi için beyne fotoğraf ve video eklemeniz amacıyla fotoğraflarınıza erişmek ister.",
+    "NSCameraUsageDescription": "Zekra, bir sayfanın veya beyaz tahtanın fotoğrafını çekip metnini bir beyne ekleyebilmeniz için kamerayı kullanır.",
+    "NSFaceIDUsageDescription": "Zekra, uygulamanın kilidini açmak ve bir kasa sırrını göstermeden önce kimliğinizi doğrulamak için Face ID kullanır."
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Mitteilungen",
+  "notifications.bellUnread": "Mitteilungen, {count} ungelesen",
+  "notifications.title": "Mitteilungen",
+  "notifications.markAllRead": "Alle als gelesen markieren",
+  "notifications.delete": "Mitteilung löschen",
+  "notifications.loadMore": "Mehr laden",
+  "notifications.empty": "Alles gelesen",
+  "notifications.emptyHint": "Wenn ein Brain mit dir geteilt wird oder jemand eine von dir geteilte Präsentation öffnet, erscheint es hier.",
+  "notifications.error": "Mitteilungen konnten nicht geladen werden.",
+  "notifications.failed": "Mitteilungen konnten nicht aktualisiert werden. Versuche es erneut.",
+  "notifications.unread": "Ungelesen",
+  "notifications.open": "Öffnen",
+  "notifications.markRead": "Als gelesen markieren"
+}

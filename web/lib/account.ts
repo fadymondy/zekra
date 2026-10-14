@@ -10,12 +10,14 @@ export type AccountProfile = {
   name: string
   avatar: string
   timezone: string
+  /** The account's language ("" = follow the browser); emails and notifications use it. */
+  locale: string
   verified: boolean
   has_password: boolean
 }
 
 export const getProfile = () => authRequest<AccountProfile>("/api/me/account/profile")
-export const saveProfile = (p: Partial<Pick<AccountProfile, "name" | "avatar" | "timezone">>) =>
+export const saveProfile = (p: Partial<Pick<AccountProfile, "name" | "avatar" | "timezone" | "locale">>) =>
   authRequest<AccountProfile>("/api/me/account/profile", "PUT", p)
 
 /** Uploads a cropped profile photo; resolves to its URL. */

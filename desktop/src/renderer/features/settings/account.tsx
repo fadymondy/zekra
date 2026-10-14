@@ -4,6 +4,7 @@ import { Check, LogOut, Mail, Trash2, TriangleAlert, Undo2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { intlTag } from "@/lib/intl/locales";
 
 import { ConfirmDialog } from "../../components/confirm-dialog";
 import { authApi } from "../../lib/api";
@@ -258,7 +259,7 @@ function DeleteGroup() {
   const when = (iso?: string) => {
     if (!iso) return "—";
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? iso : new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en", { dateStyle: "long" }).format(d);
+    return Number.isNaN(d.getTime()) ? iso : new Intl.DateTimeFormat(intlTag(locale), { dateStyle: "long" }).format(d);
   };
 
   return (

@@ -1,0 +1,263 @@
+{
+  "langTag": {
+    "message": "en"
+  },
+  "langDir": {
+    "message": "ltr"
+  },
+  "extName": {
+    "message": "Save to Zekra"
+  },
+  "extShortName": {
+    "message": "Zekra"
+  },
+  "extDescription": {
+    "message": "Capture the current page or a text selection into a Zekra brain as a note."
+  },
+  "commandCapture": {
+    "message": "Save selection/page to Zekra"
+  },
+  "menuSaveSelection": {
+    "message": "Save selection to Zekra"
+  },
+  "menuSavePage": {
+    "message": "Save page to Zekra"
+  },
+  "connectIntro": {
+    "message": "Connect your Zekra account to save pages, notes and secrets straight into a brain."
+  },
+  "connectButton": {
+    "message": "Connect Zekra account"
+  },
+  "connectHint": {
+    "message": "Opens Zekra in a new window to sign in and approve access. Nothing is stored except the access token this grant issues."
+  },
+  "tabNote": {
+    "message": "Note"
+  },
+  "tabVault": {
+    "message": "Vault"
+  },
+  "labelBrain": {
+    "message": "Brain"
+  },
+  "labelTitle": {
+    "message": "Title"
+  },
+  "labelNote": {
+    "message": "Note"
+  },
+  "labelTags": {
+    "message": "Tags (comma separated)"
+  },
+  "tagsPlaceholder": {
+    "message": "reading, later"
+  },
+  "reloadPage": {
+    "message": "Reload page"
+  },
+  "reloadPageHint": {
+    "message": "Reload page title/URL/selection"
+  },
+  "secretName": {
+    "message": "Secret name"
+  },
+  "secretValue": {
+    "message": "Value"
+  },
+  "secretValuePlaceholder": {
+    "message": "value"
+  },
+  "saveToVault": {
+    "message": "Save to vault"
+  },
+  "vaultNote": {
+    "message": "Sealed in the brain's vault. Values are write-only — never read back here."
+  },
+  "options": {
+    "message": "Options"
+  },
+  "optionsTitle": {
+    "message": "Zekra - Options"
+  },
+  "apiBase": {
+    "message": "API base URL"
+  },
+  "agentLabel": {
+    "message": "Agent label (X-Agent-Id, not a credential)"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "account": {
+    "message": "Account"
+  },
+  "disconnect": {
+    "message": "Disconnect"
+  },
+  "accessToken": {
+    "message": "Access token"
+  },
+  "accessTokenHint": {
+    "message": "The OAuth access token this grant issued. Use it as a Bearer token against the MCP endpoint. Treat it like a password."
+  },
+  "show": {
+    "message": "Show"
+  },
+  "hide": {
+    "message": "Hide"
+  },
+  "copy": {
+    "message": "Copy"
+  },
+  "workerDown": {
+    "message": "The extension's background worker is not running. Reload the extension."
+  },
+  "loadingYourBrains": {
+    "message": "Loading your brains…"
+  },
+  "loadingBrains": {
+    "message": "Loading brains…"
+  },
+  "noWritableBrains": {
+    "message": "This connection has no writable brains. Reconnect and tick a brain with write access."
+  },
+  "refreshFailed": {
+    "message": "Could not refresh brains: $1"
+  },
+  "noBrainsLoaded": {
+    "message": "No brains loaded"
+  },
+  "openingZekraPopup": {
+    "message": "Opening Zekra… finish signing in in the new window. This popup may close; reopen it when you are done."
+  },
+  "openingZekra": {
+    "message": "Opening Zekra… finish signing in in the new window."
+  },
+  "pickBrain": {
+    "message": "Pick a brain first."
+  },
+  "brainsStillLoading": {
+    "message": "Brains are still loading — try again in a moment."
+  },
+  "savingBackground": {
+    "message": "Saving… (you can close this popup — the save continues in the background)"
+  },
+  "saving": {
+    "message": "Saving…"
+  },
+  "savedTo": {
+    "message": "Saved to $1."
+  },
+  "savedSecret": {
+    "message": "Saved \"$1\" to $2."
+  },
+  "nameValueRequired": {
+    "message": "Name and value are both required."
+  },
+  "signInInProgress": {
+    "message": "Sign-in is in progress in the Zekra window — finish there, then reopen this popup."
+  },
+  "disconnected": {
+    "message": "Disconnected."
+  },
+  "connected": {
+    "message": "Connected."
+  },
+  "connectedTo": {
+    "message": "Connected to $1."
+  },
+  "notConnected": {
+    "message": "Not connected."
+  },
+  "expires": {
+    "message": "Expires $1 (renewed automatically)."
+  },
+  "noExpiry": {
+    "message": "No expiry reported."
+  },
+  "enterHttpsUrl": {
+    "message": "Enter an https:// URL (or http://localhost)."
+  },
+  "hostNotGranted": {
+    "message": "Chrome did not grant access to $1."
+  },
+  "saved": {
+    "message": "Saved."
+  },
+  "enterValidBase": {
+    "message": "Enter a valid API base URL first."
+  },
+  "signInFailed": {
+    "message": "Sign-in failed."
+  },
+  "copied": {
+    "message": "Copied to clipboard."
+  },
+  "errUnreachable": {
+    "message": "Could not reach $1. Check your connection."
+  },
+  "errUnreachableDetail": {
+    "message": "Could not reach $1 ($2)."
+  },
+  "errNotConnected": {
+    "message": "Not connected. Connect your Zekra account."
+  },
+  "errSessionExpired": {
+    "message": "Your Zekra session expired. Connect again."
+  },
+  "errRateLimited": {
+    "message": "Zekra is rate-limiting requests. Wait a moment and try again."
+  },
+  "errServer": {
+    "message": "Zekra had a problem ($1). Try again shortly."
+  },
+  "errUnexpected": {
+    "message": "Unexpected response from Zekra."
+  },
+  "errRequestFailedStatus": {
+    "message": "Request failed ($1)."
+  },
+  "errRequestFailed": {
+    "message": "Request failed"
+  },
+  "errBrainList": {
+    "message": "Could not read the brain list from Zekra"
+  },
+  "errDiscovery": {
+    "message": "Sign-in discovery failed ($1) at $2."
+  },
+  "errNoRegistration": {
+    "message": "This Zekra server does not accept new app registrations."
+  },
+  "errRegistration": {
+    "message": "App registration failed ($1): $2"
+  },
+  "errCancelled": {
+    "message": "Sign-in was cancelled."
+  },
+  "errNotFinished": {
+    "message": "Sign-in did not finish: $1"
+  },
+  "errNotApproved": {
+    "message": "Access was not approved."
+  },
+  "errStateMismatch": {
+    "message": "State mismatch — sign-in rejected."
+  },
+  "errNoCode": {
+    "message": "No authorization code returned."
+  },
+  "errTokenExchange": {
+    "message": "Token exchange failed ($1): $2"
+  },
+  "errConnectionEnded": {
+    "message": "Your Zekra connection ended ($1). Connect again."
+  },
+  "errRefresh": {
+    "message": "Could not refresh your Zekra session ($1)."
+  },
+  "errSignedOut": {
+    "message": "Signed out. Connect again."
+  }
+}

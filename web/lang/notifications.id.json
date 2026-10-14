@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Notifikasi",
+  "notifications.bellUnread": "Notifikasi, {count} belum dibaca",
+  "notifications.title": "Notifikasi",
+  "notifications.markAllRead": "Tandai semua dibaca",
+  "notifications.delete": "Hapus notifikasi",
+  "notifications.loadMore": "Muat lebih banyak",
+  "notifications.empty": "Semua sudah terbaca",
+  "notifications.emptyHint": "Saat sebuah brain dibagikan kepada Anda atau seseorang membuka presentasi yang Anda bagikan, kabarnya muncul di sini.",
+  "notifications.error": "Gagal memuat notifikasi.",
+  "notifications.failed": "Gagal memperbarui notifikasi. Coba lagi.",
+  "notifications.unread": "Belum dibaca",
+  "notifications.open": "Buka",
+  "notifications.markRead": "Tandai dibaca"
+}

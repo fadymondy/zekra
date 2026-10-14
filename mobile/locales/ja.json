@@ -1,0 +1,11 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Zekra",
+    "NSPhotoLibraryUsageDescription": "ノートに画像を追加したり、ブレインに写真や動画を追加して読み取らせたりするために、写真へのアクセスが必要です。",
+    "NSCameraUsageDescription": "ページやホワイトボードを撮影し、その文字をブレインに追加するために、カメラを使用します。",
+    "NSFaceIDUsageDescription": "アプリのロック解除と、ボールトのシークレットを表示する前の本人確認のために、Face ID を使用します。"
+  },
+  "android": {
+    "app_name": "Zekra"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "//": "Machine-assisted translation (2026-10-14), awaiting native-speaker review. Terms: lang/glossary.md",
+  "notifications.bell": "Уведомления",
+  "notifications.bellUnread": "Уведомления, непрочитанных: {count}",
+  "notifications.title": "Уведомления",
+  "notifications.markAllRead": "Прочитать все",
+  "notifications.delete": "Удалить уведомление",
+  "notifications.loadMore": "Загрузить ещё",
+  "notifications.empty": "Всё прочитано",
+  "notifications.emptyHint": "Здесь появится уведомление, когда с вами поделятся мозгом или кто-то откроет презентацию, которой вы поделились.",
+  "notifications.error": "Не удалось загрузить уведомления.",
+  "notifications.failed": "Не удалось обновить уведомления. Повторите.",
+  "notifications.unread": "Непрочитанное",
+  "notifications.open": "Открыть",
+  "notifications.markRead": "Отметить прочитанным"
+}
