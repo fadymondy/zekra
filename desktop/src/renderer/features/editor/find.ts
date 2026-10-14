@@ -31,6 +31,18 @@ export function ensureFindStyles(): void {
     // and the whole mechanism for the read-only render).
     ".zk-live .ProseMirror :is(p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,dt,dd),.zk-reader :is(p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th,dt,dd,figcaption){unicode-bidi:plaintext;text-align:start;}",
     ".zk-live .ProseMirror pre{direction:ltr;text-align:left;}",
+    // Checklists (TipTap taskList: li > label > checkbox, then div > p). The
+    // checkbox sits at the item's inline START, next to its text: a flex row
+    // with logical spacing, in the direction of the item's own paragraph. The
+    // li's dir="auto" can't find it (the <p> carries its own dir, so it is
+    // skipped) and falls back to the UI's, which put an Arabic item's box on
+    // the left in an English UI, away from its right-aligned text.
+    ".zk-live .ProseMirror ul[data-type=taskList]{list-style:none;padding-inline-start:0.25rem;}",
+    ".zk-live .ProseMirror li[data-type=taskItem]{display:flex;align-items:flex-start;gap:0;padding-inline-start:0;}",
+    ".zk-live .ProseMirror li[data-type=taskItem]:has(> div > :first-child:dir(rtl)){direction:rtl;}",
+    ".zk-live .ProseMirror li[data-type=taskItem]:has(> div > :first-child:dir(ltr)){direction:ltr;}",
+    ".zk-live .ProseMirror li[data-type=taskItem] > label{flex:none;margin-inline-end:0.5rem;margin-top:0.35em;line-height:1;user-select:none;}",
+    ".zk-live .ProseMirror li[data-type=taskItem] > div{flex:1 1 auto;min-width:0;}",
   ].join("\n");
   document.head.appendChild(style);
 }
