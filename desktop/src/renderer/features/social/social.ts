@@ -4,6 +4,7 @@ import {
   appStartUrl,
   authReturn,
   bytesToBase64Url,
+  isBrowserProvider,
   isFresh,
   planSocial,
   readAuthReturn,
@@ -32,9 +33,11 @@ Social sign-in on the desktop (MH-450), the same server app flow as mobile
   4. POST /api/auth/<provider>/exchange {code, code_verifier} → {token, user},
      or a 2FA challenge exactly like the password login.
 
-Apple has no desktop flow (it is a native identity token on iOS), so it is
-never offered here. Google needs the server's app flow (`app: true`); GitHub's
-app flow exists on older servers too (GET /api/auth/methods fallback).
+Apple runs the same app flow as on Android (`appleApp`: the server's Services
+ID web flow, then zekra://auth/apple); the iOS sheet doesn't exist here.
+planSocial puts it first (App Review 4.8). Google needs the server's app flow
+(`app: true`); GitHub's app flow exists on older servers too (GET
+/api/auth/methods fallback).
 */
 
 export const PROVIDER_NAME: Record<SocialProvider, string> = { apple: "Apple", google: "Google", github: "GitHub" };
@@ -55,7 +58,7 @@ async function loadServer(): Promise<ServerSupport | null> {
 async function loadPlan(base: string): Promise<SocialPlan | null> {
   const server = await loadServer();
   if (!server) return null;
-  // The desktop runs the browser flow only: no Google SDK, no Apple sheet.
+  // The desktop runs the browser flow only (Apple included): no Google SDK, no Apple sheet.
   const plan = planSocial(server, { browser: true, googleSdk: false, apple: false });
   cache.set(base, { at: Date.now(), plan });
   return plan;
@@ -106,7 +109,7 @@ export function loadPending(): PendingFlow | null {
     const raw = sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
     const v = JSON.parse(raw) as PendingFlow;
-    if ((v.provider !== "github" && v.provider !== "google") || typeof v.verifier !== "string") return null;
+    if (!isBrowserProvider(v.provider) || typeof v.verifier !== "string") return null;
     if (Date.now() - v.startedAt > PENDING_TTL_MS) return null;
     return v;
   } catch {
@@ -151,7 +154,7 @@ export async function reopenSocial(flow: PendingFlow): Promise<void> {
 /** The provider a zekra://auth/<provider>… link is for, or null. */
 export function providerOfLink(path: string): BrowserProvider | null {
   const p = path.split(/[/?#]/)[0];
-  return p === "github" || p === "google" ? p : null;
+  return isBrowserProvider(p) ? p : null;
 }
 
 export function readReturn(url: string, provider: BrowserProvider): AuthReturn {

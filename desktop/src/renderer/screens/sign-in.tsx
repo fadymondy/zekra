@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
-import { socialErrorKey, type BrowserProvider, type SocialProvider } from "@mobile/features/social/social-core";
+import { isBrowserProvider, socialErrorKey, type BrowserProvider, type SocialProvider } from "@mobile/features/social/social-core";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { ZekraMark } from "../components/zekra-mark";
-import { GitHubMark, GoogleMark } from "../features/social/provider-marks";
+import { ProviderMark } from "../features/social/provider-marks";
 import {
   PROVIDER_NAME,
   clearPending,
@@ -28,10 +28,10 @@ import { useOsEvent } from "../shell/os-events";
 
 /*
 Sign in: email + password (+ TOTP / recovery 2FA), Forgot password (emailed
-reset link, POST /api/auth/password/forgot), and GitHub / Google through the
+reset link, POST /api/auth/password/forgot), and Apple / GitHub / Google through the
 server's app flow in the system browser (features/social/social.ts): the
 browser comes back as zekra://auth/<provider>?code=…, which arrives here as a
-"deep-link" OS event and is exchanged for a session. Apple is iOS-only.
+"deep-link" OS event and is exchanged for a session.
 */
 
 type Challenge = { challenge: string } | null;
@@ -158,14 +158,15 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
   });
 
   const Back = isRtl ? ArrowRight : ArrowLeft;
-  const providers = (plan?.providers ?? []).filter((p): p is BrowserProvider => p === "google" || p === "github");
+  // Apple first when offered (planSocial's order; App Review 4.8).
+  const providers = (plan?.providers ?? []).filter(isBrowserProvider);
 
   let body;
   if (pending) {
     body = (
       <div className="flex flex-col items-center gap-4 py-2 text-center">
         <span className="flex size-12 items-center justify-center rounded-md border border-border/60 bg-muted text-foreground">
-          {pending.provider === "github" ? <GitHubMark size={22} /> : <GoogleMark size={22} />}
+          <ProviderMark provider={pending.provider} size={22} />
         </span>
         <div className="flex flex-col gap-1">
           <p className="text-sm font-medium text-foreground">{t("social.waiting", { provider: PROVIDER_NAME[pending.provider] })}</p>
@@ -317,8 +318,8 @@ export function SignInScreen({ onSignedIn, onOpenSettings }: {
             <div role="separator" className="mb-2 h-px bg-border/70" />
             {providers.map((p) => (
               <Button key={p} type="button" variant="outline" className="h-10 bg-pane-raised" disabled={busy} onClick={() => void startProvider(p)}>
-                {p === "github" ? <GitHubMark /> : <GoogleMark />}
-                {t(p === "github" ? "social.github" : "social.google")}
+                <ProviderMark provider={p} />
+                {t(`social.${p}`)}
               </Button>
             ))}
           </div>
