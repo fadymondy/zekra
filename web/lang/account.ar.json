@@ -17,7 +17,7 @@
   "account.connections.notConnected": "غير مرتبط",
   "account.connections.title": "الحسابات المرتبطة",
   "account.connections.unavailable": "غير مفعّل على هذا الخادم",
-  "account.delete.cancelHint": "طلبت الحذف عن طريق الخطأ؟ ألغِه ببريدك وكلمة المرور قبل انتهاء فترة المهلة.",
+  "account.delete.cancelHint": "طلبت الحذف عن طريق الخطأ؟ ألغِه قبل انتهاء فترة المهلة — برمز نرسله إلى بريدك، أو بكلمة المرور.",
   "account.delete.cancelSubmit": "إلغاء الحذف",
   "account.delete.cancelTitle": "غيّرت رأيك؟",
   "account.delete.cancelled": "أُلغي الحذف وبقي حسابك كما هو. سجّل الدخول مجددًا لاستخدامه.",
@@ -134,5 +134,15 @@
   "account.reading.themeHint": "تعيد طلاء التطبيق كاملًا. اختر «بدون» للإبقاء على لوحة ألوان Zekra.",
   "account.reading.lightThemes": "السمات الفاتحة",
   "account.reading.darkThemes": "السمات الداكنة",
-  "account.reading.ownPalette": "استخدام لوحة ألوان Zekra"
+  "account.reading.ownPalette": "استخدام لوحة ألوان Zekra",
+  "account.delete.formHintNoPassword": "حسابك بلا كلمة مرور (تدخل عبر Google أو Apple أو GitHub)، لذا سنرسل رمزًا إلى بريدك لنتأكد أنك صاحب الحساب.",
+  "account.delete.codeHint": "سنرسل رمزًا من 6 أرقام إلى بريدك. الرمز صالح لمدة 15 دقيقة.",
+  "account.delete.codeSent": "تحقّق من بريدك: أرسلنا إليك رمزًا من 6 أرقام. أدخله أدناه.",
+  "account.delete.cancelCodeHint": "أدخل بريدك وسنرسل إليه رمزًا من 6 أرقام إن كان عليه حذف مجدول.",
+  "account.delete.cancelCodeSent": "إن كان على هذا البريد حذف مجدول، فالرمز في الطريق إليه. أدخله أدناه.",
+  "account.delete.sendCode": "أرسل لي رمزًا",
+  "account.delete.resendCode": "أرسل رمزًا جديدًا",
+  "account.delete.code": "الرمز المكوّن من 6 أرقام",
+  "account.delete.useCode": "استخدم رمزًا يصلك بالبريد بدلًا من ذلك",
+  "account.delete.usePassword": "استخدم كلمة المرور بدلًا من ذلك"
 }
