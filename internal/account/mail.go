@@ -124,8 +124,10 @@ func brandHost() string {
 	return "zekra.dev"
 }
 
-// CodeEmail is the 6-digit code for verifying an address, resetting a password
-// or signing in without one. Same copy structure as fadymondy's, Zekra-branded.
+// CodeEmail is the 6-digit code for verifying an address, resetting a password,
+// signing in without one, or confirming / cancelling an account deletion. The
+// subject starts with the code and names the purpose (e.g. "123456 is your Zekra
+// verification code"). Same copy structure as fadymondy's, Zekra-branded.
 func CodeEmail(locale, purpose, code string) (subject, text, htmlBody string) {
 	spaced := strings.Join(strings.Split(code, ""), " ")
 	box := fmt.Sprintf(`<p style="margin:16px 0;font-size:28px;letter-spacing:6px;font-weight:600;font-family:ui-monospace,Menlo,monospace;" dir="ltr">%s</p>`, html.EscapeString(code))
@@ -134,47 +136,49 @@ func CodeEmail(locale, purpose, code string) (subject, text, htmlBody string) {
 	var c copyText
 	switch {
 	case locale == "ar" && purpose == purposeDelete:
-		c = copyText{"رمز تأكيد حذف الحساب", "رمز تأكيد حذف حسابك على " + brand + ":", "تأكيد حذف الحساب",
+		c = copyText{"%s هو رمز تأكيد حذف حسابك على " + brand, "رمز تأكيد حذف حسابك على " + brand + ":", "تأكيد حذف الحساب",
 			"أدخل هذا الرمز لتأكيد حذف حسابك. سيُجدول الحذف بعد 14 يومًا ويمكنك إلغاؤه خلالها:",
 			"الرمز صالح لمدة 15 دقيقة. إذا لم تطلب ذلك، تجاهل الرسالة وغيّر كلمة مرور حساب Google أو Apple أو GitHub الذي تدخل به — لن يُحذف شيء بدون هذا الرمز."}
 	case locale == "ar" && purpose == purposeUndelete:
-		c = copyText{"رمز إلغاء حذف الحساب", "رمز إلغاء حذف حسابك على " + brand + ":", "إلغاء حذف الحساب",
+		c = copyText{"%s هو رمز إلغاء حذف حسابك على " + brand, "رمز إلغاء حذف حسابك على " + brand + ":", "إلغاء حذف الحساب",
 			"أدخل هذا الرمز لإلغاء حذف حسابك المجدول:",
 			"الرمز صالح لمدة 15 دقيقة. إذا لم تطلب ذلك، تجاهل الرسالة — سيبقى الحذف مجدولًا كما هو."}
 	case purpose == purposeDelete:
-		c = copyText{"Confirm deleting your " + brand + " account", "Your code to confirm deleting your " + brand + " account:", "Confirm account deletion",
+		c = copyText{"%s: confirm deleting your " + brand + " account", "Your code to confirm deleting your " + brand + " account:", "Confirm account deletion",
 			"Enter this code to confirm deleting your account. Deletion is scheduled 14 days out and you can cancel it until then:",
 			"It works for 15 minutes. If you did not ask for this, ignore this email and secure the Google, Apple or GitHub account you sign in with — nothing is deleted without the code."}
 	case purpose == purposeUndelete:
-		c = copyText{"Cancel deleting your " + brand + " account", "Your code to cancel deleting your " + brand + " account:", "Cancel account deletion",
+		c = copyText{"%s: cancel deleting your " + brand + " account", "Your code to cancel deleting your " + brand + " account:", "Cancel account deletion",
 			"Enter this code to cancel the scheduled deletion of your account:",
 			"It works for 15 minutes. If you did not ask for this, ignore this email — the deletion stays scheduled."}
 	case locale == "ar" && purpose == purposeLogin:
-		c = copyText{"رمز تسجيل الدخول", "رمز تسجيل الدخول إلى حسابك على " + brand + ":", "تسجيل الدخول",
+		c = copyText{"%s هو رمز تسجيل الدخول إلى " + brand, "رمز تسجيل الدخول إلى حسابك على " + brand + ":", "تسجيل الدخول",
 			"أدخل هذا الرمز لتسجيل الدخول:",
 			"الرمز صالح لمدة 15 دقيقة. إذا لم تطلب ذلك، تجاهل الرسالة — لا يمكن لأحد الدخول بدون هذا الرمز."}
 	case locale == "ar" && purpose == purposeReset:
-		c = copyText{"رمز إعادة تعيين كلمة المرور", "رمز إعادة تعيين كلمة المرور لحسابك على " + brand + ":", "إعادة تعيين كلمة المرور",
+		c = copyText{"%s هو رمز إعادة تعيين كلمة المرور على " + brand, "رمز إعادة تعيين كلمة المرور لحسابك على " + brand + ":", "إعادة تعيين كلمة المرور",
 			"أدخل هذا الرمز لاختيار كلمة مرور جديدة:",
 			"الرمز صالح لمدة 15 دقيقة. إذا لم تطلب ذلك، تجاهل الرسالة — كلمة مرورك لم تتغير."}
 	case locale == "ar":
-		c = copyText{"رمز تأكيد بريدك الإلكتروني", "رمز تأكيد بريدك الإلكتروني لحسابك الجديد على " + brand + ":", "أكّد بريدك الإلكتروني",
+		c = copyText{"%s هو رمز تأكيد بريدك الإلكتروني على " + brand, "رمز تأكيد بريدك الإلكتروني لحسابك الجديد على " + brand + ":", "أكّد بريدك الإلكتروني",
 			"أدخل هذا الرمز لتفعيل حسابك:",
 			"الرمز صالح لمدة 15 دقيقة. إذا لم تنشئ حسابًا، تجاهل الرسالة."}
 	case purpose == purposeLogin:
-		c = copyText{"Your " + brand + " sign-in code", "Your code to sign in to " + brand + ":", "Sign in",
+		c = copyText{"%s is your " + brand + " sign-in code", "Your code to sign in to " + brand + ":", "Sign in",
 			"Enter this code to sign in:",
 			"It works for 15 minutes. If you did not ask for this, ignore this email — nobody can sign in without the code."}
 	case purpose == purposeReset:
-		c = copyText{"Your " + brand + " password reset code", "Your code to reset your " + brand + " password:", "Reset your password",
+		c = copyText{"%s is your " + brand + " password reset code", "Your code to reset your " + brand + " password:", "Reset your password",
 			"Enter this code to choose a new password:",
 			"It works for 15 minutes. If you did not ask for this, ignore this email — your password has not changed."}
 	default:
-		c = copyText{"Your " + brand + " verification code", "Your code to verify the email for your new " + brand + " account:", "Verify your email",
+		c = copyText{"%s is your " + brand + " verification code", "Your code to verify the email for your new " + brand + " account:", "Verify your email",
 			"Enter this code to activate your account:",
 			"It works for 15 minutes. If you did not create an account, ignore this email."}
 	}
-	subject = c.subject
+	// The code leads the subject so every message has its own subject: Gmail threads
+	// mails that share one, which buried each new code inside an old conversation.
+	subject = fmt.Sprintf(c.subject, code)
 	text = c.lead + "\n\n" + spaced + "\n\n" + c.foot
 	htmlBody = shell(locale, c.heading,
 		`<p style="margin:0;">`+html.EscapeString(c.intro)+`</p>`+box+`<p style="margin:0;">`+html.EscapeString(c.foot)+`</p>`)
