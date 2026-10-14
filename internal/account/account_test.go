@@ -210,6 +210,39 @@ func TestCodeEmail(t *testing.T) {
 	}
 }
 
+// Each code mail's subject leads with its code and is unique per purpose, so Gmail
+// starts a new conversation for every code instead of burying it in an old thread.
+func TestCodeEmailSubjects(t *testing.T) {
+	want := map[string]string{
+		purposeVerify:   "123456 is your Zekra verification code",
+		purposeLogin:    "123456 is your Zekra sign-in code",
+		purposeReset:    "123456 is your Zekra password reset code",
+		purposeDelete:   "123456: confirm deleting your Zekra account",
+		purposeUndelete: "123456: cancel deleting your Zekra account",
+	}
+	for p, w := range want {
+		if got, _, _ := CodeEmail("en", p, "123456"); got != w {
+			t.Errorf("en/%s subject = %q, want %q", p, got, w)
+		}
+	}
+	for _, loc := range []string{"en", "ar"} {
+		seen := map[string]string{}
+		for _, p := range []string{purposeVerify, purposeReset, purposeLogin, purposeDelete, purposeUndelete} {
+			got, _, _ := CodeEmail(loc, p, "654321")
+			if !strings.HasPrefix(got, "654321") || strings.Contains(got, "%!") || !strings.Contains(got, "Zekra") {
+				t.Errorf("%s/%s subject %q does not lead with the code", loc, p, got)
+			}
+			if other, dup := seen[got]; dup {
+				t.Errorf("%s: %s and %s share the subject %q", loc, p, other, got)
+			}
+			seen[got] = p
+		}
+		if a, _, _ := CodeEmail(loc, purposeVerify, "111111"); a == func() string { b, _, _ := CodeEmail(loc, purposeVerify, "222222"); return b }() {
+			t.Errorf("%s: two codes got the same subject %q", loc, a)
+		}
+	}
+}
+
 func TestPickGitHubEmail(t *testing.T) {
 	if _, err := pickGitHubEmail([]githubEmail{{Email: "a@x", Primary: true}, {Email: "b@x", Verified: true}}); err == nil {
 		t.Error("an unverified primary / non-primary verified address was accepted")
