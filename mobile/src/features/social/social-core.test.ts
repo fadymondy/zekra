@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { test } from "node:test";
 
 import {
+  APPLE_RETURN,
   appStartUrl,
   authReturn,
   base64ToBase64Url,
@@ -38,13 +39,13 @@ test("serverSupport reads {providers:[{name, web, app, native}]}", () => {
       "apple",
     ],
   });
-  assert.deepEqual(got, { github: true, googleApp: true, googleNative: true, apple: true });
+  assert.deepEqual(got, { github: true, googleApp: true, googleNative: true, apple: true, appleApp: false });
 });
 
 test("serverSupport: only a literal true counts; GitHub's native means its app flow", () => {
   assert.deepEqual(
     serverSupport({ providers: [{ name: "google", app: "yes", native: 1 }, { name: "apple", web: true }, { name: "github", native: true }] }),
-    { github: true, googleApp: false, googleNative: false, apple: false },
+    { github: true, googleApp: false, googleNative: false, apple: false, appleApp: false },
   );
   // Google web-only (no app flow reported) is not an app button.
   assert.deepEqual(serverSupport({ providers: [{ name: "google", web: true, native: false }] }), NO_SERVER_SUPPORT);
@@ -70,33 +71,53 @@ const fullBuild = { browser: true, googleSdk: false, apple: true };
 
 test("planSocial: an older server shows GitHub only", () => {
   const plan = planSocial(supportFromMethods({ methods: [{ name: "google" }, { name: "github" }] }), fullBuild);
-  assert.deepEqual(plan, { providers: ["github"], google: null });
+  assert.deepEqual(plan, { providers: ["github"], google: null, apple: null });
 });
 
 test("planSocial: Google runs the browser flow by default, the SDK only when configured", () => {
-  const server = { github: true, googleApp: true, googleNative: true, apple: false };
-  assert.deepEqual(planSocial(server, fullBuild), { providers: ["google", "github"], google: "browser" });
-  assert.deepEqual(planSocial(server, { ...fullBuild, googleSdk: true }), { providers: ["google", "github"], google: "native" });
+  const server = { github: true, googleApp: true, googleNative: true, apple: false, appleApp: false };
+  assert.deepEqual(planSocial(server, fullBuild), { providers: ["google", "github"], google: "browser", apple: null });
+  assert.deepEqual(planSocial(server, { ...fullBuild, googleSdk: true }), { providers: ["google", "github"], google: "native", apple: null });
   // SDK configured but the server has no app flow and no native audience: hidden.
   assert.deepEqual(planSocial({ ...server, googleApp: false, googleNative: false }, { ...fullBuild, googleSdk: true }), {
     providers: ["github"],
     google: null,
+    apple: null,
   });
   // SDK configured, server only native: native.
   assert.deepEqual(planSocial({ ...server, googleApp: false }, { ...fullBuild, googleSdk: true }).google, "native");
 });
 
 test("planSocial: Apple needs the server's bundle id AND the device; order is Apple, Google, GitHub", () => {
-  const all = { github: true, googleApp: true, googleNative: false, apple: true };
+  const all = { github: true, googleApp: true, googleNative: false, apple: true, appleApp: false };
   assert.deepEqual(planSocial(all, fullBuild).providers, ["apple", "google", "github"]);
+  assert.equal(planSocial(all, fullBuild).apple, "native");
   assert.deepEqual(planSocial(all, { ...fullBuild, apple: false }).providers, ["google", "github"]);
   assert.deepEqual(planSocial({ ...all, apple: false }, fullBuild).providers, ["google", "github"]);
 });
 
+test("planSocial: Android (no Apple sheet) signs in with Apple in the browser, still first", () => {
+  const server = { github: true, googleApp: true, googleNative: false, apple: true, appleApp: true };
+  const android = { browser: true, googleSdk: false, apple: false };
+  assert.deepEqual(planSocial(server, android), { providers: ["apple", "google", "github"], google: "browser", apple: "browser" });
+  // iOS keeps the native sheet when it can.
+  assert.equal(planSocial(server, fullBuild).apple, "native");
+  // A server with only the web flow (no bundle ids): the browser flow on iOS too.
+  assert.equal(planSocial({ ...server, apple: false }, fullBuild).apple, "browser");
+  // No auth-session modules and no sheet: no Apple.
+  assert.deepEqual(planSocial(server, { browser: false, googleSdk: false, apple: false }).providers, []);
+  // A server without Apple's app flow: hidden on Android.
+  assert.deepEqual(planSocial({ ...server, apple: false, appleApp: false }, android).providers, ["google", "github"]);
+});
+
+test("serverSupport reads Apple's app flow", () => {
+  assert.deepEqual(serverSupport({ providers: [{ name: "apple", web: true, app: true, native: false }] }), { ...NO_SERVER_SUPPORT, appleApp: true });
+});
+
 test("planSocial: a build without the auth-session modules hides GitHub and browser Google", () => {
-  const all = { github: true, googleApp: true, googleNative: true, apple: false };
-  assert.deepEqual(planSocial(all, { browser: false, googleSdk: false, apple: false }), { providers: [], google: null });
-  assert.deepEqual(planSocial(all, { browser: false, googleSdk: true, apple: false }), { providers: ["google"], google: "native" });
+  const all = { github: true, googleApp: true, googleNative: true, apple: false, appleApp: false };
+  assert.deepEqual(planSocial(all, { browser: false, googleSdk: false, apple: false }), { providers: [], google: null, apple: null });
+  assert.deepEqual(planSocial(all, { browser: false, googleSdk: true, apple: false }), { providers: ["google"], google: "native", apple: null });
 });
 
 test("browserModulesPresent needs expo-web-browser and expo-crypto by their native names", () => {
@@ -145,7 +166,7 @@ test("queryOf decodes pairs and survives malformed ones", () => {
 });
 
 test("readAuthReturn: code, cancel, reasons — for both providers", () => {
-  for (const back of [GITHUB_RETURN, GOOGLE_RETURN]) {
+  for (const back of [GITHUB_RETURN, GOOGLE_RETURN, APPLE_RETURN]) {
     assert.deepEqual(readAuthReturn(`${back}?code=abc`, back), { kind: "code", code: "abc" });
     assert.deepEqual(readAuthReturn(`${back}/?code=abc`, back), { kind: "code", code: "abc" });
     assert.deepEqual(readAuthReturn(`${back}?error=cancelled`, back), { kind: "cancelled" });
@@ -154,6 +175,7 @@ test("readAuthReturn: code, cancel, reasons — for both providers", () => {
     assert.deepEqual(readAuthReturn(back, back), { kind: "error", reason: "failed" });
   }
   assert.equal(authReturn("google"), "zekra://auth/google");
+  assert.equal(authReturn("apple"), "zekra://auth/apple");
 });
 
 test("readAuthReturn never takes a code from another URL", () => {
@@ -168,6 +190,7 @@ test("readAuthReturn never takes a code from another URL", () => {
   }
   assert.deepEqual(readAuthReturn(`${GITHUB_RETURN}?code=abc`, GOOGLE_RETURN), { kind: "error", reason: "failed" });
   assert.deepEqual(readAuthReturn("zekra://auth/googlex?code=abc", GOOGLE_RETURN), { kind: "error", reason: "failed" });
+  assert.deepEqual(readAuthReturn(`${GOOGLE_RETURN}?code=abc`, APPLE_RETURN), { kind: "error", reason: "failed" });
 });
 
 test("appStartUrl is the app-mode start with an S256 challenge", () => {
@@ -178,6 +201,10 @@ test("appStartUrl is the app-mode start with an S256 challenge", () => {
   assert.equal(
     appStartUrl("https://app.zekra.dev", "google", "CHAL-_"),
     "https://app.zekra.dev/api/auth/google?app=1&return=zekra%3A%2F%2Fauth%2Fgoogle&code_challenge=CHAL-_&code_challenge_method=S256",
+  );
+  assert.equal(
+    appStartUrl("https://app.zekra.dev", "apple", "CHAL-_", true),
+    "https://app.zekra.dev/api/auth/apple?app=1&return=zekra%3A%2F%2Fauth%2Fapple&code_challenge=CHAL-_&code_challenge_method=S256&link=1",
   );
 });
 
@@ -231,7 +258,9 @@ test("pending browser sign-in: parse and match", () => {
   const p = parsePending(raw);
   assert.deepEqual(p, { provider: "github", verifier, startedAt: 1_000 });
   assert.equal(parsePending("nope"), null);
-  assert.equal(parsePending(JSON.stringify({ provider: "apple", verifier, startedAt: 1 })), null);
+  assert.deepEqual(parsePending(JSON.stringify({ provider: "apple", verifier, startedAt: 1 })), { provider: "apple", verifier, startedAt: 1 });
+  assert.deepEqual(parsePending(JSON.stringify({ provider: "apple", verifier, startedAt: 1, link: true })), { provider: "apple", verifier, startedAt: 1, link: true });
+  assert.equal(parsePending(JSON.stringify({ provider: "facebook", verifier, startedAt: 1 })), null);
   assert.equal(parsePending(JSON.stringify({ provider: "github", verifier: "short", startedAt: 1 })), null);
   assert.equal(pendingMatches(p, "github", 2_000), true);
   assert.equal(pendingMatches(p, "google", 2_000), false);

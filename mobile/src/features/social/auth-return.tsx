@@ -9,9 +9,9 @@ import { useAuth } from "@/providers/auth";
 import { usePalette } from "@/theme";
 
 import { completeBrowserReturn } from "./browser-flow";
-import type { BrowserProvider } from "./social-core";
+import { PROVIDER_NAME, type BrowserProvider } from "./social-core";
 
-// zekra://auth/github and zekra://auth/google — where the system browser sends
+// zekra://auth/github, zekra://auth/google and zekra://auth/apple — where the system browser sends
 // the user back after signing in (browser-flow.ts). The code goes to the
 // sign-in that is waiting in this process, or, if the OS closed the app while
 // the user was in the browser, is redeemed here with the stored PKCE verifier.
@@ -34,7 +34,7 @@ export function AuthSessionReturn({ provider }: { provider: BrowserProvider }) {
         router.replace("/brains");
         return;
       }
-      if (result.kind === "error") toast(t("social.failed", { provider: provider === "github" ? "GitHub" : "Google" }), "danger");
+      if (result.kind === "error") toast(t("social.failed", { provider: PROVIDER_NAME[provider] }), "danger");
       // Waiting sign-in (it navigates itself), cancelled, or not ours: step aside.
       if (router.canGoBack()) router.back();
       else router.replace("/");

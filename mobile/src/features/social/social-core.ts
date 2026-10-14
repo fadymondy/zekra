@@ -6,8 +6,12 @@ export type SocialProvider = "apple" | "google" | "github";
 
 export const SOCIAL_PROVIDERS: readonly SocialProvider[] = ["apple", "google", "github"];
 
-/** Providers the app signs in with through the server's browser flow (an auth session). */
-export type BrowserProvider = "github" | "google";
+/** Brand names: never translated. */
+export const PROVIDER_NAME: Record<SocialProvider, string> = { apple: "Apple", google: "Google", github: "GitHub" };
+
+/** Providers the app signs in with through the server's browser flow (an auth session).
+ *  Apple's is how Android (no Apple sheet) signs in with Apple. */
+export type BrowserProvider = "github" | "google" | "apple";
 
 /** Where a provider's auth session returns; the API only redirects to zekra://… */
 export function authReturn(provider: BrowserProvider): string {
@@ -16,6 +20,7 @@ export function authReturn(provider: BrowserProvider): string {
 
 export const GITHUB_RETURN = authReturn("github");
 export const GOOGLE_RETURN = authReturn("google");
+export const APPLE_RETURN = authReturn("apple");
 
 /** How long a server's providers answer is trusted (the API caches it 5 minutes too). */
 export const PROVIDERS_TTL_MS = 5 * 60 * 1000;
@@ -35,9 +40,11 @@ export type ServerSupport = {
   googleNative: boolean;
   /** Apple's native identity token: POST /api/auth/apple/token (APPLE_BUNDLE_IDS set). */
   apple: boolean;
+  /** Apple's app flow: auth session + POST /api/auth/apple/exchange (the web flow is configured). */
+  appleApp: boolean;
 };
 
-export const NO_SERVER_SUPPORT: ServerSupport = { github: false, googleApp: false, googleNative: false, apple: false };
+export const NO_SERVER_SUPPORT: ServerSupport = { github: false, googleApp: false, googleNative: false, apple: false, appleApp: false };
 
 /**
  * GET /api/auth/providers ({providers: [{name, web, app, native}]}) → what the
@@ -57,7 +64,10 @@ export function serverSupport(payload: unknown): ServerSupport | null {
     else if (name === "google") {
       out.googleApp = out.googleApp || app === true;
       out.googleNative = out.googleNative || native === true;
-    } else if (name === "apple") out.apple = out.apple || native === true;
+    } else if (name === "apple") {
+      out.apple = out.apple || native === true;
+      out.appleApp = out.appleApp || app === true;
+    }
   }
   return out;
 }
@@ -91,28 +101,39 @@ export type BuildSupport = {
 };
 
 export type GoogleVia = "browser" | "native";
+export type AppleVia = "browser" | "native";
 
 export type SocialPlan = {
-  /** Buttons to show, in order. */
+  /** Buttons to show, in order: Apple first (App Review 4.8 — at least as prominent as the others). */
   providers: SocialProvider[];
   /** How Google signs in, when it is shown. */
   google: GoogleVia | null;
+  /** How Apple signs in, when it is shown: the iOS sheet, else the server's browser flow (Android). */
+  apple?: AppleVia | null;
 };
+
+/** How each provider signs in (the parts of a plan signInWith needs). */
+export type SocialVia = Pick<SocialPlan, "google" | "apple">;
 
 /**
  * Which buttons to show: what both the server and the build support. Google
  * runs the browser flow by default; the native SDK is an upgrade used only when
- * the build is configured for it and the server accepts its ID tokens.
+ * the build is configured for it and the server accepts its ID tokens. Apple
+ * uses the iOS sheet when it can, else (Android, or a server without bundle
+ * ids) the server's browser flow.
  */
 export function planSocial(server: ServerSupport, build: BuildSupport): SocialPlan {
   const providers: SocialProvider[] = [];
-  if (server.apple && build.apple) providers.push("apple");
+  let apple: AppleVia | null = null;
+  if (server.apple && build.apple) apple = "native";
+  else if (server.appleApp && build.browser) apple = "browser";
+  if (apple) providers.push("apple");
   let google: GoogleVia | null = null;
   if (server.googleNative && build.googleSdk) google = "native";
   else if (server.googleApp && build.browser) google = "browser";
   if (google) providers.push("google");
   if (server.github && build.browser) providers.push("github");
-  return { providers, google };
+  return { providers, google, apple };
 }
 
 /** React Native's URL has no dependable searchParams, so the query is read by hand. */
@@ -192,10 +213,11 @@ export function sessionOutcome(res: SessionResult, elapsedMs: number): SessionOu
   return { kind: "cancelled" };
 }
 
-/** GET /api/auth/<provider>?app=1… — the app-mode start, PKCE-bound (S256). */
-export function appStartUrl(apiUrl: string, provider: BrowserProvider, challenge: string): string {
+/** GET /api/auth/<provider>?app=1… — the app-mode start, PKCE-bound (S256).
+ *  `link` connects the provider to the signed-in account instead of signing in. */
+export function appStartUrl(apiUrl: string, provider: BrowserProvider, challenge: string, link = false): string {
   return `${apiUrl.replace(/\/$/, "")}/api/auth/${provider}?app=1&return=${encodeURIComponent(authReturn(provider))}` +
-    `&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256`;
+    `&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256${link ? "&link=1" : ""}`;
 }
 
 const B64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -267,8 +289,14 @@ export function socialErrorKey(provider: SocialProvider, failure: { status?: num
 
 /** A sign-in handed to the system browser: which provider, and the PKCE
  *  verifier the returning code is bound to. Kept in secure storage so the
- *  sign-in can finish even if the OS closed the app while the user was away. */
-export type PendingBrowserSignIn = { provider: BrowserProvider; verifier: string; startedAt: number };
+ *  sign-in can finish even if the OS closed the app while the user was away.
+ *  `link` marks connecting a provider to the signed-in account: its code is a
+ *  link code, redeemed only by the screen that is waiting for it. */
+export type PendingBrowserSignIn = { provider: BrowserProvider; verifier: string; startedAt: number; link?: boolean };
+
+export function isBrowserProvider(p: unknown): p is BrowserProvider {
+  return p === "github" || p === "google" || p === "apple";
+}
 
 /** How long a browser sign-in may take before its verifier is thrown away. */
 export const BROWSER_SIGNIN_TTL_MS = 10 * 60 * 1000;
@@ -277,8 +305,8 @@ export function parsePending(raw: string | null | undefined): PendingBrowserSign
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as Partial<PendingBrowserSignIn>;
-    if ((v.provider === "github" || v.provider === "google") && typeof v.verifier === "string" && v.verifier.length >= 43 && typeof v.startedAt === "number") {
-      return { provider: v.provider, verifier: v.verifier, startedAt: v.startedAt };
+    if (isBrowserProvider(v.provider) && typeof v.verifier === "string" && v.verifier.length >= 43 && typeof v.startedAt === "number") {
+      return { provider: v.provider, verifier: v.verifier, startedAt: v.startedAt, ...(v.link === true ? { link: true } : {}) };
     }
   } catch {}
   return null;

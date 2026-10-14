@@ -164,7 +164,7 @@ export default function SignInScreen() {
     setError("");
     setNotice("");
     try {
-      if (await signInWith(provider, social?.google ?? "browser")) router.replace("/brains");
+      if (await signInWith(provider, { google: social?.google ?? "browser", apple: social?.apple ?? "native" })) router.replace("/brains");
     } catch (caught) {
       if (takeChallenge(caught)) return;
       if (!(caught instanceof ApiError) && !(caught instanceof SocialSignInError)) reportError(caught, `social sign-in ${provider}`);
@@ -287,9 +287,9 @@ export default function SignInScreen() {
   const socialBlock = (
     <>
       {social?.providers.length ? (
-        <SocialButtons providers={social.providers} running={socialBusy} disabled={busy} onPress={(provider) => void signInWithProvider(provider)} />
+        <SocialButtons providers={social.providers} appleVia={social.apple} running={socialBusy} disabled={busy} onPress={(provider) => void signInWithProvider(provider)} />
       ) : null}
-      {socialBusy === "github" || socialBusy === "google" ? (
+      {socialBusy === "github" || socialBusy === "google" || (socialBusy === "apple" && social?.apple === "browser") ? (
         // Sign-in continues in the system browser; it returns via zekra://.
         <View style={{ alignItems: "center", gap: 2 }}>
           <AppText variant="meta" style={{ textAlign: "center" }}>
@@ -332,6 +332,8 @@ export default function SignInScreen() {
       footer={
         <>
           <SwitchLine prompt={t("auth.noAccountPrompt")} action={t("auth.createOne")} onPress={() => switchMode("register")} />
+          {/* A scheduled deletion signs the account out everywhere: cancelling it works signed out. */}
+          <TextLink label={t("deletion.cancelLink")} muted onPress={() => router.push("/cancel-deletion")} />
           {/* Language before sign-in: Settings is not reachable yet. */}
           <LanguageLink />
         </>

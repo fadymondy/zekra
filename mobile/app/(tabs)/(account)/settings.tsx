@@ -36,6 +36,7 @@ export default function SettingsScreen() {
       ? t("security.detailOn", { kind: t(KIND_KEY[biometric?.kind ?? "biometrics"]), after: t(`security.after.${lock.settings.after}`) })
       : t("security.detailOff"),
     profile: user?.email,
+    connections: t("connections.detail"),
     connect: t("settings.x.connectDetail"),
     about: t("settings.x.aboutDetail", { version }),
   };
@@ -85,6 +86,7 @@ export default function SettingsScreen() {
           <View>
             {item("profile")}
             {item("password")}
+            {item("connections")}
             <SettingsItem last Icon={Trash2} tone="danger" label={t("account.delete")} onPress={() => router.push("/account/delete")} />
           </View>
         </Row>

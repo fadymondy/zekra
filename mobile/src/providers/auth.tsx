@@ -2,17 +2,17 @@ import { unregisterPush } from "@/features/push/push";
 import { appleCredential } from "@/features/social/apple";
 import { browserGrant } from "@/features/social/browser-flow";
 import { googleIdToken } from "@/features/social/google";
-import type { GoogleVia, SocialProvider } from "@/features/social/social-core";
+import type { SocialProvider, SocialVia } from "@/features/social/social-core";
 import { getStored, removeStored, setStored } from "@/lib/storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
 import { ApiError, authApi, type AuthAnswer, type User } from "@/lib/api";
 
 /** The provider's sheet, then the API — or null when the user closed the sheet. */
-async function socialAnswer(provider: SocialProvider, googleVia: GoogleVia): Promise<AuthAnswer | null> {
+async function socialAnswer(provider: SocialProvider, via: SocialVia): Promise<AuthAnswer | null> {
   switch (provider) {
     case "google": {
-      if (googleVia === "native") {
+      if (via.google === "native") {
         const idToken = await googleIdToken();
         return idToken ? authApi.google(idToken) : null;
       }
@@ -20,9 +20,18 @@ async function socialAnswer(provider: SocialProvider, googleVia: GoogleVia): Pro
       return grant ? authApi.socialExchange("google", grant.code, grant.verifier) : null;
     }
     case "apple": {
+      if (via.apple === "browser") {
+        const grant = await browserGrant("apple");
+        return grant ? authApi.socialExchange("apple", grant.code, grant.verifier) : null;
+      }
       const cred = await appleCredential();
       if (!cred) return null;
-      return authApi.apple({ identity_token: cred.identityToken, nonce: cred.nonce, full_name: cred.fullName || undefined });
+      return authApi.apple({
+        identity_token: cred.identityToken,
+        nonce: cred.nonce,
+        full_name: cred.fullName || undefined,
+        authorization_code: cred.authorizationCode ?? undefined,
+      });
     }
     case "github": {
       const grant = await browserGrant("github");
@@ -43,9 +52,10 @@ type AuthContextValue = {
   /** Google / Apple / GitHub. Resolves null when the user closed the provider's
    *  sheet (not an error); throws ApiError or SocialSignInError otherwise —
    *  including a 401 2fa_required challenge, finished with finishChallenge like a
-   *  password sign-in. `googleVia` picks Google's browser flow (default) or its
-   *  native SDK (useSocialProviders decides). */
-  signInWith(provider: SocialProvider, googleVia?: GoogleVia): Promise<AuthAnswer | null>;
+   *  password sign-in. `via` picks Google's browser flow (default) or its
+   *  native SDK, and Apple's sheet (default) or its browser flow (Android) —
+   *  useSocialProviders decides. */
+  signInWith(provider: SocialProvider, via?: SocialVia): Promise<AuthAnswer | null>;
   /** Adopt a session obtained elsewhere (a browser sign-in finished after a cold start). */
   acceptSession(answer: AuthAnswer): Promise<AuthAnswer>;
   signOut(): Promise<void>;
@@ -111,8 +121,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     [accept],
   );
   const signInWith = useCallback(
-    async (provider: SocialProvider, googleVia: GoogleVia = "browser") => {
-      const answer = await socialAnswer(provider, googleVia);
+    async (provider: SocialProvider, via: SocialVia = { google: "browser", apple: "native" }) => {
+      const answer = await socialAnswer(provider, via);
       return answer ? accept(answer) : null;
     },
     [accept],

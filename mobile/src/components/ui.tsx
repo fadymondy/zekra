@@ -345,16 +345,18 @@ export function PrimaryButton({ label, loading, icon, style, disabled, ...props 
 
 /** Secondary: 46 min, the soft field fill, no outline, 16/500 label.
  *  `selected` is the accent-tint choice state; `tone="danger"` the destructive one. */
-export function SecondaryButton({ label, loading, icon, selected, tone, style, disabled, ...props }: PressableProps & {
+export function SecondaryButton({ label, loading, icon, selected, tone, labelColor, style, disabled, ...props }: PressableProps & {
   label: string;
   loading?: boolean;
   icon?: ReactNode;
   selected?: boolean;
   tone?: "quiet" | "danger";
+  /** Overrides the label (and spinner) colour, for a brand button with its own background. */
+  labelColor?: string;
 }) {
   const p = usePalette();
   const danger = tone === "danger";
-  const text = danger ? p.danger : selected ? p.action : p.ink;
+  const text = labelColor ?? (danger ? p.danger : selected ? p.action : p.ink);
   return (
     <Pressable
       accessibilityRole="button"

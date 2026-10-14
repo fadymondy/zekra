@@ -9,10 +9,10 @@ import { fonts, metrics, usePalette, useTheme } from "@/theme";
 import { appleAvailable, loadApple } from "./apple";
 import { browserFlowAvailable } from "./browser-flow";
 import { googleSdkAvailable } from "./google";
-import { GitHubMark, GoogleMark } from "./provider-marks";
+import { AppleMark, GitHubMark, GoogleMark } from "./provider-marks";
 import { isFresh, planSocial, serverSupport, supportFromMethods, type ServerSupport, type SocialPlan, type SocialProvider } from "./social-core";
 
-export const PROVIDER_NAME: Record<SocialProvider, string> = { apple: "Apple", google: "Google", github: "GitHub" };
+export { PROVIDER_NAME } from "./social-core";
 
 // The last plan and when it was made, shared by every mount (sign-in screen
 // re-renders, back-and-forth navigation) so the providers call runs at most
@@ -68,9 +68,13 @@ export function useSocialProviders(): SocialPlan | null {
   return plan;
 }
 
-/** "or", then Continue with Apple / Google / GitHub — only the ones that work here. */
-export function SocialButtons({ providers, running, disabled, onPress }: {
+/** "or", then Continue with Apple / Google / GitHub — only the ones that work here.
+ *  Apple comes first and is the same size as the others (App Review 4.8): the
+ *  iOS sheet's own button when `appleVia` is "native", else our button for
+ *  Apple's browser flow (Android). */
+export function SocialButtons({ providers, appleVia = "native", running, disabled, onPress }: {
   providers: SocialProvider[];
+  appleVia?: "native" | "browser" | null;
   /** The provider whose sign-in is in flight. */
   running: SocialProvider | null;
   disabled?: boolean;
@@ -81,7 +85,7 @@ export function SocialButtons({ providers, running, disabled, onPress }: {
   const { scheme } = useTheme();
   if (providers.length === 0) return null;
   const off = disabled || running !== null;
-  const Apple = Platform.OS === "ios" ? loadApple() : null;
+  const Apple = Platform.OS === "ios" && appleVia === "native" ? loadApple() : null;
 
   return (
     <View style={{ gap: 10 }}>
@@ -91,6 +95,21 @@ export function SocialButtons({ providers, running, disabled, onPress }: {
         <View style={{ flex: 1, height: 1, backgroundColor: p.line }} />
       </View>
       {providers.map((provider) => {
+        if (provider === "apple" && appleVia === "browser") {
+          // Apple's browser flow: black on light, white on dark, like Apple's own button.
+          return (
+            <SecondaryButton
+              key={provider}
+              label={t("social.apple")}
+              icon={<AppleMark color={scheme === "dark" ? "#000000" : "#FFFFFF"} />}
+              loading={running === provider}
+              disabled={off && running !== provider}
+              onPress={() => onPress(provider)}
+              style={{ backgroundColor: scheme === "dark" ? "#FFFFFF" : "#000000" }}
+              labelColor={scheme === "dark" ? "#000000" : "#FFFFFF"}
+            />
+          );
+        }
         if (provider === "apple") {
           if (!Apple) return null;
           // Apple's own button (HIG, App Review 4.8): white on the dark theme,
