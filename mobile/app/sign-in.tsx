@@ -1,7 +1,7 @@
 import { Redirect, router } from "expo-router";
 import { Eye, EyeOff, Globe } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LanguageList } from "@/components/language-list";
@@ -321,6 +321,7 @@ export default function SignInScreen() {
           onPress={() => void submit()}
         />
         {socialBlock}
+        <LegalLine />
       </AuthShell>
     );
   }
@@ -355,6 +356,8 @@ export default function SignInScreen() {
         onPress={() => void submit()}
       />
       {socialBlock}
+      {/* Google, Apple and GitHub create an account on first use. */}
+      <LegalLine />
     </AuthShell>
   );
 }
@@ -426,6 +429,26 @@ function TextLink({ label, onPress, muted, compact }: { label: string; onPress: 
     <Pressable accessibilityRole="button" onPress={onPress} hitSlop={compact ? 12 : 0} style={compact ? null : styles.link}>
       <AppText style={{ fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: muted ? p.muted : p.action, textAlign: "center" }}>{label}</AppText>
     </Pressable>
+  );
+}
+
+const SITE = "https://zekra.dev";
+
+/** Terms and privacy before an account is made (App Review 5.1.1, Play User Data). */
+function LegalLine() {
+  const p = usePalette();
+  const { t, locale } = useI18n();
+  const open = (doc: "terms" | "privacy") => void Linking.openURL(`${SITE}/${locale}/${doc}`);
+  return (
+    <View style={{ alignItems: "center", gap: 2 }}>
+      <AppText style={{ fontFamily: fonts.regular, fontSize: 13, lineHeight: locale === "ar" ? 22 : 19, color: p.muted, textAlign: "center" }}>
+        {t("legal.agree")}
+      </AppText>
+      <View style={{ flexDirection: "row", gap: 18, justifyContent: "center" }}>
+        <TextLink label={t("legal.terms")} compact onPress={() => open("terms")} />
+        <TextLink label={t("legal.privacy")} compact onPress={() => open("privacy")} />
+      </View>
+    </View>
   );
 }
 

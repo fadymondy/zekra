@@ -40,7 +40,7 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 		}
 	}
 
-	s := &Service{DB: db, Log: log, Auth: svc, Now: time.Now}
+	s := &Service{DB: db, Log: log, Auth: svc, Now: time.Now, UserData: kernelUserData(k), Blobs: avatarBlobs(k)}
 	s.Send = NewSender(k, log)
 	// The brain plugin resolves session users (and their brain membership)
 	// through this; without it signed-in users would have no brain access.
@@ -78,7 +78,7 @@ func Mount(ctx context.Context, k *togo.Kernel, api huma.API, db *sql.DB) *Servi
 	s.RegisterTwoFactor(post, get)
 	s.RegisterIdentities(k.Router)
 	RegisterAreaAPI(api, s)
-	s.RegisterAvatar(k.Router, avatarBlobs(k))
+	s.RegisterAvatar(k.Router, s.Blobs)
 	RegisterAdminAPI(api, s)
 
 	if k.Hooks != nil {

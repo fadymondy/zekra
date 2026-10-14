@@ -22,7 +22,7 @@ import { useMe } from "@/lib/queries"
   email + an emailed code) works until the grace period ends.
 */
 
-const WHAT = ["signedOut", "grace", "profile", "connections", "tokens", "audit"] as const
+const WHAT = ["signedOut", "grace", "profile", "brains", "shared", "connections", "tokens", "audit"] as const
 
 type ProofMode = "password" | "code"
 

@@ -12,6 +12,7 @@ import { useAuth } from "@/providers/auth";
 import { useBrains } from "@/providers/brains";
 import { fonts, metrics, usePalette } from "@/theme";
 
+import { consentBodyKey, hasConsent, saveConsent, UNKNOWN_PROVIDER, type TranslateProvider } from "./ai-consent";
 import { presentationsApi } from "./api";
 import { copyText, downloadAndShare, openInBrowser, shareLink } from "./files";
 import { LinkSheet, type LinkSheetMode } from "./link-sheet";
@@ -101,6 +102,40 @@ export function PresentationDetail({ id }: { id: string }) {
       setTranslateError(noModel ? t("presentations.translate.noTranslator") : message(err, t("kit.error")));
     },
   });
+
+  // Before the first translation on this device (per provider), say where the
+  // text goes and ask (App Review 5.1.2(i)).
+  const [asking, setAsking] = useState(false);
+  const startTranslate = async (to: PLocale) => {
+    if (asking || translate.isPending) return;
+    setAsking(true);
+    let provider: TranslateProvider = UNKNOWN_PROVIDER;
+    try {
+      provider = await presentationsApi.translateProvider(token!);
+    } catch {
+      // An older server without the endpoint: ask with the generic wording.
+    }
+    try {
+      // Nothing configured: the server answers no_translator without sending anything.
+      if (!provider.available || (await hasConsent(provider))) {
+        translate.mutate(to);
+        return;
+      }
+      const body = `${t(consentBodyKey(provider), { provider: provider.name })}\n\n${t("presentations.translate.consentNote")}`;
+      Alert.alert(t("presentations.translate.consentTitle"), body, [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("presentations.translate.continue"),
+          onPress: () => {
+            void saveConsent(provider);
+            translate.mutate(to);
+          },
+        },
+      ]);
+    } finally {
+      setAsking(false);
+    }
+  };
 
   const navigation = useNavigation();
   const remove = useMutation({
@@ -366,8 +401,8 @@ export function PresentationDetail({ id }: { id: string }) {
                 <SecondaryButton
                   label={t("presentations.translate.action", { lang: f.language(missing) })}
                   icon={<Languages size={16} color={p.ink} strokeWidth={1.6} />}
-                  loading={translate.isPending}
-                  onPress={() => translate.mutate(missing)}
+                  loading={translate.isPending || asking}
+                  onPress={() => void startTranslate(missing)}
                 />
                 <AppText variant="meta">{t("presentations.translate.help")}</AppText>
                 {translateError ? <ErrorLine text={translateError} /> : null}

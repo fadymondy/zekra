@@ -42,6 +42,7 @@ import (
 	"time"
 
 	"github.com/togo-framework/auth"
+	"github.com/togo-framework/togo"
 )
 
 // Service is the account runtime. Send and Now are replaceable in tests.
@@ -62,6 +63,11 @@ type Service struct {
 	// appleTokens trades and revokes Apple refresh tokens (apple_tokens.go);
 	// set by mountApple, replaced in tests.
 	appleTokens *appleTokens
+	// UserData resolves the brain plugin's per-account data (userdata.go); nil
+	// or returning nil when the plugin is not active.
+	UserData func() UserDataPurger
+	// Blobs is the file storage (avatars); nil skips file cleanup.
+	Blobs togo.Storage
 }
 
 // ErrUnavailable is returned when the database or the auth service is missing.

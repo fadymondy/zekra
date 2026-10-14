@@ -1,5 +1,6 @@
 import { request } from "@/lib/api";
 
+import type { TranslateProvider } from "./ai-consent-core";
 import { listQuery, type ListFilter } from "./presentations-core";
 import type {
   Detail,
@@ -35,6 +36,9 @@ export const presentationsApi = {
   /** Translate with the server's model; 503 {error:{code:"no_translator"}} when none is configured. */
   translate: (token: string, id: string, to: PLocale) =>
     request<Detail>(`${doc(id)}/translate`, { token, json: { to } }),
+  /** Who translates (named in the consent dialog before the first translation). */
+  translateProvider: (token: string) =>
+    request<TranslateProvider>("/api/presentations/translate/provider", { token }),
   fromBrain: (token: string, body: FromBrainRequest) =>
     request<FromBrainAnswer>("/api/presentations/from-brain", { token, json: body }),
   share: (token: string, id: string, body: { label?: string; locale?: PLocale; expires_in_days?: number }) =>
