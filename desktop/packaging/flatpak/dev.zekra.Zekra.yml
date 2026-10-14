@@ -1,0 +1,67 @@
+﻿# Zekra for Flathub — repackages the published Linux .deb (x86_64).
+#
+#   flatpak run org.flatpak.Builder --user --install-deps-from=flathub \
+#     --force-clean --state-dir=<scratch>/state --repo=<scratch>/repo \
+#     <scratch>/build dev.zekra.Zekra.yml
+#
+# On the Windows box the scratch dir lives in WSL (/srv/zekra-build) and is
+# deleted after the build; see ../README.md. On a new release bump url + sha256
+# and add a <release> to the metainfo (Flathub's x-checker-data bot opens that
+# PR on its own).
+#
+# The self-updater is switched off by deleting resources/app-update.yml (no
+# feed config -> updater.ts disables itself); Flathub ships the updates. "Open
+# at login" is off too: Flathub doesn't grant ~/.config/autostart access.
+app-id: dev.zekra.Zekra
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '26.08'
+command: zekra
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=pulseaudio
+  - --device=dri
+  # Desktop notifications, tray icon, saved sign-in (libsecret keyring).
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.secrets
+modules:
+  - name: zekra
+    buildsystem: simple
+    build-commands:
+      - ar x zekra.deb
+      - tar -xf data.tar.xz
+      - cp -a opt/Zekra /app/zekra
+      - rm -f /app/zekra/resources/app-update.yml /app/zekra/chrome-sandbox
+      - install -Dm755 zekra.sh /app/bin/zekra
+      - install -Dm644 dev.zekra.Zekra.desktop /app/share/applications/dev.zekra.Zekra.desktop
+      - install -Dm644 dev.zekra.Zekra.metainfo.xml /app/share/metainfo/dev.zekra.Zekra.metainfo.xml
+      - |
+        for s in 16 24 32 48 64 128 256 512; do
+          install -Dm644 usr/share/icons/hicolor/${s}x${s}/apps/zekra-desktop.png \
+            /app/share/icons/hicolor/${s}x${s}/apps/dev.zekra.Zekra.png
+        done
+    sources:
+      - type: file
+        url: https://github.com/fadymondy/zekra/releases/download/v0.1.0/zekra-desktop_0.1.0_amd64.deb
+        sha256: f1ca9dfa1b0f79c9d91fbc619fe60c1140fb930e1c02af6e9cf6fc95250d23ae
+        dest-filename: zekra.deb
+        only-arches:
+          - x86_64
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/fadymondy/zekra/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name == "zekra-desktop_" + $version + "_amd64.deb") | .browser_download_url
+      - type: file
+        path: zekra.sh
+      - type: file
+        path: dev.zekra.Zekra.desktop
+      - type: file
+        path: dev.zekra.Zekra.metainfo.xml
