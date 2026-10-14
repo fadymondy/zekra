@@ -17,6 +17,10 @@ write, and returns the right memory on recall, with citations.
 
 [Website](https://zekra.dev) · [Docs](https://zekra.dev/en/docs) · [Discord](https://discord.gg/99JBJd6FsR) · [Discussions](https://github.com/fadymondy/zekra/discussions) · [Issues](https://github.com/fadymondy/zekra/issues)
 
+<p align="center">
+  <img src="./docs/media/zekra-usage.gif" alt="Zekra console: memories land in a graph, then a plain-words recall returns the right memory with its source note" width="820">
+</p>
+
 </div>
 
 ## Features
