@@ -221,3 +221,14 @@ UI in `src/renderer/features/updates/`):
 4. Windows updates are applied by the NSIS installer (silent for unattended
    installs); on Linux the AppImage updates itself (updating a .deb install goes
    through electron-updater's package installer and an admin prompt — untested).
+5. **Windows and Linux builds (v0.1.0 notes).** Build Windows on Windows
+   (`npx electron-builder --win`: one NSIS installer for x64 + arm64, plus
+   zips) and Linux on Linux or WSL (`npx electron-builder --linux AppImage deb
+   --x64`); a .deb needs fpm, which electron-builder only runs on Linux.
+   Install `../web` first (`npm ci`) — the renderer bundles its packages. npm
+   11 blocks install scripts, so after `npm ci` here run `node install.js` in
+   `node_modules/electron` and `node_modules/esbuild`. Run the built app from
+   a shell where `ELECTRON_RUN_AS_NODE` is unset (some Electron-hosted tools
+   export it; the app then starts as plain Node and exits with "bad option").
+   The Windows installer is **not Authenticode-signed** yet: SmartScreen shows
+   "Windows protected your PC" until the user picks *More info → Run anyway*.
