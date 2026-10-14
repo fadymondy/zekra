@@ -34,7 +34,7 @@ export function MediaThumb({ m, size = 44 }: { m: Media; size?: number }) {
     <Tile size={size} radius={10}>
       {m.kind === "image" && !broken ? (
         <Image
-          source={{ uri: mediaFileUrl(m), headers: fileHeaders(token) }}
+          source={{ uri: mediaFileUrl(m), headers: fileHeaders(token, mediaFileUrl(m)) }}
           onError={() => setBroken(true)}
           style={{ width: size, height: size }}
           resizeMode="cover"

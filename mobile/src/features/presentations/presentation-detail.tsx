@@ -6,7 +6,8 @@ import { Alert, StyleSheet, View } from "react-native";
 
 import { AwaitNote, Chip, ErrorLine, ListItem, Meta, QueryStatus, StackHeader, TextButton, Tile, toast, useQueryRefresh } from "@/components/kit";
 import { AppText, IconButton, PrimaryButton, Row, Screen, SecondaryButton, Segmented } from "@/components/ui";
-import { API_URL, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import { useServer } from "@/lib/server";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth";
 import { useBrains } from "@/providers/brains";
@@ -48,8 +49,6 @@ web console; this screen links there.
 // mounts so leaving and coming back does not lose a just-made link.
 const SESSION_URLS: Record<string, string> = {};
 
-const WEB_ORIGIN = webOriginFrom(API_URL);
-
 function message(err: unknown, fallback: string) {
   if (err instanceof ApiError) return errorMessages(err.payload, err.message || fallback).join("\n");
   return err instanceof Error ? err.message : fallback;
@@ -61,6 +60,8 @@ export function PresentationDetail({ id }: { id: string }) {
   const f = useFormat();
   const { token } = useAuth();
   const { brains } = useBrains();
+  const { base } = useServer();
+  const webOrigin = webOriginFrom(base);
   const client = useQueryClient();
   const key = ["presentation", token, id] as const;
   const q = useQuery({ queryKey: key, queryFn: () => presentationsApi.get(token!, id), enabled: !!token && !!id });
@@ -421,7 +422,7 @@ export function PresentationDetail({ id }: { id: string }) {
           <SecondaryButton
             label={t("presentations.edit.web")}
             icon={<ExternalLink size={16} color={p.ink} strokeWidth={1.6} />}
-            onPress={() => void openInBrowser(editUrl(WEB_ORIGIN, locale, doc.namespace, doc.id))}
+            onPress={() => void openInBrowser(editUrl(webOrigin, locale, doc.namespace, doc.id))}
           />
           <AppText variant="meta">{t("presentations.edit.help")}</AppText>
           {canWrite && activeCount > 1 ? (

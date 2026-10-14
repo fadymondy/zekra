@@ -21,7 +21,8 @@ export async function openMediaFile(token: string, m: Media): Promise<void> {
     await Linking.openURL(mediaFileUrl(m));
     return;
   }
+  const url = mediaFileUrl(m);
   const target = new fs.File(fs.Paths.cache, localFileName(m));
-  const file = await fs.File.downloadFileAsync(mediaFileUrl(m), target, { idempotent: true, headers: fileHeaders(token) });
+  const file = await fs.File.downloadFileAsync(url, target, { idempotent: true, headers: fileHeaders(token, url) });
   await sharing.shareAsync(file.uri, { mimeType: m.contentType, dialogTitle: m.name });
 }

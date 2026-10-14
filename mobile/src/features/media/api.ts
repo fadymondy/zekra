@@ -1,4 +1,5 @@
-import { API_URL, ApiError, request } from "@/lib/api";
+import { ApiError, request } from "@/lib/api";
+import { apiBase, authHeader } from "@/lib/server";
 
 import { listQuery } from "./media-core";
 import type { Media, MediaKind, MediaList } from "./types";
@@ -23,10 +24,11 @@ export const mediaApi = {
 };
 
 /** Absolute URL of the file itself; it needs the bearer (fileHeaders). */
-export const mediaFileUrl = (m: Pick<Media, "url">) => `${API_URL}${m.url}`;
-export const fileHeaders = (token: string | null | undefined): Record<string, string> => ({
+export const mediaFileUrl = (m: Pick<Media, "url">) => `${apiBase()}${m.url}`;
+/** Headers for a request to `url` — the bearer only when `url` is on the token's server. */
+export const fileHeaders = (token: string | null | undefined, url: string): Record<string, string> => ({
   "X-Agent-Id": "zekra-mobile",
-  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  ...authHeader(token, url),
 });
 
 /*
@@ -49,9 +51,10 @@ export async function uploadMedia(
   form.append("file", file as unknown as Blob);
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/brain/media`, {
+    const url = `${apiBase()}/api/brain/media`;
+    response = await fetch(url, {
       method: "POST",
-      headers: { Accept: "application/json", ...fileHeaders(token) },
+      headers: { Accept: "application/json", ...fileHeaders(token, url) },
       body: form,
       credentials: "include",
     });

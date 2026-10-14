@@ -10,6 +10,7 @@ import { AppText, CodeField, Field, IconButton, PrimaryButton } from "@/componen
 import { cancelBrowserSignIn, onBrowserCode, SocialSignInError } from "@/features/social/browser-flow";
 import { PROVIDER_NAME, SocialButtons, useSocialProviders } from "@/features/social/social-buttons";
 import { socialErrorKey, type SocialProvider } from "@/features/social/social-core";
+import { ServerLine } from "@/features/servers/server-picker";
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { ApiError, authApi } from "@/lib/api";
 import { reportError } from "@/lib/crash";
@@ -340,7 +341,8 @@ export default function SignInScreen() {
           <SwitchLine prompt={t("auth.noAccountPrompt")} action={t("auth.createOne")} onPress={() => switchMode("register")} />
           {/* A scheduled deletion signs the account out everywhere: cancelling it works signed out. */}
           <TextLink label={t("deletion.cancelLink")} muted onPress={() => router.push("/cancel-deletion")} />
-          {/* Language before sign-in: Settings is not reachable yet. */}
+          {/* Language and server before sign-in: Settings is not reachable yet. */}
+          <ServerLine />
           <LanguageLink />
         </>
       }

@@ -116,6 +116,14 @@ const en = {
   allBrains: "All Brains",
   search: "Search",
   inbox: "Notifications",
+  connectTitle: "Connect to this Zekra server?",
+  connectBody: "Zekra will use this server from now on. You will sign in on it; your session on the current server ends.",
+  connectOk: "Connect",
+  connectCancel: "Cancel",
+  connectInvalid: "That is not a valid server address.",
+  connectInsecure: "The server must use https.",
+  connectUnreachable: "The server could not be reached.",
+  connectNotZekra: "That address does not answer as a Zekra server.",
 };
 
 export type MenuStrings = typeof en;
@@ -229,6 +237,14 @@ const ar: MenuStrings = {
   allBrains: "كل الأدمغة",
   search: "البحث",
   inbox: "الإشعارات",
+  connectTitle: "الاتصال بخادم ذكرى هذا؟",
+  connectBody: "سيستخدم ذكرى هذا الخادم من الآن. ستسجّل الدخول عليه، وتنتهي جلستك على الخادم الحالي.",
+  connectOk: "اتصال",
+  connectCancel: "إلغاء",
+  connectInvalid: "هذا ليس عنوان خادم صالحًا.",
+  connectInsecure: "يجب أن يستخدم الخادم https.",
+  connectUnreachable: "تعذّر الوصول إلى الخادم.",
+  connectNotZekra: "هذا العنوان لا يستجيب كخادم ذكرى.",
 };
 
 let current: LocaleId = "en";

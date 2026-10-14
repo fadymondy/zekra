@@ -5,16 +5,18 @@ import { Linking, Pressable, View } from "react-native";
 import { toast } from "@/components/kit";
 import { AppText, Row } from "@/components/ui";
 import { SettingsItem, SettingsPage } from "@/features/settings/settings-nav";
-import { API_URL } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { useServer } from "@/lib/server";
+import { mcpUrlFor, serverLabel } from "@/lib/server-core";
 import { fonts, usePalette } from "@/theme";
 
-const MCP_URL = "https://mcp.zekra.dev";
-
-// Settings → Connect: the MCP endpoint agents use, and the web console.
+// Settings → Connect: the MCP endpoint agents use, and the web console — both
+// on the server this app is connected to (Settings → Server).
 export default function ConnectScreen() {
   const p = usePalette();
   const { t } = useI18n();
+  const { base } = useServer();
+  const MCP_URL = mcpUrlFor(base);
   const copy = async (value: string) => {
     await Clipboard.setStringAsync(value);
     toast(t("settings.copied"), "ok");
@@ -43,9 +45,9 @@ export default function ConnectScreen() {
             last
             Icon={ExternalLink}
             label={t("settings.openConsole")}
-            detail={API_URL.replace(/^https?:\/\//, "")}
+            detail={serverLabel(base)}
             mono
-            onPress={() => void Linking.openURL(API_URL)}
+            onPress={() => void Linking.openURL(base)}
           />
         </View>
       </Row>

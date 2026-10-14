@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dirForLocale, isLocale, LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n-locale";
 
+import { normalizeServerUrl } from "../../../shared/server-url";
 import { setApiBaseUrl } from "../../lib/api";
 import type { ThemeChoice } from "../../lib/bridge";
 import { useI18n } from "../../lib/i18n";
@@ -24,20 +25,26 @@ export function GeneralSettings() {
   const [apiBaseUrl, setBase] = useState(settings.apiBaseUrl);
   useEffect(() => setBase(settings.apiBaseUrl), [settings.apiBaseUrl]);
 
+  // Main checks the server answers as Zekra before switching, and a new
+  // server ends the session on the old one (a token never goes to another host).
   async function saveBase() {
-    const clean = apiBaseUrl.trim().replace(/\/+$/, "");
-    let ok = false;
-    try {
-      ok = ["https:", "http:"].includes(new URL(clean).protocol);
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      toast.error(t("settings.apiBase"));
+    // Local http is allowed here; main refuses it in a packaged build.
+    const n = normalizeServerUrl(apiBaseUrl, true);
+    if ("error" in n) {
+      toast.error(t(n.error === "insecure" ? "settingsx.serverInsecure" : "settingsx.serverInvalid"));
       return;
     }
-    await patch({ apiBaseUrl: clean });
-    setApiBaseUrl(clean);
+    try {
+      await patch({ apiBaseUrl: n.url });
+    } catch (err) {
+      const reason = /server: (\w+)/.exec(String(err))?.[1];
+      toast.error(
+        t(reason === "unreachable" ? "settingsx.serverUnreachable" : reason === "notZekra" ? "settingsx.serverNotZekra" : reason === "insecure" ? "settingsx.serverInsecure" : "settingsx.serverInvalid"),
+      );
+      return;
+    }
+    setApiBaseUrl(n.url);
+    setBase(n.url);
     toast.success(t("action.saved"));
   }
 

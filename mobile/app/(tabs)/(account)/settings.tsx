@@ -12,6 +12,8 @@ import { SECTIONS, SettingsItem, type SettingsSection } from "@/features/setting
 import { ZekraMark } from "@/features/splash/zekra-mark";
 import { languageName, useI18n } from "@/lib/i18n";
 import { readingTheme, useReadingSettings } from "@/lib/reading-settings";
+import { useServer } from "@/lib/server";
+import { serverLabel } from "@/lib/server-core";
 import { useAuth } from "@/providers/auth";
 import { fonts, usePalette, useTheme } from "@/theme";
 
@@ -24,6 +26,7 @@ export default function SettingsScreen() {
   const { mode } = useTheme();
   const reading = useReadingSettings();
   const { user, signOut } = useAuth();
+  const { base } = useServer();
   const version = Constants.expoConfig?.version || "development";
   const lock = useAppLock();
   const biometric = useBiometricInfo();
@@ -37,6 +40,7 @@ export default function SettingsScreen() {
       : t("security.detailOff"),
     profile: user?.email,
     connections: t("connections.detail"),
+    server: serverLabel(base),
     connect: t("settings.x.connectDetail"),
     about: t("settings.x.aboutDetail", { version }),
   };
@@ -94,6 +98,7 @@ export default function SettingsScreen() {
         <SectionLabel>{t("settings.x.about")}</SectionLabel>
         <Row style={{ paddingVertical: 0 }}>
           <View>
+            {item("server")}
             {item("connect")}
             {item("about", true)}
           </View>

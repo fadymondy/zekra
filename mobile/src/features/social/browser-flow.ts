@@ -1,6 +1,6 @@
 import { Linking } from "react-native";
 
-import { API_URL, authApi, type AuthAnswer } from "@/lib/api";
+import { apiBase, authApi, type AuthAnswer } from "@/lib/api";
 import { breadcrumb, reportError } from "@/lib/crash";
 import { getStored, removeStored, setStored } from "@/lib/storage";
 
@@ -93,7 +93,8 @@ export async function browserGrant(provider: BrowserProvider, options: { link?: 
   const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, verifier, {
     encoding: Crypto.CryptoEncoding.BASE64,
   });
-  const pending: PendingBrowserSignIn = { provider, verifier, startedAt: Date.now(), ...(options.link ? { link: true } : {}) };
+  const server = apiBase();
+  const pending: PendingBrowserSignIn = { provider, verifier, startedAt: Date.now(), server, ...(options.link ? { link: true } : {}) };
   await setStored(PENDING_KEY, JSON.stringify(pending));
   breadcrumb(`browser sign-in ${provider} open`);
 
@@ -106,7 +107,7 @@ export async function browserGrant(provider: BrowserProvider, options: { link?: 
       // Abandoned in the browser: give the button back.
       timer: setTimeout(() => settle()?.resolve(null), BROWSER_SIGNIN_TTL_MS),
     };
-    Linking.openURL(appStartUrl(API_URL, provider, base64ToBase64Url(digest), options.link)).catch((caught) => {
+    Linking.openURL(appStartUrl(server, provider, base64ToBase64Url(digest), options.link)).catch((caught) => {
       const error = new SocialSignInError(provider, "nosheet", caught instanceof Error ? caught.message : String(caught));
       reportError(error, `browser sign-in ${provider}`);
       settle()?.reject(error);
@@ -159,6 +160,9 @@ export async function completeBrowserReturn(provider: BrowserProvider, url: stri
   // A link code is redeemed only by the screen that asked for it; after a cold
   // start that screen is gone, so the user simply connects again.
   if (pending.link) return { kind: "ignored" };
+  // Started on another server (the user switched while in the browser): its
+  // code means nothing here.
+  if (pending.server && pending.server !== apiBase()) return { kind: "ignored" };
   if (answer.kind === "cancelled") return { kind: "cancelled" };
   if (answer.kind === "error") return { kind: "error", error: new SocialSignInError(provider, answer.reason) };
   try {

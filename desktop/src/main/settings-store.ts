@@ -38,6 +38,7 @@ import {
   type ThemeChoice,
   type WindowBounds,
 } from "../shared/ipc";
+import { sameServer } from "../shared/server-url";
 
 /** What is actually on disk. */
 interface StoredSettings {
@@ -187,6 +188,12 @@ function clampInterval(v: unknown): number {
 
 export function patchSettings(patch: SettingsPatch): AppSettings {
   const s = getStore();
+  // A session belongs to the server that issued it. Pointing the app at
+  // another server ends it (unless the same patch brings that server's own
+  // session), so the old token is never sent to the new host.
+  if (patch.apiBaseUrl !== undefined && !sameServer(String(patch.apiBaseUrl), s.get("apiBaseUrl")) && patch.authToken === undefined) {
+    patch = { ...patch, authToken: null, authUser: null };
+  }
   for (const [key, value] of Object.entries(patch) as [keyof SettingsPatch, unknown][]) {
     if (value === undefined) continue;
     if (key === "authToken") {

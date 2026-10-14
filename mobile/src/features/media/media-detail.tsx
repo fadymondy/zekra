@@ -153,7 +153,7 @@ export function MediaDetail({ id }: { id: string }) {
           </View>
           {m.kind === "image" ? (
             <Image
-              source={{ uri: mediaFileUrl(m), headers: fileHeaders(token) }}
+              source={{ uri: mediaFileUrl(m), headers: fileHeaders(token, mediaFileUrl(m)) }}
               onLoad={(e) => {
                 const { width, height } = e.nativeEvent.source;
                 if (width && height) setRatio(width / height);

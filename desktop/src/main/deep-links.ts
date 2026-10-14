@@ -16,7 +16,11 @@ import * as path from "node:path";
 
 import { MARKDOWN_EXTENSIONS, type DeepLinkEvent, type OpenFileEvent } from "../shared/ipc";
 import { s } from "./menu-strings";
+import { sameServer } from "../shared/server-url";
 import { showSettingsWindow } from "./app-windows";
+import { applySettingsPatch } from "./ipc-handlers";
+import { checkServer } from "./server-check";
+import { getSettings } from "./settings-store";
 import { addRecentDocument } from "./os-integration";
 import { focusMainWindow, getMainWindow, sendDeepLink, sendOpenFile } from "./renderer-events";
 
@@ -72,8 +76,42 @@ export function handleDeepLink(url: string): void {
     showSettingsWindow(event.path.split("/")[0] || undefined);
     return;
   }
+  if (event.host === "connect") {
+    void connectServer(event.params.server ?? "");
+    return;
+  }
   focusMainWindow();
   sendDeepLink(event);
+}
+
+/*
+zekra://connect?server=https%3A%2F%2Fzekra.example.com — a QR code, the mobile
+app or the web console asking this app to use a server. Never followed
+silently: the user confirms the address, the server must answer as Zekra, and
+then they sign in on it. Only `server` is read; a link cannot carry a session,
+so any token in it is ignored. Switching server ends the current session
+(settings-store.patchSettings).
+*/
+async function connectServer(server: string): Promise<void> {
+  const parent = getMainWindow() ?? undefined;
+  const opts = (message: string, detail: string, buttons: string[]) => ({ type: "question" as const, message, detail, buttons, defaultId: 0, cancelId: buttons.length - 1, noLink: true });
+  if (!server.trim()) return;
+  if (sameServer(server, getSettings().apiBaseUrl)) {
+    showSettingsWindow("general");
+    return;
+  }
+  const t = s();
+  const ask = opts(t.connectTitle, `${server}\n\n${t.connectBody}`, [t.connectOk, t.connectCancel]);
+  const { response } = parent ? await dialog.showMessageBox(parent, ask) : await dialog.showMessageBox(ask);
+  if (response !== 0) return;
+  const r = await checkServer(server);
+  if (!r.ok) {
+    const why = { empty: t.connectInvalid, invalid: t.connectInvalid, insecure: t.connectInsecure, unreachable: t.connectUnreachable, notZekra: t.connectNotZekra }[r.reason];
+    dialog.showErrorBox(t.connectTitle, `${server}\n\n${why}`);
+    return;
+  }
+  applySettingsPatch({ apiBaseUrl: r.url });
+  showSettingsWindow("general");
 }
 
 function isMarkdownPath(p: string): boolean {

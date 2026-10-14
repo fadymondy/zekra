@@ -1,4 +1,7 @@
-export const API_URL = (process.env.EXPO_PUBLIC_ZEKRA_API_URL || "https://app.zekra.dev").replace(/\/$/, "");
+import { apiBase, authHeader } from "./server";
+
+// Every call is built on the active server (src/lib/server.ts) when it is made.
+export { apiBase } from "./server";
 
 export class ApiError extends Error {
   constructor(
@@ -24,7 +27,7 @@ type RequestOptions = {
 async function issueCSRF(): Promise<string> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/auth/csrf`, {
+    response = await fetch(`${apiBase()}/api/auth/csrf`, {
       headers: { Accept: "application/json", "X-Agent-Id": "zekra-mobile" },
       credentials: "include",
     });
@@ -70,12 +73,19 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const method = options.method ?? (options.json === undefined ? "GET" : "POST");
   const started = Date.now();
   const headers: Record<string, string> = { Accept: "application/json", "X-Agent-Id": "zekra-mobile", ...options.headers };
-  if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (!path.startsWith("/")) throw new ApiError(0, `bad API path: ${path}`);
+  const url = `${apiBase()}${path}`;
+  if (options.token) {
+    // A token is only ever sent to the server that issued it (see server.ts).
+    const auth = authHeader(options.token, url);
+    if (!auth.Authorization) throw new ApiError(401, "Signed in to a different server", "server_changed");
+    Object.assign(headers, auth);
+  }
   if (options.csrf) headers["X-CSRF-Token"] = await issueCSRF();
   if (options.json !== undefined) headers["Content-Type"] = "application/json";
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(url, {
       method,
       headers,
       body: options.json === undefined ? undefined : JSON.stringify(options.json),
@@ -297,9 +307,10 @@ export async function uploadNoteImage(
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/notes/image`, {
+    const url = `${apiBase()}/api/notes/image`;
+    response = await fetch(url, {
       method: "POST",
-      headers: { Accept: "application/json", "X-Agent-Id": "zekra-mobile", Authorization: `Bearer ${token}` },
+      headers: { Accept: "application/json", "X-Agent-Id": "zekra-mobile", ...authHeader(token, url) },
       body: form,
       credentials: "include",
     });
