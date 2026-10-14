@@ -10,6 +10,8 @@ Zekra is a memory service that any agent (Claude Code, Codex, Gemini, Cursor, yo
 reaches over **MCP**. It stores what agents and people learn, deduplicates and updates it on
 write, and returns the right memory on recall, with citations.
 
+[![Built with ToGO](https://img.shields.io/badge/built%20with-ToGO-00ADD8?logo=go&logoColor=white)](https://to-go.dev)
+[![ToGO on GitHub](https://img.shields.io/github/stars/togo-framework/togo?label=ToGO&logo=github&style=social)](https://github.com/togo-framework/togo)
 [![CI](https://github.com/fadymondy/zekra/actions/workflows/ci.yml/badge.svg)](https://github.com/fadymondy/zekra/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/99JBJd6FsR)
@@ -113,6 +115,25 @@ Zekra is a [ToGO](https://to-go.dev) app built from plugins:
 
 Design: [`SPEC.md`](./SPEC.md) · decisions: [`contracts/internal/decisions.md`](./contracts/internal/decisions.md) ·
 deploy: [`DEPLOY.md`](./DEPLOY.md).
+
+### Built on ToGO
+
+Zekra is built on **[ToGO](https://to-go.dev)** ([GitHub](https://github.com/togo-framework/togo)), the
+open-source, API-first framework for Go + sqlc + Atlas + GraphQL/OpenAPI + Next.js with a
+Laravel-style CLI. The kernel is small and everything else is a plugin; these are the pieces
+Zekra uses:
+
+| ToGO piece | What it does in Zekra |
+|---|---|
+| [Kernel](https://github.com/togo-framework/togo) | Config, the hook/event bus, the plugin registry and server bootstrap |
+| [CLI](https://github.com/togo-framework/cli) | `togo generate` (sqlc → gqlgen → Atlas → OpenAPI), `togo serve`, `togo install` |
+| [auth](https://github.com/togo-framework/auth) | Sign-in, JWT sessions, roles and API tokens; MFA, passkeys and OAuth come from the auth plugin family |
+| [db-postgres](https://github.com/togo-framework/db-postgres) | The Postgres driver under the brain schema |
+| [queue · cache · storage · mail](https://github.com/togo-framework) | Ingestion jobs, caching, media and transactional email |
+| [Plugin model](https://to-go.dev/marketplace) | The memory organ itself ships as ToGO plugins: `brain`, `brain-tei`, `brain-cognee`, `cache-redis` |
+
+Want the same foundation for your own app? Run `go install github.com/togo-framework/cli@latest && togo new myapp`,
+then read the [ToGO docs](https://to-go.dev/en/docs) and browse the [plugin marketplace](https://to-go.dev/marketplace).
 
 ## Documentation
 
