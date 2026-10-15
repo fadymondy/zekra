@@ -137,7 +137,7 @@ func (s *stack) install(org string, members ...[2]string) {
 }
 
 func (s *stack) entitle(org string, active bool, brains *int64) {
-	f := []circlexo.Entitlement{{Key: featBrains, Kind: "limit", Enabled: true}, {Key: meterRequests, Kind: "metered", Enabled: true}}
+	f := []circlexo.Entitlement{{Key: "brains", Kind: "limit", Enabled: true}, {Key: "requests", Kind: "metered", Enabled: true}}
 	if brains != nil {
 		f[0].Limit = brains
 	}
@@ -479,54 +479,39 @@ func TestHubTokenAuthMeterAndLimit(t *testing.T) {
 		t.Fatalf("other org: %v", err)
 	}
 
-	// Metering: one `requests` unit reaches the hub, and a 402 from it stops the call.
+	// Free and open source: nothing is metered, so no usage report reaches the hub and even a hub
+	// answering 402 cannot stop a call.
 	before := len(s.hub.Usage)
-	if err := s.svc.Meter(ctx, id); err != nil {
-		t.Fatal(err)
-	}
-	s.hub.Lock()
-	got := len(s.hub.Usage) - before
-	s.hub.Unlock()
-	if got != 1 {
-		t.Fatalf("usage reports: %d", got)
-	}
 	s.hub.Lock()
 	s.hub.Fail = http.StatusPaymentRequired
 	s.hub.Unlock()
-	if err := s.svc.Meter(ctx, id); refused(err) != http.StatusPaymentRequired {
-		t.Fatalf("meter with an empty wallet: %v", err)
+	if err := s.svc.Meter(ctx, id); err != nil {
+		t.Fatalf("meter: %v", err)
 	}
 	s.hub.Lock()
-	s.hub.Fail = http.StatusInternalServerError
-	s.hub.Unlock()
-	if err := s.svc.Meter(ctx, id); refused(err) != http.StatusServiceUnavailable {
-		t.Fatalf("meter with the hub down: %v", err)
-	}
-	s.hub.Lock()
+	got := len(s.hub.Usage) - before
 	s.hub.Fail = 0
 	s.hub.Unlock()
-
-	// Brain limit: the org has two brain slots and its primary brain uses one
-	// so the first new brain fits and the second does not.
-	uid := s.userID(member + "@example.test")
-	if err := s.svc.BeforeNewBrain(ctx, uid, "extra-"+tag); err != nil {
-		t.Fatalf("first brain: %v", err)
+	if got != 0 {
+		t.Fatalf("usage reports: %d", got)
 	}
-	s.svc.BrainCreated(ctx, uid, "extra-"+tag)
-	if err := s.svc.BeforeNewBrain(ctx, uid, "extra2-"+tag); refused(err) != http.StatusPaymentRequired {
-		t.Fatalf("over the limit: %v", err)
+
+	// No plan limits: the org's old two-brain limit no longer applies.
+	uid := s.userID(member + "@example.test")
+	for _, ns := range []string{"extra-" + tag, "extra2-" + tag, "extra3-" + tag} {
+		if err := s.svc.BeforeNewBrain(ctx, uid, ns); err != nil {
+			t.Fatalf("new brain %s: %v", ns, err)
+		}
+		s.svc.BrainCreated(ctx, uid, ns)
 	}
 	s.svc.BrainDeleted(ctx, "extra-"+tag)
-	if err := s.svc.BeforeNewBrain(ctx, uid, "extra2-"+tag); err != nil {
-		t.Fatalf("after deleting one: %v", err)
-	}
 
-	// Fail closed: an org whose plan the hub cannot confirm is refused, and an inactive plan is a 402.
+	// An inactive (formerly unpaid) plan no longer refuses anything.
 	s.entitle(org, false, nil)
-	if _, err := s.svc.Authenticate(ctx, tok(member, org, nil)); refused(err) != http.StatusPaymentRequired {
+	if _, err := s.svc.Authenticate(ctx, tok(member, org, nil)); err != nil {
 		t.Fatalf("inactive plan: %v", err)
 	}
-	if err := s.svc.BeforeNewBrain(ctx, uid, "x-"+tag); refused(err) != http.StatusPaymentRequired {
+	if err := s.svc.BeforeNewBrain(ctx, uid, "x-"+tag); err != nil {
 		t.Fatalf("inactive plan, new brain: %v", err)
 	}
 }
