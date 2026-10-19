@@ -29,6 +29,7 @@ var toolAccess = map[string]Access{
 	"memory_share": AccessAdmin, "graph_traverse": AccessRead, "graph_spine": AccessRead,
 	"graph_neighbors": AccessRead, "graph_path": AccessRead, "graph_ontology": AccessRead,
 	"memory_gaps": AccessRead, "memory_resolve_gap": AccessWrite, "brain_list": AccessRead,
+	"list_conflicts": AccessRead, "resolve_conflict": AccessWrite,
 	"brain_details": AccessRead, "memory_edit": AccessWrite, "brain_delete": AccessAdmin, "brain_create": AccessAdmin,
 	"brain_grant": AccessAdmin, "brain_revoke_grant": AccessAdmin, "brain_create_token": AccessAdmin,
 	"brain_tokens": AccessAdmin, "brain_chat": AccessRead, "secret_list": AccessRead,
@@ -179,6 +180,13 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	case "memory_resolve_gap":
 		post("/api/brain/gaps/resolve", map[string]any{
 			"id": args["id"], "status": args["status"], "resolution": args["resolution"]})
+	case "list_conflicts":
+		get("/api/brain/conflicts", nonEmpty(url.Values{
+			"namespace": {str(args["namespace"])}, "status": {str(args["status"])},
+			"memory": {str(args["memory"])}, "limit": {str(args["limit"])}}))
+	case "resolve_conflict":
+		post("/api/brain/conflicts/resolve", map[string]any{
+			"id": args["id"], "resolution": args["resolution"], "note": args["note"]})
 	case "brain_list":
 		get("/api/brain/namespaces", nil)
 	case "brain_details":

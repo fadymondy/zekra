@@ -35,7 +35,7 @@ Tables that do not exist (an older schema, a test database) are skipped.
 // purgeBrainTables are deleted by namespace, children before parents. Constant
 // identifiers, never input.
 var purgeBrainTables = []string{
-	"memories", "memory_gaps", "memory_events",
+	"memories", "memory_gaps", "memory_events", "memory_conflicts",
 	"entity_edges", "entities", "entity_types", "edge_types", "communities", "episodes",
 	"namespace_grants", "secrets", "datasources",
 	"notes",                        // note_versions cascade

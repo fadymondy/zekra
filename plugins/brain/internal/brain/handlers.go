@@ -122,7 +122,12 @@ func (s *Service) Recall(w http.ResponseWriter, r *http.Request) {
 	if len(res) == 0 {
 		s.hub.publish("gap", map[string]any{"namespace": q.Namespace, "query": q.Query})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"results": res})
+	body := map[string]any{"results": res}
+	// Unresolved contradictions among the results, once each (conflicts.go).
+	if cs := conflictsOf(res); len(cs) > 0 {
+		body["conflicts"] = cs
+	}
+	writeJSON(w, http.StatusOK, body)
 }
 
 // POST /api/brain/search  { query, namespaces?, limit }  (cross-brain search engine)
@@ -192,6 +197,9 @@ func (s *Service) Retain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.hub.publish("retain", map[string]any{"namespace": in.Namespace, "decision": res.Decision})
+	if len(res.Conflicts) > 0 {
+		s.hub.publish("conflict", map[string]any{"namespace": in.Namespace, "memory": res.ID, "count": len(res.Conflicts)})
+	}
 	writeJSON(w, http.StatusOK, res)
 }
 

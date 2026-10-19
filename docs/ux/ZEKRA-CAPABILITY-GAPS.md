@@ -20,7 +20,7 @@ an endpoint) · **MISSING** (not stored; needs new telemetry or a new feature).
 | S9 | Sessions | **MISSING** | no table; `Mcp-Session-Id` issued but not stored; `sessions24h` is distinct `source_ref` (D8) |
 | S10 | Grounded % | **MISSING** | `footprint.grounded` computed per chat answer, not persisted |
 | S11 | Useful recall (feedback) | **MISSING** | no feedback signal anywhere |
-| S12 | Conflicts | **MISSING** | no contradiction detection; write-decision only invalidates on negation words |
+| S12 | Conflicts | EXISTS | `memory_conflicts` (pair, reason, status, preferred side + credibility); detected on retain (LLM judge or rules); `GET /api/brain/conflicts`, `POST /api/brain/conflicts/resolve`, MCP `list_conflicts`/`resolve_conflict`; recall flags `conflicts` |
 | S13 | Invalidated / superseded memories | EXISTS | `invalid_at`, `superseded_by` (proxy for "conflict" — must be labelled as such) |
 | S14 | Stale memory | DERIVABLE by rule | no notion of staleness; use an explicit "unused 90 d" rule, never "stale" |
 | S15 | Orphan entities | DERIVABLE | entities with no `memory_entities` |
@@ -81,7 +81,7 @@ Ordered so each is a small, deployable task.
 
 | Signal | UI state |
 |---|---|
-| Conflicts (S12) | Health shows "Invalidated" + "Superseded" counts. Interface `Conflict {a, b, reason, detectedAt}` reserved in `web/lib/types`; no conflict UI until a detector exists. |
+| Conflicts (S12) | Built: list open conflicts (both memories, reason, preferred side and its rule) with keep new / keep old / both valid actions. Never present the preferred side as "the truth"; it is a suggestion. |
 | Useful recall (S11) | Recalls page has no "useful" column; a note says feedback isn't collected yet. Future: `POST /api/brain/recalls/{id}/feedback`. |
 | Gap explanation (S23) | Show facts (query, hits, first/last seen) + closest memories; no generated "why". |
 | Source sync history (S21) | Show latest status only. |

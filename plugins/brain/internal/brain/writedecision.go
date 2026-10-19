@@ -1,6 +1,9 @@
 package brain
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Write-decision (SPEC §4.1, Mem0-style). On retain the brain compares the new
 // content against its nearest existing memory in the namespace and decides whether
@@ -26,6 +29,12 @@ type neighbor struct {
 	ID      string
 	Content string
 	Sim     float64 // cosine similarity to the candidate, [0,1]
+
+	// Provenance, for contradiction detection and its credibility rule.
+	Owner      string
+	SourceKind string
+	Importance float64
+	ValidAt    time.Time
 }
 
 // writeDecision returns the action and, for UPDATE/NOOP/INVALIDATE, the id of the

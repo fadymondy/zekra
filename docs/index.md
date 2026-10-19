@@ -69,6 +69,61 @@ On every retain, Zekra compares the new text with the most similar memory alread
 Callers never choose the decision. Retaining the same fact twice is safe, so agents can
 retain freely.
 
+### Contradictions
+
+On retain, Zekra also checks whether the new memory contradicts any of the five most
+similar valid memories in the brain. A cheap filter runs first: the memories must be
+similar (cosine 0.72 or higher, below the duplicate threshold) and share words. Up to three
+candidates then go to a judge. That is an LLM that must answer in a strict JSON schema
+(`contradicts`, `kind`, `reason`, `confidence`, `scoped`), or a rule-based judge for negation
+and changed numbers when no LLM is set. If the judge fails or times out, the write goes
+through without a conflict.
+
+A contradiction is stored as a **conflict**: a link between both memory ids with a reason
+and a status. Zekra never silently drops either fact.
+
+- An `add` that contradicts an existing memory keeps both and opens the conflict.
+- An `update` that contradicts a memory written by **someone else** becomes an `add`. One
+  agent cannot overwrite another agent's fact by saying the opposite. The conflict stays
+  open for a person or agent to resolve.
+- An `update` from the same author (a self-correction), or one the judge is unsure about,
+  goes ahead. It is recorded as `resolved_keep_new`.
+- An `invalidate` (an explicit negation) is recorded as a `resolved_keep_new` conflict, so
+  the retraction can be audited.
+
+Recall returns both sides of an open conflict and flags them with `conflicts`. List and
+settle conflicts with `list_conflicts` and `resolve_conflict` (MCP) or
+`/api/brain/conflicts` (REST).
+
+**Which side Zekra prefers.** Each memory gets a credibility score from 0 to 1:
+
+```
+score = 0.40 × recency + 0.35 × source + 0.25 × importance
+recency = 1 / (1 + age_in_days / 30)
+```
+
+The source weights are:
+
+| Source | Weight |
+|---|---|
+| `manual`, `console`, `user` (written by a person) | 1.0 |
+| `note`, `media` | 0.9 |
+| Data sources (`datasource`, `github…`, `flowos…`, `slack`, `whatsapp`, `import`) | 0.8 |
+| Agents (`claude_code`, `coder_run`, `mcp`, `agent…`) | 0.6 |
+| `chat` (written by the brain's own chat) | 0.4 |
+| Anything else | 0.5 |
+
+The higher score is the preferred side. If the scores are within 0.01, the newer memory
+wins. The scores and the rule are stored on the conflict (`credibility`). In recall, the
+less preferred side of an open conflict ranks directly below the preferred side. The
+preference only orders results and suggests a resolution: it never retires a memory.
+
+Detection is set with `BRAIN_CONFLICT_DETECT`: `auto` (default: the LLM when one is
+configured, otherwise the rules), `llm`, `heuristic` or `off`. `BRAIN_CONFLICT_MIN_SIM`
+sets the similarity floor (default 0.72) and `BRAIN_CONFLICT_TIMEOUT` the judge budget
+(default 5s). `BRAIN_CONFLICT_LLM_URL`, `_MODEL` and `_KEY` choose the judge model; they
+default to the chat model.
+
 ### Knowledge graph
 
 Zekra extracts entities and typed relations from memories. You can walk the graph

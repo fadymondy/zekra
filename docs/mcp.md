@@ -234,7 +234,7 @@ reranking and optional one-hop entity expansion. Access: read.
 | `types` | string[] | | **zekra-mcp.** Only memories whose `metadata.type` is in this list |
 | `exclude_source_kinds` | string[] | | **zekra-mcp.** Drop memories from these `sourceKind` values |
 
-Returns `{ "results": [ { id, content, score, network, memoryType, sourceKind, sourceRef, importance, validAt, viaEntity? } ] }`.
+Returns `{ "results": [ { id, content, score, network, memoryType, sourceKind, sourceRef, importance, validAt, viaEntity?, conflicts? } ], "conflicts"? }`. When results contradict each other, `conflicts` lists the open [conflicts](#list_conflicts) between them.
 An empty result is recorded as a [knowledge gap](#memory_gaps).
 
 #### `memory_retain`
@@ -250,7 +250,7 @@ embeds and indexes the text, and vaults any secrets it detects. Access: write.
 | `importance_hint` | number | | 0 to 1. A nudge that is blended in, not a final value |
 | `visibility` | string | | `private` (default), `team` or `global` |
 
-Returns `{ "id", "decision", "importance", "supersededId"? }`.
+Returns `{ "id", "decision", "importance", "supersededId"?, "conflicts"? }`. `conflicts` lists any contradiction recorded against an existing memory.
 
 #### `memory_get`
 Fetch one memory by id with full provenance. Access: read.
@@ -323,6 +323,27 @@ Close a gap after you retain the missing knowledge (`indexed`), or drop it (`dis
 | `id` | integer | yes |
 | `status` | string: `indexed`, `dismissed` or `open` | yes |
 | `resolution` | string | |
+
+#### `list_conflicts`
+List pairs of memories that contradict each other. Each conflict shows both memories, the
+reason, which side Zekra prefers and why. Access: read.
+
+| Argument | Type | Notes |
+|---|---|---|
+| `namespace` | string | Optional. Default: every brain you can read |
+| `status` | string | `open` (default), `resolved`, `all`, `resolved_keep_new`, `resolved_keep_old` or `both_valid_scoped` |
+| `memory` | string | Only conflicts involving this memory id |
+| `limit` | integer | Default 50 |
+
+#### `resolve_conflict`
+Settle a conflict. Neither memory is deleted: the losing side is retired (`invalidAt`) and
+comes back if you change the resolution later. Access: write.
+
+| Argument | Type | Required |
+|---|---|---|
+| `id` | string | yes |
+| `resolution` | string: `keep_new`, `keep_old`, `both_valid_scoped` or `open` | yes |
+| `note` | string | |
 
 ### Brains
 

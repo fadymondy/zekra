@@ -106,7 +106,9 @@ curl -sS https://app.zekra.dev/api/brain/retain \
 ```
 
 `decision` is one of `add`, `update`, `invalidate` or `noop`. For `update`, `supersededId`
-is the memory that was replaced. Credentials in `content` are moved to the brain's secrets
+is the memory that was replaced. If the new memory contradicts one already in the brain,
+`conflicts` lists the links that were recorded: `[ { id, with, status, kind, reason,
+preferred, detector } ]`. Credentials in `content` are moved to the brain's secrets
 vault and replaced with `[secret:<name>]`.
 
 ### `POST /api/brain/recall`
@@ -152,6 +154,10 @@ curl -sS https://app.zekra.dev/api/brain/recall \
 
 `viaEntity` is set on results that came in through entity expansion. An empty result list
 is recorded as a knowledge gap.
+
+When results contradict each other, each one carries a `conflicts` list and the response
+adds a top-level `conflicts` array (see [Conflicts](#conflicts)). The less credible side of
+an open conflict is ranked directly below the side Zekra prefers. Neither is dropped.
 
 ### `POST /api/brain/search`
 
@@ -214,6 +220,31 @@ create it.
 |---|---|---|
 | `GET /api/brain/gaps?namespace=&status=&limit=` | `status`: `open`, `indexed`, `dismissed` or `all` | `{ "gaps": [ { id, namespace, query, hits, status, resolution, firstSeen, lastSeen } ] }` |
 | `POST /api/brain/gaps/resolve` | `{ id, status, resolution? }` | `{ id, status }` |
+
+## Conflicts
+
+A conflict links two memories that contradict each other. Zekra records one on retain
+(see [the write decision](index.md#the-write-decision)) and never deletes either memory
+to settle it.
+
+| Endpoint | Body or query | Returns |
+|---|---|---|
+| `GET /api/brain/conflicts?namespace=&status=&memory=&limit=` | `status`: `open` (default), `resolved`, `all`, or one status. `memory`: only conflicts involving this memory id | `{ "conflicts": [ { id, namespace, a, b, kind, reason, confidence, detector, status, preferredId, credibility, resolutionNote, resolvedBy, resolvedAt, createdAt } ] }`. Access: read. With no `namespace`, every brain you can read |
+| `POST /api/brain/conflicts/resolve` | `{ id, resolution, note? }` | The updated conflict. Access: write on the conflict's brain |
+
+`a` is the memory that was already stored and `b` is the new write. Each side is
+`{ id, content, sourceKind, ownerAgentId, importance, validAt, invalidAt? }`.
+
+| Status | Meaning |
+|---|---|
+| `open` | Both memories stay valid. Recall returns both and flags the conflict. |
+| `resolved_keep_new` | `b` is kept and `a` is retired (`invalidAt` set, `supersededBy` = `b`) |
+| `resolved_keep_old` | `a` is kept and `b` is retired |
+| `both_valid_scoped` | Both are true in different scopes, such as different regions or time ranges |
+
+`resolution` takes `keep_new`, `keep_old`, `both_valid_scoped` or `open`. Changing a
+resolution later brings back the memory that was retired, so nothing is lost.
+`credibility` holds the scores behind `preferredId` and the rule that chose it.
 
 ## Graph
 

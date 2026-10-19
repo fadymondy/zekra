@@ -239,6 +239,9 @@ type RetainResult struct {
 	Importance   float64 `json:"importance"`
 	SupersededID string  `json:"supersededId,omitempty"`
 	NoteID       string  `json:"noteId,omitempty"` // the note this memory is a chunk of
+	// Conflicts are the contradictions this write raised with existing memories
+	// (conflicts.go). Both facts are kept unless the write itself retired one.
+	Conflicts []ConflictRef `json:"conflicts,omitempty"`
 }
 
 // Retain embeds the content, runs the §4.1 write-decision against its nearest
@@ -309,6 +312,7 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 	// exists we supersede exactly that row, and when it doesn't we always ADD.
 	var decision, relatedID string
 	var top *neighbor
+	var found []foundConflict
 	if strings.TrimSpace(in.SourceRef) != "" {
 		var existing string
 		err := db.QueryRowContext(ctx,
@@ -323,8 +327,14 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 			decision = "add"
 		}
 	} else {
-		top = s.topNeighbor(ctx, db, in.Namespace, vec)
+		neigh := s.nearNeighbors(ctx, db, in.Namespace, vec, conflictTopK)
+		if len(neigh) > 0 {
+			top = &neigh[0]
+		}
 		decision, relatedID = writeDecision(top, in.Content)
+		// Contradiction check against the top-k (conflicts.go). May turn an UPDATE
+		// into an ADD so another author's fact is not silently overwritten.
+		decision, relatedID, found = s.detectConflicts(ctx, neigh, in, decision, relatedID)
 	}
 	// The memory the decision relates to may be a note's chunk: then the write
 	// lands on that note (a new version / a removed chunk) — see notes_adopt.go.
@@ -352,8 +362,10 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 	if decision == "update" && rel != nil {
 		if n, err := s.updateNoteFromRetain(ctx, rel, in); err == nil {
 			s.event(ctx, db, "retain", in.Namespace, in.OwnerAgentID, "update", nil, int(time.Since(start).Milliseconds()))
-			return &RetainResult{ID: s.latestNoteMemory(ctx, db, in.Namespace, n.ID, in.SourceRef), Decision: "update",
-				Importance: imp, SupersededID: relatedID, NoteID: n.ID}, nil
+			newID := s.latestNoteMemory(ctx, db, in.Namespace, n.ID, in.SourceRef)
+			return &RetainResult{ID: newID, Decision: "update",
+				Importance: imp, SupersededID: relatedID, NoteID: n.ID,
+				Conflicts: s.recordConflicts(ctx, db, in, newID, imp, found)}, nil
 		}
 		// The note is gone or unreadable: fall back to a plain write (a new note).
 	}
@@ -412,6 +424,7 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 		go func() { _ = eng.Cognify(context.Background(), in.Namespace, id, in.Content) }()
 	}
 	res := &RetainResult{ID: id, Decision: decision, Importance: imp}
+	res.Conflicts = s.recordConflicts(ctx, db, in, id, imp, found)
 	if managed {
 		// The new memory becomes a note (or a chunk of its document's note).
 		res.NoteID = s.adoptRetained(ctx, db, in, id)
@@ -422,21 +435,30 @@ func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, erro
 	return res, nil
 }
 
-// topNeighbor returns the nearest existing memory to the candidate embedding in
-// the namespace (hot, non-invalidated), or nil if none / on error. Best-effort:
-// a failure just yields a plain ADD.
-func (s *Store) topNeighbor(ctx context.Context, db *sql.DB, ns, vec string) *neighbor {
-	var n neighbor
-	err := db.QueryRowContext(ctx, `
-		SELECT id::text, content, 1 - (embedding <=> $1::vector) AS sim
+// nearNeighbors returns the k nearest existing memories to the candidate
+// embedding in the namespace (hot, non-invalidated), nearest first; empty if none
+// / on error. Best-effort: a failure just yields a plain ADD. The first is the
+// write decision's neighbour; all k feed contradiction detection.
+func (s *Store) nearNeighbors(ctx context.Context, db *sql.DB, ns, vec string, k int) []neighbor {
+	rows, err := db.QueryContext(ctx, `
+		SELECT id::text, content, 1 - (embedding <=> $1::vector) AS sim,
+		       COALESCE(owner_agent_id,''), COALESCE(source_kind,''), importance, valid_at
 		FROM memories
 		WHERE namespace = $2 AND invalid_at IS NULL AND tier = 'hot' AND embedding IS NOT NULL
 		ORDER BY embedding <=> $1::vector
-		LIMIT 1`, vec, ns).Scan(&n.ID, &n.Content, &n.Sim)
+		LIMIT $3`, vec, ns, k)
 	if err != nil {
 		return nil
 	}
-	return &n
+	defer rows.Close()
+	var out []neighbor
+	for rows.Next() {
+		var n neighbor
+		if rows.Scan(&n.ID, &n.Content, &n.Sim, &n.Owner, &n.SourceKind, &n.Importance, &n.ValidAt) == nil {
+			out = append(out, n)
+		}
+	}
+	return out
 }
 
 // simImportance blends the caller hint with the matched memory's salience on NOOP
@@ -515,6 +537,8 @@ type Recalled struct {
 	Importance float64   `json:"importance"`
 	ValidAt    time.Time `json:"validAt"`
 	ViaEntity  string    `json:"viaEntity,omitempty"`
+	// Conflicts are this memory's unresolved contradictions (conflicts.go).
+	Conflicts []ConflictRef `json:"conflicts,omitempty"`
 }
 
 // Recall runs scoped dense retrieval on the hot tier, then reranks (when a
@@ -609,6 +633,9 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 		// A miss: record it as a knowledge gap the operator can index later.
 		s.recordGap(ctx, db, q.Namespace, q.Query)
 	}
+	// Flag contradictions (and rank the less credible side lower) before caching:
+	// resolving a conflict bumps the epoch, so the cache never serves a stale flag.
+	pool = s.attachConflicts(ctx, db, pool)
 	// Populate L1 for subsequent identical recalls (best-effort; TTL-bounded).
 	s.putCachedRecall(ckey, pool)
 	s.eventMeta(ctx, db, "recall", q.Namespace, "", outcome, nil, int(time.Since(start).Milliseconds()), recallMeta(q.Query, pool))
