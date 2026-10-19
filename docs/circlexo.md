@@ -1,12 +1,11 @@
 # CircleXO hub integration
 
 Zekra can run as an app on the CircleXO hub: hub sign-in next to Zekra's own login, hub orgs mapped
-to brains, plan limits from the hub's entitlements, pay-as-you-go usage for hub-token MCP calls, and
-hub-issued tokens on the MCP endpoint. **All of it is off unless `CIRCLEXO_ISSUER` is set.** With it
+to brains, and hub-issued tokens on the MCP endpoint. **All of it is off unless `CIRCLEXO_ISSUER` is set.** With it
 unset nothing changes: the routes below (except the config probe, which answers
 `{"enabled":false}`) do not exist and no integration table is read.
 
-Code: `internal/circlexo` (service, sign-in, sync, webhooks, sessions, hub token and limits),
+Code: `internal/circlexo` (service, sign-in, sync, webhooks, sessions, hub token),
 `internal/server/circlexo.go` (wiring), `plugins/brain/hubapi` + `plugins/brain/internal/brain/hub.go`
 (the seam the brain plugin uses), `internal/account/hub.go`. Tests: `internal/circlexo/circlexo_test.go`
 (against the SDK's `circlexotest` hub; needs `TEST_DATABASE_URL`, skipped otherwise) and
@@ -23,7 +22,7 @@ Names only; values live in the vault, never in the repo. See `.env.example`.
 | `CIRCLEXO_APP_ID` | Zekra's app id at the hub (also the token audience). |
 | `CIRCLEXO_CLIENT_ID` | OIDC client id. |
 | `CIRCLEXO_CLIENT_SECRET` or `CIRCLEXO_PRIVATE_KEY` + `CIRCLEXO_KEY_ID` | Client authentication (one of the two). |
-| `CIRCLEXO_APP_KEY` | App API key: entitlements, tenants, org members, usage. |
+| `CIRCLEXO_APP_KEY` | App API key: entitlements, tenants, org members. |
 | `CIRCLEXO_WEBHOOK_SECRET` | Signing secret (`whsec_...`) for webhooks and provision/deprovision calls. Required. |
 | `CIRCLEXO_SESSION_KEY` | Seals the sign-in state cookie (16+ chars). Empty: derived from `AUTH_SECRET`. |
 | `CIRCLEXO_REDIRECT_URL` | Optional. Default `AUTH_PUBLIC_URL` (else `APP_URL`) + `/auth/circlexo/callback`. |
@@ -56,9 +55,8 @@ Zekra has no organisation or workspace: the unit of sharing is the **brain** (a 
   one) and confirms it to the hub as the tenant (`ConfirmTenant`). The link is in
   `circlexo_org_links`.
 - **Further brains** created by a person who belongs to exactly one active org are attributed to that
-  org (`circlexo_org_brains`), so the org's `brains` limit can be counted and a hub token for the org
-  can reach them. A person in no org, or in several (ambiguous), creates unattributed brains, which
-  the hub neither limits nor bills.
+  org (`circlexo_org_brains`), so a hub token for the org can reach them. A person in no org, or in
+  several (ambiguous), creates unattributed brains.
 - **Roles**, on the org's primary brain only: hub owner and admin -> brain owner, member -> editor,
   billing -> viewer. A sync never demotes or removes a brain's last owner.
 - **Removal.** Removing the app marks the link inactive; removing a member removes their membership of
@@ -75,16 +73,13 @@ Hub sign-in deliberately ignores `ALLOW_REGISTRATION` (the hub decides who may u
 Zekra's own 2FA (the hub owns second factors). Zekra's password, Google/Apple/GitHub sign-in and
 2FA keep working unchanged (dual login).
 
-## Entitlements and billing
+## Free and open source
 
-- Feature `brains` (limit): checked before a brain is created (REST and MCP). Over the limit -> 402
-  `plan_limit`; an inactive plan -> 402; plan not confirmable by the hub -> 503 (fail closed); a stale
-  copy served during the hub's grace window is read-only, so no new brains.
-- Meter `requests` (pay-as-you-go): one unit per hub-token MCP `tools/call`, reported synchronously
-  before the tool runs, with a per-call idempotency key. A 402 from the hub (empty wallet or
-  exhausted allowance) stops the call with a JSON-RPC error. **Only hub-token calls are metered**;
-  Zekra's own tokens and OAuth-connected apps are not.
-- `entitlement.changed` and `subscription.*` webhooks invalidate the cache.
+Zekra is free and open source (since 2026-10-15). There are no plans, no limits and no metering:
+creating a brain is never refused for a plan, nothing is reported to the hub as usage, and an org is
+never refused because of a payment. Abuse protection is Zekra's own rate limits. If you want to help,
+sponsor open source from the CircleXO hub's Sponsor page.
+- `entitlement.changed` and `subscription.*` webhooks still invalidate the cache (harmless).
 
 ## Hub tokens on MCP
 
@@ -95,7 +90,7 @@ Zekra's own 2FA (the hub owns second factors). Zekra's password, Google/Apple/Gi
 every call and an agent never exceeds its human. A token with `brains:write`, or one the gateway
 exchanged for an agent (it carries an `act` chain), may write; any other hub token reads. Admin and
 destructive tools (`brain_delete`, `memory_forget`, `secret_reveal`, ...) are never offered to hub
-tokens. Refusals: unlinked, non-member, disabled -> 403; plan inactive -> 402; hub unreachable -> 503.
+tokens. Refusals: unlinked, non-member, disabled -> 403.
 
 ## Tables
 
@@ -142,4 +137,4 @@ account schema next to `users`: `circlexo_org_links`, `circlexo_org_members`, `c
 6. Set `CIRCLEXO_ISSUER` last and restart: the login button appears and the routes mount. Check the
    boot log for "circlexo: hub integration enabled".
 7. Install the app on a test org and confirm: a brain appears, members sync, the hub shows the tenant
-   active, and limits follow the hub plan.
+   active.
