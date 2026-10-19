@@ -34,7 +34,8 @@ revoked or unknown token gets no access. The legacy header `X-Cabrain-Token` is 
 accepted.
 
 `X-Agent-Id` is an optional label used to attribute activity. It is not a credential. When
-a token is present, the token's identity is used.
+a token is present, the token's identity is used. `X-Zekra-Tool` names the MCP tool behind a
+call; the MCP servers set it. It is also only a label, recorded in the [audit log](#audit-log).
 
 ### Console sessions (people)
 
@@ -212,7 +213,7 @@ the newest. Access: write. Returns `{ "namespace", "sourceKind", "invalidated": 
 | `GET /api/brain/export?namespace=` | | The brain as NDJSON (`application/x-ndjson`), one memory per line |
 | `POST /api/brain/import?namespace=` | NDJSON body in the export format | `{ "imported": <n> }`. The `namespace` query parameter overrides the namespace in the file. |
 | `GET /api/brain/stats` | | Instance totals: `ready`, `brains`, `memories`, `entities`, `edges`, `agents`, `sessions24h`, `recalls24h`, `openGaps` |
-| `GET /api/brain/activity?limit=50` | | `{ "items": [ { id, ts, op, namespace, agentId, outcome, latencyMs } ] }` |
+| `GET /api/brain/activity?limit=50` | Filters: see [Audit log](#audit-log) | `{ "items": [ ActivityItem ] }` |
 | `GET /api/brain/ping` | | `{ "plugin": "brain", "status": "ok", "authRequired": false }`. Always open. |
 
 There is no create-brain endpoint. A brain exists once it holds a memory: retain one to
@@ -271,6 +272,46 @@ conflict resolution is changed) makes its dependents fresh again. Retiring a sou
 stamps the direct links (`staleAt`, `staleReason`) and logs a `stale` activity event that
 lists the sources and dependents. Retaining a derived memory again with the same
 `derivedFrom` clears an `edited` stamp.
+
+## Audit log
+
+Every call is attributed. Each activity event records:
+
+- the agent (`agentId`): `oauth:<app>`, the token's agent id, or `user:<id>`;
+- `client`: `oauth`, `token`, `console` or `local`;
+- `user` (the person behind a console session or an OAuth grant), `oauthClient` and
+  `token` (the token's name);
+- `tool` (the MCP tool) and `session` (the `Mcp-Session-Id`);
+- the latency, and per op: the write `decision` and `memoryId` on retain, the returned
+  memory ids (`results`, rank order, up to 20) on recall and search.
+
+Calls made by agents (an MCP tool, an access token or an OAuth app) also write one
+`call` event each, with the `route` (`POST /api/brain/recall`), the HTTP `status` and
+the latency. Console clicks do not. `call` events are left out of the activity list unless
+`op` asks for them.
+
+**Queries.** Every query is kept as `queryHash` (the first 16 bytes of the SHA-256 of the
+trimmed, lowercased text), so repeats can be counted. The text is stored only when the
+caller owns the brain: an admin, or a person with the `owner` role. Text from a scoped
+token, an editor or a viewer is never stored. The API shows stored text to the brain's
+owners only. `ZEKRA_LOG_RECALL_QUERIES=false` stops storing query text at all.
+
+**Retention.** `ZEKRA_AUDIT_RETENTION_DAYS` (default `0`: keep) deletes `call` events
+and strips query text from other events once they are that many days old. Hashes, result
+ids and counts stay, so stats keep working. Deleting a brain deletes its events.
+
+| Query parameter | Notes |
+|---|---|
+| `namespace` | One brain (read access). Default: every brain you can read |
+| `op` | One op or a comma list: `retain`, `recall`, `search`, `forget`, `edit`, `stale`, `call`, … |
+| `agent`, `tool`, `client`, `user`, `token`, `session` | Exact match |
+| `since`, `until` | RFC3339 time, or a duration ago (`24h`, `7d`) |
+| `before` | Cursor: events with a smaller `id` |
+| `limit` | Default 50, max 200 |
+
+An `ActivityItem` is `{ id, ts, op, namespace, agentId, outcome, latencyMs, memoryId?,
+decision?, client?, session?, user?, oauthClient?, token?, tool?, route?, status?,
+queryHash?, query?, results? }`. MCP: `brain_activity`.
 
 ## Graph
 

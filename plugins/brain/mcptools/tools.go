@@ -172,6 +172,24 @@ var toolDefs = []map[string]any{
 		}),
 	},
 	{
+		"name": "brain_activity",
+		"description": "The audit log: who called what, newest first. Each row has the op, agent, user, OAuth client, " +
+			"token name, MCP tool and session, latency, the write decision (retain) and the returned memory ids " +
+			"(recall/search). Per-call rows (op=call) are listed only when op asks for them. Query text appears " +
+			"only for brains you own; otherwise a queryHash.",
+		"inputSchema": obj(prop{
+			"namespace": prop{"type": "string", "description": "optional; default every brain you can read"},
+			"op":        prop{"type": "string", "description": "op or comma list, e.g. recall,search or call"},
+			"agent":     prop{"type": "string"},
+			"tool":      prop{"type": "string", "description": "MCP tool name, e.g. memory_recall"},
+			"client":    prop{"type": "string", "enum": []string{"oauth", "token", "console", "local"}},
+			"user":      prop{"type": "string"},
+			"since":     prop{"type": "string", "description": "RFC3339 time, or a duration ago such as 24h or 7d"},
+			"until":     prop{"type": "string", "description": "RFC3339 time, or a duration ago"},
+			"limit":     prop{"type": "integer", "description": "default 50, max 200"},
+		}),
+	},
+	{
 		"name":        "memory_resolve_gap",
 		"description": "Resolve a knowledge gap after indexing the missing knowledge (status=indexed) or to drop it (dismissed).",
 		"inputSchema": obj(prop{

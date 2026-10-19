@@ -144,6 +144,19 @@ also stamps the links and logs a `stale` event in the activity log. If the sourc
 back, for example when a conflict resolution is reversed, its dependents are fresh again.
 Links never cross brains: a source in another brain is ignored.
 
+### Audit log
+
+Zekra records who did what. Every retain, recall, search, edit and forget names the
+agent, the person behind it, the OAuth app or token (by name), the MCP tool and session,
+and how long it took. Retains record the write decision; recalls and searches record which
+memories came back. Each call an agent makes is also logged on its own, with the tool,
+route and status. You can filter the log by agent, op, tool, client, user and time
+(`brain_activity`, `GET /api/brain/activity`).
+
+What an agent asked is kept as a hash. The text is kept only when the caller owns the
+brain, and only owners see it. `ZEKRA_AUDIT_RETENTION_DAYS` sets how long call records
+and query text are kept.
+
 ### Knowledge graph
 
 Zekra extracts entities and typed relations from memories. You can walk the graph

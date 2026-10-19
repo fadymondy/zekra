@@ -48,7 +48,7 @@ func (s *Store) ActivityFor(ctx context.Context, namespaces []string, limit int)
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, ts, op, COALESCE(namespace,''), COALESCE(agent_id,''),
 		       COALESCE(metadata->>'outcome','hit'), COALESCE(latency_ms,0)
-		FROM memory_events WHERE namespace = ANY($1) ORDER BY ts DESC LIMIT $2`, stringArray(namespaces), limit)
+		FROM memory_events WHERE namespace = ANY($1) AND op <> 'call' ORDER BY ts DESC LIMIT $2`, stringArray(namespaces), limit)
 	if err != nil {
 		return out, nil
 	}

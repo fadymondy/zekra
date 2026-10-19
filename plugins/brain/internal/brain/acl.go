@@ -26,21 +26,28 @@ type Token struct {
 // ResolveToken returns the agent id + admin flag for a token (and bumps last_used).
 // ok=false if the token is unknown or revoked.
 func (s *Store) ResolveToken(ctx context.Context, token string) (agentID string, isAdmin bool, ok bool) {
+	agentID, _, isAdmin, ok = s.resolveTokenInfo(ctx, token)
+	return agentID, isAdmin, ok
+}
+
+// resolveTokenInfo is ResolveToken plus the token's name (label), which the
+// audit log records so two tokens of one agent can be told apart.
+func (s *Store) resolveTokenInfo(ctx context.Context, token string) (agentID, label string, isAdmin bool, ok bool) {
 	if token == "" {
-		return "", false, false
+		return "", "", false, false
 	}
 	db, err := s.db(ctx)
 	if err != nil {
-		return "", false, false
+		return "", "", false, false
 	}
 	err = db.QueryRowContext(ctx,
-		`SELECT agent_id, is_admin FROM brain_tokens WHERE token=$1 AND revoked_at IS NULL`, token).
-		Scan(&agentID, &isAdmin)
+		`SELECT agent_id, COALESCE(label,''), is_admin FROM brain_tokens WHERE token=$1 AND revoked_at IS NULL`, token).
+		Scan(&agentID, &label, &isAdmin)
 	if err != nil {
-		return "", false, false
+		return "", "", false, false
 	}
 	_, _ = db.ExecContext(ctx, `UPDATE brain_tokens SET last_used_at=now() WHERE token=$1`, token)
-	return agentID, isAdmin, true
+	return agentID, label, isAdmin, true
 }
 
 // CreateToken issues a new token for an agent identity.

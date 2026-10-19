@@ -741,9 +741,15 @@ func (s *Store) MemoryUsage(ctx context.Context, ns, id string) (*MemoryUsage, e
 type ActivityFilter struct {
 	Namespaces []string
 	All        bool
-	Op         string
+	Op         string // one op or a comma list; empty = every op except 'call'
 	Agent      string
+	Tool       string // MCP tool
+	Client     string // oauth | token | console | local
+	User       string
+	Token      string // token name
+	Session    string
 	Since      *time.Time
+	Until      *time.Time
 	Before     int64 // cursor: events with id < Before
 	Limit      int
 }
@@ -769,14 +775,25 @@ func (s *Store) ActivityFiltered(ctx context.Context, f ActivityFilter) ([]Activ
 	if !f.All {
 		add("namespace = ANY(?)", stringArray(f.Namespaces))
 	}
-	if f.Op != "" {
-		add("op = ?", f.Op)
+	if ops := splitList(f.Op); len(ops) > 0 {
+		add("op = ANY(?)", stringArray(ops))
+	} else {
+		where = append(where, "op <> 'call'") // per-call audit rows only on request
 	}
 	if f.Agent != "" {
 		add("agent_id = ?", f.Agent)
 	}
+	for key, v := range map[string]string{"tool": f.Tool, "client": f.Client, "user": f.User,
+		"token": f.Token, "session": f.Session} {
+		if v != "" {
+			add("metadata->>'"+key+"' = ?", v)
+		}
+	}
 	if f.Since != nil {
 		add("ts >= ?", *f.Since)
+	}
+	if f.Until != nil {
+		add("ts < ?", *f.Until)
 	}
 	if f.Before > 0 {
 		add("id < ?", f.Before)
@@ -784,7 +801,8 @@ func (s *Store) ActivityFiltered(ctx context.Context, f ActivityFilter) ([]Activ
 	args = append(args, f.Limit)
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, ts, op, COALESCE(namespace,''), COALESCE(agent_id,''),
-		       COALESCE(metadata->>'outcome','hit'), COALESCE(latency_ms,0)
+		       COALESCE(metadata->>'outcome','hit'), COALESCE(latency_ms,0),
+		       COALESCE(memory_id::text,''), metadata
 		FROM memory_events WHERE `+strings.Join(where, " AND ")+`
 		ORDER BY id DESC LIMIT $`+itoa(len(args)), args...)
 	if err != nil {
@@ -793,9 +811,45 @@ func (s *Store) ActivityFiltered(ctx context.Context, f ActivityFilter) ([]Activ
 	defer rows.Close()
 	for rows.Next() {
 		var a ActivityItem
-		if rows.Scan(&a.ID, &a.TS, &a.Op, &a.Namespace, &a.AgentID, &a.Outcome, &a.LatencyMs) == nil {
-			out = append(out, a)
+		var meta []byte
+		if rows.Scan(&a.ID, &a.TS, &a.Op, &a.Namespace, &a.AgentID, &a.Outcome, &a.LatencyMs, &a.MemoryID, &meta) != nil {
+			continue
 		}
+		var m struct {
+			Client      string   `json:"client"`
+			Session     string   `json:"session"`
+			User        string   `json:"user"`
+			OAuthClient string   `json:"oauth_client"`
+			Token       string   `json:"token"`
+			Tool        string   `json:"tool"`
+			Method      string   `json:"method"`
+			Route       string   `json:"route"`
+			Status      int      `json:"status"`
+			QueryHash   string   `json:"query_hash"`
+			Query       string   `json:"query"`
+			Results     []string `json:"results"`
+		}
+		_ = json.Unmarshal(meta, &m)
+		a.Client, a.Session, a.User, a.OAuthClient, a.Token, a.Tool = m.Client, m.Session, m.User, m.OAuthClient, m.Token, m.Tool
+		a.Status, a.QueryHash, a.Query, a.Results = m.Status, m.QueryHash, m.Query, m.Results
+		if m.Route != "" {
+			a.Route = strings.TrimSpace(m.Method + " " + m.Route)
+		}
+		if a.Op == "retain" {
+			a.Decision = a.Outcome
+		}
+		out = append(out, a)
 	}
 	return out, rows.Err()
+}
+
+// splitList splits a comma list, dropping blanks.
+func splitList(s string) []string {
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }

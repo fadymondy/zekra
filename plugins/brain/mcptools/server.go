@@ -115,7 +115,7 @@ func (s *Server) Handle(ctx context.Context, req *Request) *Response {
 				args["namespace"] = s.DefaultNamespace
 			}
 		}
-		res, err := Call(ctx, s.Backend, p.Name, args)
+		res, err := Call(WithTool(ctx, p.Name), s.Backend, p.Name, args)
 		if err != nil {
 			return fail(-32602, "unknown tool: "+p.Name)
 		}

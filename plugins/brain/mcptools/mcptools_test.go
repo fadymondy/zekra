@@ -137,6 +137,11 @@ func TestToolTranslation(t *testing.T) {
 			}},
 		{"memory_recall", map[string]any{"namespace": "a", "query": "q", "include_stale": true}, "POST", "/api/brain/recall",
 			func(b *fakeBackend) bool { return b.body["includeStale"] == true }},
+		{"brain_activity", map[string]any{"namespace": "a", "op": "call", "tool": "memory_recall", "since": "24h"}, "GET", "/api/brain/activity",
+			func(b *fakeBackend) bool {
+				return b.query.Get("op") == "call" && b.query.Get("tool") == "memory_recall" &&
+					b.query.Get("since") == "24h" && !b.query.Has("agent")
+			}},
 	}
 	for _, c := range cases {
 		b := &fakeBackend{}

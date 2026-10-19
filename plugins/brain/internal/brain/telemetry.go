@@ -2,10 +2,13 @@ package brain
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 )
 
 /*
@@ -16,15 +19,21 @@ endpoint put an Activity into the context and every memory_events row picks it u
 That is what lets the console answer "which AI recalled this, what did it ask,
 which memories did it get back" (docs/ux/ZEKRA-CAPABILITY-GAPS.md S4–S6).
 
-Recall queries are stored text. They stay inside the brain's own event rows (read
-access = brain read access) and ZEKRA_LOG_RECALL_QUERIES=false turns them off.
+Each row also records the user, OAuth client, token name and MCP tool. Every
+query is kept as a hash (query_hash); its text is stored only when the caller owns
+the brain, and ZEKRA_LOG_RECALL_QUERIES=false turns the text off entirely. The
+per-call audit rows are in audit.go.
 */
 
 // Activity is the actor behind a store call.
 type Activity struct {
-	Agent   string // caller identity: oauth:<app>, token agent id, user:<uid>, …
-	Client  string // oauth | token | console | local
-	Session string // MCP session id ("" outside MCP)
+	Agent       string // caller identity: oauth:<app>, token agent id, user:<uid>, …
+	Client      string // oauth | token | console | local
+	Session     string // MCP session id ("" outside MCP)
+	User        string // the person behind the call (session user, OAuth grant owner)
+	OAuthClient string // OAuth client id of a connected app
+	Token       string // name (label) of the ACL token used
+	Tool        string // MCP tool that made the call (X-Zekra-Tool)
 }
 
 type activityKey struct{}
@@ -34,16 +43,46 @@ type activityKey struct{}
 // REST call sets the agent).
 func WithActivity(ctx context.Context, a Activity) context.Context {
 	prev := activityFrom(ctx)
-	if a.Agent == "" {
-		a.Agent = prev.Agent
+	keep := func(f *string, old string) {
+		if *f == "" {
+			*f = old
+		}
 	}
-	if a.Client == "" {
-		a.Client = prev.Client
-	}
-	if a.Session == "" {
-		a.Session = prev.Session
-	}
+	keep(&a.Agent, prev.Agent)
+	keep(&a.Client, prev.Client)
+	keep(&a.Session, prev.Session)
+	keep(&a.User, prev.User)
+	keep(&a.OAuthClient, prev.OAuthClient)
+	keep(&a.Token, prev.Token)
+	keep(&a.Tool, prev.Tool)
 	return context.WithValue(ctx, activityKey{}, a)
+}
+
+// ownerKey holds the caller's "does it own this brain" check. Query text is
+// only stored for calls into a brain the caller owns; everyone else's queries
+// are kept as a hash.
+type ownerKey struct{}
+
+func withOwnerCheck(ctx context.Context, owns func(ctx context.Context, ns string) bool) context.Context {
+	return context.WithValue(ctx, ownerKey{}, owns)
+}
+
+// ownsBrain reports whether the context's caller owns ns. A store call with no
+// caller attached is the server itself (a sync job, a backfill) and counts as
+// the owner.
+func ownsBrain(ctx context.Context, ns string) bool {
+	owns, _ := ctx.Value(ownerKey{}).(func(context.Context, string) bool)
+	if owns == nil {
+		return true
+	}
+	return owns(ctx, ns)
+}
+
+// queryHash is a stable fingerprint of a query (trimmed, lowercased), so the
+// same question can be counted and matched without keeping its text.
+func queryHash(q string) string {
+	sum := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(q))))
+	return hex.EncodeToString(sum[:16])
 }
 
 func activityFrom(ctx context.Context) Activity {
@@ -76,7 +115,7 @@ const maxLoggedResults = 20
 // recallMeta is the metadata of a recall/search event: the query, what came
 // back (ids, in rank order) and the top score of this ranking path.
 func recallMeta(query string, rs []Recalled) map[string]any {
-	m := map[string]any{"n": len(rs)}
+	m := map[string]any{"n": len(rs), "query_hash": queryHash(query)}
 	if logRecallQueries() {
 		m["query"] = clipRunes(query, 500)
 	}
@@ -124,8 +163,20 @@ func (s *Store) eventMeta(ctx context.Context, db *sql.DB, op, ns, agent, outcom
 	if a.Client != "" {
 		meta["client"] = a.Client
 	}
-	if a.Session != "" {
-		meta["session"] = a.Session
+	for k, v := range map[string]string{"session": a.Session, "user": a.User,
+		"oauth_client": a.OAuthClient, "token": a.Token, "tool": a.Tool} {
+		if v != "" {
+			meta[k] = v
+		}
+	}
+	// Query text only for the brain's owner; the hash is always kept.
+	if q, ok := meta["query"].(string); ok {
+		if _, has := meta["query_hash"]; !has {
+			meta["query_hash"] = queryHash(q)
+		}
+		if !logRecallQueries() || !ownsBrain(ctx, ns) {
+			delete(meta, "query")
+		}
 	}
 	raw, _ := json.Marshal(meta)
 	_, _ = db.ExecContext(ctx,
