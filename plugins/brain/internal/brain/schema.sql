@@ -922,3 +922,51 @@ CREATE TABLE IF NOT EXISTS public.brain_camera_pass (
   created_at       timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS brain_camera_pass_user ON public.brain_camera_pass (user_id, created_at DESC);
+
+-- ── Contradiction detection (conflicts.go; gaps doc S12) ─────────────────────────
+-- On retain, the brain asks a judge (an LLM with a strict JSON schema, or a cheap
+-- negation/number heuristic when no LLM is configured) whether the new memory
+-- contradicts one of its nearest valid neighbours. A contradiction is RECORDED
+-- here, never resolved by silently dropping a fact: memory_a is the older memory,
+-- memory_b the newer one. status is open until a person/agent resolves it, or an
+-- automatic resolution (an explicit negation, a same-author correction) records
+-- what happened. preferred_id is the credibility tie-break winner (recency +
+-- source kind + importance, see conflictCredibility). Soft uuid refs, like
+-- memory_events.memory_id: memories is partitioned, so no FK. Idempotent.
+CREATE TABLE IF NOT EXISTS public.memory_conflicts (
+  id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace       text        NOT NULL,
+  memory_a        uuid        NOT NULL,
+  memory_b        uuid        NOT NULL,
+  kind            text        NOT NULL DEFAULT 'factual',
+  reason          text        NOT NULL DEFAULT '',
+  confidence      real        NOT NULL DEFAULT 0,
+  detector        text        NOT NULL DEFAULT 'llm',
+  status          text        NOT NULL DEFAULT 'open',
+  preferred_id    uuid,
+  credibility     jsonb       NOT NULL DEFAULT '{}'::jsonb,
+  detected_by     text,
+  resolution_note text,
+  resolved_by     text,
+  resolved_at     timestamptz,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT memory_conflicts_pair UNIQUE (memory_a, memory_b),
+  CONSTRAINT memory_conflicts_status_chk
+    CHECK (status IN ('open','resolved_keep_new','resolved_keep_old','both_valid_scoped')),
+  CONSTRAINT memory_conflicts_detector_chk CHECK (detector IN ('llm','heuristic','negation','manual'))
+);
+CREATE INDEX IF NOT EXISTS memory_conflicts_ns_status ON public.memory_conflicts (namespace, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS memory_conflicts_a ON public.memory_conflicts (memory_a);
+CREATE INDEX IF NOT EXISTS memory_conflicts_b ON public.memory_conflicts (memory_b);
+
+-- Conflict detection / resolution are logged activity too.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.memory_events'::regclass AND conname = 'memory_events_op_chk'
+                   AND pg_get_constraintdef(oid) LIKE '%conflict%') THEN
+    ALTER TABLE public.memory_events DROP CONSTRAINT IF EXISTS memory_events_op_chk;
+    ALTER TABLE public.memory_events ADD CONSTRAINT memory_events_op_chk
+      CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup','conflict','resolve_conflict'));
+  END IF;
+END $$;

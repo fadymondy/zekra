@@ -168,6 +168,30 @@ var toolDefs = []map[string]any{
 		}, "id", "status"),
 	},
 	{
+		"name": "list_conflicts",
+		"description": "List contradictions the brain detected between memories (on retain, an LLM judge or a " +
+			"heuristic checks the nearest memories; both facts are kept). Each conflict has both memories, " +
+			"a reason, a status and the credibility-preferred side (recency + source kind + importance). " +
+			"Default: open conflicts.",
+		"inputSchema": obj(prop{
+			"namespace": prop{"type": "string", "description": "brain to list (omit = every brain you can read)"},
+			"status":    prop{"type": "string", "enum": []string{"open", "resolved", "all", "resolved_keep_new", "resolved_keep_old", "both_valid_scoped"}},
+			"memory":    prop{"type": "string", "description": "only conflicts this memory id is part of"},
+			"limit":     prop{"type": "integer", "description": "max rows (default 100)"},
+		}),
+	},
+	{
+		"name": "resolve_conflict",
+		"description": "Resolve a contradiction: keep_new retires the older memory (a), keep_old retires the newer one (b), " +
+			"both_valid_scoped keeps both (they hold in different scopes), open re-opens it. Nothing is hard-deleted; " +
+			"a memory an earlier resolution retired is restored when it is kept.",
+		"inputSchema": obj(prop{
+			"id":         prop{"type": "string", "description": "conflict id from list_conflicts / recall"},
+			"resolution": prop{"type": "string", "enum": []string{"keep_new", "keep_old", "both_valid_scoped", "open"}},
+			"note":       prop{"type": "string", "description": "why (kept with the conflict)"},
+		}, "id", "resolution"),
+	},
+	{
 		"name":        "brain_list",
 		"description": "List the brains (namespaces) with their memory counts — the top level of what's stored.",
 		"inputSchema": obj(prop{}),

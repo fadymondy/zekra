@@ -117,6 +117,14 @@ func TestToolTranslation(t *testing.T) {
 			func(b *fakeBackend) bool {
 				return b.body["displayName"] == "X Brain" && b.body["color"] == "teal" && b.body["icon"] == nil
 			}},
+		{"list_conflicts", map[string]any{"namespace": "a", "status": "all"}, "GET", "/api/brain/conflicts",
+			func(b *fakeBackend) bool {
+				return b.query.Get("namespace") == "a" && b.query.Get("status") == "all" && !b.query.Has("memory")
+			}},
+		{"resolve_conflict", map[string]any{"id": "c1", "resolution": "keep_old", "note": "n"}, "POST", "/api/brain/conflicts/resolve",
+			func(b *fakeBackend) bool {
+				return b.body["id"] == "c1" && b.body["resolution"] == "keep_old" && b.body["note"] == "n"
+			}},
 	}
 	for _, c := range cases {
 		b := &fakeBackend{}

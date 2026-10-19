@@ -162,6 +162,7 @@ func (f *fix) clean() {
 		`DELETE FROM brain_profiles WHERE namespace LIKE $1`,
 		`DELETE FROM namespace_grants WHERE namespace LIKE $1`,
 		`DELETE FROM memory_gaps WHERE namespace LIKE $1`,
+		`DELETE FROM memory_conflicts WHERE namespace LIKE $1`,
 		`DELETE FROM memory_events WHERE namespace LIKE $1`,
 		`DELETE FROM brain_tokens WHERE agent_id LIKE $1`,
 		`DELETE FROM mcp_oauth_grants WHERE id IN (SELECT grant_id FROM mcp_oauth_grant_namespaces WHERE namespace LIKE $1)`,
