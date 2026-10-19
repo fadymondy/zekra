@@ -1,0 +1,79 @@
+# Zekra for the Snap Store — repackages the published Linux .deb (amd64).
+#
+#   cd desktop/packaging && snapcraft pack --use-lxd --output /mnt/e/tmp/zekra-pkg/
+#   snapcraft clean        # after the build: drops the LXD build instance
+#
+# Keep LXD's storage pool on E: (the WSL vhdx lives on C:). On a new release:
+# bump version, source and source-checksum.
+#
+# The self-updater is switched off by deleting resources/app-update.yml (no
+# feed config -> updater.ts disables itself); the Snap Store ships the updates.
+name: zekra
+title: Zekra
+base: core24
+version: '0.1.0'
+summary: Memory for you and your AI agents
+description: |
+  Zekra is a native client for the Zekra brain and notes service. Keep notes in
+  Markdown, organise them into brains, and give your AI agents a shared,
+  searchable memory of what you know.
+
+  - Markdown notes with math, diagrams and code
+  - Hybrid search across all your brains
+  - Quick capture, a tray icon and desktop notifications
+  - Use Zekra Cloud or your own self-hosted server
+  - English and Arabic interface
+grade: stable
+confinement: strict
+license: AGPL-3.0-only
+website: https://zekra.dev
+contact: info@3x1.io
+source-code: https://github.com/fadymondy/zekra
+issues: https://github.com/fadymondy/zekra/issues
+icon: snap/gui/zekra.png
+
+platforms:
+  amd64:
+
+parts:
+  zekra:
+    plugin: dump
+    source: https://github.com/fadymondy/zekra/releases/download/v0.1.0/zekra-desktop_0.1.0_amd64.deb
+    source-type: deb
+    source-checksum: sha256/f1ca9dfa1b0f79c9d91fbc619fe60c1140fb930e1c02af6e9cf6fc95250d23ae
+    # The gnome extension brings GTK; these are the rest of the .deb's depends.
+    stage-packages:
+      - libnss3
+      - libxss1
+      - libxtst6
+      - libnotify4
+      - libsecret-1-0
+      - libasound2t64
+      - libgbm1
+    override-build: |
+      craftctl default
+      rm -f "$CRAFT_PART_INSTALL/opt/Zekra/resources/app-update.yml" \
+            "$CRAFT_PART_INSTALL/opt/Zekra/chrome-sandbox"
+    prime:
+      - -usr/share/doc
+      - -usr/share/applications
+      - -usr/share/mime
+
+apps:
+  zekra:
+    # Chromium's own sandbox can't run under strict confinement (no setuid
+    # helper, no user namespaces); snapd's confinement takes its place.
+    command: opt/Zekra/zekra-desktop --no-sandbox
+    extensions: [gnome]
+    # "Open at login" writes $SNAP_USER_DATA/.config/autostart/zekra-desktop.desktop.
+    autostart: zekra-desktop.desktop
+    environment:
+      TMPDIR: $XDG_RUNTIME_DIR
+      CHROME_DESKTOP: zekra_zekra.desktop
+    plugs:
+      - home
+      - network
+      - browser-support
+      - audio-playback
+      - password-manager-service
+      - removable-media

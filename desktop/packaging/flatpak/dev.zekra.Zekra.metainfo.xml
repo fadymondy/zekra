@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flathub / Snap Store listing for the Zekra desktop app. -->
+<component type="desktop-application">
+  <id>dev.zekra.Zekra</id>
+  <name>Zekra</name>
+  <name xml:lang="ar">ذكرى</name>
+  <summary>Memory for you and your AI agents</summary>
+  <summary xml:lang="ar">ذاكرة لك ولوكلاء الذكاء الاصطناعي</summary>
+  <developer id="dev.zekra">
+    <name>Fady Mondy</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+  <description>
+    <p>
+      Zekra is a native client for the Zekra brain and notes service. Keep notes in
+      Markdown, organise them into brains, and give your AI agents a shared, searchable
+      memory of what you know.
+    </p>
+    <ul>
+      <li>Markdown notes with math, diagrams and code</li>
+      <li>Hybrid search across all your brains</li>
+      <li>Quick capture, a tray icon and desktop notifications</li>
+      <li>Use Zekra Cloud or your own self-hosted server</li>
+      <li>English and Arabic interface</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">dev.zekra.Zekra.desktop</launchable>
+  <url type="homepage">https://zekra.dev</url>
+  <url type="bugtracker">https://github.com/fadymondy/zekra/issues</url>
+  <url type="vcs-browser">https://github.com/fadymondy/zekra</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/fadymondy/zekra/main/desktop/packaging/screenshots/notes.png</image>
+      <caption>Notes in a brain</caption>
+    </screenshot>
+  </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#b8a8f3</color>
+    <color type="primary" scheme_preference="dark">#0b1429</color>
+  </branding>
+  <categories>
+    <category>Office</category>
+  </categories>
+  <keywords>
+    <keyword>notes</keyword>
+    <keyword>markdown</keyword>
+    <keyword>memory</keyword>
+    <keyword>AI</keyword>
+  </keywords>
+  <provides>
+    <mediatype>text/markdown</mediatype>
+  </provides>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-info">mild</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="0.1.0" date="2026-10-13">
+      <description>
+        <p>First public release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

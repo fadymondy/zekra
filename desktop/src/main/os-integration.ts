@@ -37,15 +37,22 @@ const platform = process.platform;
 
 const LINUX_AUTOSTART = () => path.join(os.homedir(), ".config", "autostart", "zekra-desktop.desktop");
 
-/** The executable a login launch should run (AppImage path when bundled so). */
+/** The Exec= command a login launch should run, quoted for a .desktop file. */
 function linuxExec(): string {
-  return process.env.APPIMAGE || process.execPath;
+  // process.execPath only exists inside the snap; snapd's own autostart runs
+  // the snap app and ignores Exec=, but keep it truthful.
+  if (process.env.SNAP_NAME) return `/snap/bin/${process.env.SNAP_NAME}`;
+  return `"${(process.env.APPIMAGE || process.execPath).replace(/"/g, '\\"')}"`;
 }
 
 export async function applyLoginItem(open: boolean, hidden: boolean): Promise<{ ok: boolean; message?: string }> {
   if (!app.isPackaged) {
     // Registering the bare Electron binary would launch the Electron demo app.
     return { ok: false, message: "development build: login item not registered" };
+  }
+  if (process.env.FLATPAK_ID) {
+    // Flathub grants no ~/.config/autostart access.
+    return { ok: false, message: "Flatpak build: open at login is not available" };
   }
   try {
     if (platform === "darwin") {
@@ -57,7 +64,7 @@ export async function applyLoginItem(open: boolean, hidden: boolean): Promise<{ 
     } else {
       const file = LINUX_AUTOSTART();
       if (open) {
-        const exec = `"${linuxExec().replace(/"/g, '\\"')}"${hidden ? " --hidden" : ""}`;
+        const exec = `${linuxExec()}${hidden ? " --hidden" : ""}`;
         await fs.mkdir(path.dirname(file), { recursive: true });
         await fs.writeFile(
           file,
