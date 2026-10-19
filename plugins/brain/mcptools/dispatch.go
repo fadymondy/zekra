@@ -29,7 +29,7 @@ var toolAccess = map[string]Access{
 	"memory_share": AccessAdmin, "graph_traverse": AccessRead, "graph_spine": AccessRead,
 	"graph_neighbors": AccessRead, "graph_path": AccessRead, "graph_ontology": AccessRead,
 	"memory_gaps": AccessRead, "memory_resolve_gap": AccessWrite, "brain_list": AccessRead,
-	"list_conflicts": AccessRead, "resolve_conflict": AccessWrite,
+	"list_conflicts": AccessRead, "resolve_conflict": AccessWrite, "memory_provenance": AccessRead,
 	"brain_details": AccessRead, "memory_edit": AccessWrite, "brain_delete": AccessAdmin, "brain_create": AccessAdmin,
 	"brain_grant": AccessAdmin, "brain_revoke_grant": AccessAdmin, "brain_create_token": AccessAdmin,
 	"brain_tokens": AccessAdmin, "brain_chat": AccessRead, "secret_list": AccessRead,
@@ -131,6 +131,8 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 			"sourceRef":      args["source_ref"],
 			"visibility":     args["visibility"],
 			"importanceHint": args["importance_hint"],
+			"derivedFrom":    args["derived_from"],
+			"derivedVia":     args["derived_via"],
 		})
 	case "memory_recall":
 		post("/api/brain/recall", map[string]any{
@@ -141,9 +143,13 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 			"types":              args["types"],
 			"excludeSourceKinds": args["exclude_source_kinds"],
 			"minImportance":      args["min_importance"],
+			"includeStale":       args["include_stale"],
 		})
 	case "memory_get":
 		get("/api/brain/memory", url.Values{"namespace": {str(args["namespace"])}, "id": {str(args["id"])}})
+	case "memory_provenance":
+		get("/api/brain/provenance", nonEmpty(url.Values{"namespace": {str(args["namespace"])},
+			"id": {str(args["id"])}, "kind": {str(args["kind"])}}))
 	case "memory_dedup":
 		post("/api/brain/dedup", map[string]any{"namespace": args["namespace"], "sourceKind": args["sourceKind"]})
 	case "memory_forget":

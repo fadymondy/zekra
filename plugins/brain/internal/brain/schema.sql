@@ -970,3 +970,38 @@ BEGIN
       CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup','conflict','resolve_conflict'));
   END IF;
 END $$;
+
+-- Derived items follow their sources (derivations.go): a memory or presentation
+-- derived from other memories records each source here. When a source is
+-- invalidated or superseded, its dependents read as stale_source (computed at read
+-- time; stale_at/stale_reason stamp the direct links for the audit trail).
+-- derived_id is text: presentation ids are not uuids. No FKs (memories is
+-- partitioned; references are soft, like everywhere else in the brain).
+CREATE TABLE IF NOT EXISTS public.memory_derivations (
+  namespace    text        NOT NULL,
+  derived_kind text        NOT NULL,
+  derived_id   text        NOT NULL,
+  source_id    uuid        NOT NULL,
+  via          text        NOT NULL DEFAULT 'retain',
+  stale_at     timestamptz,
+  stale_reason text,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (derived_kind, derived_id, source_id),
+  CONSTRAINT memory_derivations_kind_chk CHECK (derived_kind IN ('memory','presentation')),
+  CONSTRAINT memory_derivations_via_chk
+    CHECK (via IN ('retain','chat','presentation','summary','consolidation'))
+);
+CREATE INDEX IF NOT EXISTS memory_derivations_source ON public.memory_derivations (source_id);
+CREATE INDEX IF NOT EXISTS memory_derivations_ns ON public.memory_derivations (namespace);
+
+-- Staleness propagation is logged activity ("stale").
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.memory_events'::regclass AND conname = 'memory_events_op_chk'
+                   AND pg_get_constraintdef(oid) LIKE '%stale%') THEN
+    ALTER TABLE public.memory_events DROP CONSTRAINT IF EXISTS memory_events_op_chk;
+    ALTER TABLE public.memory_events ADD CONSTRAINT memory_events_op_chk
+      CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup','conflict','resolve_conflict','stale'));
+  END IF;
+END $$;

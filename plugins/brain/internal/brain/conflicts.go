@@ -912,6 +912,18 @@ func (s *Store) ResolveConflict(ctx context.Context, id, resolution, note string
 		revive(c.A.ID, c.B.ID)
 		revive(c.B.ID, c.A.ID)
 	}
+	// Derived items follow (derivations.go): the retired side's dependents go
+	// stale, and a revived side's come back.
+	switch status {
+	case ConflictKeepNew:
+		s.clearStale(ctx, db, []string{c.B.ID})
+		s.markDependentsStale(ctx, db, []string{c.A.ID}, "superseded")
+	case ConflictKeepOld:
+		s.clearStale(ctx, db, []string{c.A.ID})
+		s.markDependentsStale(ctx, db, []string{c.B.ID}, "invalidated")
+	case ConflictScoped:
+		s.clearStale(ctx, db, []string{c.A.ID, c.B.ID})
+	}
 	var resolvedAt any
 	if status != ConflictOpen {
 		resolvedAt = time.Now()

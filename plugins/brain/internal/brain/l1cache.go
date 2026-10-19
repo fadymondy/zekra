@@ -92,6 +92,9 @@ func recallCacheKey(q RecallQuery, epoch string) string {
 	raw += "|ty=" + strings.Join(q.Types, ",")
 	raw += "|ex=" + strings.Join(q.ExcludeSourceKinds, ",")
 	raw += "|si=" + tsKey(q.Since) + "|un=" + tsKey(q.Until) + "|as=" + tsKey(q.AsOf)
+	if q.IncludeStale {
+		raw += "|stale"
+	}
 	sum := sha1.Sum([]byte(raw))
 	return recallKeyPrefix + hex.EncodeToString(sum[:])
 }

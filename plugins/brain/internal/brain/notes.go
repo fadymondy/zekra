@@ -675,24 +675,34 @@ func (s *Store) invalidateNoteMemories(ctx context.Context, ns, id string, from 
 	if err != nil {
 		return 0
 	}
-	res, err := db.ExecContext(context.WithoutCancel(ctx), `
+	rows, err := db.QueryContext(context.WithoutCancel(ctx), `
 		UPDATE memories
 		   SET invalid_at = now(),
 		       metadata = metadata || jsonb_build_object('forget_reason', $4::text)
 		 WHERE namespace = $1 AND source_kind = 'note' AND invalid_at IS NULL
 		   AND source_ref LIKE $2
 		   AND split_part(source_ref, '#', 2) ~ '^[0-9]+$'
-		   AND split_part(source_ref, '#', 2)::int >= $3`,
+		   AND split_part(source_ref, '#', 2)::int >= $3
+		RETURNING id::text`,
 		ns, noteSourceRef+id+"#%", from, reason)
 	if err != nil {
 		return 0
 	}
-	n, _ := res.RowsAffected()
-	if n > 0 {
+	var ids []string
+	for rows.Next() {
+		var mid string
+		if rows.Scan(&mid) == nil {
+			ids = append(ids, mid)
+		}
+	}
+	rows.Close()
+	if len(ids) > 0 {
 		s.bumpEpoch(ns)
 		s.event(ctx, db, "forget", ns, "", reason, nil, 0)
+		// Whatever was derived from the removed text is now stale (derivations.go).
+		s.markDependentsStale(ctx, db, ids, "invalidated")
 	}
-	return int(n)
+	return len(ids)
 }
 
 // NoteVersions lists a note's history, newest first.

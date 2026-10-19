@@ -713,6 +713,13 @@ func (s *Service) PresentationFromBrain(w http.ResponseWriter, r *http.Request) 
 		writePresErr(w, err)
 		return
 	}
+	docIDs := make([]string, 0, len(created))
+	for _, c := range created {
+		if id, ok := c["id"].(string); ok {
+			docIDs = append(docIDs, id)
+		}
+	}
+	s.Store.linkPresentation(r.Context(), in.Namespace, docIDs, o.Sources())
 	writeJSON(w, http.StatusCreated, map[string]any{"ok": true, "documents": created, "status": "draft",
 		"sources": o.Sources(), "enrich_next": []string{
 			"review the drafts; every sentence came from the listed sources, nothing was added",

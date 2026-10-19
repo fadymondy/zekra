@@ -56,6 +56,7 @@ func (s *Service) RegisterRoutes(r chi.Router, secured func(http.HandlerFunc) ht
 	// Contradictions between memories (conflicts.go): list + resolve.
 	r.Get("/api/brain/conflicts", sec(s.ConflictsHandler))
 	r.Post("/api/brain/conflicts/resolve", sec(s.ResolveConflictHandler))
+	r.Get("/api/brain/provenance", sec(s.ProvenanceHandler))
 	r.Get("/api/brain/brain", sec(s.BrainDetail))
 	r.Get("/api/brain/export", sec(s.Export))
 	r.Post("/api/brain/import", sec(s.Import))

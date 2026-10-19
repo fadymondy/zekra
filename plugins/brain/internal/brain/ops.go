@@ -162,6 +162,7 @@ func (s *Store) Forget(ctx context.Context, ns, id, reason string) (time.Time, e
 	}
 	s.bumpEpoch(ns) // recall results change
 	s.event(ctx, db, "forget", ns, "", "hit", id, 0)
+	s.markDependentsStale(ctx, db, []string{id}, "invalidated")
 	return invAt, nil
 }
 

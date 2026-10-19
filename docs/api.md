@@ -92,6 +92,8 @@ Store a memory. Access: write.
 | `validAt` | RFC 3339 | | When the event happened. Set this when you import dated records; the default is now. |
 | `network` | string | | `fact`, `experience`, `observation`, `belief`. Derived when omitted. |
 | `memoryType` | string | | `episodic`, `semantic`, `procedural`, `working`. Derived when omitted. |
+| `derivedFrom` | string[] | | Ids of the memories this one was derived from, such as the memories a summary was written from. Only memories in the same brain are linked (at most 50). See [Provenance](#provenance). |
+| `derivedVia` | string | | `retain` (default), `summary`, `consolidation` or `chat` |
 
 Field names are also accepted in `snake_case` (`source_kind`, `valid_at` and so on).
 
@@ -108,8 +110,9 @@ curl -sS https://app.zekra.dev/api/brain/retain \
 `decision` is one of `add`, `update`, `invalidate` or `noop`. For `update`, `supersededId`
 is the memory that was replaced. If the new memory contradicts one already in the brain,
 `conflicts` lists the links that were recorded: `[ { id, with, status, kind, reason,
-preferred, detector } ]`. Credentials in `content` are moved to the brain's secrets
-vault and replaced with `[secret:<name>]`.
+preferred, detector } ]`. When the write retires a memory (`update` or `invalidate`),
+`staleDependents` counts the items derived from it that are now stale. Credentials in
+`content` are moved to the brain's secrets vault and replaced with `[secret:<name>]`.
 
 ### `POST /api/brain/recall`
 
@@ -127,6 +130,7 @@ Hybrid recall inside one brain. Access: read.
 | `since`, `until` | RFC 3339 | | Bound on the event time (`validAt`) |
 | `asOf` | RFC 3339 | | What the brain believed at that moment, including memories that were later superseded |
 | `orderBy` | string | relevance | `recent` or `oldest` switches from relevance to time ordering |
+| `includeStale` | bool | `false` | Also return memories derived from a source that was retired. They carry `staleSource` and rank at half their score. By default they are left out. |
 
 ```sh
 curl -sS https://app.zekra.dev/api/brain/recall \
@@ -245,6 +249,28 @@ to settle it.
 `resolution` takes `keep_new`, `keep_old`, `both_valid_scoped` or `open`. Changing a
 resolution later brings back the memory that was retired, so nothing is lost.
 `credibility` holds the scores behind `preferredId` and the rule that chose it.
+
+## Provenance
+
+A derived item records the memories it came from: a memory retained with `derivedFrom`,
+a memory the brain's chat wrote from what it recalled, or a presentation built from the
+brain (`POST /api/presentations/from-brain`). When one of those sources is invalidated,
+superseded, edited or deleted, the derived item is **stale**. That holds directly and
+through other derived memories, up to four hops.
+
+| Endpoint | Query | Returns |
+|---|---|---|
+| `GET /api/brain/provenance?namespace=&id=&kind=` | `kind`: `memory` (default) or `presentation` | `{ kind, id, derivedFrom: [Derivation], dependents: [Derivation], staleSource?: [StaleRef] }`. Access: read on the brain the item belongs to |
+
+A `Derivation` is `{ kind, id, via, content, valid, staleAt?, staleReason?, createdAt }`.
+A `StaleRef` is `{ source, reason, supersededBy?, depth }`. `reason` is `invalidated`,
+`superseded`, `edited` or `deleted`, and `depth` is 1 for a direct source.
+
+Staleness is worked out when you read, so a source that comes back (for example when a
+conflict resolution is changed) makes its dependents fresh again. Retiring a source also
+stamps the direct links (`staleAt`, `staleReason`) and logs a `stale` activity event that
+lists the sources and dependents. Retaining a derived memory again with the same
+`derivedFrom` clears an `edited` stamp.
 
 ## Graph
 
