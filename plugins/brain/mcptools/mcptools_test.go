@@ -125,6 +125,18 @@ func TestToolTranslation(t *testing.T) {
 			func(b *fakeBackend) bool {
 				return b.body["id"] == "c1" && b.body["resolution"] == "keep_old" && b.body["note"] == "n"
 			}},
+		{"memory_provenance", map[string]any{"namespace": "a", "id": "m1"}, "GET", "/api/brain/provenance",
+			func(b *fakeBackend) bool {
+				return b.query.Get("namespace") == "a" && b.query.Get("id") == "m1" && !b.query.Has("kind")
+			}},
+		{"memory_retain", map[string]any{"namespace": "a", "content": "c", "source_kind": "manual",
+			"derived_from": []any{"m1", "m2"}, "derived_via": "summary"}, "POST", "/api/brain/retain",
+			func(b *fakeBackend) bool {
+				d, _ := b.body["derivedFrom"].([]any)
+				return len(d) == 2 && b.body["derivedVia"] == "summary"
+			}},
+		{"memory_recall", map[string]any{"namespace": "a", "query": "q", "include_stale": true}, "POST", "/api/brain/recall",
+			func(b *fakeBackend) bool { return b.body["includeStale"] == true }},
 	}
 	for _, c := range cases {
 		b := &fakeBackend{}

@@ -124,6 +124,26 @@ sets the similarity floor (default 0.72) and `BRAIN_CONFLICT_TIMEOUT` the judge 
 (default 5s). `BRAIN_CONFLICT_LLM_URL`, `_MODEL` and `_KEY` choose the judge model; they
 default to the chat model.
 
+### Derived memories
+
+Some items are built from other memories:
+
+- a summary or consolidation an agent retains with `derived_from`;
+- what the brain's chat writes, which is linked to the memories it recalled in that run;
+- a presentation built from the brain, which is linked to the memories and note chunks it
+  used.
+
+Each link is stored, so you can ask any item where it came from and what was built on it
+(`memory_provenance`, `GET /api/brain/provenance`).
+
+When a source is invalidated, superseded by an update, edited or deleted, everything
+derived from it is **stale**. That includes items derived through other derived
+memories, up to four hops. Recall leaves stale items out. Pass `include_stale` to get
+them back flagged with `staleSource`, ranked at half their score. Retiring a source
+also stamps the links and logs a `stale` event in the activity log. If the source comes
+back, for example when a conflict resolution is reversed, its dependents are fresh again.
+Links never cross brains: a source in another brain is ignored.
+
 ### Knowledge graph
 
 Zekra extracts entities and typed relations from memories. You can walk the graph

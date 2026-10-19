@@ -233,8 +233,9 @@ reranking and optional one-hop entity expansion. Access: read.
 | `min_importance` | number | | Drop memories below this importance |
 | `types` | string[] | | **zekra-mcp.** Only memories whose `metadata.type` is in this list |
 | `exclude_source_kinds` | string[] | | **zekra-mcp.** Drop memories from these `sourceKind` values |
+| `include_stale` | boolean | | Also return memories derived from a source that was retired, flagged with `staleSource` and ranked at half score (default `false`: they are left out) |
 
-Returns `{ "results": [ { id, content, score, network, memoryType, sourceKind, sourceRef, importance, validAt, viaEntity?, conflicts? } ], "conflicts"? }`. When results contradict each other, `conflicts` lists the open [conflicts](#list_conflicts) between them.
+Returns `{ "results": [ { id, content, score, network, memoryType, sourceKind, sourceRef, importance, validAt, viaEntity?, conflicts?, staleSource? } ], "conflicts"? }`. When results contradict each other, `conflicts` lists the open [conflicts](#list_conflicts) between them.
 An empty result is recorded as a [knowledge gap](#memory_gaps).
 
 #### `memory_retain`
@@ -249,8 +250,22 @@ embeds and indexes the text, and vaults any secrets it detects. Access: write.
 | `source_ref` | string | | Session, thread or run id |
 | `importance_hint` | number | | 0 to 1. A nudge that is blended in, not a final value |
 | `visibility` | string | | `private` (default), `team` or `global` |
+| `derived_from` | string[] | | Ids of the memories this one was derived from (a summary, a consolidation, an answer grounded on recall). When any of them is retired, this memory is stale. |
+| `derived_via` | string | | `retain` (default), `summary`, `consolidation` or `chat` |
 
-Returns `{ "id", "decision", "importance", "supersededId"?, "conflicts"? }`. `conflicts` lists any contradiction recorded against an existing memory.
+Returns `{ "id", "decision", "importance", "supersededId"?, "conflicts"?, "staleDependents"? }`. `conflicts` lists any contradiction recorded against an existing memory. `staleDependents` counts the derived items that went stale because this write retired a memory.
+
+#### `memory_provenance`
+The dependency trail of a memory or presentation: what it was derived from, what was
+derived from it, and which retired sources make it stale. Access: read.
+
+| Argument | Type | Required | Notes |
+|---|---|---|---|
+| `namespace` | string | yes | |
+| `id` | string | yes | Memory UUID or presentation id |
+| `kind` | string | | `memory` (default) or `presentation` |
+
+Returns `{ kind, id, derivedFrom, dependents, staleSource? }`. See [Provenance](api.md#provenance).
 
 #### `memory_get`
 Fetch one memory by id with full provenance. Access: read.

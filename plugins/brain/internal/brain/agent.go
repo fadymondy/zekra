@@ -167,11 +167,19 @@ func (r *agentRun) execTool(ctx context.Context, name, argsJSON string) string {
 			step.Note = "empty content"
 			return `{"error":"retain requires non-empty content"}`
 		}
+		// What the agent writes is grounded on what it recalled this run, so it
+		// goes stale when any of those memories is retired.
+		cited := make([]string, len(r.cites))
+		for i, c := range r.cites {
+			cited[i] = c.ID
+		}
 		res, err := r.s.Retain(ctx, MemoryInput{
 			Namespace:    r.q.Namespace,
 			Content:      content,
 			SourceKind:   "chat",
 			OwnerAgentID: "chat-agent:" + r.q.Namespace,
+			DerivedFrom:  cited,
+			DerivedVia:   ViaChat,
 		})
 		if err != nil {
 			step.Note = err.Error()

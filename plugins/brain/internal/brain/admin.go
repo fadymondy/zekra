@@ -195,6 +195,7 @@ func (s *Store) DeleteBrain(ctx context.Context, ns string) (int, error) {
 	n, _ := res.RowsAffected()
 	_, _ = db.ExecContext(ctx, `DELETE FROM memory_gaps WHERE namespace=$1`, ns)
 	_, _ = db.ExecContext(ctx, `DELETE FROM memory_conflicts WHERE namespace=$1`, ns)
+	_, _ = db.ExecContext(ctx, `DELETE FROM memory_derivations WHERE namespace=$1`, ns)
 	_, _ = db.ExecContext(ctx, `DELETE FROM memory_events WHERE namespace=$1`, ns)
 	s.bumpEpoch(ns)
 	return int(n), nil
@@ -256,6 +257,10 @@ func (s *Store) EditMemory(ctx context.Context, ns, id, content string, importan
 	s.eventMeta(ctx, db, "edit", ns, "", "ok", id, 0, map[string]any{
 		"content": content != "", "importance": importance > 0, "metadata": metadata != nil})
 	s.bumpEpoch(ns)
+	if content != "" {
+		// What was derived from the old wording no longer matches it.
+		s.markDependentsStale(ctx, db, []string{id}, "edited")
+	}
 	return nil
 }
 

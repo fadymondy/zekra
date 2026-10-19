@@ -198,6 +198,12 @@ type MemoryInput struct {
 	// explicitly. Empty → derived from Metadata["type"] by classifyMemory.
 	Network    string // fact | experience | observation | belief
 	MemoryType string // episodic | semantic | procedural | working
+
+	// DerivedFrom names the memories this one was derived from (a summary, a
+	// consolidation, a chat answer grounded on recall). When any of them is later
+	// invalidated or superseded, this memory reads as stale_source (derivations.go).
+	DerivedFrom []string
+	DerivedVia  string // retain (default) | chat | summary | consolidation
 }
 
 // UnmarshalJSON accepts BOTH camelCase and snake_case keys. The struct has no
@@ -230,6 +236,8 @@ func (m *MemoryInput) UnmarshalJSON(b []byte) error {
 	get("validat", &m.ValidAt)
 	get("network", &m.Network)
 	get("memorytype", &m.MemoryType)
+	get("derivedfrom", &m.DerivedFrom)
+	get("derivedvia", &m.DerivedVia)
 	return nil
 }
 
@@ -242,6 +250,9 @@ type RetainResult struct {
 	// Conflicts are the contradictions this write raised with existing memories
 	// (conflicts.go). Both facts are kept unless the write itself retired one.
 	Conflicts []ConflictRef `json:"conflicts,omitempty"`
+	// StaleDependents counts the items derived from the memory this write retired,
+	// now marked stale_source.
+	StaleDependents int `json:"staleDependents,omitempty"`
 }
 
 // Retain embeds the content, runs the §4.1 write-decision against its nearest
@@ -250,7 +261,42 @@ type RetainResult struct {
 // Importance is seeded from the hint + a novelty floor (the full salience formula
 // is a Phase-2 tuning job). The write-decision logic is pure (writedecision.go);
 // only the neighbor lookup needs the embedder.
+//
+// Provenance (derivations.go): the stored memory is linked to in.DerivedFrom,
+// and when the write retires a memory (update / invalidate) whatever was derived
+// from that memory is marked stale.
 func (s *Store) Retain(ctx context.Context, in MemoryInput) (*RetainResult, error) {
+	res, err := s.retain(ctx, in)
+	if err != nil || res == nil {
+		return res, err
+	}
+	if len(in.DerivedFrom) == 0 && res.SupersededID == "" {
+		return res, nil
+	}
+	db, err := s.db(ctx)
+	if err != nil {
+		return res, nil
+	}
+	if len(in.DerivedFrom) > 0 && res.ID != "" {
+		if s.linkDerived(ctx, db, in.Namespace, DerivedMemory, res.ID, in.DerivedVia, in.DerivedFrom) > 0 {
+			s.bumpEpoch(in.Namespace) // the new links can change what recall shows
+		}
+	}
+	if res.SupersededID != "" && (res.Decision == "update" || res.Decision == "invalidate") {
+		reason := "superseded"
+		if res.Decision == "invalidate" {
+			reason = "invalidated"
+		}
+		s.markDependentsStale(ctx, db, []string{res.SupersededID}, reason)
+		// Count rather than use the stamp total: a note write runs this twice
+		// (the nested chunk retain stamps first).
+		_ = db.QueryRowContext(ctx, `SELECT count(*) FROM memory_derivations
+			WHERE source_id = $1::uuid AND stale_at IS NOT NULL`, res.SupersededID).Scan(&res.StaleDependents)
+	}
+	return res, nil
+}
+
+func (s *Store) retain(ctx context.Context, in MemoryInput) (*RetainResult, error) {
 	emb := s.embedder()
 	if emb == nil {
 		return nil, ErrNoEmbedder
@@ -507,6 +553,11 @@ type RecallQuery struct {
 	Until   *time.Time `json:"until,omitempty"`
 	AsOf    *time.Time `json:"asOf,omitempty"`
 	OrderBy string     `json:"orderBy,omitempty"` // ""|relevance | recent | oldest
+
+	// IncludeStale returns memories derived from a source that has since been
+	// invalidated or superseded, flagged with staleSource and at half their
+	// score. By default they are left out (derivations.go).
+	IncludeStale bool `json:"includeStale,omitempty"`
 }
 
 // UnmarshalJSON decodes a RecallQuery with ExpandEntity defaulting to TRUE when
@@ -539,6 +590,9 @@ type Recalled struct {
 	ViaEntity  string    `json:"viaEntity,omitempty"`
 	// Conflicts are this memory's unresolved contradictions (conflicts.go).
 	Conflicts []ConflictRef `json:"conflicts,omitempty"`
+	// StaleSource lists the retired sources behind a derived memory. Only set when
+	// the caller asked for stale results (includeStale).
+	StaleSource []StaleRef `json:"staleSource,omitempty"`
 }
 
 // Recall runs scoped dense retrieval on the hot tier, then reranks (when a
@@ -596,6 +650,9 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 	if rr := s.reranker(); rr != nil && len(pool) > 1 {
 		rerankHead(ctx, rr, q.Query, pool)
 	}
+	// Leave out (or flag) memories derived from a retired source, before the cut so
+	// the limit is still filled with fresh ones.
+	pool = s.applyStale(ctx, db, pool, q)
 	if len(pool) > q.Limit {
 		pool = pool[:q.Limit]
 	}
@@ -610,7 +667,7 @@ func (s *Store) Recall(ctx context.Context, q RecallQuery) ([]Recalled, error) {
 			// the temporal params. Post-filter here rather than splicing predicates
 			// into that query: its predicates are m.-qualified with different arg
 			// numbering, so the buildFilteredRecallSQL anchor would mis-splice.
-			pool = append(pool, filterTemporal(extra, q)...)
+			pool = append(pool, s.applyStale(ctx, db, filterTemporal(extra, q), q)...)
 		}
 	}
 	// Time ordering, when the caller asked for it. Applied AFTER rerank so the

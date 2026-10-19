@@ -69,3 +69,40 @@ func (s *Service) ResolveConflictHandler(w http.ResponseWriter, r *http.Request)
 	s.hub.publish("conflict", map[string]any{"namespace": out.Namespace, "resolved": out.ID, "status": out.Status})
 	writeJSON(w, http.StatusOK, out)
 }
+
+// GET /api/brain/provenance?namespace=&kind=memory|presentation&id=
+// What an item was derived from, what was derived from it, and which retired
+// sources make it stale.
+func (s *Service) ProvenanceHandler(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	ns, kind, id := q.Get("namespace"), q.Get("kind"), q.Get("id")
+	if kind == "" {
+		kind = DerivedMemory
+	}
+	if ns == "" || id == "" {
+		writeJSON(w, http.StatusBadRequest, apiErr("invalid_argument", "namespace and id are required"))
+		return
+	}
+	if !s.canRead(r, ns) {
+		writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
+		return
+	}
+	// The item must belong to the brain the caller can read.
+	if owner := s.Store.derivationNamespace(r.Context(), kind, id); owner != "" {
+		if owner != ns {
+			writeErr(w, ErrNotFound)
+			return
+		}
+	} else if kind == DerivedMemory {
+		if _, err := s.Store.Get(r.Context(), ns, id); err != nil {
+			writeErr(w, err)
+			return
+		}
+	}
+	p, err := s.Store.Provenance(r.Context(), kind, id)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, p)
+}

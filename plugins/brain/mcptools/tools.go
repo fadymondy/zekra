@@ -34,6 +34,8 @@ var toolDefs = []map[string]any{
 			"source_ref":      prop{"type": "string", "description": "session/thread/run id (provenance)"},
 			"importance_hint": prop{"type": "number", "description": "[0,1] explicit salience flag, blended not authoritative"},
 			"visibility":      prop{"type": "string", "enum": []string{"private", "team", "global"}, "default": "private"},
+			"derived_from":    prop{"type": "array", "items": prop{"type": "string"}, "description": "ids of the memories this one was derived from (a summary, a consolidation, an answer grounded on recall); when any of them is retired this memory reads as stale"},
+			"derived_via":     prop{"type": "string", "enum": []string{"retain", "summary", "consolidation", "chat"}, "default": "retain"},
 		}, "namespace", "content", "source_kind"),
 	},
 	{
@@ -48,7 +50,18 @@ var toolDefs = []map[string]any{
 			"min_importance":       prop{"type": "number", "description": "optional floor filter"},
 			"types":                prop{"type": "array", "items": prop{"type": "string"}, "description": "narrow to memories whose metadata.type is one of these domain types (e.g. [\"venture\",\"spec\",\"goal\",\"note\"]) — cuts noise from bulk ingest types like git-activity"},
 			"exclude_source_kinds": prop{"type": "array", "items": prop{"type": "string"}, "description": "drop candidates from these source_kind streams (e.g. [\"flowos_github_activity\"]) to muffle high-volume noise"},
+			"include_stale":        prop{"type": "boolean", "description": "also return memories derived from a source that has since been invalidated or superseded, flagged with staleSource and ranked at half score (default false: they are left out)"},
 		}, "namespace", "query"),
+	},
+	{
+		"name": "memory_provenance",
+		"description": "The dependency trail of a memory or presentation: what it was derived from, what was derived " +
+			"from it, and which retired sources (invalidated, superseded, edited, deleted) make it stale.",
+		"inputSchema": obj(prop{
+			"namespace": prop{"type": "string"},
+			"id":        prop{"type": "string", "description": "memory UUID or presentation id"},
+			"kind":      prop{"type": "string", "enum": []string{"memory", "presentation"}, "default": "memory"},
+		}, "namespace", "id"),
 	},
 	{
 		"name":        "memory_get",

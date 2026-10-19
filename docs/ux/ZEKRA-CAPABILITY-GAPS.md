@@ -23,6 +23,7 @@ an endpoint) · **MISSING** (not stored; needs new telemetry or a new feature).
 | S12 | Conflicts | EXISTS | `memory_conflicts` (pair, reason, status, preferred side + credibility); detected on retain (LLM judge or rules); `GET /api/brain/conflicts`, `POST /api/brain/conflicts/resolve`, MCP `list_conflicts`/`resolve_conflict`; recall flags `conflicts` |
 | S13 | Invalidated / superseded memories | EXISTS | `invalid_at`, `superseded_by` (proxy for "conflict" — must be labelled as such) |
 | S14 | Stale memory | DERIVABLE by rule | no notion of staleness; use an explicit "unused 90 d" rule, never "stale" |
+| S14b | Stale source (derived item whose source was retired) | EXISTS | `memory_derivations` links summaries, consolidations, chat retains and presentations to their source memories; a source invalidated/superseded/edited makes dependents `staleSource` (transitive, read-time); recall excludes them unless `includeStale`; `GET /api/brain/provenance`, MCP `memory_provenance`; `stale` activity event. This is not S14: "unused" is still a rule |
 | S15 | Orphan entities | DERIVABLE | entities with no `memory_entities` |
 | S16 | Memories with a source | EXISTS | `source_kind`/`source_ref` (exclude `system`) |
 | S17 | Why a memory exists (write decision) | EXISTS (partial) | retain event `metadata` holds the decision outcome; not exposed per memory |
@@ -86,7 +87,7 @@ Ordered so each is a small, deployable task.
 | Gap explanation (S23) | Show facts (query, hits, first/last seen) + closest memories; no generated "why". |
 | Source sync history (S21) | Show latest status only. |
 | Note Shared / Summary (S26–27) | Filter and section hidden. |
-| Stale (S14) | Only "Unused 90 d" by explicit rule. |
+| Stale (S14) | Only "Unused 90 d" by explicit rule. "Stale source" (S14b) is a different, built signal: label it "Source changed" with the retired source and reason. |
 
 ## 4. Front-end guardrails
 
