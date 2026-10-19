@@ -4,6 +4,9 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/togo-framework/brain/mcptools"
 )
 
 // caller is the resolved identity of a request.
@@ -16,6 +19,7 @@ type caller struct {
 	session   bool       // a signed-in user (cookie / bearer session JWT)
 	userID    string
 	roles     []string
+	tokenName string // label of the ACL token used, for the audit log
 }
 
 type callerKey struct{}
@@ -26,9 +30,35 @@ func (s *Service) withCaller(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := s.resolveCaller(r)
 		ctx := context.WithValue(r.Context(), callerKey{}, &c)
-		ctx = WithActivity(ctx, Activity{Agent: c.agent, Client: clientKind(c, r), Session: r.Header.Get("Mcp-Session-Id")})
-		h(w, r.WithContext(ctx))
+		a := Activity{Agent: c.agent, Client: clientKind(c, r), Session: r.Header.Get("Mcp-Session-Id"),
+			User: c.userID, Token: c.tokenName,
+			Tool: clipRunes(strings.TrimSpace(r.Header.Get(mcptools.ToolHeader)), 64)}
+		if c.principal != nil {
+			a.OAuthClient = c.principal.ClientID
+		}
+		ctx = WithActivity(ctx, a)
+		ctx = withOwnerCheck(ctx, func(ctx context.Context, ns string) bool { return s.callerOwns(ctx, c, ns) })
+		r = r.WithContext(ctx)
+		if !auditable(activityFrom(ctx)) {
+			h(w, r)
+			return
+		}
+		s.auditCall(w, r, h)
 	}
+}
+
+// callerOwns reports whether c owns brain ns: admins (including the trusted
+// local console and admin tokens) own every brain; a person owns the brains
+// where they hold the owner role. Scoped tokens own nothing.
+func (s *Service) callerOwns(ctx context.Context, c caller, ns string) bool {
+	if c.admin {
+		return true
+	}
+	if c.userID == "" || ns == "" || ns == "*" {
+		return false
+	}
+	role, _ := s.Store.MemberRole(ctx, ns, c.userID)
+	return role == "owner"
 }
 
 // identify returns the request's caller (cached by withCaller when present).
@@ -61,8 +91,8 @@ func (s *Service) resolveCaller(r *http.Request) caller {
 		return caller{agent: p.agentLabel(), valid: true, principal: p, userID: p.UserID}
 	}
 	if tok := TokenHeader(r.Header); tok != "" {
-		if agent, admin, ok := s.Store.ResolveToken(r.Context(), tok); ok {
-			return caller{agent: agent, admin: admin, valid: true}
+		if agent, label, admin, ok := s.Store.resolveTokenInfo(r.Context(), tok); ok {
+			return caller{agent: agent, admin: admin, valid: true, tokenName: label}
 		}
 		return caller{valid: false} // bad/revoked token → deny
 	}

@@ -43,6 +43,9 @@ func (h *HTTPBackend) Do(ctx context.Context, method, path string, query url.Val
 	if h.Token != "" {
 		req.Header.Set("X-Zekra-Token", h.Token) // ACL: per-brain read/write
 	}
+	if t := ToolFrom(ctx); t != "" {
+		req.Header.Set(ToolHeader, t) // audit: which MCP tool made this call
+	}
 	if h.Bearer != "" {
 		req.Header.Set("Authorization", "Bearer "+h.Bearer)
 	}

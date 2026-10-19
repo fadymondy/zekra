@@ -381,6 +381,21 @@ Delete a brain and **all** of its memories. This cannot be undone. Access: write
 | `namespace` | string | yes | |
 | `confirm` | string | yes | Must equal `namespace`. `zekra mcp` also accepts `true`. |
 
+#### `brain_activity`
+The audit log, newest first: who called what, from which OAuth app, token or MCP session,
+with the latency, the write decision and the returned memory ids. Access: read.
+
+| Argument | Type | Required | Notes |
+|---|---|---|---|
+| `namespace` | string | | Default: every brain you can read |
+| `op` | string | | One op or a comma list. Per-call rows are `call` and are listed only when asked for |
+| `agent`, `tool`, `client`, `user` | string | | Exact match. `client`: `oauth`, `token`, `console`, `local` |
+| `since`, `until` | string | | RFC3339 time, or a duration ago (`24h`, `7d`) |
+| `limit` | integer | | Default 50, max 200 |
+
+Query text appears only for brains you own; otherwise you get `queryHash`. Each MCP tool
+call is recorded with its tool name. See [Audit log](api.md#audit-log).
+
 #### `brain_chat`
 Ask a brain a question. An agent recalls and searches the brain, answers only from what it
 finds, and returns citations. Access: read.

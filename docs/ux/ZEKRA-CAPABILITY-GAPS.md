@@ -12,12 +12,12 @@ an endpoint) · **MISSING** (not stored; needs new telemetry or a new feature).
 | S1 | Memory count, by type / network / source kind | EXISTS | `memories`, `GET /api/brain/brain` (types = `metadata.type`, sources = `source_kind`) |
 | S2 | Last learned | DERIVABLE | `MAX(ingested_at)`; today's `lastAt` uses `valid_at` (D3) |
 | S3 | Recalls this week / per day | DERIVABLE | `memory_events` op ∈ (recall, search), index `(namespace, ts DESC)`; today only all-time + 24h |
-| S4 | Which agent recalled | **MISSING** | recall/search events write `agent_id = ''` (D7) |
-| S5 | What was asked (query) | **MISSING** | not logged (only gaps store the query, on empty recall) |
-| S6 | What was returned (memory ids) | **MISSING** | not logged; `access_count` is a counter only |
+| S4 | Which agent recalled | EXISTS | every event records the agent, user, OAuth client, token name, MCP tool and session; agent calls also write a per-call `call` row (tool, route, status, latency); `GET /api/brain/activity` (filters `agent, op, tool, client, user, token, session, since, until`), MCP `brain_activity` |
+| S5 | What was asked (query) | EXISTS | every query is stored as `query_hash`; the text only when the caller owns the brain (and `ZEKRA_LOG_RECALL_QUERIES` is on), and shown to owners only; `ZEKRA_AUDIT_RETENTION_DAYS` strips old text |
+| S6 | What was returned (memory ids) | EXISTS | recall/search events hold `results` (ids in rank order, ≤ 20); `results` in the activity API |
 | S7 | Last recalled per memory | EXISTS* | `last_accessed_at` — *also bumped by duplicate writes (D6)* |
 | S8 | Agents using a brain | DERIVABLE (weak) | OAuth grants + tokens + `last_used_at`; activity per agent needs S4 |
-| S9 | Sessions | **MISSING** | no table; `Mcp-Session-Id` issued but not stored; `sessions24h` is distinct `source_ref` (D8) |
+| S9 | Sessions | EXISTS (partial) | every event stores the `Mcp-Session-Id` (`session`), filterable in the activity API; no sessions endpoint or table yet; `sessions24h` is still distinct `source_ref` (D8) |
 | S10 | Grounded % | **MISSING** | `footprint.grounded` computed per chat answer, not persisted |
 | S11 | Useful recall (feedback) | **MISSING** | no feedback signal anywhere |
 | S12 | Conflicts | EXISTS | `memory_conflicts` (pair, reason, status, preferred side + credibility); detected on retain (LLM judge or rules); `GET /api/brain/conflicts`, `POST /api/brain/conflicts/resolve`, MCP `list_conflicts`/`resolve_conflict`; recall flags `conflicts` |
@@ -26,9 +26,9 @@ an endpoint) · **MISSING** (not stored; needs new telemetry or a new feature).
 | S14b | Stale source (derived item whose source was retired) | EXISTS | `memory_derivations` links summaries, consolidations, chat retains and presentations to their source memories; a source invalidated/superseded/edited makes dependents `staleSource` (transitive, read-time); recall excludes them unless `includeStale`; `GET /api/brain/provenance`, MCP `memory_provenance`; `stale` activity event. This is not S14: "unused" is still a rule |
 | S15 | Orphan entities | DERIVABLE | entities with no `memory_entities` |
 | S16 | Memories with a source | EXISTS | `source_kind`/`source_ref` (exclude `system`) |
-| S17 | Why a memory exists (write decision) | EXISTS (partial) | retain event `metadata` holds the decision outcome; not exposed per memory |
+| S17 | Why a memory exists (write decision) | EXISTS | retain events hold the decision; the activity API returns it as `decision` with `memoryId` |
 | S18 | Memory edit history | **MISSING** | `EditMemory` and `Dedup` log no event; notes have `note_versions` |
-| S19 | Contributors | DERIVABLE (weak) | `owner_agent_id` set only if the body supplies it — MCP retain never does (D7) |
+| S19 | Contributors | EXISTS | `owner_agent_id` defaults to the caller (MCP retains included); retain events add user, OAuth client, token name and tool (D7 fixed) |
 | S20 | Memories per source | DERIVABLE | `metadata->>'datasource' = name`; `doc_count` overcounts (D9) |
 | S21 | Source sync history | **MISSING** | only the latest status/error/time |
 | S22 | Gap resolution trail | **MISSING** | no `resolved_at`, no link to the answering memory/note |
@@ -37,7 +37,7 @@ an endpoint) · **MISSING** (not stored; needs new telemetry or a new feature).
 | S25 | Memory browse/list | **MISSING endpoint** | only `GET memory` (one row) and recall/search |
 | S26 | Note "Shared" filter | **MISSING** | notes have no share flag (presentations do) |
 | S27 | Note summary | **MISSING** | not stored |
-| S28 | Activity filters | DERIVABLE | `GET activity` takes only `limit` |
+| S28 | Activity filters | EXISTS | `GET /api/brain/activity` (filters `agent, op, tool, client, user, token, session, since, until`), MCP `brain_activity` |
 | S29 | Per-capability permissions | DERIVABLE | role (owner/editor/viewer) + grant `can_write`; no finer ACL |
 
 ## 2. Backend additions (P1 — telemetry foundation)

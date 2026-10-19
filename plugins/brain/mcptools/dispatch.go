@@ -30,7 +30,8 @@ var toolAccess = map[string]Access{
 	"graph_neighbors": AccessRead, "graph_path": AccessRead, "graph_ontology": AccessRead,
 	"memory_gaps": AccessRead, "memory_resolve_gap": AccessWrite, "brain_list": AccessRead,
 	"list_conflicts": AccessRead, "resolve_conflict": AccessWrite, "memory_provenance": AccessRead,
-	"brain_details": AccessRead, "memory_edit": AccessWrite, "brain_delete": AccessAdmin, "brain_create": AccessAdmin,
+	"brain_activity": AccessRead, "brain_details": AccessRead,
+	"memory_edit": AccessWrite, "brain_delete": AccessAdmin, "brain_create": AccessAdmin,
 	"brain_grant": AccessAdmin, "brain_revoke_grant": AccessAdmin, "brain_create_token": AccessAdmin,
 	"brain_tokens": AccessAdmin, "brain_chat": AccessRead, "secret_list": AccessRead,
 	"secret_store": AccessWrite, "secret_reveal": AccessAdmin, "secret_delete": AccessWrite,
@@ -183,6 +184,12 @@ func Call(ctx context.Context, b Backend, name string, args map[string]any) (Res
 	case "memory_gaps":
 		get("/api/brain/gaps", nonEmpty(url.Values{
 			"namespace": {str(args["namespace"])}, "status": {str(args["status"])}, "limit": {str(args["limit"])}}))
+	case "brain_activity":
+		q := url.Values{}
+		for _, k := range []string{"namespace", "op", "agent", "tool", "client", "user", "since", "until", "limit"} {
+			q.Set(k, str(args[k]))
+		}
+		get("/api/brain/activity", nonEmpty(q))
 	case "memory_resolve_gap":
 		post("/api/brain/gaps/resolve", map[string]any{
 			"id": args["id"], "status": args["status"], "resolution": args["resolution"]})

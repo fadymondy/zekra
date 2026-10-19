@@ -82,6 +82,9 @@ func (b *inprocBackend) Do(ctx context.Context, method, path string, query url.V
 	if b.agent != "" {
 		req.Header.Set("X-Agent-Id", b.agent)
 	}
+	if t := mcptools.ToolFrom(ctx); t != "" {
+		req.Header.Set(mcptools.ToolHeader, t)
+	}
 	rec := newRecorder()
 	b.handler.ServeHTTP(rec, req)
 	return mcptools.DecodeBody(rec.body.Bytes()), rec.status, nil

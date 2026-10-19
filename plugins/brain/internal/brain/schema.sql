@@ -1005,3 +1005,16 @@ BEGIN
       CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup','conflict','resolve_conflict','stale'));
   END IF;
 END $$;
+
+-- Per-call audit rows ("call"): every agent REST/MCP call, with tool, route,
+-- status and latency in metadata. Kept for ZEKRA_AUDIT_RETENTION_DAYS (0 = forever).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid = 'public.memory_events'::regclass AND conname = 'memory_events_op_chk'
+                   AND pg_get_constraintdef(oid) LIKE '%''call''%') THEN
+    ALTER TABLE public.memory_events DROP CONSTRAINT IF EXISTS memory_events_op_chk;
+    ALTER TABLE public.memory_events ADD CONSTRAINT memory_events_op_chk
+      CHECK (op IN ('retain','recall','recall_archive','reflect','forget','reconsolidate','demote','share','search','adopt','edit','dedup','conflict','resolve_conflict','stale','call'));
+  END IF;
+END $$;

@@ -62,8 +62,23 @@ type ActivityItem struct {
 	Op        string    `json:"op"`
 	Namespace string    `json:"namespace"`
 	AgentID   string    `json:"agentId"`
-	Outcome   string    `json:"outcome"` // hit | empty | error | running
+	Outcome   string    `json:"outcome"` // hit | empty | error | running; the write decision on retain
 	LatencyMs int       `json:"latencyMs"`
+
+	// Audit detail (filled by the filtered activity log).
+	MemoryID    string   `json:"memoryId,omitempty"`
+	Decision    string   `json:"decision,omitempty"` // retain: add | update | invalidate | noop
+	Client      string   `json:"client,omitempty"`   // oauth | token | console | local
+	Session     string   `json:"session,omitempty"`  // MCP session id
+	User        string   `json:"user,omitempty"`
+	OAuthClient string   `json:"oauthClient,omitempty"`
+	Token       string   `json:"token,omitempty"` // token name
+	Tool        string   `json:"tool,omitempty"`  // MCP tool
+	Route       string   `json:"route,omitempty"` // op 'call': METHOD route
+	Status      int      `json:"status,omitempty"`
+	QueryHash   string   `json:"queryHash,omitempty"`
+	Query       string   `json:"query,omitempty"` // only when the caller owned the brain
+	Results     []string `json:"results,omitempty"`
 }
 
 func (s *Store) Activity(ctx context.Context, limit int) ([]ActivityItem, error) {
@@ -77,7 +92,7 @@ func (s *Store) Activity(ctx context.Context, limit int) ([]ActivityItem, error)
 	rows, err := db.QueryContext(ctx, `
 		SELECT id, ts, op, COALESCE(namespace,''), COALESCE(agent_id,''),
 		       COALESCE(metadata->>'outcome','hit'), COALESCE(latency_ms,0)
-		FROM memory_events ORDER BY ts DESC LIMIT $1`, limit)
+		FROM memory_events WHERE op <> 'call' ORDER BY ts DESC LIMIT $1`, limit)
 	if err != nil {
 		return []ActivityItem{}, nil
 	}

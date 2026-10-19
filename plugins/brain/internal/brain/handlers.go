@@ -42,12 +42,13 @@ func (s *Service) Stats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, st)
 }
 
-// GET /api/brain/activity?limit=50&namespace=&op=&agent=&since=&before=
+// GET /api/brain/activity?limit=50&namespace=&op=&agent=&tool=&client=&user=&token=&session=&since=&until=&before=
 func (s *Service) Activity(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	before, _ := strconv.ParseInt(q.Get("before"), 10, 64)
 	f := ActivityFilter{Op: q.Get("op"), Agent: q.Get("agent"), Since: parseSince(q.Get("since")),
-		Before: before, Limit: queryInt(r, "limit")}
+		Until: parseSince(q.Get("until")), Tool: q.Get("tool"), Client: q.Get("client"), User: q.Get("user"),
+		Token: q.Get("token"), Session: q.Get("session"), Before: before, Limit: queryInt(r, "limit")}
 	if ns := q.Get("namespace"); ns != "" {
 		if !s.canRead(r, ns) {
 			writeJSON(w, http.StatusForbidden, apiErr("permission_denied", "no read access to brain "+ns))
@@ -58,6 +59,20 @@ func (s *Service) Activity(w http.ResponseWriter, r *http.Request) {
 		f.All, f.Namespaces = s.readableNamespaces(r)
 	}
 	items, _ := s.Store.ActivityFiltered(r.Context(), f)
+	// Query text is shown to the brain's owner only (readers see the hash).
+	c, owns := s.identify(r), map[string]bool{}
+	for i := range items {
+		if items[i].Query == "" {
+			continue
+		}
+		ns := items[i].Namespace
+		if _, ok := owns[ns]; !ok {
+			owns[ns] = s.callerOwns(r.Context(), c, ns)
+		}
+		if !owns[ns] {
+			items[i].Query = ""
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"items": items})
 }
 
