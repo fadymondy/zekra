@@ -157,6 +157,13 @@ Bug reports, docs and code contributions are all welcome. Start with
 look for a [`good first issue`](https://github.com/fadymondy/zekra/labels/good%20first%20issue).
 AI coding agents should start with [AGENTS.md](AGENTS.md).
 
+## Translations
+
+[![Translation status](https://hosted.weblate.org/widget/zekra/svg-badge.svg)](https://hosted.weblate.org/engage/zekra/)
+
+Zekra is translated on Hosted Weblate, help us translate it into your language:
+<https://hosted.weblate.org/projects/zekra/>. See [CONTRIBUTING.md](CONTRIBUTING.md#translate-zekra) for how it works.
+
 ## Community
 
 - [Discord](https://discord.gg/99JBJd6FsR): chat with the team and other users
