@@ -5,7 +5,7 @@
 # working API build — keep it identical to deploy/hosbah/api.Dockerfile. The generated
 # sqlc/gqlgen code is not committed, so it is generated here. The schema is still migrated
 # by hand before a binary that needs it ships (DEPLOY.md, "schema before binary").
-FROM golang:1.26 AS api
+FROM golang:1.27 AS api
 COPY --from=sqlc/sqlc:1.31.1 /workspace/sqlc /usr/local/bin/sqlc
 WORKDIR /src
 # go.sum lacks gqlgen's own tool deps (the production Dockerfile.api builds the same way).

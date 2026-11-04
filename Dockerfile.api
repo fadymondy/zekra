@@ -23,7 +23,7 @@
 
 ARG CONSOLE_FROM=cabrain:latest
 
-FROM golang:1.26 AS api
+FROM golang:1.27 AS api
 WORKDIR /src
 # The whole monorepo, so require+replace (./plugins/brain, ./plugins/brain-tei) resolve.
 COPY . .
