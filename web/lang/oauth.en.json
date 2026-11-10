@@ -21,7 +21,7 @@
   "oauth.expires": "Access refreshes automatically; revoke it any time under Connected apps.",
   "oauth.redirecting": "Returning you to the app…",
   "oauth.verifiedBy": "published by {host}",
-  "oauth.newClient": "This app registered with Zekra {when} and its name is self-declared, so Zekra can't vouch for it.",
+  "oauth.newClient": "This app first connected to Zekra {when}.",
   "oauth.unverifiedClient": "This app's name is self-declared, so Zekra can't vouch for it.",
   "oauth.checkHost": "Only continue if you just started this connection yourself and you recognise {host}."
 }

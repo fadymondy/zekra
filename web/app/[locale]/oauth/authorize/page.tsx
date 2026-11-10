@@ -155,7 +155,8 @@ export default function AuthorizePage() {
               <p role="note" className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
                 <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-500" />
                 <span>
-                  {req.client.new ? t("oauth.newClient", { when: timeAgo(req.client.registered_at) }) : t("oauth.unverifiedClient")}{" "}
+                  {req.client.new ? <>{t("oauth.newClient", { when: timeAgo(req.client.registered_at) })} </> : null}
+                  {req.client.verified ? null : <>{t("oauth.unverifiedClient")} </>}
                   {t("oauth.checkHost", { host: req.redirect_hostname || req.redirect_host })}
                 </span>
               </p>
