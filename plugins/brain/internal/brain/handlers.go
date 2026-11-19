@@ -990,7 +990,10 @@ func apiErr(code, msg string) map[string]any {
 
 // writeErr maps the ops error sentinels to the shared tool error model.
 func writeErr(w http.ResponseWriter, err error) {
+	err = schemaErr(err)
 	switch {
+	case errors.Is(err, ErrSchemaNotMigrated):
+		writeJSON(w, http.StatusServiceUnavailable, apiErr("schema_not_migrated", err.Error()))
 	case errors.Is(err, ErrNotFound):
 		writeJSON(w, http.StatusNotFound, apiErr("not_found", err.Error()))
 	case errors.Is(err, ErrPermission):

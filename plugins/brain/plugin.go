@@ -112,6 +112,8 @@ func init() {
 		if k.Log != nil {
 			k.Log.Info("plugin active", "plugin", Name, "consoleAuth", authRequired())
 		}
+		// The API never migrates at boot; say loudly when the DB is behind schema.sql.
+		go svc.LogSchemaDrift(context.Background())
 		return nil
 	})
 }

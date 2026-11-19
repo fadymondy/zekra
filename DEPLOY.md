@@ -41,6 +41,20 @@ change that touches `plugins/brain/internal/brain/schema.sql`:
 If the application role does not own every table (for example, some were created by
 `postgres`), apply changes to those tables as their owner.
 
+Tools that make this harder to forget:
+
+- `python -I scripts/check_schema_refs.py --since <live commit>` lists the tables
+  `schema.sql` gained since the live commit (the delta to apply), and fails when the
+  Go code queries a table no schema file declares.
+- Deltas that were missed live in `infra/migrations/` as idempotent SQL files.
+- `zekractl schema-check` compares a live database with `schema.sql` (tables and
+  `memory_events` ops) and exits 1 on drift. The API also logs the drift at boot,
+  and answers `503 schema_not_migrated` instead of a 500 when a table is missing.
+
+Example: #59/#60/#61 shipped without their delta, so `list_conflicts` failed with
+`relation "memory_conflicts" does not exist`. The fix is
+`infra/migrations/20261019_conflicts_provenance_audit.sql`.
+
 ## Configuration
 
 Every setting is documented in [`.env.example`](.env.example) and

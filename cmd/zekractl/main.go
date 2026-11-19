@@ -7,6 +7,7 @@
 //
 //	zekractl inspect     — extensions, tables, tokenizer, bm25 column/index, counts
 //	zekractl migrate     — apply the account schema + schema.sql + bm25.sql (idempotent)
+//	zekractl schema-check — list tables / memory_events ops schema.sql has but the DB lacks (exit 1 on drift)
 //	zekractl admin <email> — grant the admin role to an existing account
 //	zekractl bm25         — apply just the BM25 layer (idempotent)
 //	zekractl bm25-test    — seed a few multilingual rows and run a BM25 ranking query
@@ -35,7 +36,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|bm25|bm25-test|mirror|admin|notes-graph-backfill|notes-adopt|presentations-import>")
+		fmt.Fprintln(os.Stderr, "usage: zekractl <inspect|migrate|schema-check|bm25|bm25-test|mirror|admin|notes-graph-backfill|notes-adopt|presentations-import>")
 		os.Exit(2)
 	}
 	dsn := os.Getenv("DATABASE_URL")
@@ -71,6 +72,13 @@ func main() {
 			fatal("migrate: " + err.Error())
 		}
 		fmt.Println("✓ schema + BM25 layer applied")
+	case "schema-check":
+		d, err := brain.SchemaDrift(ctx, db)
+		must(err, "schema check")
+		if !d.Empty() {
+			fatal("schema drift — " + d.String() + "\n  fix: apply the schema.sql delta (DEPLOY.md, schema before binary)")
+		}
+		fmt.Println("✓ database matches schema.sql")
 	case "bm25":
 		must(brain.ApplyBM25(ctx, db), "apply bm25")
 		fmt.Println("✓ BM25 layer applied (tokenizer + content_bm25 + index)")

@@ -51,6 +51,10 @@ func ApplyBM25(ctx context.Context, db *sql.DB) error { return ib.ApplyBM25(ctx,
 // applied; recall degrades to vector-only). Distinguish with errors.Is.
 var ErrBM25Skipped = ib.ErrBM25Skipped
 
+// SchemaDrift reports the tables and memory_events ops schema.sql declares but
+// the live database lacks (empty when the DB is up to date).
+func SchemaDrift(ctx context.Context, db *sql.DB) (ib.Drift, error) { return ib.SchemaDrift(ctx, db) }
+
 // SchemaSQL / BM25SQL expose the embedded DDL for inspection.
 func SchemaSQL() string { return ib.SchemaSQL() }
 func BM25SQL() string   { return ib.BM25SQL() }
