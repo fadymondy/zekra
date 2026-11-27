@@ -23,7 +23,6 @@ import (
 	"github.com/circlexo/circlexo-go/entitlements"
 	"github.com/circlexo/circlexo-go/oidc"
 	"github.com/circlexo/circlexo-go/service"
-	"github.com/circlexo/circlexo-go/usage"
 	"github.com/togo-framework/brain/hubapi"
 
 	"github.com/fadymondy/zekra/internal/account"
@@ -42,12 +41,6 @@ const (
 	ConfigPath      = "/api/circlexo/config"
 )
 
-// Hub feature and meter keys, as declared in the manifest.
-const (
-	featBrains    = "brains"
-	meterRequests = "requests"
-)
-
 // Service is the integration, built once at boot from the environment.
 type Service struct {
 	DB   *sql.DB
@@ -59,7 +52,6 @@ type Service struct {
 	Verifier *circlexo.Verifier
 	Ents     *entitlements.Cache
 	RP       *oidc.RP
-	Usage    *usage.Reporter
 
 	// WebhookSecrets verify the hub's Standard Webhooks signatures (the provision endpoint too).
 	WebhookSecrets []string
@@ -128,17 +120,9 @@ func New(db *sql.DB, log *slog.Logger, acct *account.Service, cfg circlexo.Confi
 		return nil, err
 	}
 	client := circlexo.NewClient(cfg, tokens)
-	rep := usage.NewReporter(client, 1, 1)
-	rep.Retries = 2
-	rep.Backoff = 300 * time.Millisecond
 	s := &Service{
 		DB: db, Log: log, Acct: acct, Cfg: cfg, Client: client, Verifier: circlexo.NewVerifier(cfg),
-		Ents: entitlements.New(client), RP: rp, Usage: rep, WebhookSecrets: []string{sec.Webhook},
-	}
-	rep.OnResult = func(u circlexo.UsageReport, _ circlexo.UsageResult, err error) {
-		if err != nil {
-			log.Warn("circlexo: usage report failed", "org", u.OrgID, "feature", u.Feature, "err", err)
-		}
+		Ents: entitlements.New(client), RP: rp, WebhookSecrets: []string{sec.Webhook},
 	}
 	return s, nil
 }
@@ -153,7 +137,7 @@ func tokenSource(cfg circlexo.Config) (circlexo.TokenSource, error) {
 	if err != nil {
 		return nil, err
 	}
-	return service.NewSource(c, "billing.entitlements", "billing.usage", "orgs.read", "tenants.read", "tenants.write"), nil
+	return service.NewSource(c, "billing.entitlements", "orgs.read", "tenants.read", "tenants.write"), nil
 }
 
 // sessionKey turns CIRCLEXO_SESSION_KEY into the 32 bytes the OIDC state cookie is sealed with.

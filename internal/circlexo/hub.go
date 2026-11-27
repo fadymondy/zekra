@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"slices"
 
-	circlexo "github.com/circlexo/circlexo-go"
-	"github.com/circlexo/circlexo-go/usage"
 	"github.com/togo-framework/brain/hubapi"
 )
 
@@ -25,9 +23,9 @@ hub's JWKS with the audience set to Zekra's app id (the SDK's Verifier), then ma
 	                              a member of the org (circlexo_org_members)
 	membership    -> access       brain_members, re-read by the brain plugin on every call
 
-An unlinked user, an unknown or removed org, or a non-member is refused (403), never guessed; an org
-whose plan is not active is refused 402, and one whose entitlements cannot be confirmed 503 (fail
-closed). Zekra's own zko_at_ / ACL tokens are handled before this and are unchanged.
+An unlinked user, an unknown or removed org, or a non-member is refused (403), never guessed. Zekra
+is free and open source (since 2026-10-15): there is no plan to check, so a connected org's members
+are never refused for money. Zekra's own zko_at_ / ACL tokens are handled before this and are unchanged.
 
 Scopes. The hub gateway's scopes (openid, profile, email, org, ...) say nothing about what a tool
 may do. A token that names brains:write, or that the gateway exchanged for an agent (it carries an
@@ -73,9 +71,6 @@ func (s *Service) Authenticate(ctx context.Context, token string) (*hubapi.Ident
 	if !s.Acct.UserActive(ctx, userID) {
 		return nil, refusal(http.StatusForbidden, "this account is disabled")
 	}
-	if ref := s.orgUsable(ctx, link.OrgID, claims.EntVersion); ref != nil {
-		return nil, ref
-	}
 	brains, err := s.orgBrains(ctx, link.OrgID)
 	if err != nil {
 		return nil, refusal(http.StatusServiceUnavailable, "try again shortly")
@@ -89,22 +84,6 @@ func (s *Service) Authenticate(ctx context.Context, token string) (*hubapi.Ident
 		id.Actors = append(id.Actors, a.Subject)
 	}
 	return id, nil
-}
-
-// orgUsable is nil when the org's plan is active, else the refusal to send. It fails closed: an org
-// whose entitlements the hub cannot confirm (and Zekra holds no usable copy of) is refused.
-func (s *Service) orgUsable(ctx context.Context, orgID string, entVersion int64) *hubapi.Refusal {
-	set, err := s.Ents.Get(ctx, orgID, entVersion)
-	if err != nil {
-		if circlexo.IsStatus(err, http.StatusNotFound) {
-			return refusal(http.StatusPaymentRequired, "this organization does not have Zekra")
-		}
-		return refusal(http.StatusServiceUnavailable, "the CircleXO hub could not confirm this organization's plan, try again shortly")
-	}
-	if !set.Active {
-		return refusal(http.StatusPaymentRequired, "this organization's Zekra plan is not active")
-	}
-	return nil
 }
 
 func (s *Service) orgBrains(ctx context.Context, orgID string) ([]string, error) {
@@ -124,27 +103,14 @@ func (s *Service) orgBrains(ctx context.Context, orgID string) ([]string, error)
 	return out, rows.Err()
 }
 
-// Meter implements hubapi.Hub: one billable `requests` unit for the identity's org, reported
-// synchronously before the tool runs so an empty wallet or an exhausted allowance stops it (a 402
-// from the hub). The idempotency key is per call, so the SDK's own retries of THIS report are
-// free, and a client re-sending the request is a new billable request.
+// Meter implements hubapi.Hub. Zekra is free and open source: nothing is metered or charged, so
+// no usage is reported to the hub and no call is ever stopped for a balance.
 func (s *Service) Meter(ctx context.Context, id *hubapi.Identity) error {
-	_, err := s.Usage.Send(ctx, circlexo.UsageReport{OrgID: id.OrgID, Feature: meterRequests, Qty: 1, IdempotencyKey: usage.Key()})
-	switch {
-	case err == nil:
-		return nil
-	case circlexo.IsStatus(err, http.StatusPaymentRequired):
-		return refusal(http.StatusPaymentRequired, "this organization is out of Zekra requests or balance: top up at the CircleXO hub")
-	case circlexo.IsStatus(err, http.StatusNotFound):
-		return refusal(http.StatusForbidden, "this organization is not connected to Zekra")
-	}
-	s.Log.Warn("circlexo: metering a request", "org", id.OrgID, "err", err)
-	return refusal(http.StatusServiceUnavailable, "usage could not be recorded, try again")
+	return nil
 }
 
-// orgOf is the org a user's new brain is billed to: the ONE active org they belong to. A person in
-// no org (or in several: there is no way to tell which one they mean) creates unattributed brains,
-// which the hub neither limits nor bills.
+// orgOf is the org a user's new brain is attributed to: the ONE active org they belong to. A person
+// in no org (or in several: there is no way to tell which one they mean) creates unattributed brains.
 func (s *Service) orgOf(ctx context.Context, userID string) (string, error) {
 	rows, err := s.DB.QueryContext(ctx, `
 		SELECT m.org_id FROM circlexo_org_members m
@@ -168,41 +134,9 @@ func (s *Service) orgOf(ctx context.Context, userID string) (string, error) {
 	return orgs[0], nil
 }
 
-// BeforeNewBrain implements hubapi.Hub: the org's `brains` entitlement (plan limit) applied to the
-// user's next brain. Fail closed for an org the hub cannot confirm; while the SDK serves a stale
-// copy (hub down, grace window) the org may read but not add.
+// BeforeNewBrain implements hubapi.Hub. There are no plan limits: every org may add as many
+// brains as it likes (abuse is handled by Zekra's own rate limits, not by a plan).
 func (s *Service) BeforeNewBrain(ctx context.Context, userID, namespace string) error {
-	org, err := s.orgOf(ctx, userID)
-	if err != nil {
-		return refusal(http.StatusServiceUnavailable, "try again shortly")
-	}
-	if org == "" {
-		return nil
-	}
-	set, err := s.Ents.Get(ctx, org, 0)
-	if err != nil {
-		if circlexo.IsStatus(err, http.StatusNotFound) {
-			return refusal(http.StatusPaymentRequired, "your organization does not have Zekra")
-		}
-		return refusal(http.StatusServiceUnavailable, "the CircleXO hub could not confirm your organization's plan, try again shortly")
-	}
-	switch {
-	case !set.Active:
-		return refusal(http.StatusPaymentRequired, "your organization's Zekra plan is not active")
-	case set.ReadOnly:
-		return refusal(http.StatusServiceUnavailable, "the CircleXO hub is unreachable: your organization can read but not add brains until it is back")
-	case !set.Has(featBrains):
-		return refusal(http.StatusPaymentRequired, "your organization's plan has no brains: upgrade it at the CircleXO hub")
-	}
-	if limit, ok := set.Limit(featBrains); ok {
-		var n int64
-		if err := s.DB.QueryRowContext(ctx, `SELECT count(*) FROM circlexo_org_brains WHERE org_id = $1`, org).Scan(&n); err != nil {
-			return refusal(http.StatusServiceUnavailable, "try again shortly")
-		}
-		if n >= limit {
-			return refusal(http.StatusPaymentRequired, "your organization has reached its brain limit: upgrade its plan at the CircleXO hub")
-		}
-	}
 	return nil
 }
 
